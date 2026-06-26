@@ -1,0 +1,77 @@
+import express, { Application, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import { globalErrorHandler } from './middleware/errorHandler';
+import { AppError } from './utils/AppError';
+import { asyncHandler } from './middleware/asyncHandler';
+import prisma from './config/prisma';
+
+const app: Application = express();
+
+// 1. GLOBAL MIDDLEWARES
+// Security HTTP headers
+app.use(helmet());
+
+// Compress JSON payloads
+app.use(compression());
+
+import config from './config';
+
+// Cross-Origin Resource Sharing
+app.use(cors({
+  origin: config.corsOrigin,
+  credentials: true,
+}));
+
+// Development logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Body parser, reading data from body into req.body
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+import authRoutes from './modules/auth/auth.routes';
+import uploadRoutes from './modules/upload/upload.routes';
+import { datasetRouter, uploadHistoryRouter } from './modules/dataset/dataset.routes';
+import { dashboardRouter } from './modules/dataset/dashboard.routes';
+import { resourceCenterRouter } from './modules/resource-center';
+
+// 2. ROUTES
+app.use('/api/auth', authRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/datasets', datasetRouter);
+app.use('/api/upload-history', uploadHistoryRouter);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/resource-center', resourceCenterRouter);
+
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    status: 'healthy',
+  });
+});
+
+app.get(
+  '/health/database',
+  asyncHandler(async (req: Request, res: Response) => {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({
+      success: true,
+      database: 'connected',
+    });
+  })
+);
+
+// Handle undefined Routes
+app.use((req: Request, res: Response, next: NextFunction) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// 3. GLOBAL ERROR HANDLING MIDDLEWARE
+app.use(globalErrorHandler);
+
+export default app;

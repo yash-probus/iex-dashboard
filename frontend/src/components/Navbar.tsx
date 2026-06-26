@@ -1,0 +1,757 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer,
+  List, ListItem, ListItemButton, ListItemText, useTheme, useMediaQuery, alpha,
+  Collapse, Paper
+} from '@mui/material';
+import {
+  Login as LoginIcon, Settings as SettingsIcon, Menu as MenuIcon, Close as CloseIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon, ExpandLess, ExpandMore,
+  BarChart, ElectricBolt, Timer as TimerIcon, Map as MapIcon,
+  Business as BusinessIcon, EvStation as EvStationIcon, Receipt as ReceiptIcon,
+  ShowChart as ShowChartIcon, AccountTree as AccountTreeIcon, DeviceHub as DeviceHubIcon,
+  PriceCheck as PriceCheckIcon
+} from '@mui/icons-material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import LoginModal from './LoginModal';
+
+const MARKET_ITEMS = [
+  { label: 'DAM', path: '/dam', icon: <BarChart fontSize="small" sx={{ color: '#3B8FF3' }} /> },
+  { label: 'GDAM', path: '/gdam', icon: <ElectricBolt fontSize="small" sx={{ color: '#34B1AA' }} /> },
+  { label: 'RTM', path: '/rtm', icon: <TimerIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
+];
+
+const RESOURCE_ROUTES = [
+  { label: 'Region State', path: '/resource-center/region-state', icon: <MapIcon fontSize="small" sx={{ color: '#F29F67' }} /> },
+  { label: 'Discom List', path: '/resource-center/discom-list', icon: <BusinessIcon fontSize="small" sx={{ color: '#3B8FF3' }} /> },
+  { label: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <EvStationIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
+  { label: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
+  { label: 'ProLT Margin', path: '/resource-center/prolt-margin', icon: <ShowChartIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
+  { label: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <AccountTreeIcon fontSize="small" sx={{ color: '#EC4899' }} /> },
+  { label: 'STU Charges', path: '/resource-center/stu-charges', icon: <DeviceHubIcon fontSize="small" sx={{ color: '#10B981' }} /> },
+  { label: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" sx={{ color: '#EF4444' }} /> },
+];
+
+export default function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery('(max-width:767px)');
+
+  const [scrolled, setScrolled] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  const [desktopMarketsOpen, setDesktopMarketsOpen] = useState(false);
+  const [mobileMarketsOpen, setMobileMarketsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [desktopResourceOpen, setDesktopResourceOpen] = useState(false);
+  const [mobileResourceOpen, setMobileResourceOpen] = useState(false);
+  const resourceDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDesktopMarketsOpen(false);
+      }
+      if (resourceDropdownRef.current && !resourceDropdownRef.current.contains(event.target as Node)) {
+        setDesktopResourceOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [scrolled]);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/dashboard') {
+      return location.pathname === '/dashboard' || location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  const isMarketsActive = MARKET_ITEMS.some(item => location.pathname.startsWith(item.path));
+  const isResourceActive = RESOURCE_ROUTES.some(item => location.pathname.startsWith(item.path));
+
+  const isAdminActive = location.pathname.startsWith('/admin');
+
+  // Drawer Content for Mobile
+  const drawer = (
+    <Box sx={{ width: 280, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" fontWeight="500">Menu</Typography>
+        <IconButton onClick={handleDrawerToggle}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      <List sx={{ flexGrow: 1 }}>
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => { navigate('/dashboard'); setMobileOpen(false); }}
+            selected={isActive('/dashboard')}
+            sx={{
+              mx: 1,
+              mb: 1,
+              ...(isActive('/dashboard') && {
+                bgcolor: 'transparent',
+                '& .MuiListItemText-primary': {
+                  color: 'primary.dark',
+                  fontWeight: 600,
+                }
+              })
+            }}
+          >
+            <ListItemText
+              primary="Overview"
+              primaryTypographyProps={{
+                fontWeight: isActive('/dashboard') ? 600 : 400,
+                sx: {
+                  textDecoration: isActive('/dashboard') ? 'underline' : 'none',
+                  textDecorationColor: isActive('/dashboard') ? 'primary.dark' : 'transparent',
+                  textDecorationThickness: '2px',
+                  textUnderlineOffset: '6px'
+                }
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setMobileMarketsOpen(!mobileMarketsOpen)}
+            sx={{
+              mx: 1,
+              mb: 1,
+              ...(isMarketsActive && {
+                bgcolor: 'transparent',
+                '& .MuiListItemText-primary': {
+                  color: 'primary.dark',
+                  fontWeight: 600,
+                }
+              })
+            }}
+          >
+            <ListItemText
+              primary="Markets"
+              primaryTypographyProps={{
+                fontWeight: isMarketsActive ? 600 : 400,
+                sx: {
+                  textDecoration: isMarketsActive ? 'underline' : 'none',
+                  textDecorationColor: isMarketsActive ? 'primary.dark' : 'transparent',
+                  textDecorationThickness: '2px',
+                  textUnderlineOffset: '6px'
+                }
+              }}
+            />
+            {mobileMarketsOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+        
+        <Collapse in={mobileMarketsOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {MARKET_ITEMS.map((item) => (
+              <ListItemButton 
+                key={item.path}
+                onClick={() => { navigate(item.path); setMobileOpen(false); }}
+                sx={{ 
+                  pl: 4, 
+                  mx: 1,
+                  mb: 0.5,
+                  borderRadius: 1,
+                  bgcolor: isActive(item.path) ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                  {item.icon}
+                </Box>
+                <ListItemText 
+                  primary={item.label} 
+                  primaryTypographyProps={{ 
+                    fontWeight: isActive(item.path) ? 600 : 400,
+                    color: isActive(item.path) ? 'primary.dark' : 'text.primary'
+                  }} 
+                />
+              </ListItemButton>
+            ))}
+          </List>
+        </Collapse>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setMobileResourceOpen(!mobileResourceOpen)}
+            sx={{
+              mx: 1,
+              mb: 1,
+              ...(isResourceActive && {
+                bgcolor: 'transparent',
+                '& .MuiListItemText-primary': {
+                  color: 'primary.dark',
+                  fontWeight: 600,
+                }
+              })
+            }}
+          >
+            <ListItemText
+              primary="Resource Center"
+              primaryTypographyProps={{
+                fontWeight: isResourceActive ? 600 : 400,
+                sx: {
+                  textDecoration: isResourceActive ? 'underline' : 'none',
+                  textDecorationColor: isResourceActive ? 'primary.dark' : 'transparent',
+                  textDecorationThickness: '2px',
+                  textUnderlineOffset: '6px'
+                }
+              }}
+            />
+            {mobileResourceOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+        
+        <Collapse in={mobileResourceOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {RESOURCE_ROUTES.map((item) => (
+              <ListItemButton 
+                key={item.path}
+                onClick={() => { navigate(item.path); setMobileOpen(false); }}
+                sx={{ 
+                  pl: 4, 
+                  mx: 1,
+                  mb: 0.5,
+                  borderRadius: 1,
+                  bgcolor: isActive(item.path) ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                  {item.icon}
+                </Box>
+                <ListItemText 
+                  primary={item.label} 
+                  primaryTypographyProps={{ 
+                    fontWeight: isActive(item.path) ? 600 : 400,
+                    color: isActive(item.path) ? 'primary.dark' : 'text.primary'
+                  }} 
+                />
+              </ListItemButton>
+            ))}
+          </List>
+        </Collapse>
+      </List>
+      <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+        {isAuthenticated ? (
+          <>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => { navigate('/admin'); setMobileOpen(false); }}
+              startIcon={<SettingsIcon />}
+              sx={{
+                mb: 2,
+                borderRadius: '999px',
+                fontWeight: 500,
+                fontSize: '14px',
+                background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+              }}
+            >
+              Admin Dashboard
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => { logout(); navigate('/dashboard'); setMobileOpen(false); }}
+              sx={{ borderRadius: '999px', fontWeight: 500, fontSize: '14px' }}
+            >
+              Logout
+            </Button>
+          </>
+        ) : (
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => { setLoginModalOpen(true); setMobileOpen(false); }}
+            startIcon={<LoginIcon />}
+            sx={{
+              borderRadius: '999px',
+              fontWeight: 500,
+              fontSize: '14px',
+              background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+            }}
+          >
+            Admin Login
+          </Button>
+        )}
+      </Box>
+    </Box>
+  );
+
+  return (
+    <>
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          top: 0,
+          left: 0,
+          right: 0,
+          mt: { xs: 1, sm: 2 },
+          mx: 'auto',
+          maxWidth: `${theme.breakpoints.values.xl}px`,
+          width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)' },
+          borderRadius: '50px',
+          height: { xs: '60px', sm: '68px' },
+          display: 'flex',
+          justifyContent: 'center',
+          backgroundColor: alpha(theme.palette.background.paper, scrolled ? 0.85 : 0.75),
+          backdropFilter: `blur(${scrolled ? 16 : 12}px)`,
+          WebkitBackdropFilter: `blur(${scrolled ? 16 : 12}px)`,
+          border: '1px solid',
+          borderColor: alpha(theme.palette.divider, 0.1),
+          boxShadow: scrolled
+            ? '0 12px 40px rgba(249, 115, 22, 0.12)'
+            : '0 8px 30px rgba(249, 115, 22, 0.08)',
+          zIndex: (theme) => theme.zIndex.appBar,
+          transition: 'all 250ms ease',
+        }}
+        color="inherit"
+      >
+        <Toolbar sx={{ px: { xs: 2, sm: 4 }, height: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+          {/* Left: Logo */}
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}
+            onClick={() => navigate('/dashboard')}
+            aria-label="Home"
+          >
+            {!logoError ? (
+              <Box
+                component="img"
+                src="/assets/logo.jpeg"
+                alt="IEX Analytics"
+                onError={() => setLogoError(true)}
+                sx={{
+                  maxHeight: { xs: '10px', sm: '20px' },
+                  height: 'auto',
+                  width: 'auto',
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{ fontWeight: 600, color: 'text.primary', letterSpacing: '-0.025em' }}
+              >
+                IEX Analytics
+              </Typography>
+            )}
+          </Box>
+
+          {/* Center: Market Navigation (Desktop Only) */}
+          {!isMobile && (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+              {/* Overview Button */}
+              <Button
+                disableRipple
+                onClick={() => navigate('/dashboard')}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: isActive('/dashboard') ? 600 : 400,
+                  fontSize: '15px',
+                  px: 2.5,
+                  py: 0.75,
+                  minHeight: '40px',
+                  transition: 'all 250ms ease',
+                  color: isActive('/dashboard') ? theme.palette.primary.dark : 'text.primary',
+                  backgroundColor: 'transparent',
+                  boxShadow: 'none',
+                  textDecoration: isActive('/dashboard') ? 'underline' : 'none',
+                  textDecorationColor: isActive('/dashboard') ? theme.palette.primary.dark : 'transparent',
+                  textDecorationThickness: '2px',
+                  textUnderlineOffset: '6px',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    color: theme.palette.primary.dark,
+                    boxShadow: 'none',
+                    textDecoration: isActive('/dashboard') ? 'underline' : 'none',
+                    textDecorationColor: isActive('/dashboard') ? theme.palette.primary.dark : 'transparent',
+                  }
+                }}
+              >
+                Overview
+              </Button>
+
+              {/* Markets Dropdown Wrapper (Unified Hover Zone) */}
+              <Box 
+                ref={dropdownRef}
+                onMouseEnter={() => setDesktopMarketsOpen(true)}
+                onMouseLeave={() => setDesktopMarketsOpen(false)}
+                sx={{ position: 'relative' }}
+              >
+                <Button
+                  disableRipple
+                  onClick={() => setDesktopMarketsOpen(!desktopMarketsOpen)}
+                  endIcon={
+                    <KeyboardArrowDownIcon 
+                      sx={{ 
+                        transition: 'transform 0.2s', 
+                        transform: desktopMarketsOpen ? 'rotate(180deg)' : 'rotate(0deg)' 
+                      }} 
+                    />
+                  }
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: isMarketsActive ? 600 : 400,
+                    fontSize: '15px',
+                    px: 2.5,
+                    py: 0.75,
+                    minHeight: '40px',
+                    transition: 'all 250ms ease',
+                    color: isMarketsActive ? theme.palette.primary.dark : 'text.primary',
+                    backgroundColor: 'transparent',
+                    boxShadow: 'none',
+                    textDecoration: isMarketsActive ? 'underline' : 'none',
+                    textDecorationColor: isMarketsActive ? theme.palette.primary.dark : 'transparent',
+                    textDecorationThickness: '2px',
+                    textUnderlineOffset: '6px',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                      color: theme.palette.primary.dark,
+                      boxShadow: 'none',
+                      textDecoration: isMarketsActive ? 'underline' : 'none',
+                      textDecorationColor: isMarketsActive ? theme.palette.primary.dark : 'transparent',
+                    }
+                  }}
+                >
+                  Markets
+                </Button>
+
+                {/* Dropdown Panel */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    pt: 1, // Visual gap bridged by invisible padding
+                    visibility: desktopMarketsOpen ? 'visible' : 'hidden',
+                    opacity: desktopMarketsOpen ? 1 : 0,
+                    transition: 'opacity 0.2s ease, visibility 0.2s ease',
+                    zIndex: (theme) => theme.zIndex.tooltip + 100, // Explicitly rendering above EVERYTHING
+                  }}
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      width: 180,
+                      p: 1,
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: (theme) => alpha(theme.palette.divider, 0.1),
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
+                      backgroundColor: 'background.paper',
+                    }}
+                  >
+                    <List disablePadding>
+                      {MARKET_ITEMS.map((item) => (
+                        <ListItemButton
+                          key={item.path}
+                          onClick={() => {
+                            navigate(item.path);
+                            setDesktopMarketsOpen(false);
+                          }}
+                          sx={{
+                            borderRadius: 2,
+                            mb: 0.5,
+                            px: 2,
+                            py: 1,
+                            backgroundColor: isActive(item.path) ? (theme) => alpha(theme.palette.primary.main, 0.05) : 'transparent',
+                            '&:last-child': { mb: 0 },
+                            '&:hover': {
+                              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                            {item.icon}
+                          </Box>
+                          <ListItemText 
+                            primary={item.label} 
+                            primaryTypographyProps={{
+                              fontWeight: isActive(item.path) ? 600 : 500,
+                              color: isActive(item.path) ? 'primary.dark' : 'text.primary',
+                              fontSize: '14px'
+                            }}
+                          />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Paper>
+                </Box>
+              </Box>
+
+              {/* Resource Center Dropdown Wrapper */}
+              <Box 
+                ref={resourceDropdownRef}
+                onMouseEnter={() => setDesktopResourceOpen(true)}
+                onMouseLeave={() => setDesktopResourceOpen(false)}
+                sx={{ position: 'relative' }}
+              >
+                <Button
+                  disableRipple
+                  onClick={() => setDesktopResourceOpen(!desktopResourceOpen)}
+                  endIcon={
+                    <KeyboardArrowDownIcon 
+                      sx={{ 
+                        transition: 'transform 0.2s', 
+                        transform: desktopResourceOpen ? 'rotate(180deg)' : 'rotate(0deg)' 
+                      }} 
+                    />
+                  }
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: isResourceActive ? 600 : 400,
+                    fontSize: '15px',
+                    px: 2.5,
+                    py: 0.75,
+                    minHeight: '40px',
+                    transition: 'all 250ms ease',
+                    color: isResourceActive ? theme.palette.primary.dark : 'text.primary',
+                    backgroundColor: 'transparent',
+                    boxShadow: 'none',
+                    textDecoration: isResourceActive ? 'underline' : 'none',
+                    textDecorationColor: isResourceActive ? theme.palette.primary.dark : 'transparent',
+                    textDecorationThickness: '2px',
+                    textUnderlineOffset: '6px',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                      color: theme.palette.primary.dark,
+                      boxShadow: 'none',
+                      textDecoration: isResourceActive ? 'underline' : 'none',
+                      textDecorationColor: isResourceActive ? theme.palette.primary.dark : 'transparent',
+                    }
+                  }}
+                >
+                  Resource Center
+                </Button>
+
+                {/* Dropdown Panel */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    pt: 1, 
+                    visibility: desktopResourceOpen ? 'visible' : 'hidden',
+                    opacity: desktopResourceOpen ? 1 : 0,
+                    transition: 'opacity 0.2s ease, visibility 0.2s ease',
+                    zIndex: (theme) => theme.zIndex.tooltip + 100, 
+                  }}
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      width: 200,
+                      p: 1,
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: (theme) => alpha(theme.palette.divider, 0.1),
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
+                      backgroundColor: 'background.paper',
+                    }}
+                  >
+                    <List disablePadding>
+                      {RESOURCE_ROUTES.map((item) => (
+                        <ListItemButton
+                          key={item.path}
+                          onClick={() => {
+                            navigate(item.path);
+                            setDesktopResourceOpen(false);
+                          }}
+                          sx={{
+                            borderRadius: 2,
+                            mb: 0.5,
+                            px: 2,
+                            py: 1,
+                            backgroundColor: isActive(item.path) ? (theme) => alpha(theme.palette.primary.main, 0.05) : 'transparent',
+                            '&:last-child': { mb: 0 },
+                            '&:hover': {
+                              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                            {item.icon}
+                          </Box>
+                          <ListItemText 
+                            primary={item.label} 
+                            primaryTypographyProps={{
+                              fontWeight: isActive(item.path) ? 600 : 500,
+                              color: isActive(item.path) ? 'primary.dark' : 'text.primary',
+                              fontSize: '14px'
+                            }}
+                          />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Paper>
+                </Box>
+              </Box>
+            </Box>
+          )}
+
+          {/* Right: Actions */}
+          {isMobile ? (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="end"
+              onClick={handleDrawerToggle}
+              sx={{ color: 'text.primary' }}
+            >
+              <MenuIcon />
+            </IconButton>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexShrink: 0, gap: 2, alignItems: 'center' }}>
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    onClick={() => navigate('/admin')}
+                    aria-label="Admin Dashboard"
+                    startIcon={<SettingsIcon fontSize="small" />}
+                    variant="contained"
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      borderRadius: '999px',
+                      px: 3,
+                      py: 0.75,
+                      minHeight: '40px',
+                      background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+                      boxShadow: 'none',
+                      transition: 'all 250ms ease',
+                      border: '1px solid transparent',
+                      '&:hover': {
+                        background: `linear-gradient(45deg, #C2410C 30%, #9A3412 90%)`,
+                        borderColor: '#9A3412',
+                        boxShadow: 'none',
+                      }
+                    }}
+                  >
+                    Admin Dashboard
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      logout();
+                      navigate('/dashboard');
+                    }}
+                    sx={{
+                      borderRadius: '999px',
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      px: 3,
+                      py: 0.75,
+                      minHeight: '40px',
+                      borderColor: alpha(theme.palette.text.primary, 0.3),
+                      color: 'text.primary',
+                      transition: 'all 250ms ease',
+                      '@media (prefers-reduced-motion: no-preference)': {
+                        '&:hover': {
+                          borderColor: 'text.primary',
+                          color: 'text.primary',
+                          backgroundColor: alpha(theme.palette.text.primary, 0.05)
+                        }
+                      },
+                      '@media (prefers-reduced-motion: reduce)': {
+                        '&:hover': {
+                          borderColor: 'text.primary',
+                          color: 'text.primary',
+                          backgroundColor: alpha(theme.palette.text.primary, 0.05)
+                        }
+                      }
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={() => setLoginModalOpen(true)}
+                  startIcon={<LoginIcon fontSize="small" />}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    borderRadius: '999px',
+                    px: 3,
+                    py: 0.75,
+                    minHeight: '40px',
+                    background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+                    boxShadow: 'none',
+                    transition: 'all 250ms ease',
+                    border: '1px solid transparent',
+                    '&:hover': {
+                      background: `linear-gradient(45deg, #C2410C 30%, #9A3412 90%)`,
+                      borderColor: '#9A3412',
+                      boxShadow: 'none',
+                    }
+                  }}
+                >
+                  Admin Login
+                </Button>
+              )}
+            </Box>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* Spacer to prevent content from going under the fixed AppBar */}
+      <Box sx={{ height: { xs: '80px', sm: '100px' } }} />
+
+      {/* Mobile Navigation Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 280 },
+          zIndex: (theme) => theme.zIndex.modal + 1,
+        }}
+      >
+        {drawer}
+      </Drawer>
+
+      <LoginModal 
+        open={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)} 
+      />
+    </>
+  );
+}
