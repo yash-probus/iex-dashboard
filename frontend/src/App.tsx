@@ -14,39 +14,44 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     background: {
-      default: '#F5F7FA',
+      default: '#F8FAFC',
       paper: '#FFFFFF',
     },
     text: {
-      primary: '#1E1E2C',
-      secondary: '#6B7280',
+      primary: '#0F172A',
+      secondary: '#64748B',
     },
     primary: {
-      main: '#F29F67', 
+      main: '#EA580C',
+      light: '#F97316',
+      dark: '#C2410C',
       contrastText: '#FFFFFF'
     },
     secondary: {
       main: '#3B8FF3',
+      light: '#60A5FA',
+      dark: '#2563EB',
     },
-    divider: '#E5E7EB',
+    divider: '#E2E8F0',
   },
   typography: {
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    h1: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '22px' },
-    h2: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '20px' },
-    h3: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '18px' },
-    h4: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '16px' },
-    h5: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '14px' },
-    h6: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '13px' },
-    subtitle1: { fontFamily: '"Poppins", sans-serif', fontWeight: 500, fontSize: '13px' },
-    subtitle2: { fontFamily: '"Poppins", sans-serif', fontWeight: 500, fontSize: '12px' },
-    body1: { fontSize: '13px' },
-    body2: { fontSize: '12px' },
-    caption: { fontSize: '11px' },
+    h1: { fontFamily: '"Poppins", sans-serif', fontWeight: 700, fontSize: '28px', letterSpacing: '-0.02em' },
+    h2: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '24px', letterSpacing: '-0.01em' },
+    h3: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '20px' },
+    h4: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '18px' },
+    h5: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '16px' },
+    h6: { fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '14px' },
+    subtitle1: { fontFamily: '"Inter", sans-serif', fontWeight: 500, fontSize: '14px' },
+    subtitle2: { fontFamily: '"Inter", sans-serif', fontWeight: 500, fontSize: '13px' },
+    body1: { fontSize: '14px', lineHeight: 1.6 },
+    body2: { fontSize: '13px', lineHeight: 1.5 },
+    caption: { fontSize: '12px' },
     button: {
       textTransform: 'none',
-      fontWeight: 500,
-      fontSize: '12px',
+      fontWeight: 600,
+      fontSize: '13px',
+      letterSpacing: '0.01em'
     },
   },
   shape: {
@@ -57,27 +62,78 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: 'none',
-          padding: '4px 12px',
+          padding: '8px 16px',
+          transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            boxShadow: 'none',
+            boxShadow: '0 4px 12px rgba(234, 88, 12, 0.15)',
+            transform: 'translateY(-1px)'
           },
+          '&:active': {
+            transform: 'translateY(0)'
+          }
         },
+        contained: {
+          background: 'linear-gradient(to right, #EA580C, #F97316)',
+        },
+        outlined: {
+          borderColor: '#E2E8F0',
+          '&:hover': {
+            borderColor: '#EA580C',
+            backgroundColor: 'transparent'
+          }
+        }
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
+          border: '1px solid #F1F5F9'
         },
+        elevation1: {
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)'
+        },
+        elevation2: {
+          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)'
+        }
       },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
+          border: '1px solid #F1F5F9',
+          transition: 'box-shadow 0.2s ease-in-out',
+          '&:hover': {
+            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)'
+          }
+        }
+      }
     },
     MuiTab: {
       styleOverrides: {
         root: {
-          fontSize: '13px',
-          fontWeight: 500,
+          fontSize: '14px',
+          fontWeight: 600,
           minHeight: '48px',
+          textTransform: 'none'
+        }
+      }
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottom: '1px solid #F1F5F9',
+          padding: '16px',
+        },
+        head: {
+          fontWeight: 600,
+          color: '#64748B',
+          textTransform: 'uppercase',
+          fontSize: '12px',
+          letterSpacing: '0.05em',
+          backgroundColor: '#F8FAFC'
         }
       }
     }

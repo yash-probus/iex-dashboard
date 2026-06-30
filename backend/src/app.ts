@@ -7,6 +7,7 @@ import { globalErrorHandler } from './middleware/errorHandler';
 import { AppError } from './utils/AppError';
 import { asyncHandler } from './middleware/asyncHandler';
 import prisma from './config/prisma';
+import { CronService } from './services/cron.service';
 
 const app: Application = express();
 
@@ -40,6 +41,10 @@ import { datasetRouter, uploadHistoryRouter } from './modules/dataset/dataset.ro
 import { dashboardRouter } from './modules/dataset/dashboard.routes';
 import { resourceCenterRouter } from './modules/resource-center';
 import scraperRoutes from './modules/scraper/scraper.routes';
+import databaseRoutes from './modules/database/database.routes';
+
+// Initialize scheduled background jobs
+CronService.init();
 
 // 2. ROUTES
 app.use('/api/auth', authRoutes);
@@ -49,6 +54,7 @@ app.use('/api/upload-history', uploadHistoryRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/resource-center', resourceCenterRouter);
 app.use('/api/scraper', scraperRoutes);
+app.use('/api/database', databaseRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({

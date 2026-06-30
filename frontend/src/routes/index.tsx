@@ -17,6 +17,7 @@ import AdminPage from '../pages/AdminPage';
 import MarketDataAdminPage from '../pages/admin/MarketDataAdminPage';
 import ResourceCenterAdminPage from '../pages/admin/ResourceCenterAdminPage';
 import AdminResourcePage from '../pages/admin/resource-center/AdminResourcePage';
+import DatabasePage from '../pages/DatabasePage';
 import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 
@@ -27,6 +28,12 @@ export default function AppRoutes() {
       <Route path="/" element={<DashboardLayout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        {/* We map all database routes to the same DatabasePage for now, as it shows all three. 
+            Later we can split them up if desired, or handle scroll inside the component */}
+        <Route path="database/all-india-demand" element={<DatabasePage />} />
+        <Route path="database/state-wise-demand" element={<DatabasePage />} />
+        <Route path="database/weather" element={<DatabasePage />} />
+        <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
         <Route path="dam" element={<DAMPage />} />
         <Route path="gdam" element={<GDAMPage />} />
         <Route path="rtm" element={<RTMPage />} />

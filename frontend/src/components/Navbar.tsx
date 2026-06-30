@@ -10,7 +10,7 @@ import {
   BarChart, ElectricBolt, Timer as TimerIcon, Map as MapIcon,
   Business as BusinessIcon, EvStation as EvStationIcon, Receipt as ReceiptIcon,
   ShowChart as ShowChartIcon, AccountTree as AccountTreeIcon, DeviceHub as DeviceHubIcon,
-  PriceCheck as PriceCheckIcon
+  PriceCheck as PriceCheckIcon, Timeline as TimelineIcon, Cloud as CloudIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -33,6 +33,13 @@ const RESOURCE_ROUTES = [
   { label: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" sx={{ color: '#EF4444' }} /> },
 ];
 
+const DATABASE_ROUTES = [
+  { label: 'All India Demand (NPP)', path: '/database/all-india-demand', icon: <TimelineIcon fontSize="small" sx={{ color: '#3B8FF3' }} /> },
+  { label: 'State Wise Demand (Vidyut Pravah & IEX)', path: '/database/state-wise-demand', icon: <MapIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
+  { label: 'Weather Analytics (Open-Meteo)', path: '/database/weather', icon: <CloudIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
+];
+
+
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,6 +60,10 @@ export default function Navbar() {
   const [mobileResourceOpen, setMobileResourceOpen] = useState(false);
   const resourceDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [desktopDatabaseOpen, setDesktopDatabaseOpen] = useState(false);
+  const [mobileDatabaseOpen, setMobileDatabaseOpen] = useState(false);
+  const databaseDropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -60,6 +71,9 @@ export default function Navbar() {
       }
       if (resourceDropdownRef.current && !resourceDropdownRef.current.contains(event.target as Node)) {
         setDesktopResourceOpen(false);
+      }
+      if (databaseDropdownRef.current && !databaseDropdownRef.current.contains(event.target as Node)) {
+        setDesktopDatabaseOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -92,6 +106,7 @@ export default function Navbar() {
 
   const isMarketsActive = MARKET_ITEMS.some(item => location.pathname.startsWith(item.path));
   const isResourceActive = RESOURCE_ROUTES.some(item => location.pathname.startsWith(item.path));
+  const isDatabaseActive = DATABASE_ROUTES.some(item => location.pathname.startsWith(item.path));
 
   const isAdminActive = location.pathname.startsWith('/admin');
 
@@ -135,6 +150,66 @@ export default function Navbar() {
             />
           </ListItemButton>
         </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setMobileDatabaseOpen(!mobileDatabaseOpen)}
+            sx={{
+              mx: 1,
+              mb: 1,
+              ...(isDatabaseActive && {
+                bgcolor: 'transparent',
+                '& .MuiListItemText-primary': {
+                  color: 'primary.dark',
+                  fontWeight: 600,
+                }
+              })
+            }}
+          >
+            <ListItemText
+              primary="Database"
+              primaryTypographyProps={{
+                fontWeight: isDatabaseActive ? 600 : 400,
+                sx: {
+                  textDecoration: isDatabaseActive ? 'underline' : 'none',
+                  textDecorationColor: isDatabaseActive ? 'primary.dark' : 'transparent',
+                  textDecorationThickness: '2px',
+                  textUnderlineOffset: '6px'
+                }
+              }}
+            />
+            {mobileDatabaseOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+        
+        <Collapse in={mobileDatabaseOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {DATABASE_ROUTES.map((item) => (
+              <ListItemButton 
+                key={item.path}
+                onClick={() => { navigate(item.path); setMobileOpen(false); }}
+                sx={{ 
+                  pl: 4, 
+                  mx: 1,
+                  mb: 0.5,
+                  borderRadius: 1,
+                  bgcolor: isActive(item.path) ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                  {item.icon}
+                </Box>
+                <ListItemText 
+                  primary={item.label} 
+                  primaryTypographyProps={{ 
+                    fontWeight: isActive(item.path) ? 600 : 400,
+                    color: isActive(item.path) ? 'primary.dark' : 'text.primary'
+                  }} 
+                />
+              </ListItemButton>
+            ))}
+          </List>
+        </Collapse>
 
         <ListItem disablePadding>
           <ListItemButton
@@ -320,14 +395,14 @@ export default function Navbar() {
           height: { xs: '60px', sm: '68px' },
           display: 'flex',
           justifyContent: 'center',
-          backgroundColor: alpha(theme.palette.background.paper, scrolled ? 0.85 : 0.75),
-          backdropFilter: `blur(${scrolled ? 16 : 12}px)`,
-          WebkitBackdropFilter: `blur(${scrolled ? 16 : 12}px)`,
+          backgroundColor: alpha(theme.palette.background.paper, scrolled ? 0.75 : 0.4),
+          backdropFilter: `blur(${scrolled ? 24 : 16}px)`,
+          WebkitBackdropFilter: `blur(${scrolled ? 24 : 16}px)`,
           border: '1px solid',
-          borderColor: alpha(theme.palette.divider, 0.1),
+          borderColor: alpha(theme.palette.divider, 0.4),
           boxShadow: scrolled
-            ? '0 12px 40px rgba(249, 115, 22, 0.12)'
-            : '0 8px 30px rgba(249, 115, 22, 0.08)',
+            ? '0 10px 40px -10px rgba(15, 23, 42, 0.1)'
+            : '0 4px 20px -10px rgba(15, 23, 42, 0.05)',
           zIndex: (theme) => theme.zIndex.appBar,
           transition: 'all 250ms ease',
         }}
@@ -399,6 +474,115 @@ export default function Navbar() {
                 Overview
               </Button>
 
+              {/* Database Dropdown Wrapper */}
+              <Box 
+                ref={databaseDropdownRef}
+                onMouseEnter={() => setDesktopDatabaseOpen(true)}
+                onMouseLeave={() => setDesktopDatabaseOpen(false)}
+                sx={{ position: 'relative' }}
+              >
+                <Button
+                  disableRipple
+                  onClick={() => setDesktopDatabaseOpen(!desktopDatabaseOpen)}
+                  endIcon={
+                    <KeyboardArrowDownIcon 
+                      sx={{ 
+                        transition: 'transform 0.2s', 
+                        transform: desktopDatabaseOpen ? 'rotate(180deg)' : 'rotate(0deg)' 
+                      }} 
+                    />
+                  }
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: isDatabaseActive ? 600 : 400,
+                    fontSize: '15px',
+                    px: 2.5,
+                    py: 0.75,
+                    minHeight: '40px',
+                    transition: 'all 250ms ease',
+                    color: isDatabaseActive ? theme.palette.primary.dark : 'text.primary',
+                    backgroundColor: 'transparent',
+                    boxShadow: 'none',
+                    textDecoration: isDatabaseActive ? 'underline' : 'none',
+                    textDecorationColor: isDatabaseActive ? theme.palette.primary.dark : 'transparent',
+                    textDecorationThickness: '2px',
+                    textUnderlineOffset: '6px',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                      color: theme.palette.primary.dark,
+                      boxShadow: 'none',
+                      textDecoration: isDatabaseActive ? 'underline' : 'none',
+                      textDecorationColor: isDatabaseActive ? theme.palette.primary.dark : 'transparent',
+                    }
+                  }}
+                >
+                  Database
+                </Button>
+
+                {/* Dropdown Panel */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: desktopDatabaseOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(10px)',
+                    pt: 1.5, 
+                    visibility: desktopDatabaseOpen ? 'visible' : 'hidden',
+                    opacity: desktopDatabaseOpen ? 1 : 0,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    zIndex: (theme) => theme.zIndex.tooltip + 100, 
+                  }}
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      width: 280,
+                      p: 1,
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: (theme) => alpha(theme.palette.divider, 0.1),
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
+                      backgroundColor: 'background.paper',
+                    }}
+                  >
+                    <List disablePadding>
+                      {DATABASE_ROUTES.map((item) => (
+                        <ListItemButton
+                          key={item.path}
+                          onClick={() => {
+                            navigate(item.path);
+                            setDesktopDatabaseOpen(false);
+                          }}
+                          sx={{
+                            borderRadius: 2,
+                            mb: 0.5,
+                            px: 2,
+                            py: 1,
+                            backgroundColor: isActive(item.path) ? (theme) => alpha(theme.palette.primary.main, 0.05) : 'transparent',
+                            '&:last-child': { mb: 0 },
+                            '&:hover': {
+                              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                            {item.icon}
+                          </Box>
+                          <ListItemText 
+                            primary={item.label} 
+                            primaryTypographyProps={{
+                              fontWeight: isActive(item.path) ? 600 : 500,
+                              color: isActive(item.path) ? 'primary.dark' : 'text.primary',
+                              fontSize: '14px'
+                            }}
+                          />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Paper>
+                </Box>
+              </Box>
+
               {/* Markets Dropdown Wrapper (Unified Hover Zone) */}
               <Box 
                 ref={dropdownRef}
@@ -450,11 +634,11 @@ export default function Navbar() {
                     position: 'absolute',
                     top: '100%',
                     left: '50%',
-                    transform: 'translateX(-50%)',
-                    pt: 1, // Visual gap bridged by invisible padding
+                    transform: desktopMarketsOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(10px)',
+                    pt: 1.5, // Visual gap bridged by invisible padding
                     visibility: desktopMarketsOpen ? 'visible' : 'hidden',
                     opacity: desktopMarketsOpen ? 1 : 0,
-                    transition: 'opacity 0.2s ease, visibility 0.2s ease',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: (theme) => theme.zIndex.tooltip + 100, // Explicitly rendering above EVERYTHING
                   }}
                 >
@@ -559,11 +743,11 @@ export default function Navbar() {
                     position: 'absolute',
                     top: '100%',
                     left: '50%',
-                    transform: 'translateX(-50%)',
-                    pt: 1, 
+                    transform: desktopResourceOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(10px)',
+                    pt: 1.5, 
                     visibility: desktopResourceOpen ? 'visible' : 'hidden',
                     opacity: desktopResourceOpen ? 1 : 0,
-                    transition: 'opacity 0.2s ease, visibility 0.2s ease',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: (theme) => theme.zIndex.tooltip + 100, 
                   }}
                 >

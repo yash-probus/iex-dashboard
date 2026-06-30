@@ -277,6 +277,49 @@ model user_details {
   @@schema("prolt_energy")
 }
 
+model NppDemandData {
+  id        String   @id @default(uuid())
+  date      String   @db.VarChar(10) // YYYY-MM-DD
+  timeStr   String   @db.VarChar(10) // HH:MM
+  demandMet Int
+  hydro     Int
+  wind      Int
+  gas       Int
+  solar     Int
+  nuclear   Int
+  thermal   Int
+  createdAt DateTime @default(now())
+
+  @@unique([date, timeStr])
+  @@schema("public")
+}
+
+model NppRawDemandData {
+  id        String   @id @default(uuid())
+  date      String   @db.VarChar(10) // YYYY-MM-DD
+  timeStr   String   @db.VarChar(10) // HH:MM exact time scraped
+  demandMet Int
+  hydro     Int
+  wind      Int
+  gas       Int
+  solar     Int
+  nuclear   Int
+  thermal   Int
+  createdAt DateTime @default(now())
+
+  @@schema("public")
+}
+
+model DataRoundingLog {
+  id             String   @id @default(uuid())
+  rawTimeStr     String   @db.VarChar(10) // e.g., "14:13"
+  roundedTimeStr String   @db.VarChar(10) // e.g., "14:15"
+  date           String   @db.VarChar(10)
+  createdAt      DateTime @default(now())
+
+  @@schema("public")
+}
+
 enum MarketType {
   DAM
   GDAM
@@ -306,4 +349,31 @@ enum state_ut_enum {
   ut
 
   @@schema("prolt_energy")
+}
+
+model StateDemandData {
+  id        String   @id @default(uuid())
+  stateName String
+  date      String   @db.VarChar(10) // YYYY-MM-DD
+  timeStr   String   @db.VarChar(10) // HH:MM
+  demand    Int
+  unit      String
+  region    String
+  price     Float
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([stateName, date, timeStr])
+  @@schema("public")
+}
+
+model WeatherForecast {
+  id        String   @id @default(uuid())
+  date      String   @unique @db.VarChar(10) // YYYY-MM-DD
+  maxTemp   Float
+  minTemp   Float
+  windSpeed Float
+  isActual  Boolean  @default(false)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@schema("public")
 }
