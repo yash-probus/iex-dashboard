@@ -26,7 +26,6 @@ export default function IexFeesPage() {
     const monthStr = formatMonth(row.month).toLowerCase();
     return (
       monthStr.includes(lowerQuery) ||
-      String(row.id || '').toLowerCase().includes(lowerQuery) ||
       String(row.exchangeFees).includes(lowerQuery) ||
       String(row.nldcApplicationFees).includes(lowerQuery)
     );

@@ -32,7 +32,7 @@ export default function StateTariffPage() {
       String(row.category || '').toLowerCase().includes(lowerQuery) ||
       String(row.subCategory || '').toLowerCase().includes(lowerQuery) ||
       String(row.todName || '').toLowerCase().includes(lowerQuery) ||
-      String(row.energyCharge).includes(lowerQuery)
+      String(row.energyCharges).includes(lowerQuery)
     );
   });
 
