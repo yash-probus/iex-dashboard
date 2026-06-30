@@ -30,6 +30,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      - PRISMA_HIDE_UPDATE_MESSAGE=true
     command: sh -c "npx prisma migrate deploy && npx prisma db seed"
 
   iex-backend:
