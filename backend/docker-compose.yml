@@ -32,7 +32,7 @@ services:
       - .env
     environment:
       - PRISMA_HIDE_UPDATE_MESSAGE=true
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed"
+    command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
 
   iex-backend:
     build:
