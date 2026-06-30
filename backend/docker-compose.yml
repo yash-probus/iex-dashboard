@@ -13,6 +13,42 @@ services:
       POSTGRES_DB: iex_dashboard
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d iex_dashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  iex-migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: iex-migrator
+    depends_on:
+      iex-postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed"
+
+  iex-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iex-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      iex-postgres:
+        condition: service_healthy
+      iex-migrator:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
 
 volumes:
   postgres_data:
