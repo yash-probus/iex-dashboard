@@ -37,10 +37,12 @@ import { apiClient } from '../api/client';
 import AllIndiaDemandView from './database/AllIndiaDemandView';
 import StateWiseDemandView from './database/StateWiseDemandView';
 
-interface WeatherData {
-  temperature: string;
-  windspeed: string;
-  weathercode: number;
+interface WeatherDataRow {
+  date: string;
+  maxTemp: number;
+  minTemp: number;
+  windSpeed: number;
+  isActual: boolean;
 }
 
 interface StateDemand {
@@ -60,9 +62,9 @@ export default function DatabasePage() {
   
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherDataRow[] | null>(null);
   const [allIndiaDemand, setAllIndiaDemand] = useState<{demandMet: number, unit: string} | null>(null);
-  const [stateWiseDemand, setStateWiseDemand] = useState<{states: StateDemand[]} | null>(null);
+  const [stateWiseDemand, setStateWiseDemand] = useState<any>(null);
   
   const [selectedDate, setSelectedDate] = useState<string>('2026-06-30');
   const [selectedTime, setSelectedTime] = useState<string>('16:15');
