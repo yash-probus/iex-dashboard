@@ -39,6 +39,7 @@ import uploadRoutes from './modules/upload/upload.routes';
 import { datasetRouter, uploadHistoryRouter } from './modules/dataset/dataset.routes';
 import { dashboardRouter } from './modules/dataset/dashboard.routes';
 import { resourceCenterRouter } from './modules/resource-center';
+import scraperRoutes from './modules/scraper/scraper.routes';
 
 // 2. ROUTES
 app.use('/api/auth', authRoutes);
@@ -47,6 +48,7 @@ app.use('/api/datasets', datasetRouter);
 app.use('/api/upload-history', uploadHistoryRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/resource-center', resourceCenterRouter);
+app.use('/api/scraper', scraperRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
