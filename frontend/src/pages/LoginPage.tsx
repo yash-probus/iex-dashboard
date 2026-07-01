@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -131,8 +132,13 @@ export default function LoginPage() {
               <Typography variant="h5" sx={{ color: '#0d47a1', fontWeight: 700 }}>
                 Sign In
               </Typography>
-              <Typography variant="caption" sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <Visibility sx={{ fontSize: 14, mr: 0.5 }} /> Show
+              <Typography 
+                variant="caption" 
+                sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                onClick={() => setShowDemoCredentials(!showDemoCredentials)}
+              >
+                {showDemoCredentials ? <VisibilityOff sx={{ fontSize: 14, mr: 0.5 }} /> : <Visibility sx={{ fontSize: 14, mr: 0.5 }} />}
+                {showDemoCredentials ? 'Hide' : 'Show'}
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: '#666', mb: 3, opacity: 0.8, lineHeight: 1.4 }}>
@@ -264,6 +270,17 @@ export default function LoginPage() {
                 >
                   {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
                 </Button>
+
+                {showDemoCredentials && (
+                  <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(0,0,0,0.08)', textAlign: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#555', display: 'block', mb: 0.5 }}>
+                      Demo Credentials:
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#333', fontFamily: 'monospace', display: 'block' }}>
+                      admin / admin
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             )}
             
