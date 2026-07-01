@@ -92,10 +92,18 @@ export default function AllIndiaDemandView() {
     setPage(0);
   };
 
-  if (loading || data.length === 0) {
+  if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
+        <Typography variant="h6" color="text.secondary">No data available for the selected date.</Typography>
       </Box>
     );
   }

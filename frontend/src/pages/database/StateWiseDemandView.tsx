@@ -49,6 +49,14 @@ export default function StateWiseDemandView({ data }: { data?: { timestamp?: str
     );
   }
 
+  if (data.regions.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
+        <Typography variant="h6" color="text.secondary">No data available for the selected date and time.</Typography>
+      </Box>
+    );
+  }
+
   const regions = data.regions;
 
   return (
