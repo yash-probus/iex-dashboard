@@ -90,9 +90,6 @@ export default function LoginPage() {
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
           <Box sx={{ ml: 3 }}>
-            <Typography variant="h2" sx={{ color: '#0d47a1', fontWeight: 800, letterSpacing: 2, mb: 0.5 }}>
-              IEX DASHBOARD
-            </Typography>
             <Typography variant="h6" sx={{ color: '#555', fontWeight: 400 }}>
               Powering Progress, Lighting Lives
             </Typography>
