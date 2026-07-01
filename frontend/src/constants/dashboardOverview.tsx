@@ -9,10 +9,13 @@ import {
   AccountBalanceWallet as WalletIcon,
   Hub as HubIcon,
   SettingsInputComponent as SettingsIcon,
-  PriceCheck as PriceCheckIcon
+  PriceCheck as PriceCheckIcon,
+  Timeline as TimelineIcon,
+  Map as MapIcon,
+  Cloud as CloudIcon
 } from '@mui/icons-material';
 
-export type OverviewItemType = 'market' | 'resource';
+export type OverviewItemType = 'market' | 'resource' | 'database';
 
 export interface OverviewItemConfig {
   key: string;
@@ -114,5 +117,32 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
     path: '/resource-center/state-tariff',
     icon: <PriceCheckIcon fontSize="medium" />,
     color: '#00ACC1'
+  }
+];
+
+export const DATABASE_ITEMS: OverviewItemConfig[] = [
+  {
+    key: 'all-india-demand',
+    title: 'All India Demand (NPP)',
+    description: 'National power demand met across India.',
+    path: '/database/all-india-demand',
+    icon: <TimelineIcon fontSize="medium" />,
+    color: '#3B8FF3'
+  },
+  {
+    key: 'state-wise-demand',
+    title: 'State Wise Demand',
+    description: 'Demand met data mapped across all states.',
+    path: '/database/state-wise-demand',
+    icon: <MapIcon fontSize="medium" />,
+    color: '#34B1AA'
+  },
+  {
+    key: 'weather',
+    title: 'Weather Analytics',
+    description: 'Historical weather data from Open-Meteo.',
+    path: '/database/weather',
+    icon: <CloudIcon fontSize="medium" />,
+    color: '#E0B50F'
   }
 ];

@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../api/dashboard.api';
 import { MarketOverviewSummary } from '../types/overview';
 import { OverviewSection } from '../components/dashboard/OverviewSection';
-import { MARKET_ITEMS, RESOURCE_CENTER_ITEMS } from '../constants/dashboardOverview';
+import { MARKET_ITEMS, RESOURCE_CENTER_ITEMS, DATABASE_ITEMS } from '../constants/dashboardOverview';
+
 export default function DashboardPage() {
 
   const { data: overview, isLoading, isError } = useQuery({
@@ -32,6 +33,13 @@ export default function DashboardPage() {
         items={MARKET_ITEMS}
         isLoading={isLoading}
         getMarketData={getMarketData}
+      />
+
+      <OverviewSection 
+        title="Database Overview"
+        description="Access centralized repositories for nationwide and state-level power demand, plus historical weather data."
+        type="database"
+        items={DATABASE_ITEMS}
       />
 
       <OverviewSection 
