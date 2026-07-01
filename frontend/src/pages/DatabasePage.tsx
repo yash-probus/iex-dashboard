@@ -72,13 +72,25 @@ export default function DatabasePage() {
   const [allIndiaDemand, setAllIndiaDemand] = useState<{demandMet: number, unit: string} | null>(null);
   const [stateWiseDemand, setStateWiseDemand] = useState<any>(null);
   
-  const [selectedDate, setSelectedDate] = useState<string>('2026-06-30');
-  const [selectedTime, setSelectedTime] = useState<string>('16:15');
+  const getTodayDateString = () => {
+    const now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  };
+
+  const getCurrentTimeString = () => {
+    const now = new Date();
+    // Round down to nearest 15 mins
+    const minutes = Math.floor(now.getMinutes() / 15) * 15;
+    return String(now.getHours()).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+  };
+
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+  const [selectedTime, setSelectedTime] = useState<string>(getCurrentTimeString());
 
   const [exportOpen, setExportOpen] = useState(false);
   const [exportDataset, setExportDataset] = useState('npp');
   const [exportStartDate, setExportStartDate] = useState('2024-04-01');
-  const [exportEndDate, setExportEndDate] = useState('2026-06-30');
+  const [exportEndDate, setExportEndDate] = useState(getTodayDateString());
 
   const handleDownloadCsv = () => {
     const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=${exportDataset}&startDate=${exportStartDate}&endDate=${exportEndDate}`;
