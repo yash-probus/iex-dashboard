@@ -13,6 +13,7 @@ import CtuChargesPage from '../pages/resource-center/CtuChargesPage';
 import StuChargesPage from '../pages/resource-center/StuChargesPage';
 import StateTariffPage from '../pages/resource-center/StateTariffPage';
 import DashboardPage from '../pages/DashboardPage';
+import ModuleLandingPage from '../pages/ModuleLandingPage';
 import AdminPage from '../pages/AdminPage';
 import MarketDataAdminPage from '../pages/admin/MarketDataAdminPage';
 import ResourceCenterAdminPage from '../pages/admin/ResourceCenterAdminPage';
@@ -29,17 +30,24 @@ export default function AppRoutes() {
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
-          {/* We map all database routes to the same DatabasePage for now, as it shows all three. 
-              Later we can split them up if desired, or handle scroll inside the component */}
+          
+          {/* Module Landing Pages */}
+          <Route path="database" element={<ModuleLandingPage type="database" />} />
+          <Route path="markets" element={<ModuleLandingPage type="market" />} />
+          <Route path="resource-center" element={<ModuleLandingPage type="resource" />} />
+
+          {/* Database Sub-pages */}
           <Route path="database/all-india-demand" element={<DatabasePage />} />
           <Route path="database/generation-data" element={<DatabasePage />} />
           <Route path="database/state-wise-demand" element={<DatabasePage />} />
           <Route path="database/weather" element={<DatabasePage />} />
-          <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
+
+          {/* Market Sub-pages */}
           <Route path="dam" element={<DAMPage />} />
           <Route path="gdam" element={<GDAMPage />} />
           <Route path="rtm" element={<RTMPage />} />
           
+          {/* Resource Center Sub-pages */}
           <Route path="resource-center/region-state" element={<RegionStatePage />} />
           <Route path="resource-center/discom-list" element={<DiscomListPage />} />
           <Route path="resource-center/ists-charges" element={<IstsChargesPage />} />
