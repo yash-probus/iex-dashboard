@@ -106,7 +106,13 @@ export default function LoginPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 4, opacity: 0.8 }}>
           <Box sx={{ width: 60, height: 1, bgcolor: '#A0B0D0', mr: 2 }} />
           <Typography variant="body1" sx={{ color: '#fff', display: 'flex', alignItems: 'center' }}>
-            Powered by <Box component="span" sx={{ fontWeight: 'bold', fontSize: '1.2rem', ml: 1, color: '#4CAF50' }}>Probus</Box>
+            Powered by 
+            <Box 
+              component="img" 
+              src="/assets/logo.jpeg" 
+              alt="Probus Logo" 
+              sx={{ height: 30, ml: 1.5, borderRadius: 1 }} 
+            />
           </Typography>
           <Box sx={{ width: 60, height: 1, bgcolor: '#A0B0D0', ml: 2 }} />
         </Box>
