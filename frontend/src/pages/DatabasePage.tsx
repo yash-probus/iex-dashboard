@@ -313,12 +313,12 @@ export default function DatabasePage() {
                     <CloudIcon />
                   </Box>
                   <Typography variant="h6" fontWeight="600">
-                    Weather Analytics (Open-Meteo)
+                    7-Day Weather Forecast (Open-Meteo)
                   </Typography>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  * Live weather data for New Delhi (Lat: 28.61, Lon: 77.20).
+                  * Live 7-day weather forecast for New Delhi (Lat: 28.61, Lon: 77.20). Updates automatically every midnight.
                 </Typography>
                 
                 {weatherData && weatherData.length > 0 ? (
@@ -334,12 +334,20 @@ export default function DatabasePage() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {weatherData.map((row: any, i: number) => (
-                          <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                            <TableCell>{row.date}</TableCell>
-                            <TableCell>{row.maxTemp}</TableCell>
-                            <TableCell>{row.minTemp}</TableCell>
-                            <TableCell>{row.windSpeed}</TableCell>
+                        {weatherData
+                          .filter((row: any) => {
+                            const today = new Date().toISOString().split('T')[0];
+                            const next7Days = new Date();
+                            next7Days.setDate(next7Days.getDate() + 7);
+                            const next7DaysStr = next7Days.toISOString().split('T')[0];
+                            return row.date >= today && row.date <= next7DaysStr;
+                          })
+                          .map((row: any, i: number) => (
+                            <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
+                              <TableCell>{row.date}</TableCell>
+                              <TableCell>{row.maxTemp}</TableCell>
+                              <TableCell>{row.minTemp}</TableCell>
+                              <TableCell>{row.windSpeed}</TableCell>
                             <TableCell>
                               <Box sx={{ 
                                 display: 'inline-block',
