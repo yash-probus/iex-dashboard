@@ -369,10 +369,14 @@ model StateDemandData {
 model WeatherForecast {
   id        String   @id @default(uuid())
   date      String   @unique @db.VarChar(10) // YYYY-MM-DD
-  maxTemp   Float
-  minTemp   Float
-  windSpeed Float
-  isActual  Boolean  @default(false)
+  maxTemp           Float
+  minTemp           Float
+  windSpeed         Float
+  relativeHumidity  Float    @default(0)
+  precipitationProb Float    @default(0)
+  precipitationSum  Float    @default(0)
+  sunshineDuration  Float    @default(0)
+  isActual          Boolean  @default(false)
   updatedAt DateTime @default(now()) @updatedAt
 
   @@schema("public")

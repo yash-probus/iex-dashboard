@@ -42,6 +42,10 @@ interface WeatherDataRow {
   maxTemp: number;
   minTemp: number;
   windSpeed: number;
+  relativeHumidity: number;
+  precipitationProb: number;
+  precipitationSum: number;
+  sunshineDuration: number;
   isActual: boolean;
 }
 
@@ -329,6 +333,10 @@ export default function DatabasePage() {
                           <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Max Temp (°C)</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Min Temp (°C)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Humidity (%)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Precip. Prob (%)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Precip. (mm)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Sunshine (hrs)</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Wind Speed (km/h)</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                         </TableRow>
@@ -347,6 +355,10 @@ export default function DatabasePage() {
                               <TableCell>{row.date}</TableCell>
                               <TableCell>{row.maxTemp}</TableCell>
                               <TableCell>{row.minTemp}</TableCell>
+                              <TableCell>{row.relativeHumidity}</TableCell>
+                              <TableCell>{row.precipitationProb}</TableCell>
+                              <TableCell>{row.precipitationSum}</TableCell>
+                              <TableCell>{row.sunshineDuration}</TableCell>
                               <TableCell>{row.windSpeed}</TableCell>
                             <TableCell>
                               <Box sx={{ 

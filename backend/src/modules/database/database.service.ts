@@ -101,7 +101,7 @@ export class DatabaseService {
       } else if (dataset === 'state') {
         res.write('date,timeStr,stateName,region,demand,unit,price\n');
       } else if (dataset === 'weather') {
-        res.write('date,maxTemp,minTemp,windSpeed\n');
+        res.write('date,maxTemp,minTemp,windSpeed,relativeHumidity,precipitationProb,precipitationSum,sunshineDuration\n');
       }
 
       while (hasMore) {
@@ -138,7 +138,7 @@ export class DatabaseService {
           });
           
           for (const row of records) {
-            res.write(`${row.date},${row.maxTemp},${row.minTemp},${row.windSpeed}\n`);
+            res.write(`${row.date},${row.maxTemp},${row.minTemp},${row.windSpeed},${row.relativeHumidity},${row.precipitationProb},${row.precipitationSum},${row.sunshineDuration}\n`);
           }
         } else {
            hasMore = false;

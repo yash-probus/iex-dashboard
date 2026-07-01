@@ -13,7 +13,7 @@ async function main() {
   const startStr = startDate.toISOString().split('T')[0];
   const endStr = endDate.toISOString().split('T')[0];
 
-  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=28.6139&longitude=77.2090&start_date=${startStr}&end_date=${endStr}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max&timezone=auto`;
+  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=28.6139&longitude=77.2090&start_date=${startStr}&end_date=${endStr}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max,precipitation_probability_max&timezone=auto`;
 
   console.log(`URL: ${url}`);
 
@@ -27,11 +27,16 @@ async function main() {
 
     const records = [];
     for (let i = 0; i < daily.time.length; i++) {
+      const sunshineSecs = daily.sunshine_duration[i] || 0;
       records.push({
         date: daily.time[i],
         maxTemp: daily.temperature_2m_max[i] ?? 0,
         minTemp: daily.temperature_2m_min[i] ?? 0,
         windSpeed: daily.wind_speed_10m_max[i] ?? 0,
+        relativeHumidity: daily.relative_humidity_2m_max[i] ?? 0,
+        precipitationProb: daily.precipitation_probability_max?.[i] ?? 0,
+        precipitationSum: daily.precipitation_sum[i] ?? 0,
+        sunshineDuration: Number((sunshineSecs / 3600).toFixed(2)),
         isActual: true, // historical data is actual
       });
     }
@@ -50,6 +55,10 @@ async function main() {
               maxTemp: record.maxTemp,
               minTemp: record.minTemp,
               windSpeed: record.windSpeed,
+              relativeHumidity: record.relativeHumidity,
+              precipitationProb: record.precipitationProb,
+              precipitationSum: record.precipitationSum,
+              sunshineDuration: record.sunshineDuration,
               isActual: record.isActual,
             },
             create: record,
