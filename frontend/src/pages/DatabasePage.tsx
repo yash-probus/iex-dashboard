@@ -46,6 +46,8 @@ interface WeatherDataRow {
   precipitationProb: number;
   precipitationSum: number;
   sunshineDuration: number;
+  sunrise: string;
+  sunset: string;
   isActual: boolean;
 }
 
@@ -337,6 +339,8 @@ export default function DatabasePage() {
                           <TableCell sx={{ fontWeight: 'bold' }}>Precip. Prob (%)</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Precip. (mm)</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Sunshine (hrs)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Sunrise</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Sunset</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Wind Speed (km/h)</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                         </TableRow>
@@ -359,6 +363,8 @@ export default function DatabasePage() {
                               <TableCell>{row.precipitationProb}</TableCell>
                               <TableCell>{row.precipitationSum}</TableCell>
                               <TableCell>{row.sunshineDuration}</TableCell>
+                              <TableCell>{row.sunrise}</TableCell>
+                              <TableCell>{row.sunset}</TableCell>
                               <TableCell>{row.windSpeed}</TableCell>
                             <TableCell>
                               <Box sx={{ 

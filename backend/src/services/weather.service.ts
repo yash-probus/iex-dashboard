@@ -11,7 +11,7 @@ export class WeatherEngine {
     console.log('[WeatherEngine] Starting 30-day weather forecast sync...');
     try {
       // Step 1: Fetch 16-day forecast from Open-Meteo for New Delhi
-      const url = "https://api.open-meteo.com/v1/forecast?latitude=28.61&longitude=77.20&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,precipitation_probability_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max&forecast_days=16&past_days=1";
+      const url = "https://api.open-meteo.com/v1/forecast?latitude=28.61&longitude=77.20&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,precipitation_probability_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max,sunrise,sunset&forecast_days=16&past_days=1&timezone=auto";
       const response = await axios.get(url);
       
       const daily = response.data.daily;
@@ -23,6 +23,8 @@ export class WeatherEngine {
       const precipSums: number[] = daily.precipitation_sum;
       const sunshineDurations: number[] = daily.sunshine_duration;
       const relativeHumidities: number[] = daily.relative_humidity_2m_max;
+      const sunrises: string[] = daily.sunrise;
+      const sunsets: string[] = daily.sunset;
 
       // Helper to generate the next N days
       const addDays = (dateStr: string, days: number) => {
@@ -44,6 +46,8 @@ export class WeatherEngine {
         const precipitationSum = precipSums[i] || 0;
         // Convert sunshine duration from seconds to hours (round to 2 decimals)
         const sunshineDuration = sunshineDurations[i] ? Number((sunshineDurations[i] / 3600).toFixed(2)) : 0;
+        const sunrise = sunrises[i] ? sunrises[i].split('T')[1] : "05:30";
+        const sunset = sunsets[i] ? sunsets[i].split('T')[1] : "19:00";
         
         await prisma.weatherForecast.upsert({
           where: { date },
@@ -55,6 +59,8 @@ export class WeatherEngine {
             precipitationProb,
             precipitationSum,
             sunshineDuration,
+            sunrise,
+            sunset,
             isActual: isPastOrToday
           },
           create: {
@@ -66,6 +72,8 @@ export class WeatherEngine {
             precipitationProb,
             precipitationSum,
             sunshineDuration,
+            sunrise,
+            sunset,
             isActual: isPastOrToday
           }
         });
@@ -82,6 +90,8 @@ export class WeatherEngine {
       const lastPrecipProb = precipProbs[precipProbs.length - 1] || 0;
       const lastPrecipSum = precipSums[precipSums.length - 1] || 0;
       const lastSunshineDur = sunshineDurations[sunshineDurations.length - 1] ? Number((sunshineDurations[sunshineDurations.length - 1] / 3600).toFixed(2)) : 8;
+      const lastSunrise = sunrises[sunrises.length - 1] ? sunrises[sunrises.length - 1].split('T')[1] : "05:30";
+      const lastSunset = sunsets[sunsets.length - 1] ? sunsets[sunsets.length - 1].split('T')[1] : "19:00";
 
       for (let i = 1; i <= 14; i++) {
         const extrapolatedDate = addDays(lastApiDate, i);
@@ -109,6 +119,8 @@ export class WeatherEngine {
             precipitationProb: extraPrecipProb,
             precipitationSum: extraPrecipSum,
             sunshineDuration: extraSunshineDur,
+            sunrise: lastSunrise,
+            sunset: lastSunset,
             isActual: false
           },
           create: {
@@ -120,6 +132,8 @@ export class WeatherEngine {
             precipitationProb: extraPrecipProb,
             precipitationSum: extraPrecipSum,
             sunshineDuration: extraSunshineDur,
+            sunrise: lastSunrise,
+            sunset: lastSunset,
             isActual: false
           }
         });

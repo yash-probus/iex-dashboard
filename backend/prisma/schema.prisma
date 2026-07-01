@@ -376,6 +376,8 @@ model WeatherForecast {
   precipitationProb Float    @default(0)
   precipitationSum  Float    @default(0)
   sunshineDuration  Float    @default(0)
+  sunrise           String   @default("") @db.VarChar(10)
+  sunset            String   @default("") @db.VarChar(10)
   isActual          Boolean  @default(false)
   updatedAt DateTime @default(now()) @updatedAt
 
