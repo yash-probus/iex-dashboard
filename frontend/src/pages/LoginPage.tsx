@@ -257,57 +257,6 @@ export default function LoginPage() {
                   }}
                 />
 
-                <Typography variant="caption" sx={{ color: '#A0B0D0', fontWeight: 600, mb: 0.5, display: 'block' }}>
-                  Captcha Verification
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                  <Box 
-                    sx={{ 
-                      flex: 1, 
-                      bgcolor: '#2A364F', 
-                      borderRadius: 1.5, 
-                      display: 'flex', 
-                      justifyContent: 'center', 
-                      alignItems: 'center',
-                      fontFamily: 'monospace',
-                      color: '#fff',
-                      letterSpacing: 4,
-                      fontSize: '1.2rem',
-                      userSelect: 'none'
-                    }}
-                  >
-                    d2oYxa
-                  </Box>
-                  <Button 
-                    variant="contained" 
-                    sx={{ 
-                      minWidth: 40, 
-                      p: 0, 
-                      bgcolor: '#2A364F', 
-                      '&:hover': { bgcolor: '#3A465F' },
-                      borderRadius: 1.5
-                    }}
-                  >
-                    ↻
-                  </Button>
-                </Box>
-                <TextField
-                  fullWidth
-                  placeholder="Enter captcha"
-                  value={captcha}
-                  onChange={(e) => setCaptcha(e.target.value)}
-                  size="small"
-                  sx={{ 
-                    mb: 3,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: '#2A364F',
-                      color: '#fff',
-                      borderRadius: 1.5,
-                      '& fieldset': { border: '1px solid rgba(255,255,255,0.1)' },
-                      '& input::placeholder': { color: '#8c9eff', opacity: 0.7 }
-                    }
-                  }}
-                />
 
                 <Button
                   type="submit"
