@@ -32,6 +32,7 @@ services:
       - .env
     environment:
       - PRISMA_HIDE_UPDATE_MESSAGE=true
+      - TZ=Asia/Kolkata
     command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
 
   iex-backend:
@@ -49,6 +50,8 @@ services:
         condition: service_completed_successfully
     env_file:
       - .env
+    environment:
+      - TZ=Asia/Kolkata
     volumes:
       - ./uploads:/app/uploads
 
