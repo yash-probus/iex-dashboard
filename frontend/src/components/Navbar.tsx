@@ -455,7 +455,7 @@ export default function Navbar() {
                 alt="IEX Analytics"
                 onError={() => setLogoError(true)}
                 sx={{
-                  maxHeight: { xs: '10px', sm: '20px' },
+                  maxHeight: { xs: '30px', sm: '40px' },
                   height: 'auto',
                   width: 'auto',
                   objectFit: 'contain',
