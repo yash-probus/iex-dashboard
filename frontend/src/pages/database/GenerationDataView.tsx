@@ -144,35 +144,7 @@ export default function GenerationDataView({
         </Grid>
       </Box>
 
-      {/* Date Pickers (Right Aligned) */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Start Date</Typography>
-          <input 
-            type="date" 
-            value={startDate}
-            onChange={(e) => onStartDateChange(e.target.value)}
-            style={{
-              padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
-              fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
-              transition: 'all 0.2s'
-            }}
-          />
-        </Box>
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>End Date</Typography>
-          <input 
-            type="date" 
-            value={endDate}
-            onChange={(e) => onEndDateChange(e.target.value)}
-            style={{
-              padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
-              fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
-              transition: 'all 0.2s'
-            }}
-          />
-        </Box>
-      </Box>
+      {/* Date Pickers removed from here as they are now adjoining the heading in the parent */}
 
     <Card
       elevation={0}

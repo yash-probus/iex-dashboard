@@ -367,25 +367,6 @@ export default function Navbar() {
           <>
             <Button
               fullWidth
-              variant="contained"
-              onClick={() => { navigate('/admin'); setMobileOpen(false); }}
-              startIcon={<SettingsIcon />}
-              sx={{
-                mb: 2,
-                borderRadius: '999px',
-                fontWeight: 500,
-                fontSize: '14px',
-                backgroundColor: '#2E51FF',
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: '#1B3CC7',
-                }
-              }}
-            >
-              Admin Dashboard
-            </Button>
-            <Button
-              fullWidth
               variant="outlined"
               onClick={() => { logout(); navigate('/dashboard'); setMobileOpen(false); }}
               sx={{ borderRadius: '999px', fontWeight: 500, fontSize: '14px' }}
@@ -870,33 +851,6 @@ export default function Navbar() {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexShrink: 0, gap: 2, alignItems: 'center' }}>
               {isAuthenticated ? (
                 <>
-                  <Button
-                    onClick={() => navigate('/admin')}
-                    aria-label="Admin Dashboard"
-                    startIcon={<SettingsIcon fontSize="small" />}
-                    variant="contained"
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      borderRadius: '999px',
-                      px: 3,
-                      py: 0.75,
-                      minHeight: '40px',
-                      backgroundColor: '#2E51FF',
-                      color: '#FFFFFF',
-                      boxShadow: 'none',
-                      transition: 'all 250ms ease',
-                      border: '1px solid transparent',
-                      '&:hover': {
-                        backgroundColor: '#1B3CC7',
-                        borderColor: '#1B3CC7',
-                        boxShadow: 'none',
-                      }
-                    }}
-                  >
-                    Admin Dashboard
-                  </Button>
                   <Button
                     variant="outlined"
                     onClick={() => {
