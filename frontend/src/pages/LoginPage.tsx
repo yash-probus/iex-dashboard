@@ -84,12 +84,9 @@ export default function LoginPage() {
             src="/assets/logo.png" 
             alt="Logo" 
             sx={{ 
-              height: 100, 
-              width: 100, 
-              bgcolor: '#FFD700', 
-              p: 1, 
-              borderRadius: 2, 
-              boxShadow: '0 4px 20px rgba(0,0,0,0.5)' 
+              height: 'auto', 
+              maxWidth: 350, 
+              objectFit: 'contain' 
             }} 
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
