@@ -99,13 +99,26 @@ export default function DatabasePage() {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
   const [selectedTime, setSelectedTime] = useState<string>(getCurrentTimeString());
 
-  // For NPP View, we use a date range instead of a single date
+  // For NPP View, we use a date range — default to last 7 days
+  // Historical data is available from Sep 2025 onwards (NPP API limitation)
   const [nppStartDate, setNppStartDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [nppEndDate, setNppEndDate] = useState<string>(getTodayDateString());
+
+  // Weather view date range — default to last 30 days + next 7 days forecast
+  const [weatherStartDate, setWeatherStartDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
     return d.toISOString().split('T')[0];
   });
-  const [nppEndDate, setNppEndDate] = useState<string>(getTodayDateString());
+  const [weatherEndDate, setWeatherEndDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().split('T')[0];
+  });
 
   const [exportOpen, setExportOpen] = useState(false);
   const [exportDataset, setExportDataset] = useState('state');
@@ -402,30 +415,62 @@ export default function DatabasePage() {
               }}
             >
               <CardContent sx={{ p: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor: alpha('#3B8FF3', 0.1),
-                      color: '#3B8FF3',
-                      mr: 2,
-                    }}
-                  >
-                    <CloudIcon />
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: alpha('#3B8FF3', 0.1),
+                        color: '#3B8FF3',
+                        mr: 2,
+                      }}
+                    >
+                      <CloudIcon />
+                    </Box>
+                    <Box>
+                      <Typography variant="h6" fontWeight="600">
+                        Weather Data (New Delhi)
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Historical actuals from Jul 2024 + 7-day rolling forecast. Source: Open-Meteo.
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Typography variant="h6" fontWeight="600">
-                    7-Day Weather Forecast (Open-Meteo)
-                  </Typography>
+                  {/* Date range controls */}
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>From</Typography>
+                      <input
+                        type="date"
+                        value={weatherStartDate}
+                        onChange={(e) => setWeatherStartDate(e.target.value)}
+                        min="2024-07-01"
+                        style={{
+                          padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none',
+                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A'
+                        }}
+                      />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>To</Typography>
+                      <input
+                        type="date"
+                        value={weatherEndDate}
+                        onChange={(e) => setWeatherEndDate(e.target.value)}
+                        style={{
+                          padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none',
+                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A'
+                        }}
+                      />
+                    </Box>
+                  </Box>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  * Live 7-day weather forecast for New Delhi (Lat: 28.61, Lon: 77.20). Updates automatically every midnight.
-                </Typography>
                 
                 {weatherData && weatherData.length > 0 ? (
-                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee' }}>
-                    <Table size="small">
+                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 500 }}>
+                    <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
@@ -443,40 +488,34 @@ export default function DatabasePage() {
                       </TableHead>
                       <TableBody>
                         {weatherData
-                          .filter((row: any) => {
-                            const today = new Date().toISOString().split('T')[0];
-                            const next7Days = new Date();
-                            next7Days.setDate(next7Days.getDate() + 7);
-                            const next7DaysStr = next7Days.toISOString().split('T')[0];
-                            return row.date >= today && row.date <= next7DaysStr;
-                          })
-                          .map((row: any, i: number) => (
+                          .filter((row: WeatherDataRow) => row.date >= weatherStartDate && row.date <= weatherEndDate)
+                          .map((row: WeatherDataRow, i: number) => (
                             <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                               <TableCell>{row.date}</TableCell>
                               <TableCell>{row.maxTemp}</TableCell>
                               <TableCell>{row.minTemp}</TableCell>
-                              <TableCell>{row.relativeHumidity}</TableCell>
-                              <TableCell>{row.precipitationProb}</TableCell>
-                              <TableCell>{row.precipitationSum}</TableCell>
-                              <TableCell>{row.sunshineDuration}</TableCell>
-                              <TableCell>{row.sunrise}</TableCell>
-                              <TableCell>{row.sunset}</TableCell>
+                              <TableCell>{row.relativeHumidity ?? '-'}</TableCell>
+                              <TableCell>{row.precipitationProb ?? '-'}</TableCell>
+                              <TableCell>{row.precipitationSum ?? '-'}</TableCell>
+                              <TableCell>{row.sunshineDuration ?? '-'}</TableCell>
+                              <TableCell>{row.sunrise || '-'}</TableCell>
+                              <TableCell>{row.sunset || '-'}</TableCell>
                               <TableCell>{row.windSpeed}</TableCell>
-                            <TableCell>
-                              <Box sx={{ 
-                                display: 'inline-block',
-                                px: 1, py: 0.5, 
-                                borderRadius: 1, 
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                color: row.isActual ? '#15803D' : '#C2410C',
-                                bgcolor: row.isActual ? '#DCFCE7' : '#FFEDD5'
-                              }}>
-                                {row.isActual ? 'Actual' : 'Forecast'}
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                              <TableCell>
+                                <Box sx={{ 
+                                  display: 'inline-block',
+                                  px: 1, py: 0.5, 
+                                  borderRadius: 1, 
+                                  fontSize: '0.75rem',
+                                  fontWeight: 'bold',
+                                  color: row.isActual ? '#15803D' : '#C2410C',
+                                  bgcolor: row.isActual ? '#DCFCE7' : '#FFEDD5'
+                                }}>
+                                  {row.isActual ? 'Actual' : 'Forecast'}
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          ))}
                       </TableBody>
                     </Table>
                   </TableContainer>
