@@ -6,7 +6,13 @@ const prisma = new PrismaClient();
 
 // Create an https agent that bypasses SSL verification for government portals
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
-const axiosClient = axios.create({ httpsAgent });
+const axiosClient = axios.create({
+  httpsAgent,
+  timeout: 5000,
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+  }
+});
 
 // Region mappings
 const STATE_TO_REGION: Record<string, string> = {
@@ -131,8 +137,7 @@ export class VidyutPravahScraper {
       const dateStr = now.toISOString().split('T')[0];
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-      // 1. Fetch All India Top Stats
-      await this.scrapeTopStats(dateStr, timeStr);
+      // 1. (Removed scrapeTopStats as it is handled by fetchAndRoundNppData)
 
       // 2. Fetch State Prices
       const statePrices = await this.scrapeStatePrices();
@@ -160,7 +165,7 @@ export class VidyutPravahScraper {
     return 0;
   }
 
-  private static async scrapeTopStats(dateStr: string, timeStr: string) {
+  public static async getLiveAllIndiaDemand(): Promise<number | null> {
     try {
       console.log('[ScraperService] Fetching All India Demand (NPP)...');
       const { data } = await axiosClient.get('https://vidyutpravah.in/PXDashboard/BindTopStatisticsFromJS');
@@ -169,37 +174,17 @@ export class VidyutPravahScraper {
         const stats = data[0];
         
         // Example: "<span class='counter'>            240</span><span class='box_white_title box_white_title_big' style='padding-bottom: 0; line-height: 20px;'>&nbsp;GW</span>"
-        // We multiply GW by 1000 to get MW. If it already says MW, we don't multiply.
         let demandMet = this.extractNumber(stats.demand);
         if (stats.demand && stats.demand.includes('GW')) {
           demandMet = demandMet * 1000;
         }
-
-        let demandYest = this.extractNumber(stats.demandYest);
-        if (stats.demandYest && stats.demandYest.includes('GW')) {
-          demandYest = demandYest * 1000;
-        }
-
-        const shortage = this.extractNumber(stats.Peak);
-
-        await prisma.nppDemandData.create({
-          data: {
-            date: dateStr,
-            timeStr: timeStr,
-            demandMet: Math.round(demandMet),
-            hydro: Math.round(demandMet * 0.15),
-            wind: Math.round(demandMet * 0.08),
-            gas: Math.round(demandMet * 0.05),
-            solar: Math.round(demandMet * 0.12),
-            nuclear: Math.round(demandMet * 0.03),
-            thermal: Math.round(demandMet * 0.57),
-          }
-        });
-        console.log(`[ScraperService] Inserted All India Demand: ${demandMet} MW`);
+        
+        return Math.round(demandMet);
       }
     } catch (e) {
       console.error('[ScraperService] Failed to scrape Top Stats:', e);
     }
+    return null;
   }
 
   private static async scrapeStatePrices(): Promise<Record<string, number>> {

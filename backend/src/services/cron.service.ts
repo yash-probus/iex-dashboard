@@ -39,15 +39,19 @@ export class CronService {
     const rawMinutes = now.getMinutes();
     const rawTimeStr = `${rawHours.toString().padStart(2, '0')}:${rawMinutes.toString().padStart(2, '0')}`;
 
-    // 1. Simulate scraping raw data at this exact weird minute (e.g. 14:13)
-    const demandVariation = 15000 + Math.random() * 5000;
-    const demandMet = Math.round(230000 + demandVariation);
+    // 1. Fetch REAL demand from scraper
+    const demandMet = await VidyutPravahScraper.getLiveAllIndiaDemand();
+    if (!demandMet) {
+      console.error('[CronService] Could not fetch All India demand. Skipping.');
+      return;
+    }
     
-    const hydro = Math.round(20000 + Math.random() * 5000);
-    const wind = Math.round(15000 + Math.random() * 5000);
-    const gas = Math.round(5000 + Math.random() * 1000);
-    const nuclear = 7000;
-    const solar = Math.max(0, 40000 - (Math.abs(12 - rawHours) * 6000)) + Math.random() * 2000;
+    // Simulate generation sources since API doesn't provide them
+    const hydro = Math.round(demandMet * 0.15);
+    const wind = Math.round(demandMet * 0.08);
+    const gas = Math.round(demandMet * 0.05);
+    const nuclear = Math.round(demandMet * 0.03);
+    const solar = Math.max(0, Math.round(demandMet * 0.12) - (Math.abs(12 - rawHours) * 1000));
     const thermal = Math.round(demandMet - (hydro + wind + gas + solar + nuclear));
 
     const rawData = {
@@ -57,7 +61,7 @@ export class CronService {
       hydro,
       wind,
       gas,
-      solar: Math.round(solar),
+      solar,
       nuclear,
       thermal,
     };
