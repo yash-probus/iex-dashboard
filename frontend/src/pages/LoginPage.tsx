@@ -89,11 +89,6 @@ export default function LoginPage() {
             }} 
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-          <Box sx={{ ml: 3 }}>
-            <Typography variant="h6" sx={{ color: '#555', fontWeight: 400 }}>
-              Powering Progress, Lighting Lives
-            </Typography>
-          </Box>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 4, opacity: 0.8 }}>
@@ -144,7 +139,7 @@ export default function LoginPage() {
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: '#666', mb: 3, opacity: 0.8, lineHeight: 1.4 }}>
-              Powering Progress, Lighting Lives — Smart Utility Monitoring Platform
+              Smart Utility Monitoring Platform
             </Typography>
 
             <Box sx={{ borderBottom: 1, borderColor: 'rgba(0,0,0,0.08)', mb: 3 }}>
