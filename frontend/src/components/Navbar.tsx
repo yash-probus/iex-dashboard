@@ -449,18 +449,29 @@ export default function Navbar() {
             aria-label="Home"
           >
             {!logoError ? (
-              <Box
-                component="img"
-                src="/assets/logo.png"
-                alt="IEX Analytics"
-                onError={() => setLogoError(true)}
-                sx={{
-                  maxHeight: { xs: '30px', sm: '40px' },
-                  height: 'auto',
-                  width: 'auto',
-                  objectFit: 'contain',
-                }}
-              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', mt: 1 }}>
+                <Box
+                  component="img"
+                  src="/assets/logo.png"
+                  alt="Prolt Energy"
+                  onError={() => setLogoError(true)}
+                  sx={{
+                    maxHeight: { xs: '20px', sm: '28px' },
+                    height: 'auto',
+                    width: 'auto',
+                    objectFit: 'contain',
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#555', display: 'flex', alignItems: 'center', mt: 0.5, fontSize: '0.7rem' }}>
+                  By 
+                  <Box 
+                    component="img" 
+                    src="/assets/logo.jpeg" 
+                    alt="Probus Logo" 
+                    sx={{ height: 16, ml: 0.5, borderRadius: 0.5 }} 
+                  />
+                </Typography>
+              </Box>
             ) : (
               <Typography
                 variant="h6"
