@@ -77,28 +77,25 @@ export default function LoginPage() {
           zIndex: 2
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', maxWidth: 350 }}>
           <Box 
             component="img" 
             src="/assets/logo.png" 
             alt="Logo" 
             sx={{ 
               height: 'auto', 
-              maxWidth: 350, 
+              width: '100%', 
               objectFit: 'contain' 
             }} 
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', mt: 4, opacity: 0.8 }}>
-          <Typography variant="body1" sx={{ color: '#333', display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body1" sx={{ color: '#555', display: 'flex', alignItems: 'center', mt: 1 }}>
             Powered by 
             <Box 
               component="img" 
               src="/assets/logo.jpeg" 
               alt="Probus Logo" 
-              sx={{ height: 30, ml: 1.5, borderRadius: 1 }} 
+              sx={{ height: 25, ml: 1, borderRadius: 1 }} 
             />
           </Typography>
         </Box>
