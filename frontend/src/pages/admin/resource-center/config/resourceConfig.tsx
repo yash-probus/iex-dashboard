@@ -151,20 +151,28 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     exportFilename: 'ctu-charges',
     emptyMessage: 'No CTU Charges data available.',
     searchPlaceholder: 'Search by state, month, charges...',
-    searchableFields: ['stateCode', 'state', 'month', 'ctuChargesRsPerKwh', 'dsmChargesRsPerKwh'],
+    searchableFields: ['id', 'month', 'year', 'pdfUrl'],
     columns: [
-      { field: 'stateCode', headerName: 'State Code', align: 'center', width: 150 },
-      { field: 'state', headerName: 'State', align: 'center', width: 250 },
+      { field: 'id', headerName: 'ID', align: 'center', width: 100 },
       { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-      { field: 'ctuChargesRsPerKwh', headerName: 'CTU Charges (₹/kWh)', align: 'center', width: 200, valueFormatter: formatNum },
-      { field: 'dsmChargesRsPerKwh', headerName: 'DSM Charges (₹/kWh)', align: 'center', width: 200, valueFormatter: formatNum },
+      { field: 'year', headerName: 'Year', align: 'center', width: 150 },
+      { 
+        field: 'pdfUrl', 
+        headerName: 'Document', 
+        align: 'center', 
+        width: 250,
+        renderCell: (row) => (
+          <a href={row.pdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#EC4899', textDecoration: 'none', fontWeight: 'bold' }}>
+            Download PDF
+          </a>
+        )
+      },
     ],
     fields: [
-      { name: 'stateCode', label: 'State Code', type: 'text' },
-      { name: 'state', label: 'State', type: 'text' },
+      { name: 'id', label: 'ID', type: 'number' },
       { name: 'month', label: 'Month', type: 'number' },
-      { name: 'ctuChargesRsPerKwh', label: 'CTU Charges (₹/kWh)', type: 'number' },
-      { name: 'dsmChargesRsPerKwh', label: 'DSM Charges (₹/kWh)', type: 'number' },
+      { name: 'year', label: 'Year', type: 'number' },
+      { name: 'pdfUrl', label: 'PDF URL', type: 'text' },
     ]
   },
   'stu-charges': {

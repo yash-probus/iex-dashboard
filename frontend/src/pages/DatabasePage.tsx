@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -25,7 +25,11 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText
 } from '@mui/material';
 import {
   Timeline as TimelineIcon,
@@ -34,8 +38,10 @@ import {
   Download as DownloadIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../api/client';
+
 import AllIndiaDemandView from './database/AllIndiaDemandView';
 import StateWiseDemandView from './database/StateWiseDemandView';
+import GenerationDataView from './database/GenerationDataView';
 
 interface WeatherDataRow {
   date: string;
@@ -60,17 +66,23 @@ interface StateDemand {
 export default function DatabasePage() {
   const theme = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const path = location.pathname;
   
-  const showAllIndia = path.includes('/all-india-demand');
+
+  const showNpp = path.includes('/all-india-demand');
+  const showGeneration = path.includes('/generation-data');
+  const showDateRange = showNpp || showGeneration;
   const showStateWise = path.includes('/state-wise-demand');
   const showWeather = path.includes('/weather');
   
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherDataRow[] | null>(null);
-  const [allIndiaDemand, setAllIndiaDemand] = useState<{demandMet: number, unit: string} | null>(null);
+
+  const [allIndiaDemand, setAllIndiaDemand] = useState<any>(null);
   const [stateWiseDemand, setStateWiseDemand] = useState<any>(null);
+  const [generationData, setGenerationData] = useState<any>(null);
   
   const getTodayDateString = () => {
     const now = new Date();
@@ -87,8 +99,16 @@ export default function DatabasePage() {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
   const [selectedTime, setSelectedTime] = useState<string>(getCurrentTimeString());
 
+  // For NPP View, we use a date range instead of a single date
+  const [nppStartDate, setNppStartDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+  });
+  const [nppEndDate, setNppEndDate] = useState<string>(getTodayDateString());
+
   const [exportOpen, setExportOpen] = useState(false);
-  const [exportDataset, setExportDataset] = useState('npp');
+  const [exportDataset, setExportDataset] = useState('state');
   const [exportStartDate, setExportStartDate] = useState('2024-04-01');
   const [exportEndDate, setExportEndDate] = useState(getTodayDateString());
 
@@ -101,9 +121,10 @@ export default function DatabasePage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [weatherRes, demandRes] = await Promise.all([
+      const [weatherRes, demandRes, genRes] = await Promise.all([
         apiClient.get('/database/weather'),
-        apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}`)
+        apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${nppStartDate}&endDate=${nppEndDate}`),
+        apiClient.get(`/database/generation?date=${selectedDate}&startDate=${nppStartDate}&endDate=${nppEndDate}`)
       ]);
         
         if (weatherRes.data?.success && weatherRes.data?.data) {
@@ -118,6 +139,12 @@ export default function DatabasePage() {
         } else {
           console.error("demandRes missing data", demandRes);
         }
+
+        if (genRes.data?.success) {
+          setGenerationData(genRes.data.data);
+        } else {
+          console.error("genRes missing data", genRes);
+        }
       } catch (err: any) {
         console.error('Error fetching database data:', err);
         setErrorMsg(err.message || 'Unknown error');
@@ -128,7 +155,7 @@ export default function DatabasePage() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedDate, selectedTime]);
+  }, [selectedDate, selectedTime, nppStartDate, nppEndDate]);
 
   return (
     <Box
@@ -149,10 +176,11 @@ export default function DatabasePage() {
             Database Analytics
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600 }}>
-            Real-time & Historical metrics for All India Demand, State Demand, and Weather.
+            Real-time & Historical metrics for State Demand and Weather.
           </Typography>
         </Box>
         
+        {(!showDateRange) && (
         <Box 
           className="glass"
           sx={{ 
@@ -164,53 +192,56 @@ export default function DatabasePage() {
             flexWrap: 'wrap'
           }}
         >
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</Typography>
-            <input 
-              type="date" 
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              min="2024-04-01"
-              max="2026-06-30"
-              style={{
-                padding: '10px 14px',
-                borderRadius: '10px',
-                border: '1px solid #E2E8F0',
-                outline: 'none',
-                fontFamily: 'inherit',
-                fontSize: '0.875rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                color: '#0F172A',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
-                transition: 'all 0.2s'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#EA580C'}
-              onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
-            />
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Time</Typography>
-            <input 
-              type="time" 
-              value={selectedTime}
-              step="900"
-              onChange={(e) => setSelectedTime(e.target.value)}
-              style={{
-                padding: '10px 14px',
-                borderRadius: '10px',
-                border: '1px solid #E2E8F0',
-                outline: 'none',
-                fontFamily: 'inherit',
-                fontSize: '0.875rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                color: '#0F172A',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
-                transition: 'all 0.2s'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#EA580C'}
-              onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
-            />
-          </Box>
+
+            <>
+              <Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</Typography>
+                <input 
+                  type="date" 
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  min="2024-04-01"
+                  max="2026-06-30"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid #E2E8F0',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    color: '#0F172A',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                    transition: 'all 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#EA580C'}
+                  onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
+                />
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Time</Typography>
+                <input 
+                  type="time" 
+                  value={selectedTime}
+                  step="900"
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid #E2E8F0',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    color: '#0F172A',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                    transition: 'all 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#EA580C'}
+                  onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
+                />
+              </Box>
+            </>
           <Button 
             variant="contained" 
             color="primary" 
@@ -225,24 +256,16 @@ export default function DatabasePage() {
             Export CSV
           </Button>
         </Box>
+        )}
       </Box>
 
       <Dialog open={exportOpen} onClose={() => setExportOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Export Historical Data (CSV)</DialogTitle>
         <DialogContent dividers sx={{ pt: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Dataset</InputLabel>
-              <Select
-                value={exportDataset}
-                label="Dataset"
-                onChange={(e) => setExportDataset(e.target.value)}
-              >
-                <MenuItem value="npp">All India Demand (NPP)</MenuItem>
-                <MenuItem value="state">State Wise Demand</MenuItem>
-                <MenuItem value="weather">Weather Analytics</MenuItem>
-              </Select>
-            </FormControl>
+            <Typography variant="body1" fontWeight={600}>
+              Dataset: {exportDataset === 'state' ? 'State Wise Demand' : exportDataset === 'weather' ? 'Weather Analytics' : 'All India Demand (NPP)'}
+            </Typography>
             
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Box sx={{ flex: 1 }}>
@@ -285,12 +308,55 @@ export default function DatabasePage() {
           <CircularProgress />
         </Box>
       ) : (
-        <Grid container spacing={4}>
-          {/* All India Demand Section */}
-          {showAllIndia && (
-          <Grid item xs={12}>
-            <AllIndiaDemandView />
-          </Grid>
+        <Box sx={{ display: 'flex', gap: 4 }}>
+          {/* Sidebar */}
+          {(!showStateWise && !showWeather) && (
+            <Box sx={{ width: 280, flexShrink: 0, display: { xs: 'none', md: 'block' } }}>
+              <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #E2E8F0', mb: 3 }}>
+                <List component="nav" sx={{ p: 1 }}>
+                  <ListItem disablePadding>
+                    <ListItemButton 
+                      selected={showNpp} 
+                      onClick={() => navigate('/database/all-india-demand')}
+                      sx={{ borderRadius: 2, mb: 1, '&.Mui-selected': { bgcolor: alpha('#3B8FF3', 0.1), color: '#3B8FF3' }, '&:hover': { bgcolor: alpha('#3B8FF3', 0.05) } }}
+                    >
+                      <ListItemText primary="Real Time Demand Met Data" primaryTypographyProps={{ fontWeight: showNpp ? 600 : 500, fontSize: '0.875rem' }} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton 
+                      selected={path.includes('/generation-data')}
+                      onClick={() => navigate('/database/generation-data')}
+                      sx={{ borderRadius: 2, mb: 1, '&.Mui-selected': { bgcolor: alpha('#3B8FF3', 0.1), color: '#3B8FF3' }, '&:hover': { bgcolor: alpha('#3B8FF3', 0.05) } }}
+                    >
+                      <ListItemText primary="Real Time Generation Data" primaryTypographyProps={{ fontWeight: path.includes('/generation-data') ? 600 : 500, fontSize: '0.875rem' }} />
+                    </ListItemButton>
+                  </ListItem>
+                </List>
+              </Card>
+            </Box>
+          )}
+
+          {/* Main Content */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Grid container spacing={4}>
+
+
+          {/* NPP Data Section */}
+          {showNpp && (
+            <Grid item xs={12}>
+              <AllIndiaDemandView 
+                data={allIndiaDemand} 
+                startDate={nppStartDate} 
+                endDate={nppEndDate} 
+                onStartDateChange={setNppStartDate} 
+                onEndDateChange={setNppEndDate} 
+                onExport={() => { 
+                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${nppStartDate}&endDate=${nppEndDate}`;
+                  window.open(url, '_blank');
+                }}
+              />
+            </Grid>
           )}
 
           {/* State Wise Demand Section */}
@@ -404,7 +470,25 @@ export default function DatabasePage() {
           </Grid>
           )}
 
-        </Grid>
+          {path.includes('/generation-data') && (
+            <Grid item xs={12}>
+              <GenerationDataView 
+                data={generationData} 
+                startDate={nppStartDate} 
+                endDate={nppEndDate} 
+                onStartDateChange={setNppStartDate} 
+                onEndDateChange={setNppEndDate} 
+                onExport={() => { 
+                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${nppStartDate}&endDate=${nppEndDate}`;
+                  window.open(url, '_blank');
+                }}
+              />
+            </Grid>
+          )}
+
+            </Grid>
+          </Box>
+        </Box>
       )}
     </Box>
   );

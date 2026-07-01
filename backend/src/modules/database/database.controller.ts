@@ -7,10 +7,12 @@ export class DatabaseController {
   async getDemandData(req: Request, res: Response) {
     try {
       const date = req.query.date as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
       const time = req.query.time as string;
       
       const [allIndiaDemand, stateWiseDemand] = await Promise.all([
-        databaseService.getAllIndiaDemand(date),
+        databaseService.getAllIndiaDemand(startDate || date, endDate || date),
         databaseService.getStateWiseDemand(date, time)
       ]);
 
@@ -24,6 +26,24 @@ export class DatabaseController {
     } catch (error) {
       console.error('Error fetching demand data:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch demand data' });
+    }
+  }
+
+  async getGenerationData(req: Request, res: Response) {
+    try {
+      const date = req.query.date as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      
+      const generationData = await databaseService.getGenerationData(startDate || date, endDate || date);
+
+      res.status(200).json({
+        success: true,
+        data: generationData
+      });
+    } catch (error) {
+      console.error('Error fetching generation data:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch generation data' });
     }
   }
 

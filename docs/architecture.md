@@ -14,7 +14,7 @@ The IEX Dashboard is a full-stack web application designed for visualizing, expo
 ### 1. Frontend (`/frontend`)
 The frontend is a React Single Page Application (SPA) that provides two main views:
 - **Admin Dashboard**: Secure area where administrators can upload IEX market data (DAM, GDAM, RTM) via Excel files, manage datasets, and view upload histories.
-- **Database Analytics**: Public-facing views that visualize All India Demand (NPP), State-Wise Demand, and Weather analytics through tables and charts, with CSV export capabilities.
+- **Database Analytics**: Public-facing views that visualize State-Wise Demand, and Weather analytics through tables and charts, with CSV export capabilities.
 
 ### 2. Backend (`/backend`)
 The backend provides RESTful APIs for the frontend. It is structured into modules:
@@ -29,7 +29,7 @@ The backend provides RESTful APIs for the frontend. It is structured into module
 ### 3. Database (`iex-postgres`)
 A PostgreSQL instance running inside a Docker container. It is structured using two schemas:
 - `prolt_energy`: Contains legacy pricing/tariff structures and state/region mappings.
-- `public`: Contains the live and historical analytics tables (WeatherForecast, NppDemandData, StateDemandData, DamRecord, etc.).
+- `public`: Contains the live and historical analytics tables (WeatherForecast, StateDemandData, DamRecord, etc.).
 
 ## Communication Flow
 1. **User Request**: The user interacts with the UI (e.g., selects a date on the Database page).

@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-heading: 'Poppins', sans-serif;
+  --font-sans: 'Hanken Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-heading: 'Hanken Grotesk', sans-serif;
 
-  /* Premium Light Mode Colors */
-  --color-background: #F8FAFC;
+  /* Premium Light Mode Colors - Matched to Prolt theme */
+  --color-background: #EAF9F9;
   --color-surface: #FFFFFF;
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #64748B;
-  --color-border: #E2E8F0;
-  --color-hover: #F1F5F9;
+  --color-text-primary: #001356;
+  --color-text-secondary: #566578;
+  --color-border: #C6D4E3;
+  --color-hover: #E8F1F5;
   
-  --color-primary-accent: #EA580C;
-  --color-market-dam: #3B8FF3;
-  --color-market-gdam: #34B1AA;
-  --color-market-rtm: #E0B50F;
+  --color-primary-accent: #2E51FF;
+  --color-market-dam: #2E51FF;
+  --color-market-gdam: #14B8A6;
+  --color-market-rtm: #F59E0B;
 }
 
 body {

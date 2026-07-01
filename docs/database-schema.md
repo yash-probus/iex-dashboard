@@ -10,9 +10,7 @@ The database utilizes PostgreSQL's multi-schema feature:
 ## 2. Core Tables (`public` schema)
 
 ### Analytics Data
-- **`NppDemandData`**: Stores the All-India demand.
-  - *Fields*: `date`, `timeStr`, `demandMet`, `hydro`, `wind`, `gas`, `solar`, `nuclear`, `thermal`.
-  - *Index*: Unique composite key on `[date, timeStr]` to prevent duplicate interval data.
+
 - **`StateDemandData`**: Stores individual state demand and live prices.
   - *Fields*: `stateName`, `date`, `timeStr`, `demand`, `unit`, `region`, `price`.
   - *Index*: Unique composite key on `[stateName, date, timeStr]`.

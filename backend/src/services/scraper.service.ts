@@ -137,7 +137,6 @@ export class VidyutPravahScraper {
       const dateStr = now.toISOString().split('T')[0];
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-      // 1. (Removed scrapeTopStats as it is handled by fetchAndRoundNppData)
 
       // 2. Fetch State Prices
       const statePrices = await this.scrapeStatePrices();
@@ -165,26 +164,109 @@ export class VidyutPravahScraper {
     return 0;
   }
 
-  public static async getLiveAllIndiaDemand(): Promise<number | null> {
+
+  // ==========================================
+  // NPP All-India Demand (Real Time Demand Met)
+  // ==========================================
+  public static async getNppDemandData(dateStr: string) {
     try {
-      console.log('[ScraperService] Fetching All India Demand (NPP)...');
-      const { data } = await axiosClient.get('https://vidyutpravah.in/PXDashboard/BindTopStatisticsFromJS');
+      // The NPP API returns JSON for a specific date: YYYY-MM-DD
+      const response = await axiosClient.get(`https://npp.gov.in/dashBoard/demandmet1chartdata?date=${dateStr}`);
+      const data = response.data;
       
-      if (data && data.length > 0) {
-        const stats = data[0];
-        
-        // Example: "<span class='counter'>            240</span><span class='box_white_title box_white_title_big' style='padding-bottom: 0; line-height: 20px;'>&nbsp;GW</span>"
-        let demandMet = this.extractNumber(stats.demand);
-        if (stats.demand && stats.demand.includes('GW')) {
-          demandMet = demandMet * 1000;
+      if (!data || data.length === 0) {
+        return null;
+      }
+      
+      // Get the latest reading (last element in the array)
+      const latestReading = data[data.length - 1];
+      
+      if (!latestReading || !latestReading.value_of_data) {
+        return null;
+      }
+      
+      const demandMet = Number(latestReading.value_of_data);
+      const d = new Date(latestReading.updated_on);
+      
+      const formatter = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      const timeStr = formatter.format(d);
+
+      return {
+        date: dateStr,
+        timeStr: timeStr,
+        demandMet,
+        dataUpdatedAt: d.toISOString(),
+      };
+    } catch (error: any) {
+      console.error(`Error scraping NPP demand for ${dateStr}:`, error.message);
+      return null;
+    }
+  }
+
+  public static async getNppGenerationData(dateStr: string) {
+    try {
+      const response = await axiosClient.get(`https://npp.gov.in/dashBoard/demandmet2chartdata?date=${dateStr}`);
+      const data = response.data;
+      
+      if (!data || data.length === 0) {
+        return null;
+      }
+      
+      // Group by updated_on
+      const generationByTime: Record<number, any> = {};
+      
+      data.forEach((item: any) => {
+        if (!generationByTime[item.updated_on]) {
+          generationByTime[item.updated_on] = {
+            thermal: 0, gas: 0, nuclear: 0, hydro: 0, wind: 0, solar: 0
+          };
         }
         
-        return Math.round(demandMet);
-      }
-    } catch (e) {
-      console.error('[ScraperService] Failed to scrape Top Stats:', e);
+        const name = item.name_of_data.toUpperCase();
+        const value = Number(item.value_of_data) || 0;
+        
+        if (name.includes('THERMAL')) generationByTime[item.updated_on].thermal = value;
+        else if (name.includes('GAS')) generationByTime[item.updated_on].gas = value;
+        else if (name.includes('NUCLEAR')) generationByTime[item.updated_on].nuclear = value;
+        else if (name.includes('HYDRO')) generationByTime[item.updated_on].hydro = value;
+        else if (name.includes('WIND')) generationByTime[item.updated_on].wind = value;
+        else if (name.includes('SOLAR')) generationByTime[item.updated_on].solar = value;
+      });
+      
+      // Get the latest reading
+      const timestamps = Object.keys(generationByTime).map(Number).sort((a, b) => a - b);
+      const latestTimestamp = timestamps[timestamps.length - 1];
+      const latestData = generationByTime[latestTimestamp];
+      
+      const d = new Date(latestTimestamp);
+      const formatter = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      const timeStr = formatter.format(d);
+
+      return {
+        date: dateStr,
+        timeStr: timeStr,
+        thermal: latestData.thermal,
+        gas: latestData.gas,
+        nuclear: latestData.nuclear,
+        hydro: latestData.hydro,
+        wind: latestData.wind,
+        solar: latestData.solar,
+        dataUpdatedAt: d.toISOString(),
+      };
+    } catch (error: any) {
+      console.error(`Error scraping NPP generation for ${dateStr}:`, error.message);
+      return null;
     }
-    return null;
   }
 
   private static async scrapeStatePrices(): Promise<Record<string, number>> {

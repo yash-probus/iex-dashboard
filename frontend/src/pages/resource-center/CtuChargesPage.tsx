@@ -24,32 +24,36 @@ export default function CtuChargesPage() {
     if (!searchQuery) return true;
     const lowerQuery = searchQuery.toLowerCase();
     const monthStr = formatMonth(row.month).toLowerCase();
+    const yearStr = String(row.year);
     return (
       monthStr.includes(lowerQuery) ||
-      String(row.stateCode || '').toLowerCase().includes(lowerQuery) ||
-      String(row.state || '').toLowerCase().includes(lowerQuery) ||
-      String(row.ctuChargesRsPerKwh).includes(lowerQuery) ||
-      String(row.dsmChargesRsPerKwh).includes(lowerQuery)
+      yearStr.includes(lowerQuery)
     );
   });
 
-  const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
-
   const columns: ColumnDefinition[] = [
-    { field: 'stateCode', headerName: 'State Code', align: 'center', width: 150 },
-    { field: 'state', headerName: 'State', align: 'center', width: 250 },
+    { field: 'id', headerName: 'ID', align: 'center', width: 100 },
     { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-    { field: 'ctuChargesRsPerKwh', headerName: 'CTU Charges (₹/kWh)', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'dsmChargesRsPerKwh', headerName: 'DSM Charges (₹/kWh)', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'year', headerName: 'Year', align: 'center', width: 150 },
+    { 
+      field: 'pdfUrl', 
+      headerName: 'Document', 
+      align: 'center', 
+      width: 250,
+      renderCell: (row) => (
+        <a href={row.pdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#EC4899', textDecoration: 'none', fontWeight: 'bold' }}>
+          Download PDF
+        </a>
+      )
+    },
   ];
 
   const handleExport = () => {
     const exportData = filteredData.map((row: any) => ({
-      'State Code': row.stateCode,
-      'State': row.state,
+      'ID': row.id,
       'Month': formatMonth(row.month),
-      'CTU Charges (₹/kWh)': row.ctuChargesRsPerKwh,
-      'DSM Charges (₹/kWh)': row.dsmChargesRsPerKwh
+      'Year': row.year,
+      'PDF Link': row.pdfUrl
     }));
     exportToCSV(exportData, config.exportFilename);
   };

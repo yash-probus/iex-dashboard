@@ -5,6 +5,7 @@ const router = Router();
 const databaseController = new DatabaseController();
 
 router.get('/demand', (req, res) => databaseController.getDemandData(req, res));
+router.get('/generation', (req, res) => databaseController.getGenerationData(req, res));
 router.get('/weather', (req, res) => databaseController.getWeatherData(req, res));
 router.get('/export/csv', (req, res) => databaseController.exportCSV(req, res));
 

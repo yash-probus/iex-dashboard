@@ -8,7 +8,7 @@ const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
   'ists-charges': ['state'],
   'iex-fees': ['month'],
   'prolt-margin': ['month', 'customerId'],
-  'ctu-charges': ['stateCode', 'state', 'month'],
+  'ctu-charges': ['month', 'year', 'pdfUrl'],
   'stu-charges': ['stateCode', 'state', 'month'],
   'state-tariff': ['stateCode', 'month', 'state', 'tod']
 };

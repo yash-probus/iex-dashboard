@@ -1,329 +1,314 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Card,
-  Grid,
+  CardContent,
+  Divider,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
-  TextField,
-  Button,
-  useTheme,
-  alpha,
   Paper,
-  CircularProgress,
+  alpha,
+  useTheme,
+  ToggleButton,
+  ToggleButtonGroup,
+  Grid
 } from '@mui/material';
-import { apiClient } from '../../api/client';
-import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
+import { Timeline as TimelineIcon } from '@mui/icons-material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Interface for the data from the API
-interface NppData {
-  time: string;
-  datetime: string;
+interface RawNppData {
+  timeStr: string;
   demandMet: number;
-  hydro: number;
-  wind: number;
-  gas: number;
-  solar: number;
-  nuclear: number;
-  thermal: number;
+  dataUpdatedAt?: string;
+  fetchedAt?: string;
 }
 
-export default function AllIndiaDemandView() {
+interface AdjustedNppData {
+  timeStr: string;
+  avgDemand: number;
+  maxDemand: number;
+  minDemand: number;
+}
+
+interface AllIndiaDemandViewProps {
+  data: {
+    raw: RawNppData[];
+    adjusted: AdjustedNppData[];
+  } | null;
+  startDate: string;
+  endDate: string;
+  onStartDateChange: (val: string) => void;
+  onEndDateChange: (val: string) => void;
+  onExport: () => void;
+}
+
+export default function AllIndiaDemandView({ 
+  data, 
+  startDate, 
+  endDate, 
+  onStartDateChange, 
+  onEndDateChange,
+  onExport
+}: AllIndiaDemandViewProps) {
   const theme = useTheme();
-  
-  const [data, setData] = useState<NppData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedDate, setSelectedDate] = useState('2026-06-30');
+  const [viewType, setViewType] = useState<'raw' | 'adjusted'>('adjusted');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await apiClient.get(`/database/demand?date=${selectedDate}`);
-        if (response.data?.success && response.data.data.allIndiaDemand) {
-          // Format the DB response to match the chart requirements
-          const formattedData = response.data.data.allIndiaDemand.map((item: any) => ({
-            time: item.timeStr,
-            datetime: `${item.date.split('-').reverse().join('/')} ${item.timeStr}`,
-            demandMet: item.demandMet,
-            hydro: item.hydro,
-            wind: item.wind,
-            gas: item.gas,
-            solar: item.solar,
-            nuclear: item.nuclear,
-            thermal: item.thermal,
-          }));
-          setData(formattedData);
-        }
-      } catch (error) {
-        console.error('Error fetching NPP data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [selectedDate]);
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
-        <Typography variant="h6" color="text.secondary">No data available for the selected date.</Typography>
-      </Box>
-    );
-  }
-
-  const latestData = data[data.length - 1];
-  
-  const generationSources = [
-    { source: 'HYDRO GENERATION', value: latestData.hydro, color: '#3B8FF3' },
-    { source: 'WIND GENERATION', value: latestData.wind, color: '#10B981' },
-    { source: 'GAS GENERATION', value: latestData.gas, color: '#FCD34D' },
-    { source: 'SOLAR GENERATION', value: latestData.solar, color: '#F97316' },
-    { source: 'NUCLEAR GENERATION', value: latestData.nuclear, color: '#6366F1' },
-    { source: 'THERMAL GENERATION', value: latestData.thermal, color: '#D97750' }, // More brownish orange
-  ];
-
-  const handleDownload = (type: 'demand' | 'generation') => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    
-    if (type === 'demand') {
-      csvContent += "Date & Time,Demand Met(MW)\n";
-      data.forEach(row => {
-        csvContent += `${row.datetime},${row.demandMet}\n`;
-      });
-    } else {
-      csvContent += "Date & Time,Hydro (MW),Wind (MW),Gas (MW),Solar (MW),Nuclear (MW),Thermal (MW)\n";
-      data.forEach(row => {
-        csvContent += `${row.datetime},${row.hydro},${row.wind},${row.gas},${row.solar},${row.nuclear},${row.thermal}\n`;
-      });
+  const handleViewChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newView: 'raw' | 'adjusted' | null,
+  ) => {
+    if (newView !== null) {
+      setViewType(newView);
     }
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${type}_data_${selectedDate}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
+
+  const chartData = viewType === 'raw' ? data?.raw : data?.adjusted;
+  const latestSnapshot: any = chartData && chartData.length > 0 ? chartData[chartData.length - 1] : null;
 
   return (
-    <Box>
-      <Grid container spacing={3}>
-        {/* LEFT COLUMN: Demand Met */}
-        <Grid item xs={12} lg={6}>
-          <Card 
-            elevation={0}
-            sx={{
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: alpha(theme.palette.divider, 0.1),
-              p: 3,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Latest Snapshot Cards */}
+      <Box>
+        <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Latest Snapshot</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card elevation={0} sx={{ bgcolor: alpha('#3B8FF3', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B8FF3', 0.2) }}>
+              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
+                <Typography variant="h6" color="#3B8FF3">{latestSnapshot?.timeStr || '-'}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card elevation={0} sx={{ bgcolor: alpha('#2E51FF', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#2E51FF', 0.2) }}>
+              <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={600} mb={0.5}>{viewType === 'raw' ? 'Demand Met (MW)' : 'Max Demand (MW)'}</Typography>
+                <Typography variant="h6" color="#2E51FF">{latestSnapshot ? (viewType === 'raw' ? latestSnapshot.demandMet?.toLocaleString() : latestSnapshot.maxDemand?.toLocaleString()) : '-'}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          {viewType === 'adjusted' && (
+            <Grid item xs={12} sm={6} md={3}>
+              <Card elevation={0} sx={{ bgcolor: alpha('#10B981', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#10B981', 0.2) }}>
+                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight="bold">MIN DEMAND (MW)</Typography>
+                  <Typography variant="h6" color="#10B981">{latestSnapshot?.minDemand?.toLocaleString() || '-'}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+          {viewType === 'adjusted' && (
+            <Grid item xs={12} sm={6} md={3}>
+              <Card elevation={0} sx={{ bgcolor: alpha('#8B5CF6', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#8B5CF6', 0.2) }}>
+                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight="bold">AVG DEMAND (MW)</Typography>
+                  <Typography variant="h6" color="#8B5CF6">{latestSnapshot?.avgDemand?.toLocaleString() || '-'}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+        </Grid>
+      </Box>
+
+      {/* Date Pickers (Right Aligned) */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Start Date</Typography>
+          <input 
+            type="date" 
+            value={startDate}
+            onChange={(e) => onStartDateChange(e.target.value)}
+            style={{
+              padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
+              fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
+              transition: 'all 0.2s'
             }}
-          >
-            <Typography variant="subtitle2" color="primary.main" sx={{ mb: 2, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              REAL TIME DEMAND MET DATA (SOURCE-MERIT INDIA) - {selectedDate.split('-').reverse().join('-')}
-            </Typography>
-            
-            <Typography variant="h3" color="text.primary" sx={{ mb: 4 }}>
-              All India Demand Met (MW)
-            </Typography>
+          />
+        </Box>
+        <Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>End Date</Typography>
+          <input 
+            type="date" 
+            value={endDate}
+            onChange={(e) => onEndDateChange(e.target.value)}
+            style={{
+              padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
+              fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
+              transition: 'all 0.2s'
+            }}
+          />
+        </Box>
+      </Box>
 
-            <Box sx={{ height: 300, width: '100%', mb: 4 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis 
-                    dataKey="time" 
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={(val, i) => i % 4 === 0 ? val : ''} 
-                  />
-                  <YAxis 
-                    domain={['auto', 'auto']}
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
-                    label={{ value: '(MW)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 10 } }}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => [value.toLocaleString(), 'Demand Met']}
-                    labelStyle={{ color: 'black' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }}/>
-                  <Line 
-                    type="monotone" 
-                    dataKey="demandMet" 
-                    name="Demand Met"
-                    stroke="#43A0FF" 
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+    <Card
+      elevation={0}
+      sx={{
+        borderRadius: 4,
+        border: '1px solid',
+        borderColor: alpha(theme.palette.divider, 0.1),
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+      }}
+    >
+      <CardContent sx={{ p: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                bgcolor: alpha('#3B8FF3', 0.1),
+                color: '#3B8FF3',
+                mr: 2,
+              }}
+            >
+              <TimelineIcon />
             </Box>
+            <Typography variant="h6" fontWeight="600">
+              Graph Dashboard
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
 
-            {/* Demand Table */}
-            <TableContainer component={Paper} elevation={0} sx={{ mb: 2, flexGrow: 1, border: 'none', background: 'transparent' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Demand Met(MW)</TableCell>
-                    <TableCell>Date & Time</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => (
-                    <TableRow key={i} sx={{ '&:hover': { backgroundColor: '#F1F5F9' }, transition: 'background-color 0.2s' }}>
-                      <TableCell sx={{ fontWeight: 500 }}>{row.demandMet.toLocaleString()}</TableCell>
-                      <TableCell sx={{ color: 'text.secondary' }}>{row.datetime}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto', pt: 2, borderTop: '1px solid #F1F5F9' }}>
-              <TablePagination
-                rowsPerPageOptions={[10, 25, 50]}
-                component="div"
-                count={data.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                sx={{ '.MuiTablePagination-toolbar': { minHeight: '40px', p: 0 } }}
-              />
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button variant="outlined" color="primary" onClick={() => handleDownload('demand')} sx={{ textTransform: 'none', borderRadius: '8px' }}>
-                  Download CSV
-                </Button>
+            <ToggleButtonGroup
+              color="primary"
+              value={viewType}
+              exclusive
+              onChange={handleViewChange}
+              aria-label="View Type"
+              size="small"
+            >
+              <ToggleButton value="adjusted">Adjusted (15-min)</ToggleButton>
+              <ToggleButton value="raw">Raw (4-min)</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
+
+        {(!data || (data.raw.length === 0 && data.adjusted.length === 0)) ? (
+          <Typography color="text.secondary">No NPP Data available for the selected date range.</Typography>
+        ) : (
+          <>
+              <Box sx={{ height: 350, mb: 2, mt: 2 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis 
+                      dataKey="timeStr" 
+                      tick={{ fontSize: 12, fill: '#64748B' }}
+                      tickMargin={10}
+                      tickFormatter={(val) => val.split(' ')[1] || val}
+                      minTickGap={30}
+                    />
+                    <YAxis 
+                      domain={['auto', 'auto']}
+                      tick={{ fontSize: 12, fill: '#64748B' }}
+                      tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
+                    />
+                    {viewType === 'raw' ? (
+                      <Line 
+                        type="monotone" 
+                        dataKey="demandMet" 
+                        name="Demand Met (MW)"
+                        stroke="#3B8FF3" 
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 6 }}
+                      />
+                    ) : (
+                      <>
+                        <Line type="monotone" dataKey="maxDemand" name="Max Demand" stroke="#EA580C" strokeWidth={1} dot={false} strokeDasharray="5 5" />
+                        <Line type="monotone" dataKey="avgDemand" name="Avg Demand" stroke="#3B8FF3" strokeWidth={2.5} dot={false} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="minDemand" name="Min Demand" stroke="#10B981" strokeWidth={1} dot={false} strokeDasharray="5 5" />
+                      </>
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
               </Box>
-            </Box>
-          </Card>
-        </Grid>
+          </>
+        )}
+      </CardContent>
+    </Card>
 
-        {/* RIGHT COLUMN: Generation Data */}
-        <Grid item xs={12} lg={6}>
-          <Card 
-            elevation={0}
-            sx={{
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: alpha(theme.palette.divider, 0.1),
-              p: 3,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
+    {/* Alerts History / Data Table */}
+    <Card
+      elevation={0}
+      sx={{
+        borderRadius: 4,
+        border: '1px solid',
+        borderColor: alpha(theme.palette.divider, 0.1),
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+      }}
+    >
+      <CardContent sx={{ p: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" fontWeight="600">Alerts History (Data Table)</Typography>
+          <button 
+            onClick={onExport}
+            style={{ 
+              backgroundColor: '#1E293B', color: 'white', padding: '8px 16px', 
+              borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600
             }}
           >
-            <Typography variant="subtitle2" color="primary.main" sx={{ mb: 2, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              REAL TIME GENERATION DATA (SOURCE-MERIT INDIA) - {selectedDate.split('-').reverse().join('-')}
-            </Typography>
-            
-            <Typography variant="h3" color="text.primary" sx={{ mb: 4 }}>
-              All India Generation (MW)
-            </Typography>
-
-            <Box sx={{ height: 300, width: '100%', mb: 4 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis 
-                    dataKey="time" 
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={(val, i) => i % 4 === 0 ? val : ''} 
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
-                    label={{ value: '(MW)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 10 } }}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => value.toLocaleString()}
-                    labelStyle={{ color: 'black' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px' }}/>
-                  <Area type="monotone" dataKey="hydro" name="HYDRO" stackId="1" stroke="#3B8FF3" fill="#3B8FF3" />
-                  <Area type="monotone" dataKey="wind" name="WIND" stackId="1" stroke="#10B981" fill="#10B981" />
-                  <Area type="monotone" dataKey="gas" name="GAS" stackId="1" stroke="#FCD34D" fill="#FCD34D" />
-                  <Area type="monotone" dataKey="solar" name="SOLAR" stackId="1" stroke="#F97316" fill="#F97316" />
-                  <Area type="monotone" dataKey="nuclear" name="NUCLEAR" stackId="1" stroke="#6366F1" fill="#6366F1" />
-                  <Area type="monotone" dataKey="thermal" name="THERMAL" stackId="1" stroke="#D97750" fill="#D97750" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Box>
-
-            {/* Generation Table (Static for latest data) */}
-            <TableContainer component={Paper} elevation={0} sx={{ mb: 2, flexGrow: 1, border: 'none', background: 'transparent' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Source</TableCell>
-                    <TableCell>Generation (MW)</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {generationSources.map((item, i) => (
-                    <TableRow key={i} sx={{ '&:hover': { backgroundColor: '#F1F5F9' }, transition: 'background-color 0.2s' }}>
-                      <TableCell sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color }} />
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{item.source}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary' }}>{item.value.toLocaleString()}</TableCell>
+            Export CSV
+          </button>
+        </Box>
+        {(!data || (data.raw.length === 0 && data.adjusted.length === 0)) ? (
+          <Typography color="text.secondary">No NPP Data available.</Typography>
+        ) : (
+              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 400, mt: 2 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      {viewType === 'raw' ? (
+                        <>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Time</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Demand Met (MW)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Updated At</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Fetched At</TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Adjusted Time</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Avg Demand (MW)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Max Demand (MW)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Min Demand (MW)</TableCell>
+                        </>
+                      )}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 'auto', pt: 2, borderTop: '1px solid #F1F5F9' }}>
-              <Button variant="outlined" color="primary" onClick={() => handleDownload('generation')} sx={{ textTransform: 'none', borderRadius: '8px' }}>
-                Download CSV
-              </Button>
-            </Box>
-          </Card>
-        </Grid>
+                  </TableHead>
+                  <TableBody>
+                    {viewType === 'raw' && data.raw.map((row, i) => (
+                      <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
+                        <TableCell>{row.timeStr}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.demandMet.toLocaleString()}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString() : '-'}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString() : '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                    {viewType === 'adjusted' && data.adjusted.map((row, i) => (
+                      <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
+                        <TableCell>{row.timeStr}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.avgDemand.toLocaleString()}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.maxDemand.toLocaleString()}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.minDemand.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+        )}
+      </CardContent>
+    </Card>
 
-      </Grid>
     </Box>
   );
 }

@@ -36,10 +36,10 @@ export const RESOURCE_CENTER_PAGES = {
   },
   CTU_CHARGES: {
     title: 'CTU CHARGES',
-    subtitle: 'Central Transmission Utility and DSM charges reference data.',
+    subtitle: 'Central Transmission Utility charges document repository.',
     exportFilename: 'ctu-charges',
-    emptyMessage: 'No CTU Charges data available.',
-    searchPlaceholder: 'Search by state, month, charges...',
+    emptyMessage: 'No CTU Charges documents available.',
+    searchPlaceholder: 'Search by month, year...',
   },
   STU_CHARGES: {
     title: 'STU CHARGES',

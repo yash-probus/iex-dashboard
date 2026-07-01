@@ -2,6 +2,8 @@ import cron from 'node-cron';
 import { PrismaClient } from '@prisma/client';
 import { VidyutPravahScraper } from './scraper.service';
 import { WeatherEngine } from './weather.service';
+import { seedCtuCharges } from '../scripts/seed-ctu';
+import { seedIstsCharges } from '../scripts/seed-ists';
 
 const prisma = new PrismaClient();
 
@@ -13,7 +15,7 @@ export class CronService {
     cron.schedule('*/5 * * * *', async () => {
       console.log('[Cron] Running 5-minute scheduled tasks');
       try {
-        await CronService.fetchAndRoundNppData();
+
         await VidyutPravahScraper.scrapeStateDemand();
       } catch (error) {
         console.error('[Cron] Error in 5-minute schedule:', error);
@@ -29,91 +31,73 @@ export class CronService {
         console.error('[Cron] Error in daily schedule:', error);
       }
     });
+    
+    // Run every 7 days (Weekly on Sunday at 1:00 AM) for ISTS Transmission Losses
+    cron.schedule('0 1 * * 0', async () => {
+      console.log('[Cron] Running weekly ISTS (Transmission Losses) schedule');
+      try {
+        await seedIstsCharges();
+      } catch (error) {
+        console.error('[Cron] Error in weekly ISTS schedule:', error);
+      }
+    });
+
+    // Run on the 1st of every month at 2:00 AM for CTU Charges
+    cron.schedule('0 2 1 * *', async () => {
+      console.log('[Cron] Running monthly CTU charges schedule');
+      try {
+        await seedCtuCharges();
+      } catch (error) {
+        console.error('[Cron] Error in monthly CTU schedule:', error);
+      }
+    });
+
+    // Run every 4 minutes for NPP Data
+    cron.schedule('*/4 * * * *', async () => {
+      console.log('[Cron] Running 4-minute scheduled tasks');
+      try {
+        // Real time NPP demand
+        const dateStr = new Date().toISOString().split('T')[0];
+        const data = await VidyutPravahScraper.getNppDemandData(dateStr);
+        
+        if (data) {
+          await prisma.nppRawDemandData.create({
+            data: {
+              date: data.date,
+              timeStr: data.timeStr,
+              demandMet: data.demandMet,
+              dataUpdatedAt: data.dataUpdatedAt,
+              fetchedAt: new Date(),
+            }
+          });
+          console.log(`[CronService] Polled NPP Demand for ${data.timeStr} -> ${data.demandMet} MW`);
+        }
+        
+        // Real time NPP generation
+        const genData = await VidyutPravahScraper.getNppGenerationData(dateStr);
+        if (genData) {
+          await prisma.nppRawGenerationData.create({
+            data: {
+              date: genData.date,
+              timeStr: genData.timeStr,
+              thermal: genData.thermal,
+              gas: genData.gas,
+              nuclear: genData.nuclear,
+              hydro: genData.hydro,
+              wind: genData.wind,
+              solar: genData.solar,
+              dataUpdatedAt: genData.dataUpdatedAt,
+              fetchedAt: new Date(),
+            }
+          });
+          console.log(`[CronService] Polled NPP Generation for ${genData.timeStr} -> Thermal: ${genData.thermal} MW`);
+        }
+      } catch (error) {
+        console.error('[Cron] Error in 4-minute schedule:', error);
+      }
+    });
+
     console.log('[CronService] Cron jobs initialized successfully.');
   }
 
-  public static async fetchAndRoundNppData() {
-    const now = new Date();
-    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const rawHours = now.getHours();
-    const rawMinutes = now.getMinutes();
-    const rawTimeStr = `${rawHours.toString().padStart(2, '0')}:${rawMinutes.toString().padStart(2, '0')}`;
-
-    // 1. Fetch REAL demand from scraper
-    const demandMet = await VidyutPravahScraper.getLiveAllIndiaDemand();
-    if (!demandMet) {
-      console.error('[CronService] Could not fetch All India demand. Skipping.');
-      return;
-    }
-    
-    // Simulate generation sources since API doesn't provide them
-    const hydro = Math.round(demandMet * 0.15);
-    const wind = Math.round(demandMet * 0.08);
-    const gas = Math.round(demandMet * 0.05);
-    const nuclear = Math.round(demandMet * 0.03);
-    const solar = Math.max(0, Math.round(demandMet * 0.12) - (Math.abs(12 - rawHours) * 1000));
-    const thermal = Math.round(demandMet - (hydro + wind + gas + solar + nuclear));
-
-    const rawData = {
-      date: dateStr,
-      timeStr: rawTimeStr,
-      demandMet,
-      hydro,
-      wind,
-      gas,
-      solar,
-      nuclear,
-      thermal,
-    };
-
-    // Save RAW Data
-    await prisma.nppRawDemandData.create({
-      data: rawData
-    });
-    console.log(`[CronService] Saved RAW data at ${rawTimeStr}`);
-
-    // 2. Calculate rounded time (round up to nearest 5 minutes)
-    // Example: 09 -> 10, 13 -> 15, 14 -> 15, 16 -> 20
-    const remainder = rawMinutes % 5;
-    let roundedMinutes = rawMinutes;
-    let roundedHours = rawHours;
-
-    if (remainder !== 0) {
-      roundedMinutes = rawMinutes + (5 - remainder);
-      if (roundedMinutes >= 60) {
-        roundedMinutes = 0;
-        roundedHours = (roundedHours + 1) % 24;
-      }
-    }
-
-    const roundedTimeStr = `${roundedHours.toString().padStart(2, '0')}:${roundedMinutes.toString().padStart(2, '0')}`;
-
-    // 3. Save STANDARDIZED (Rounded) Data
-    const standardizedData = {
-      ...rawData,
-      timeStr: roundedTimeStr
-    };
-
-    await prisma.nppDemandData.upsert({
-      where: {
-        date_timeStr: {
-          date: dateStr,
-          timeStr: roundedTimeStr
-        }
-      },
-      update: standardizedData,
-      create: standardizedData,
-    });
-    console.log(`[CronService] Saved STANDARDIZED data at ${roundedTimeStr}`);
-
-    // 4. Log the Transformation
-    await prisma.dataRoundingLog.create({
-      data: {
-        rawTimeStr,
-        roundedTimeStr,
-        date: dateStr
-      }
-    });
-    console.log(`[CronService] Logged rounding transformation: ${rawTimeStr} -> ${roundedTimeStr}`);
-  }
 }

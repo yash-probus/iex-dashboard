@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer,
   List, ListItem, ListItemButton, ListItemText, useTheme, useMediaQuery, alpha,
-  Collapse, Paper
+  Collapse, Paper, Container, Grid
 } from '@mui/material';
 import {
   Login as LoginIcon, Settings as SettingsIcon, Menu as MenuIcon, Close as CloseIcon,
@@ -27,10 +27,41 @@ const RESOURCE_ROUTES = [
   { label: 'Discom List', path: '/resource-center/discom-list', icon: <BusinessIcon fontSize="small" sx={{ color: '#3B8FF3' }} /> },
   { label: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <EvStationIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
   { label: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
-  { label: 'ProLT Margin', path: '/resource-center/prolt-margin', icon: <ShowChartIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
+  { label: 'Prolt Margin', path: '/resource-center/prolt-margin', icon: <ShowChartIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
   { label: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <AccountTreeIcon fontSize="small" sx={{ color: '#EC4899' }} /> },
   { label: 'STU Charges', path: '/resource-center/stu-charges', icon: <DeviceHubIcon fontSize="small" sx={{ color: '#10B981' }} /> },
   { label: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" sx={{ color: '#EF4444' }} /> },
+];
+
+const RESOURCE_GROUPS = [
+  {
+    title: 'Grid & Utility',
+    items: [
+      { label: 'Region State', path: '/resource-center/region-state', icon: <MapIcon fontSize="small" sx={{ color: '#F29F67' }} /> },
+      { label: 'Discom List', path: '/resource-center/discom-list', icon: <BusinessIcon fontSize="small" sx={{ color: '#3B8FF3' }} /> },
+    ]
+  },
+  {
+    title: 'Transmission Charges',
+    items: [
+      { label: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <EvStationIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
+      { label: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <AccountTreeIcon fontSize="small" sx={{ color: '#EC4899' }} /> },
+    ]
+  },
+  {
+    title: 'Utility Charges',
+    items: [
+      { label: 'STU Charges', path: '/resource-center/stu-charges', icon: <DeviceHubIcon fontSize="small" sx={{ color: '#10B981' }} /> },
+      { label: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" sx={{ color: '#EF4444' }} /> },
+    ]
+  },
+  {
+    title: 'Exchange & Margins',
+    items: [
+      { label: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
+      { label: 'Prolt Margin', path: '/resource-center/prolt-margin', icon: <ShowChartIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
+    ]
+  }
 ];
 
 const DATABASE_ROUTES = [
@@ -344,7 +375,11 @@ export default function Navbar() {
                 borderRadius: '999px',
                 fontWeight: 500,
                 fontSize: '14px',
-                background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+                backgroundColor: '#2E51FF',
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: '#1B3CC7',
+                }
               }}
             >
               Admin Dashboard
@@ -368,7 +403,11 @@ export default function Navbar() {
               borderRadius: '999px',
               fontWeight: 500,
               fontSize: '14px',
-              background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+              backgroundColor: '#2E51FF',
+              color: '#FFFFFF',
+              '&:hover': {
+                backgroundColor: '#1B3CC7',
+              }
             }}
           >
             Admin Login
@@ -381,34 +420,27 @@ export default function Navbar() {
   return (
     <>
       <AppBar
-        position="fixed"
+        position="sticky"
         elevation={0}
         sx={{
           top: 0,
           left: 0,
           right: 0,
-          mt: { xs: 1, sm: 2 },
-          mx: 'auto',
-          maxWidth: `${theme.breakpoints.values.xl}px`,
-          width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)' },
-          borderRadius: '50px',
-          height: { xs: '60px', sm: '68px' },
+          width: '100%',
+          height: { xs: '56px', sm: '64px' },
           display: 'flex',
           justifyContent: 'center',
-          backgroundColor: alpha(theme.palette.background.paper, scrolled ? 0.75 : 0.4),
-          backdropFilter: `blur(${scrolled ? 24 : 16}px)`,
-          WebkitBackdropFilter: `blur(${scrolled ? 24 : 16}px)`,
-          border: '1px solid',
-          borderColor: alpha(theme.palette.divider, 0.4),
-          boxShadow: scrolled
-            ? '0 10px 40px -10px rgba(15, 23, 42, 0.1)'
-            : '0 4px 20px -10px rgba(15, 23, 42, 0.05)',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          boxShadow: scrolled ? '0 4px 12px rgba(15, 23, 42, 0.05)' : 'none',
           zIndex: (theme) => theme.zIndex.appBar,
           transition: 'all 250ms ease',
         }}
         color="inherit"
       >
-        <Toolbar sx={{ px: { xs: 2, sm: 4 }, height: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Container maxWidth="xl">
+          <Toolbar disableGutters sx={{ position: 'relative', height: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
           {/* Left: Logo */}
           <Box
@@ -419,7 +451,7 @@ export default function Navbar() {
             {!logoError ? (
               <Box
                 component="img"
-                src="/assets/logo.jpeg"
+                src="/assets/logo.png"
                 alt="IEX Analytics"
                 onError={() => setLogoError(true)}
                 sx={{
@@ -538,7 +570,7 @@ export default function Navbar() {
                     sx={{
                       width: 280,
                       p: 1,
-                      borderRadius: 3,
+                      borderRadius: 1.5,
                       border: '1px solid',
                       borderColor: (theme) => alpha(theme.palette.divider, 0.1),
                       boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
@@ -565,9 +597,6 @@ export default function Navbar() {
                             }
                           }}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
-                            {item.icon}
-                          </Box>
                           <ListItemText 
                             primary={item.label} 
                             primaryTypographyProps={{
@@ -647,7 +676,7 @@ export default function Navbar() {
                     sx={{
                       width: 180,
                       p: 1,
-                      borderRadius: 3,
+                      borderRadius: 1.5,
                       border: '1px solid',
                       borderColor: (theme) => alpha(theme.palette.divider, 0.1),
                       boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
@@ -674,9 +703,6 @@ export default function Navbar() {
                             }
                           }}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
-                            {item.icon}
-                          </Box>
                           <ListItemText 
                             primary={item.label} 
                             primaryTypographyProps={{
@@ -697,7 +723,7 @@ export default function Navbar() {
                 ref={resourceDropdownRef}
                 onMouseEnter={() => setDesktopResourceOpen(true)}
                 onMouseLeave={() => setDesktopResourceOpen(false)}
-                sx={{ position: 'relative' }}
+                sx={{}}
               >
                 <Button
                   disableRipple
@@ -737,13 +763,12 @@ export default function Navbar() {
                   Resource Center
                 </Button>
 
-                {/* Dropdown Panel */}
                 <Box
                   sx={{
                     position: 'absolute',
                     top: '100%',
-                    left: '50%',
-                    transform: desktopResourceOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(10px)',
+                    right: 0,
+                    transform: desktopResourceOpen ? 'translateY(0)' : 'translateY(10px)',
                     pt: 1.5, 
                     visibility: desktopResourceOpen ? 'visible' : 'hidden',
                     opacity: desktopResourceOpen ? 1 : 0,
@@ -754,49 +779,65 @@ export default function Navbar() {
                   <Paper
                     elevation={0}
                     sx={{
-                      width: 200,
-                      p: 1,
-                      borderRadius: 3,
+                      width: 780,
+                      p: 3,
+                      borderRadius: 1.5,
                       border: '1px solid',
                       borderColor: (theme) => alpha(theme.palette.divider, 0.1),
                       boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
                       backgroundColor: 'background.paper',
                     }}
                   >
-                    <List disablePadding>
-                      {RESOURCE_ROUTES.map((item) => (
-                        <ListItemButton
-                          key={item.path}
-                          onClick={() => {
-                            navigate(item.path);
-                            setDesktopResourceOpen(false);
-                          }}
-                          sx={{
-                            borderRadius: 2,
-                            mb: 0.5,
-                            px: 2,
-                            py: 1,
-                            backgroundColor: isActive(item.path) ? (theme) => alpha(theme.palette.primary.main, 0.05) : 'transparent',
-                            '&:last-child': { mb: 0 },
-                            '&:hover': {
-                              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
-                            }
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
-                            {item.icon}
-                          </Box>
-                          <ListItemText 
-                            primary={item.label} 
-                            primaryTypographyProps={{
-                              fontWeight: isActive(item.path) ? 600 : 500,
-                              color: isActive(item.path) ? 'primary.dark' : 'text.primary',
-                              fontSize: '14px'
+                    <Grid container spacing={3}>
+                      {RESOURCE_GROUPS.map((group) => (
+                        <Grid item xs={3} key={group.title}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: 700,
+                              color: 'primary.main',
+                              mb: 2,
+                              textTransform: 'uppercase',
+                              fontSize: '11px',
+                              letterSpacing: '0.5px'
                             }}
-                          />
-                        </ListItemButton>
+                          >
+                            {group.title}
+                          </Typography>
+                          <List disablePadding>
+                            {group.items.map((item) => (
+                              <ListItemButton
+                                key={item.path}
+                                onClick={() => {
+                                  navigate(item.path);
+                                  setDesktopResourceOpen(false);
+                                }}
+                                sx={{
+                                  borderRadius: 2,
+                                  mb: 0.5,
+                                  px: 1.5,
+                                  py: 0.75,
+                                  backgroundColor: isActive(item.path) ? (theme) => alpha(theme.palette.primary.main, 0.05) : 'transparent',
+                                  '&:last-child': { mb: 0 },
+                                  '&:hover': {
+                                    backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                                  }
+                                }}
+                              >
+                                <ListItemText 
+                                  primary={item.label} 
+                                  primaryTypographyProps={{
+                                    fontWeight: isActive(item.path) ? 600 : 500,
+                                    color: isActive(item.path) ? 'primary.dark' : 'text.primary',
+                                    fontSize: '13px'
+                                  }}
+                                />
+                              </ListItemButton>
+                            ))}
+                          </List>
+                        </Grid>
                       ))}
-                    </List>
+                    </Grid>
                   </Paper>
                 </Box>
               </Box>
@@ -831,13 +872,14 @@ export default function Navbar() {
                       px: 3,
                       py: 0.75,
                       minHeight: '40px',
-                      background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+                      backgroundColor: '#2E51FF',
+                      color: '#FFFFFF',
                       boxShadow: 'none',
                       transition: 'all 250ms ease',
                       border: '1px solid transparent',
                       '&:hover': {
-                        background: `linear-gradient(45deg, #C2410C 30%, #9A3412 90%)`,
-                        borderColor: '#9A3412',
+                        backgroundColor: '#1B3CC7',
+                        borderColor: '#1B3CC7',
                         boxShadow: 'none',
                       }
                     }}
@@ -893,13 +935,14 @@ export default function Navbar() {
                     px: 3,
                     py: 0.75,
                     minHeight: '40px',
-                    background: `linear-gradient(45deg, #EA580C 30%, #C2410C 90%)`,
+                    backgroundColor: '#2E51FF',
+                    color: '#FFFFFF',
                     boxShadow: 'none',
                     transition: 'all 250ms ease',
                     border: '1px solid transparent',
                     '&:hover': {
-                      background: `linear-gradient(45deg, #C2410C 30%, #9A3412 90%)`,
-                      borderColor: '#9A3412',
+                      backgroundColor: '#1B3CC7',
+                      borderColor: '#1B3CC7',
                       boxShadow: 'none',
                     }
                   }}
@@ -909,11 +952,9 @@ export default function Navbar() {
               )}
             </Box>
           )}
-        </Toolbar>
+          </Toolbar>
+        </Container>
       </AppBar>
-
-      {/* Spacer to prevent content from going under the fixed AppBar */}
-      <Box sx={{ height: { xs: '80px', sm: '100px' } }} />
 
       {/* Mobile Navigation Drawer */}
       <Drawer

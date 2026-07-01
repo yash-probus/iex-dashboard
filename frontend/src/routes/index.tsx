@@ -31,6 +31,7 @@ export default function AppRoutes() {
         {/* We map all database routes to the same DatabasePage for now, as it shows all three. 
             Later we can split them up if desired, or handle scroll inside the component */}
         <Route path="database/all-india-demand" element={<DatabasePage />} />
+        <Route path="database/generation-data" element={<DatabasePage />} />
         <Route path="database/state-wise-demand" element={<DatabasePage />} />
         <Route path="database/weather" element={<DatabasePage />} />
         <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />

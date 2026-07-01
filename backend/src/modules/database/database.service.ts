@@ -18,17 +18,156 @@ export class DatabaseService {
     }
   }
 
-  async getAllIndiaDemand(date?: string) {
+  async getAllIndiaDemand(startDate?: string, endDate?: string) {
     try {
-      const targetDate = date || '2026-06-30';
-      const data = await prisma.nppDemandData.findMany({
-        where: { date: targetDate },
-        orderBy: { timeStr: 'asc' }
+      const targetStartDate = startDate || new Date().toISOString().split('T')[0];
+      const targetEndDate = endDate || targetStartDate;
+
+      const rawRecords = await prisma.nppRawDemandData.findMany({
+        where: { 
+          date: {
+            gte: targetStartDate,
+            lte: targetEndDate
+          }
+        },
+        orderBy: [
+          { date: 'asc' },
+          { timeStr: 'asc' }
+        ]
       });
-      
-      return data;
+
+      // Aggregate logic
+      const adjustedMap: Record<string, { total: number; count: number; max: number; min: number }> = {};
+
+      for (const record of rawRecords) {
+        const [hh, mm] = record.timeStr.split(':').map(Number);
+        
+        // Calculate the 15-minute block label (e.g. 00:14)
+        const blockStartMin = Math.floor(mm / 15) * 15;
+        const blockEndMin = blockStartMin + 14;
+        
+        const adjustedTimeStr = `${record.date} ${String(hh).padStart(2, '0')}:${String(blockEndMin).padStart(2, '0')}`;
+
+        if (!adjustedMap[adjustedTimeStr]) {
+          adjustedMap[adjustedTimeStr] = {
+            total: 0,
+            count: 0,
+            max: -Infinity,
+            min: Infinity
+          };
+        }
+
+        const bucket = adjustedMap[adjustedTimeStr];
+        bucket.total += record.demandMet;
+        bucket.count += 1;
+        if (record.demandMet > bucket.max) bucket.max = record.demandMet;
+        if (record.demandMet < bucket.min) bucket.min = record.demandMet;
+      }
+
+      const adjustedData = Object.keys(adjustedMap).sort().map(timeStr => {
+        const bucket = adjustedMap[timeStr];
+        return {
+          timeStr,
+          avgDemand: Math.round(bucket.total / bucket.count),
+          maxDemand: bucket.max,
+          minDemand: bucket.min
+        };
+      });
+
+      return {
+        raw: rawRecords.map(r => ({
+          ...r,
+          timeStr: `${r.date} ${r.timeStr}`,
+          dataUpdatedAt: r.dataUpdatedAt,
+          fetchedAt: r.fetchedAt
+        })),
+        adjusted: adjustedData
+      };
+
     } catch (error) {
-      console.error('Error fetching All India Demand:', error);
+      console.error('Error fetching All India Demand (NPP):', error);
+      throw error;
+    }
+  }
+
+  async getGenerationData(startDate?: string, endDate?: string) {
+    try {
+      const targetStartDate = startDate || new Date().toISOString().split('T')[0];
+      const targetEndDate = endDate || targetStartDate;
+
+      const rawRecords = await prisma.nppRawGenerationData.findMany({
+        where: { 
+          date: {
+            gte: targetStartDate,
+            lte: targetEndDate
+          }
+        },
+        orderBy: [
+          { date: 'asc' },
+          { timeStr: 'asc' }
+        ]
+      });
+
+      // Aggregate logic
+      const adjustedMap: Record<string, { 
+        count: number; 
+        thermalTotal: number; 
+        gasTotal: number;
+        nuclearTotal: number;
+        hydroTotal: number;
+        windTotal: number;
+        solarTotal: number;
+      }> = {};
+
+      for (const record of rawRecords) {
+        const [hh, mm] = record.timeStr.split(':').map(Number);
+        
+        // Calculate the 15-minute block label (e.g. 00:14)
+        const blockStartMin = Math.floor(mm / 15) * 15;
+        const blockEndMin = blockStartMin + 14;
+        
+        const adjustedTimeStr = `${record.date} ${String(hh).padStart(2, '0')}:${String(blockEndMin).padStart(2, '0')}`;
+
+        if (!adjustedMap[adjustedTimeStr]) {
+          adjustedMap[adjustedTimeStr] = {
+            count: 0,
+            thermalTotal: 0, gasTotal: 0, nuclearTotal: 0, hydroTotal: 0, windTotal: 0, solarTotal: 0
+          };
+        }
+
+        const bucket = adjustedMap[adjustedTimeStr];
+        bucket.count += 1;
+        bucket.thermalTotal += (record.thermal || 0);
+        bucket.gasTotal += (record.gas || 0);
+        bucket.nuclearTotal += (record.nuclear || 0);
+        bucket.hydroTotal += (record.hydro || 0);
+        bucket.windTotal += (record.wind || 0);
+        bucket.solarTotal += (record.solar || 0);
+      }
+
+      const adjustedData = Object.keys(adjustedMap).sort().map(timeStr => {
+        const bucket = adjustedMap[timeStr];
+        return {
+          timeStr,
+          thermal: Math.round(bucket.thermalTotal / bucket.count),
+          gas: Math.round(bucket.gasTotal / bucket.count),
+          nuclear: Math.round(bucket.nuclearTotal / bucket.count),
+          hydro: Math.round(bucket.hydroTotal / bucket.count),
+          wind: Math.round(bucket.windTotal / bucket.count),
+          solar: Math.round(bucket.solarTotal / bucket.count)
+        };
+      });
+
+      return {
+        raw: rawRecords.map(r => ({
+          ...r,
+          timeStr: `${r.date} ${r.timeStr}`
+        })),
+        adjusted: adjustedData
+      };
+
+    } catch (error) {
+      console.error('Error fetching Generation Data:', error);
       throw error;
     }
   }
@@ -95,9 +234,10 @@ export class DatabaseService {
       let skip = 0;
       let hasMore = true;
 
-      // Write headers
       if (dataset === 'npp') {
-        res.write('date,timeStr,demandMet,hydro,wind,gas,solar,nuclear,thermal\n');
+        res.write('date,timeStr,demandMet\n');
+      } else if (dataset === 'generation') {
+        res.write('date,timeStr,thermal,gas,nuclear,hydro,wind,solar\n');
       } else if (dataset === 'state') {
         res.write('date,timeStr,stateName,region,demand,unit,price\n');
       } else if (dataset === 'weather') {
@@ -108,7 +248,7 @@ export class DatabaseService {
         let records: any[] = [];
         
         if (dataset === 'npp') {
-          records = await prisma.nppDemandData.findMany({
+          records = await prisma.nppRawDemandData.findMany({
             where: { date: { gte: startDate, lte: endDate } },
             orderBy: [{ date: 'asc' }, { timeStr: 'asc' }],
             skip,
@@ -116,7 +256,18 @@ export class DatabaseService {
           });
           
           for (const row of records) {
-            res.write(`${row.date},${row.timeStr},${row.demandMet},${row.hydro},${row.wind},${row.gas},${row.solar},${row.nuclear},${row.thermal}\n`);
+            res.write(`${row.date},${row.timeStr},${row.demandMet}\n`);
+          }
+        } else if (dataset === 'generation') {
+          records = await prisma.nppRawGenerationData.findMany({
+            where: { date: { gte: startDate, lte: endDate } },
+            orderBy: [{ date: 'asc' }, { timeStr: 'asc' }],
+            skip,
+            take: batchSize
+          });
+          
+          for (const row of records) {
+            res.write(`${row.date},${row.timeStr},${row.thermal},${row.gas},${row.nuclear},${row.hydro},${row.wind},${row.solar}\n`);
           }
         } else if (dataset === 'state') {
           records = await prisma.stateDemandData.findMany({
