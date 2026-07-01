@@ -26,7 +26,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const START_DATE = '2024-07-01';
-const END_DATE   = '2026-06-30';
+const END_DATE   = '2026-07-01';
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 

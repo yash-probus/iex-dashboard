@@ -66,11 +66,11 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                   align="center"
                   sx={{ 
                     fontWeight: 600, 
-                    color: '#FFFFFF',
-                    backgroundColor: '#1E293B',
-                    backgroundImage: 'linear-gradient(180deg, #334155 0%, #0F172A 100%)',
-                    borderBottom: '1px solid',
-                    borderRight: col.sticky ? '1px solid #334155' : 'none',
+                    color: '#1E293B',
+                    backgroundColor: '#F8FAFC',
+                    backgroundImage: 'none',
+                    borderBottom: '2px solid',
+                    borderRight: col.sticky ? '1px solid #E2E8F0' : 'none',
                     borderColor: 'divider',
                     fontSize: '11px',
                     letterSpacing: '0.5px',

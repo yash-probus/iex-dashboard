@@ -31,7 +31,7 @@ const prisma = new PrismaClient();
 // Config
 // ─────────────────────────────────────────
 const START_DATE = '2025-09-20';
-const END_DATE   = '2026-06-30';
+const END_DATE   = '2026-07-01';
 const DELAY_MS   = 1200;   // ms between date iterations (per endpoint)
 const MAX_RETRIES = 4;
 const BATCH_SIZE  = 500;

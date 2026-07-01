@@ -32,9 +32,16 @@ interface StateRegionMap {
 }
 
 export class DatabaseService {
-  async getWeatherData() {
+  async getWeatherData(startDate?: string, endDate?: string) {
     try {
       const forecasts = await prisma.weatherForecast.findMany({
+        where: startDate && endDate
+          ? { date: { gte: startDate, lte: endDate } }
+          : startDate
+          ? { date: { gte: startDate } }
+          : endDate
+          ? { date: { lte: endDate } }
+          : undefined,
         orderBy: { date: 'asc' }
       });
       return forecasts;

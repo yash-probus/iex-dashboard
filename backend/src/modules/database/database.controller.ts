@@ -49,7 +49,9 @@ export class DatabaseController {
 
   async getWeatherData(req: Request, res: Response) {
     try {
-      const weatherData = await databaseService.getWeatherData();
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const weatherData = await databaseService.getWeatherData(startDate, endDate);
       res.status(200).json({
         success: true,
         data: weatherData

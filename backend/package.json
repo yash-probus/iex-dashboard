@@ -7,7 +7,10 @@
     "dev": "nodemon --watch src --ext ts,json --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "lint": "echo \"Linting not yet configured\""
+    "lint": "echo \"Linting not yet configured\"",
+    "seed:npp": "ts-node scripts/seed2YearsNppDemand.ts",
+    "seed:weather": "ts-node scripts/seed2YearsWeather.ts",
+    "seed:state-demand": "ts-node scripts/seedHistoricalStateDemand.ts"
   },
   "keywords": [],
   "author": "",

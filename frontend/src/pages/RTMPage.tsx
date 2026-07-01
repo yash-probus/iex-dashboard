@@ -20,7 +20,7 @@ const chartMetrics: ChartMetric[] = [
   { key: 'sellBid', name: 'Sell Bid', color: '#F29F67', type: 'area', yAxisId: 'left' },
   { key: 'mcv', name: 'MCV', color: '#34B1AA', type: 'area', yAxisId: 'left' },
   { key: 'fsv', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left' },
-  { key: 'mcp', name: 'MCP', color: '#1E1E2C', type: 'line', yAxisId: 'right' },
+  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right' },
 ];
 
 export default function RTMPage() {

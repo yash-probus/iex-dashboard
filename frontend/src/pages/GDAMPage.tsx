@@ -21,7 +21,7 @@ const chartMetrics: ChartMetric[] = [
   { key: 'sellBidTotal', name: 'Sell Bid', color: '#34B1AA', type: 'area', yAxisId: 'left' },
   { key: 'mcvTotal', name: 'MCV', color: '#F29F67', type: 'area', yAxisId: 'left' },
   { key: 'fsvTotal', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left' },
-  { key: 'mcp', name: 'MCP', color: '#1E1E2C', type: 'line', yAxisId: 'right' },
+  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right' },
 ];
 
 export default function GDAMPage() {

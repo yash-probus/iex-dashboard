@@ -13,12 +13,10 @@ import {
   TableRow,
   Paper,
   alpha,
-  useTheme,
   ToggleButton,
   ToggleButtonGroup,
   Grid
-} from '@mui/material';
-import { ElectricBolt as ElectricBoltIcon } from '@mui/icons-material';
+} from '@mui/material';import { ElectricBolt as ElectricBoltIcon } from '@mui/icons-material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface RawGenData {
@@ -72,7 +70,6 @@ export default function GenerationDataView({
   onEndDateChange,
   onExport
 }: GenerationDataViewProps) {
-  const theme = useTheme();
   const [viewType, setViewType] = useState<'raw' | 'adjusted'>('adjusted');
 
   const handleViewChange = (
@@ -149,13 +146,13 @@ export default function GenerationDataView({
     <Card
       elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: 3,
         border: '1px solid',
-        borderColor: alpha(theme.palette.divider, 0.1),
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
       }}
     >
-      <CardContent sx={{ p: 4 }}>
+      <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box
@@ -233,20 +230,20 @@ export default function GenerationDataView({
     <Card
       elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: 3,
         border: '1px solid',
-        borderColor: alpha(theme.palette.divider, 0.1),
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
       }}
     >
-      <CardContent sx={{ p: 4 }}>
+      <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6" fontWeight="600">Alerts History (Data Table)</Typography>
+          <Typography variant="h6" fontWeight="600">Generation Data Table</Typography>
           <button 
             onClick={onExport}
             style={{ 
-              backgroundColor: '#1E293B', color: 'white', padding: '8px 16px', 
-              borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600
+              backgroundColor: '#EFF6FF', color: '#1D4ED8', padding: '8px 16px', 
+              borderRadius: '8px', border: '1px solid #BFDBFE', cursor: 'pointer', fontWeight: 600
             }}
           >
             Export CSV

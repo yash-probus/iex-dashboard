@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -26,16 +26,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText
 } from '@mui/material';
 import {
-  Timeline as TimelineIcon,
-  Map as MapIcon,
   Cloud as CloudIcon,
   Download as DownloadIcon,
+  ErrorOutline as ErrorOutlineIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../api/client';
 
@@ -66,7 +61,6 @@ interface StateDemand {
 export default function DatabasePage() {
   const theme = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
   const path = location.pathname;
   
 
@@ -121,8 +115,12 @@ export default function DatabasePage() {
   });
 
   const [exportOpen, setExportOpen] = useState(false);
-  const [exportDataset, setExportDataset] = useState('state');
-  const [exportStartDate, setExportStartDate] = useState('2024-04-01');
+  const [exportDataset, setExportDataset] = useState<string>(() => {
+    if (path.includes('/weather')) return 'weather';
+    if (path.includes('/state-wise-demand')) return 'state';
+    return 'npp';
+  });
+  const [exportStartDate, setExportStartDate] = useState('2024-07-01');
   const [exportEndDate, setExportEndDate] = useState(getTodayDateString());
 
   const handleDownloadCsv = () => {
@@ -133,19 +131,23 @@ export default function DatabasePage() {
 
   const fetchData = async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
-      const [weatherRes, demandRes, genRes] = await Promise.all([
-        apiClient.get('/database/weather'),
-        apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${nppStartDate}&endDate=${nppEndDate}`),
-        apiClient.get(`/database/generation?date=${selectedDate}&startDate=${nppStartDate}&endDate=${nppEndDate}`)
-      ]);
-        
+      if (showWeather) {
+        const weatherRes = await apiClient.get(`/database/weather?startDate=${weatherStartDate}&endDate=${weatherEndDate}`);
         if (weatherRes.data?.success && weatherRes.data?.data) {
           setWeatherData(weatherRes.data.data);
         } else {
           console.error("weatherRes missing data", weatherRes);
         }
-        
+      }
+
+      if (showNpp) {
+        const [demandRes, genRes] = await Promise.all([
+          apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`),
+          apiClient.get(`/database/generation?date=${selectedDate}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`)
+        ]);
+
         if (demandRes.data?.success) {
           setAllIndiaDemand(demandRes.data.data.allIndiaDemand);
           setStateWiseDemand(demandRes.data.data.stateWiseDemand);
@@ -158,17 +160,35 @@ export default function DatabasePage() {
         } else {
           console.error("genRes missing data", genRes);
         }
-      } catch (err: any) {
-        console.error('Error fetching database data:', err);
-        setErrorMsg(err.message || 'Unknown error');
-      } finally {
-        setLoading(false);
       }
-    };
+
+      if (showStateWise) {
+        const demandRes = await apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`);
+        if (demandRes.data?.success) {
+          setAllIndiaDemand(demandRes.data.data.allIndiaDemand);
+          setStateWiseDemand(demandRes.data.data.stateWiseDemand);
+        }
+      }
+    } catch (err: any) {
+      console.error('Error fetching database data:', err);
+      setErrorMsg(err.message || 'Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Committed date range — only updated when Submit is clicked
+  const [committedNppStartDate, setCommittedNppStartDate] = useState(nppStartDate);
+  const [committedNppEndDate, setCommittedNppEndDate] = useState(nppEndDate);
+
+  const handleNppSubmit = () => {
+    setCommittedNppStartDate(nppStartDate);
+    setCommittedNppEndDate(nppEndDate);
+  };
 
   useEffect(() => {
     fetchData();
-  }, [selectedDate, selectedTime, nppStartDate, nppEndDate]);
+  }, [selectedDate, selectedTime, committedNppStartDate, committedNppEndDate, weatherStartDate, weatherEndDate, path]);
 
   return (
     <Box
@@ -269,9 +289,19 @@ export default function DatabasePage() {
         <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Export Historical Data (CSV)</DialogTitle>
         <DialogContent dividers sx={{ pt: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography variant="body1" fontWeight={600}>
-              Dataset: {exportDataset === 'state' ? 'State Wise Demand' : exportDataset === 'weather' ? 'Weather Analytics' : 'All India Demand (NPP)'}
-            </Typography>
+            <FormControl fullWidth size="small">
+              <InputLabel>Dataset</InputLabel>
+              <Select
+                value={exportDataset}
+                label="Dataset"
+                onChange={(e) => setExportDataset(e.target.value as string)}
+              >
+                <MenuItem value="npp">All India Demand (NPP)</MenuItem>
+                <MenuItem value="generation">Generation Data</MenuItem>
+                <MenuItem value="state">State Wise Demand</MenuItem>
+                <MenuItem value="weather">Weather Analytics</MenuItem>
+              </Select>
+            </FormControl>
             
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Box sx={{ flex: 1 }}>
@@ -313,6 +343,13 @@ export default function DatabasePage() {
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 10 }}>
           <CircularProgress />
         </Box>
+      ) : errorMsg ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 10, gap: 2 }}>
+          <ErrorOutlineIcon sx={{ fontSize: 48, color: 'error.main' }} />
+          <Typography variant="h6" color="error.main" fontWeight={600}>Failed to load data</Typography>
+          <Typography variant="body2" color="text.secondary">{errorMsg}</Typography>
+          <Button variant="outlined" color="primary" onClick={fetchData}>Retry</Button>
+        </Box>
       ) : (
         <Box sx={{ display: 'flex', gap: 4 }}>
           {/* Main Content */}
@@ -330,7 +367,7 @@ export default function DatabasePage() {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Start Date</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>From</Typography>
                       <input 
                         type="date" 
                         value={nppStartDate}
@@ -343,7 +380,7 @@ export default function DatabasePage() {
                       />
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>End Date</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>To</Typography>
                       <input 
                         type="date" 
                         value={nppEndDate}
@@ -355,6 +392,22 @@ export default function DatabasePage() {
                         }}
                       />
                     </Box>
+                    <Button
+                      variant="contained"
+                      onClick={handleNppSubmit}
+                      sx={{
+                        height: '42px',
+                        px: 3,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        boxShadow: 'none',
+                        '&:hover': { boxShadow: 'none' },
+                      }}
+                    >
+                      Submit
+                    </Button>
                   </Box>
                 </Box>
                 <AllIndiaDemandView 
@@ -488,9 +541,7 @@ export default function DatabasePage() {
                       </TableHead>
                       <TableBody>
                         {weatherData
-                          .filter((row: WeatherDataRow) => row.date >= weatherStartDate && row.date <= weatherEndDate)
-                          .map((row: WeatherDataRow, i: number) => (
-                            <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
+                          .map((row: WeatherDataRow, i: number) => (                            <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                               <TableCell>{row.date}</TableCell>
                               <TableCell>{row.maxTemp}</TableCell>
                               <TableCell>{row.minTemp}</TableCell>

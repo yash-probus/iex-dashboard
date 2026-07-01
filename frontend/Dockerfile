@@ -12,8 +12,8 @@ RUN npm ci --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the Vite app
-RUN npm run build
+# Build the Vite app (production mode picks up .env.production)
+RUN npm run build -- --mode production
 
 # Serve stage
 FROM nginx:alpine AS runner

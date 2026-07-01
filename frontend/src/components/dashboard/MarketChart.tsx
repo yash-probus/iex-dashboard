@@ -77,12 +77,12 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
         borderColor: 'divider',
         backgroundColor: 'background.paper',
         borderRadius: 2,
-        height: 520, // Slightly increased for breathing room
+        height: 540,
         display: 'flex',
         flexDirection: 'column'
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px' }}>
             {title}
@@ -98,7 +98,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
 
       <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+          <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
             <XAxis 
               dataKey={xAxisKey} 
@@ -106,7 +106,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
               tick={{ fontSize: 11, fill: '#6B7280', fontWeight: 500 }} 
               axisLine={{ stroke: '#F0F0F0' }}
               tickLine={false}
-              dy={15}
+              dy={10}
             />
             {/* Left Y Axis for Volume */}
             <YAxis 
@@ -114,7 +114,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
               tick={{ fontSize: 11, fill: '#6B7280' }} 
               axisLine={false}
               tickLine={false}
-              dx={-10}
+              width={60}
             />
             {/* Right Y Axis for Price */}
             <YAxis 
@@ -123,19 +123,19 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
               tick={{ fontSize: 11, fill: '#6B7280' }} 
               axisLine={false}
               tickLine={false}
-              dx={10}
+              width={55}
             />
             
             <Tooltip 
               contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '13px', padding: '12px' }}
-              labelStyle={{ color: '#1E1E2C', fontWeight: 700, marginBottom: '8px', borderBottom: '1px solid #F0F0F0', paddingBottom: '4px' }}
+              labelStyle={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px', borderBottom: '1px solid #F0F0F0', paddingBottom: '4px' }}
               itemStyle={{ padding: '3px 0', fontWeight: 600 }}
               formatter={(value: any) => typeof value === 'number' ? Number(value.toFixed(2)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : value}
             />
             
             <Legend 
-              verticalAlign="top"
-              wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingBottom: '20px' }} 
+              verticalAlign="bottom"
+              wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '16px' }} 
               onClick={handleLegendClick} 
               iconType="circle"
             />
