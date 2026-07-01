@@ -10,6 +10,7 @@ interface FilterContainerProps {
   onDateChange: (date: string) => void;
   onIntervalChange: (interval: IntervalFilter) => void;
   onExport?: () => void;
+  onManageData?: () => void;
 }
 
 export default function FilterContainer({ 
@@ -17,7 +18,8 @@ export default function FilterContainer({
   filters,
   onDateChange,
   onIntervalChange,
-  onExport
+  onExport,
+  onManageData
 }: FilterContainerProps) {
   return (
     <Paper 
@@ -70,6 +72,15 @@ export default function FilterContainer({
       </Box>
 
       <Box sx={{ display: 'flex', gap: 1 }}>
+        {onManageData && (
+          <ActionButton 
+            variant="secondary" 
+            onClick={onManageData}
+            accentColor={accentColor}
+          >
+            Manage Data
+          </ActionButton>
+        )}
         <ActionButton 
           variant="secondary" 
           startIcon={<DownloadIcon fontSize="small" />} 

@@ -1,23 +1,16 @@
-const puppeteer = require('puppeteer-core');
+import axios from 'axios';
 
-(async () => {
-  const browser = await puppeteer.launch({
-    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  const page = await browser.newPage();
-  
-  page.on('response', async (response) => {
-    const url = response.url();
-    if (url.includes('webapi')) {
-      console.log('API URL:', url);
-      try {
-        const text = await response.text();
-        console.log('API Response:', text.substring(0, 500));
-      } catch (e) {}
-    }
-  });
+async function test() {
+  try {
+    const demandRes = await axios.get('http://localhost:8080/api/database/demand?date=2026-07-01&time=00:00&startDate=2026-06-01&endDate=2026-07-01');
+    console.log("demandRes.data.success:", demandRes.data.success);
+    console.log("raw length:", demandRes.data.data.allIndiaDemand.raw.length);
+    console.log("adjusted length:", demandRes.data.data.allIndiaDemand.adjusted.length);
 
-  await page.goto('https://grid-india.in/en/markets/transmission-loss', { waitUntil: 'networkidle2' });
-  await browser.close();
-})();
+    const weatherRes = await axios.get('http://localhost:8080/api/database/weather');
+    console.log("weatherRes.data.success:", weatherRes.data.success);
+  } catch (err) {
+    console.error("Error:", err.message);
+  }
+}
+test();

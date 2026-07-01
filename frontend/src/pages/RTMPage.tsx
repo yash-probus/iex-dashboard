@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import { TrendingUp, BarChart, ElectricBolt, ShowChart, Timer as TimerIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import FilterContainer from '../components/dashboard/FilterContainer';
 import SummaryGrid from '../components/dashboard/SummaryGrid';
 import SummaryCard from '../components/dashboard/SummaryCard';
@@ -23,6 +24,7 @@ const chartMetrics: ChartMetric[] = [
 ];
 
 export default function RTMPage() {
+  const navigate = useNavigate();
   const { filters, handleDateChange, handleIntervalChange } = useMarketFilters();
   const { data, summaryMetrics, isLoading, error } = useMarketData('RTM', filters);
 

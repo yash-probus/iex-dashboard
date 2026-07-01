@@ -24,6 +24,7 @@ export interface OverviewItemConfig {
   path: string;
   icon: React.ReactNode;
   color: string;
+  subItems?: { key: string; title: string; path: string; icon?: React.ReactNode; }[];
 }
 
 export const MARKET_ITEMS: OverviewItemConfig[] = [
@@ -122,20 +123,16 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
 
 export const DATABASE_ITEMS: OverviewItemConfig[] = [
   {
-    key: 'all-india-demand',
-    title: 'All India Demand (NPP)',
-    description: 'National power demand met across India.',
-    path: '/database/all-india-demand',
+    key: 'demand-generation',
+    title: 'Demand & Generation',
+    description: 'National power demand met and generation data across India.',
+    path: '/database/all-india-demand', // fallback path
     icon: <TimelineIcon fontSize="medium" />,
-    color: '#3B8FF3'
-  },
-  {
-    key: 'state-wise-demand',
-    title: 'State Wise Demand',
-    description: 'Demand met data mapped across all states.',
-    path: '/database/state-wise-demand',
-    icon: <MapIcon fontSize="medium" />,
-    color: '#34B1AA'
+    color: '#3B8FF3',
+    subItems: [
+      { key: 'all-india-demand', title: 'All India Demand', path: '/database/all-india-demand', icon: <TimelineIcon fontSize="small" /> },
+      { key: 'state-wise-demand', title: 'State Wise Demand', path: '/database/state-wise-demand', icon: <MapIcon fontSize="small" /> }
+    ]
   },
   {
     key: 'weather',

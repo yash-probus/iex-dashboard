@@ -170,15 +170,7 @@ export default function DatabasePage() {
         mx: 'auto',
       }}
     >
-      <Box sx={{ mb: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
-        <Box>
-          <Typography variant="h1" color="text.primary" gutterBottom>
-            Database Analytics
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600 }}>
-            Real-time & Historical metrics for State Demand and Weather.
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 5, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
         
         {(!showDateRange) && (
         <Box 
@@ -259,6 +251,7 @@ export default function DatabasePage() {
         )}
       </Box>
 
+
       <Dialog open={exportOpen} onClose={() => setExportOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Export Historical Data (CSV)</DialogTitle>
         <DialogContent dividers sx={{ pt: 3 }}>
@@ -309,54 +302,79 @@ export default function DatabasePage() {
         </Box>
       ) : (
         <Box sx={{ display: 'flex', gap: 4 }}>
-          {/* Sidebar */}
-          {(!showStateWise && !showWeather) && (
-            <Box sx={{ width: 280, flexShrink: 0, display: { xs: 'none', md: 'block' } }}>
-              <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #E2E8F0', mb: 3 }}>
-                <List component="nav" sx={{ p: 1 }}>
-                  <ListItem disablePadding>
-                    <ListItemButton 
-                      selected={showNpp} 
-                      onClick={() => navigate('/database/all-india-demand')}
-                      sx={{ borderRadius: 2, mb: 1, '&.Mui-selected': { bgcolor: alpha('#3B8FF3', 0.1), color: '#3B8FF3' }, '&:hover': { bgcolor: alpha('#3B8FF3', 0.05) } }}
-                    >
-                      <ListItemText primary="Real Time Demand Met Data" primaryTypographyProps={{ fontWeight: showNpp ? 600 : 500, fontSize: '0.875rem' }} />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton 
-                      selected={path.includes('/generation-data')}
-                      onClick={() => navigate('/database/generation-data')}
-                      sx={{ borderRadius: 2, mb: 1, '&.Mui-selected': { bgcolor: alpha('#3B8FF3', 0.1), color: '#3B8FF3' }, '&:hover': { bgcolor: alpha('#3B8FF3', 0.05) } }}
-                    >
-                      <ListItemText primary="Real Time Generation Data" primaryTypographyProps={{ fontWeight: path.includes('/generation-data') ? 600 : 500, fontSize: '0.875rem' }} />
-                    </ListItemButton>
-                  </ListItem>
-                </List>
-              </Card>
-            </Box>
-          )}
-
           {/* Main Content */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Grid container spacing={4}>
 
 
-          {/* NPP Data Section */}
+          {/* NPP Data Section (Demand & Generation) */}
           {showNpp && (
-            <Grid item xs={12}>
-              <AllIndiaDemandView 
-                data={allIndiaDemand} 
-                startDate={nppStartDate} 
-                endDate={nppEndDate} 
-                onStartDateChange={setNppStartDate} 
-                onEndDateChange={setNppEndDate} 
-                onExport={() => { 
-                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${nppStartDate}&endDate=${nppEndDate}`;
-                  window.open(url, '_blank');
-                }}
-              />
-            </Grid>
+            <>
+              <Grid item xs={12}>
+                <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    Real Time Demand Met Data
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Start Date</Typography>
+                      <input 
+                        type="date" 
+                        value={nppStartDate}
+                        onChange={(e) => setNppStartDate(e.target.value)}
+                        style={{
+                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
+                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>End Date</Typography>
+                      <input 
+                        type="date" 
+                        value={nppEndDate}
+                        onChange={(e) => setNppEndDate(e.target.value)}
+                        style={{
+                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
+                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
+                <AllIndiaDemandView 
+                  data={allIndiaDemand} 
+                  startDate={nppStartDate} 
+                  endDate={nppEndDate} 
+                  onStartDateChange={setNppStartDate} 
+                  onEndDateChange={setNppEndDate} 
+                  onExport={() => { 
+                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${nppStartDate}&endDate=${nppEndDate}`;
+                    window.open(url, '_blank');
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ mb: 3, mt: 4, display: 'flex', alignItems: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    Real Time Generation Data
+                  </Typography>
+                </Box>
+                <GenerationDataView 
+                  data={generationData} 
+                  startDate={nppStartDate} 
+                  endDate={nppEndDate} 
+                  onStartDateChange={setNppStartDate} 
+                  onEndDateChange={setNppEndDate} 
+                  onExport={() => { 
+                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${nppStartDate}&endDate=${nppEndDate}`;
+                    window.open(url, '_blank');
+                  }}
+                />
+              </Grid>
+            </>
           )}
 
           {/* State Wise Demand Section */}
@@ -468,22 +486,6 @@ export default function DatabasePage() {
               </CardContent>
             </Card>
           </Grid>
-          )}
-
-          {path.includes('/generation-data') && (
-            <Grid item xs={12}>
-              <GenerationDataView 
-                data={generationData} 
-                startDate={nppStartDate} 
-                endDate={nppEndDate} 
-                onStartDateChange={setNppStartDate} 
-                onEndDateChange={setNppEndDate} 
-                onExport={() => { 
-                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${nppStartDate}&endDate=${nppEndDate}`;
-                  window.open(url, '_blank');
-                }}
-              />
-            </Grid>
           )}
 
             </Grid>

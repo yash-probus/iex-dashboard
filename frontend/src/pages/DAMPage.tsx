@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import { TrendingUp, BarChart, ElectricBolt, ShowChart } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import FilterContainer from '../components/dashboard/FilterContainer';
 import SummaryGrid from '../components/dashboard/SummaryGrid';
 import SummaryCard from '../components/dashboard/SummaryCard';
@@ -11,6 +12,7 @@ import EmptyState from '../components/dashboard/EmptyState';
 import { useMarketFilters } from '../hooks/useMarketFilters';
 import { useMarketData } from '../hooks/useMarketData';
 import { exportToCSV } from '../utils/export';
+import { useAuth } from '../contexts/AuthContext';
 
 const DAM_ACCENT = '#3B8FF3'; // Resolved from var(--color-market-dam) for alpha() support
 
@@ -23,6 +25,8 @@ const chartMetrics: ChartMetric[] = [
 ];
 
 export default function DAMPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { filters, handleDateChange, handleIntervalChange } = useMarketFilters();
   const { data, summaryMetrics, isLoading, error } = useMarketData('DAM', filters);
 
@@ -94,6 +98,7 @@ export default function DAMPage() {
         onDateChange={handleDateChange}
         onIntervalChange={handleIntervalChange}
         onExport={handleExport}
+        onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
       />
 
       {error ? (
