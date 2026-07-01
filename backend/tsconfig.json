@@ -12,13 +12,14 @@
     "types": [
       "node"
     ],
+    "moduleResolution": "node",
     "baseUrl": ".",
-    "ignoreDeprecations": "5.0",
     "paths": {
-      "@/*": [
-        "./src/*"
+      "*": [
+        "node_modules/*"
       ]
-    }
+    },
+    "ignoreDeprecations": "6.0"
   },
   "include": [
     "src/**/*"
