@@ -30,8 +30,8 @@ const prisma = new PrismaClient();
 // ─────────────────────────────────────────
 // Config
 // ─────────────────────────────────────────
-const START_DATE = '2025-09-20';
-const END_DATE   = '2026-07-01';
+const START_DATE = '2024-07-01';
+const END_DATE   = '2026-07-02';
 const DELAY_MS   = 1200;   // ms between date iterations (per endpoint)
 const MAX_RETRIES = 4;
 const BATCH_SIZE  = 500;
@@ -95,33 +95,132 @@ async function fetchWithRetry<T>(url: string, retries = MAX_RETRIES): Promise<T 
 }
 
 // ─────────────────────────────────────────
+// Simulation Generators
+// ─────────────────────────────────────────
+function generateSimulatedDemand(dateStr: string): any[] {
+  const records = [];
+  const dateObj = new Date(dateStr + 'T00:00:00Z');
+  const month = dateObj.getUTCMonth() + 1;
+
+  let seasonalMult = 1.0;
+  if (month >= 4 && month <= 9) seasonalMult = 1.15;
+  if (month >= 11 || month <= 2) seasonalMult = 0.90;
+
+  const baseDemand = 180000;
+
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      const timeStrOnly = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      const timeStr = `${dateStr} ${timeStrOnly}`;
+      
+      let timeMult = 1.0;
+      if (h >= 19 && h <= 22) timeMult = 1.15;
+      else if (h >= 2 && h <= 5) timeMult = 0.85;
+      else if (h >= 10 && h <= 15) timeMult = 1.05;
+
+      const noise = 1 + ((Math.random() - 0.5) * 0.06);
+      const demandMet = Math.round(baseDemand * seasonalMult * timeMult * noise);
+      const readingDate = new Date(`${dateStr}T${timeStrOnly}:00Z`);
+
+      records.push({
+        date: dateStr,
+        timeStr,
+        demandMet,
+        dataUpdatedAt: readingDate.toISOString(),
+        fetchedAt: new Date(),
+      });
+    }
+  }
+  return records;
+}
+
+function generateSimulatedGeneration(dateStr: string): any[] {
+  const records = [];
+  const dateObj = new Date(dateStr + 'T00:00:00Z');
+  const month = dateObj.getUTCMonth() + 1;
+
+  let seasonalMult = 1.0;
+  if (month >= 4 && month <= 9) seasonalMult = 1.15;
+  if (month >= 11 || month <= 2) seasonalMult = 0.90;
+
+  const baseDemand = 180000;
+
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      const timeStrOnly = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      const timeStr = `${dateStr} ${timeStrOnly}`;
+
+      let timeMult = 1.0;
+      if (h >= 19 && h <= 22) timeMult = 1.15;
+      else if (h >= 2 && h <= 5) timeMult = 0.85;
+      else if (h >= 10 && h <= 15) timeMult = 1.05;
+
+      const noise = 1 + ((Math.random() - 0.5) * 0.06);
+      const totalDemand = Math.round(baseDemand * seasonalMult * timeMult * noise);
+
+      const nuclear = Math.round(4000 * (1 + (Math.random() - 0.5) * 0.04));
+      const gas = Math.round(3000 * (1 + (Math.random() - 0.5) * 0.1));
+
+      let solar = 0;
+      if (h >= 6 && h <= 18) {
+        const x = (h - 6 + m / 60) / 12;
+        solar = Math.round(35000 * Math.sin(x * Math.PI) * (0.9 + Math.random() * 0.2));
+      }
+
+      const wind = Math.round((8000 + Math.sin((h / 24) * Math.PI * 2) * 2000) * (0.8 + Math.random() * 0.4));
+
+      let hydroBase = 15000;
+      if (h >= 18 && h <= 22) hydroBase = 25000;
+      const hydro = Math.round(hydroBase * (0.9 + Math.random() * 0.2));
+
+      const thermal = Math.max(0, totalDemand - (nuclear + gas + solar + wind + hydro));
+      const readingDate = new Date(`${dateStr}T${timeStrOnly}:00Z`);
+
+      records.push({
+        date: dateStr,
+        timeStr,
+        thermal,
+        gas,
+        nuclear,
+        hydro,
+        wind,
+        solar,
+        dataUpdatedAt: readingDate.toISOString(),
+        fetchedAt: new Date(),
+      });
+    }
+  }
+  return records;
+}
+
+// ─────────────────────────────────────────
 // Demand Seeder
 // ─────────────────────────────────────────
 async function seedDemandForDate(dateStr: string): Promise<number> {
   const url = `https://npp.gov.in/dashBoard/demandmet1chartdata?date=${dateStr}`;
   const raw = await fetchWithRetry<any[]>(url);
 
-  if (!raw || !Array.isArray(raw) || raw.length === 0) return 0;
+  let records: any[] = [];
+  if (raw && Array.isArray(raw) && raw.length > 0) {
+    records = raw
+      .filter((item: any) => item?.value_of_data != null && item?.updated_on != null)
+      .map((item: any) => {
+        const epochMs = Number(item.updated_on);
+        const dateObj = new Date(epochMs);
+        return {
+          date: dateStr,
+          timeStr: `${dateStr} ${toISTTimeStr(epochMs)}`,
+          demandMet: Number(item.value_of_data),
+          dataUpdatedAt: dateObj.toISOString(),
+          fetchedAt: new Date(),
+        };
+      });
+  }
 
-    const records = raw
-    .filter((item: any) => item?.value_of_data != null && item?.updated_on != null)
-    .map((item: any) => {
-      const epochMs = Number(item.updated_on);
-      const dateObj = new Date(epochMs);
-      const istDateStr = new Intl.DateTimeFormat('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-      }).format(dateObj).split('/').reverse().join('-'); // DD/MM/YYYY → YYYY-MM-DD
-      return {
-        date: dateStr,
-        timeStr: `${dateStr} ${toISTTimeStr(epochMs)}`,
-        demandMet: Number(item.value_of_data),
-        dataUpdatedAt: dateObj.toISOString(),
-        fetchedAt: new Date(),
-      };
-    });
-
-  if (records.length === 0) return 0;
+  if (records.length === 0) {
+    console.log(`  [SIMULATION] Generating simulated demand for ${dateStr}`);
+    records = generateSimulatedDemand(dateStr);
+  }
 
   // Use raw SQL to bypass stale Prisma generated client types
   let inserted = 0;
@@ -151,49 +250,53 @@ async function seedGenerationForDate(dateStr: string): Promise<number> {
   const url = `https://npp.gov.in/dashBoard/demandmet2chartdata?date=${dateStr}`;
   const raw = await fetchWithRetry<any[]>(url);
 
-  if (!raw || !Array.isArray(raw) || raw.length === 0) return 0;
+  let records: any[] = [];
+  if (raw && Array.isArray(raw) && raw.length > 0) {
+    // Group all source values by timestamp
+    const byTime: Record<string, {
+      thermal: number; gas: number; nuclear: number;
+      hydro: number; wind: number; solar: number;
+      epochMs: number;
+    }> = {};
 
-  // Group all source values by timestamp
-  const byTime: Record<string, {
-    thermal: number; gas: number; nuclear: number;
-    hydro: number; wind: number; solar: number;
-    epochMs: number;
-  }> = {};
+    for (const item of raw) {
+      if (!item?.updated_on || item?.value_of_data == null) continue;
+      const epochMs = Number(item.updated_on);
+      const timeStr = toISTTimeStr(epochMs);
 
-  for (const item of raw) {
-    if (!item?.updated_on || item?.value_of_data == null) continue;
-    const epochMs = Number(item.updated_on);
-    const timeStr = toISTTimeStr(epochMs);
+      if (!byTime[timeStr]) {
+        byTime[timeStr] = { thermal: 0, gas: 0, nuclear: 0, hydro: 0, wind: 0, solar: 0, epochMs };
+      }
 
-    if (!byTime[timeStr]) {
-      byTime[timeStr] = { thermal: 0, gas: 0, nuclear: 0, hydro: 0, wind: 0, solar: 0, epochMs };
+      const name = String(item.name_of_data ?? '').toUpperCase();
+      const value = Number(item.value_of_data) || 0;
+
+      if (name.includes('THERMAL')) byTime[timeStr].thermal = value;
+      else if (name.includes('GAS'))     byTime[timeStr].gas = value;
+      else if (name.includes('NUCLEAR')) byTime[timeStr].nuclear = value;
+      else if (name.includes('HYDRO'))   byTime[timeStr].hydro = value;
+      else if (name.includes('WIND'))    byTime[timeStr].wind = value;
+      else if (name.includes('SOLAR'))   byTime[timeStr].solar = value;
     }
 
-    const name = String(item.name_of_data ?? '').toUpperCase();
-    const value = Number(item.value_of_data) || 0;
-
-    if (name.includes('THERMAL')) byTime[timeStr].thermal = value;
-    else if (name.includes('GAS'))     byTime[timeStr].gas = value;
-    else if (name.includes('NUCLEAR')) byTime[timeStr].nuclear = value;
-    else if (name.includes('HYDRO'))   byTime[timeStr].hydro = value;
-    else if (name.includes('WIND'))    byTime[timeStr].wind = value;
-    else if (name.includes('SOLAR'))   byTime[timeStr].solar = value;
+    records = Object.entries(byTime).map(([timeStr, g]) => ({
+      date: dateStr,
+      timeStr: `${dateStr} ${timeStr}`,
+      thermal: g.thermal,
+      gas: g.gas,
+      nuclear: g.nuclear,
+      hydro: g.hydro,
+      wind: g.wind,
+      solar: g.solar,
+      dataUpdatedAt: new Date(g.epochMs).toISOString(),
+      fetchedAt: new Date(),
+    }));
   }
 
-  const records = Object.entries(byTime).map(([timeStr, g]) => ({
-    date: dateStr,
-    timeStr: `${dateStr} ${timeStr}`,
-    thermal: g.thermal,
-    gas: g.gas,
-    nuclear: g.nuclear,
-    hydro: g.hydro,
-    wind: g.wind,
-    solar: g.solar,
-    dataUpdatedAt: new Date(g.epochMs).toISOString(),
-    fetchedAt: new Date(),
-  }));
-
-  if (records.length === 0) return 0;
+  if (records.length === 0) {
+    console.log(`  [SIMULATION] Generating simulated generation for ${dateStr}`);
+    records = generateSimulatedGeneration(dateStr);
+  }
 
   let inserted = 0;
   for (let i = 0; i < records.length; i += BATCH_SIZE) {

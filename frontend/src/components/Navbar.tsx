@@ -68,7 +68,7 @@ const RESOURCE_GROUPS = [
 const DATABASE_ROUTES = [
   { label: 'All India Demand (NPP)', path: '/database/all-india-demand', icon: <TimelineIcon fontSize="small" sx={{ color: '#3B8FF3' }} /> },
   { label: 'State Wise Demand (Vidyut Pravah & IEX)', path: '/database/state-wise-demand', icon: <MapIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
-  { label: 'Weather Analytics (Open-Meteo)', path: '/database/weather', icon: <CloudIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
+  { label: 'Weather Data (Open-Meteo)', path: '/database/weather', icon: <CloudIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
   { label: 'Holiday Calendar', path: '/database/holiday-calendar', icon: <CalendarIcon fontSize="small" sx={{ color: '#E91E63' }} /> },
 ];
 

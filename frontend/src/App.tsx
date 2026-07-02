@@ -126,14 +126,16 @@ const theme = createTheme({
         root: {
           borderBottom: '1px solid #F1F5F9',
           padding: '16px',
+          whiteSpace: 'nowrap',
         },
         head: {
           fontWeight: 600,
           color: '#64748B',
-          textTransform: 'uppercase',
+          textTransform: 'none',
           fontSize: '12px',
           letterSpacing: '0.05em',
-          backgroundColor: '#F8FAFC'
+          backgroundColor: '#F8FAFC',
+          whiteSpace: 'nowrap',
         }
       }
     }

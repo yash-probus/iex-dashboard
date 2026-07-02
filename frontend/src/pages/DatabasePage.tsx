@@ -92,6 +92,15 @@ export default function DatabasePage() {
     return String(now.getHours()).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
   };
 
+  const formatDateStr = (dateStr: string) => {
+    if (!dateStr) return '-';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const [year, month, day] = parts;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
   const [selectedTime, setSelectedTime] = useState<string>(getCurrentTimeString());
 
@@ -223,7 +232,7 @@ export default function DatabasePage() {
     >
       <Box sx={{ mb: 5, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
         
-        {(!showDateRange && !showHolidayCalendar) && (
+        {(!showDateRange && !showHolidayCalendar && !showWeather) && (
         <Box 
           className="glass"
           sx={{ 
@@ -317,7 +326,7 @@ export default function DatabasePage() {
                 <MenuItem value="npp">All India Demand (NPP)</MenuItem>
                 <MenuItem value="generation">Generation Data</MenuItem>
                 <MenuItem value="state">State Wise Demand</MenuItem>
-                <MenuItem value="weather">Weather Analytics</MenuItem>
+                <MenuItem value="weather">Weather Data</MenuItem>
               </Select>
             </FormControl>
             
@@ -604,16 +613,16 @@ export default function DatabasePage() {
                       <TableBody>
                         {weatherData
                           .map((row: WeatherDataRow, i: number) => (                            <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                              <TableCell>{row.date}</TableCell>
-                              <TableCell>{row.maxTemp}</TableCell>
-                              <TableCell>{row.minTemp}</TableCell>
-                              <TableCell>{row.relativeHumidity ?? '-'}</TableCell>
-                              <TableCell>{row.precipitationProb ?? '-'}</TableCell>
-                              <TableCell>{row.precipitationSum ?? '-'}</TableCell>
-                              <TableCell>{row.sunshineDuration ?? '-'}</TableCell>
+                              <TableCell>{formatDateStr(row.date)}</TableCell>
+                              <TableCell>{row.maxTemp != null ? row.maxTemp.toFixed(1) : '-'}</TableCell>
+                              <TableCell>{row.minTemp != null ? row.minTemp.toFixed(1) : '-'}</TableCell>
+                              <TableCell>{row.relativeHumidity != null ? Math.round(row.relativeHumidity) : '-'}</TableCell>
+                              <TableCell>{row.precipitationProb != null ? Math.round(row.precipitationProb) : '-'}</TableCell>
+                              <TableCell>{row.precipitationSum != null ? row.precipitationSum.toFixed(1) : '-'}</TableCell>
+                              <TableCell>{row.sunshineDuration != null ? row.sunshineDuration.toFixed(1) : '-'}</TableCell>
                               <TableCell>{row.sunrise || '-'}</TableCell>
                               <TableCell>{row.sunset || '-'}</TableCell>
-                              <TableCell>{row.windSpeed}</TableCell>
+                              <TableCell>{row.windSpeed != null ? row.windSpeed.toFixed(1) : '-'}</TableCell>
                               <TableCell>
                                 <Box sx={{ 
                                   display: 'inline-block',

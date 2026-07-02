@@ -33,7 +33,8 @@ services:
     environment:
       - PRISMA_HIDE_UPDATE_MESSAGE=true
       - TZ=Asia/Kolkata
-    command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
+      - DATABASE_URL=postgresql://postgres:postgres@iex-postgres:5432/iex_dashboard?schema=public
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed"
 
   iex-backend:
     build:
@@ -52,6 +53,7 @@ services:
       - .env
     environment:
       - TZ=Asia/Kolkata
+      - DATABASE_URL=postgresql://postgres:postgres@iex-postgres:5432/iex_dashboard?schema=public
     volumes:
       - ./uploads:/app/uploads
 

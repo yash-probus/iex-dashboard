@@ -73,7 +73,11 @@ export class DatabaseService {
       const adjustedMap: Record<string, DemandBucket> = {};
 
       for (const record of rawRecords) {
-        const [hh, mm] = record.timeStr.split(':').map(Number);
+        const timePart = record.timeStr.includes(' ') ? record.timeStr.split(' ')[1] : record.timeStr;
+        let [hh, mm] = timePart.split(':').map(Number);
+
+        if (isNaN(hh) || isNaN(mm)) continue;
+        if (hh === 24) hh = 0;
 
         // Calculate the 15-minute block label (e.g. 00:14)
         const blockStartMin = Math.floor(mm / 15) * 15;
@@ -110,7 +114,7 @@ export class DatabaseService {
       return {
         raw: rawRecords.map(r => ({
           ...r,
-          timeStr: `${r.date} ${r.timeStr}`,
+          timeStr: `${r.date} ${r.timeStr.includes(' ') ? r.timeStr.split(' ')[1] : r.timeStr}`,
           dataUpdatedAt: r.dataUpdatedAt,
           fetchedAt: r.fetchedAt
         })),
@@ -145,7 +149,11 @@ export class DatabaseService {
       const adjustedMap: Record<string, GenerationBucket> = {};
 
       for (const record of rawRecords) {
-        const [hh, mm] = record.timeStr.split(':').map(Number);
+        const timePart = record.timeStr.includes(' ') ? record.timeStr.split(' ')[1] : record.timeStr;
+        let [hh, mm] = timePart.split(':').map(Number);
+
+        if (isNaN(hh) || isNaN(mm)) continue;
+        if (hh === 24) hh = 0;
 
         // Calculate the 15-minute block label (e.g. 00:14)
         const blockStartMin = Math.floor(mm / 15) * 15;

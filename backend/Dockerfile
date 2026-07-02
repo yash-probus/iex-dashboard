@@ -15,6 +15,7 @@ RUN npm ci
 
 # Copy the rest of the backend source code
 COPY src ./src
+COPY scripts ./scripts
 
 # Generate Prisma Client and build the TypeScript application
 RUN npx prisma generate

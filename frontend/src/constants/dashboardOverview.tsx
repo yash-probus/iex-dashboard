@@ -137,7 +137,7 @@ export const DATABASE_ITEMS: OverviewItemConfig[] = [
   },
   {
     key: 'weather',
-    title: 'Weather Analytics',
+    title: 'Weather Data',
     description: 'Historical weather data from Open-Meteo.',
     path: '/database/weather',
     icon: <CloudIcon fontSize="medium" />,

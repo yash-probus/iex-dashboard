@@ -75,29 +75,19 @@ export default function LoginPage() {
         }}
       >
         <Box sx={{ maxWidth: 450 }}>
-          <Typography 
-            variant="h1" 
+          <Box 
+            component="img"
+            src="/assets/logo.png"
+            alt="IEX Dashboard Logo"
             sx={{ 
-              fontWeight: 800, 
-              fontSize: '4.5rem', 
-              color: '#0d47a1', 
-              letterSpacing: '-0.02em',
-              textShadow: '0 2px 10px rgba(0,0,0,0.05)',
-              mb: 1
+              height: 'auto',
+              width: '100%',
+              maxWidth: 400,
+              mb: 2,
+              filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.1))'
             }}
-          >
-            Welcome
-          </Typography>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              color: '#475569', 
-              fontWeight: 500, 
-              opacity: 0.9 
-            }}
-          >
-            Smart Utility Monitoring Platform
-          </Typography>
+          />
+
         </Box>
       </Box>
 
