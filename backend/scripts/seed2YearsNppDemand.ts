@@ -103,18 +103,21 @@ async function seedDemandForDate(dateStr: string): Promise<number> {
 
   if (!raw || !Array.isArray(raw) || raw.length === 0) return 0;
 
-  const records = raw
+    const records = raw
     .filter((item: any) => item?.value_of_data != null && item?.updated_on != null)
     .map((item: any) => {
       const epochMs = Number(item.updated_on);
+      const dateObj = new Date(epochMs);
+      const istDateStr = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(dateObj).split('/').reverse().join('-'); // DD/MM/YYYY → YYYY-MM-DD
       return {
         date: dateStr,
-        timeStr: toISTTimeStr(epochMs),
+        timeStr: `${dateStr} ${toISTTimeStr(epochMs)}`,
         demandMet: Number(item.value_of_data),
-        dataUpdatedAt: new Date(epochMs).toISOString(),
+        dataUpdatedAt: dateObj.toISOString(),
         fetchedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
     });
 
@@ -171,7 +174,7 @@ async function seedGenerationForDate(dateStr: string): Promise<number> {
 
   const records = Object.entries(byTime).map(([timeStr, g]) => ({
     date: dateStr,
-    timeStr,
+    timeStr: `${dateStr} ${timeStr}`,
     thermal: g.thermal,
     gas: g.gas,
     nuclear: g.nuclear,
@@ -180,8 +183,6 @@ async function seedGenerationForDate(dateStr: string): Promise<number> {
     solar: g.solar,
     dataUpdatedAt: new Date(g.epochMs).toISOString(),
     fetchedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
   }));
 
   if (records.length === 0) return 0;
@@ -189,7 +190,7 @@ async function seedGenerationForDate(dateStr: string): Promise<number> {
   let inserted = 0;
   for (let i = 0; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
-    const result = await prisma.nppRawGenerationData.createMany({
+    const result = await (prisma as any).nppRawGenerationData.createMany({
       data: batch,
       skipDuplicates: true,
     });
@@ -226,12 +227,12 @@ async function main() {
   const seededDemandDates = new Set(existingDemand.map(r => r.date));
 
   console.log('[PRE-CHECK] Loading already-seeded generation dates...');
-  const existingGen = await prisma.nppRawGenerationData.groupBy({
+  const existingGen = await (prisma as any).nppRawGenerationData.groupBy({
     by: ['date'],
     _count: { date: true },
     having: { date: { _count: { gte: 5 } } },
   });
-  const seededGenDates = new Set(existingGen.map(r => r.date));
+  const seededGenDates = new Set(existingGen.map((r: any) => r.date));
 
   console.log(`[PRE-CHECK] Already have demand for ${seededDemandDates.size} dates, generation for ${seededGenDates.size} dates.\n`);
 
