@@ -56,16 +56,21 @@ export default function ModuleLayout() {
   };
 
   return (
-    <Box sx={{ display: 'flex', gap: 3, flexGrow: 1 }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: { xs: 'column', md: 'row' }, 
+      gap: 3, 
+      flexGrow: 1 
+    }}>
       {/* Sidebar */}
       <Paper 
         elevation={0}
         sx={{ 
-          width: 280, 
+          width: { xs: '100%', md: 280 }, 
           flexShrink: 0, 
-          height: 'calc(100vh - 120px)',
-          position: 'sticky',
-          top: 88,
+          height: { xs: 'auto', md: 'calc(100vh - 120px)' },
+          position: { xs: 'relative', md: 'sticky' },
+          top: { xs: 0, md: 88 },
           display: 'flex', 
           flexDirection: 'column',
           borderRadius: 3,
