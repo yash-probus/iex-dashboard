@@ -87,15 +87,6 @@ export default function LoginPage() {
             }} 
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-          <Typography variant="body1" sx={{ color: '#555', display: 'flex', alignItems: 'center', mt: 1 }}>
-            Powered by 
-            <Box 
-              component="img" 
-              src="/assets/logo.jpeg" 
-              alt="Probus Logo" 
-              sx={{ height: 25, ml: 1, borderRadius: 1 }} 
-            />
-          </Typography>
         </Box>
       </Box>
 
