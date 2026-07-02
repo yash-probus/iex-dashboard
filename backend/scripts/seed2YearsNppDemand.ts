@@ -123,15 +123,21 @@ async function seedDemandForDate(dateStr: string): Promise<number> {
 
   if (records.length === 0) return 0;
 
-  // Insert in batches
+  // Use raw SQL to bypass stale Prisma generated client types
   let inserted = 0;
   for (let i = 0; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
-    const result = await (prisma as any).nppRawDemandData.createMany({
-      data: batch,
-      skipDuplicates: true,
-    });
-    inserted += result.count;
+    for (const r of batch) {
+      try {
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO public."NppRawDemandData" (id, date, "timeStr", "demandMet", "dataUpdatedAt", "fetchedAt", "createdAt", "updatedAt")
+           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW())
+           ON CONFLICT ON CONSTRAINT uq_npp_date_time DO NOTHING`,
+          r.date, r.timeStr, r.demandMet, r.dataUpdatedAt, r.fetchedAt
+        );
+        inserted++;
+      } catch { /* skip duplicate */ }
+    }
   }
   return inserted;
 }
@@ -219,12 +225,10 @@ async function main() {
 
   // Pre-check which dates already have demand data (skip if ≥ 5 rows exist)
   console.log('[PRE-CHECK] Loading already-seeded demand dates...');
-  const existingDemand = await (prisma as any).nppRawDemandData.groupBy({
-    by: ['date'],
-    _count: { date: true },
-    having: { date: { _count: { gte: 5 } } },
-  });
-  const seededDemandDates = new Set(existingDemand.map((r: any) => r.date));
+  const existingDemandRaw = await prisma.$queryRawUnsafe<{date: string}[]>(
+    `SELECT DISTINCT date FROM public."NppRawDemandData" GROUP BY date HAVING COUNT(*) >= 5`
+  );
+  const seededDemandDates = new Set(existingDemandRaw.map((r: any) => r.date));
 
   console.log('[PRE-CHECK] Loading already-seeded generation dates...');
   let seededGenDates = new Set<string>();
