@@ -7,16 +7,16 @@ import { logger } from '../../logger';
 const prisma = new PrismaClient();
 
 interface RawMarketOpRow {
-  Date?: string;
-  date?: string;
-  Timeblock?: string;
-  timeblock?: string;
-  'DAM MCP'?: string;
-  dam_mcp?: string;
-  'RTM MCP'?: string;
-  rtm_mcp?: string;
-  'GDAM MCP'?: string;
-  gdam_mcp?: string;
+  Date?: string | Date;
+  date?: string | Date;
+  Timeblock?: string | number;
+  timeblock?: string | number;
+  'DAM MCP'?: string | number;
+  dam_mcp?: string | number;
+  'RTM MCP'?: string | number;
+  rtm_mcp?: string | number;
+  'GDAM MCP'?: string | number;
+  gdam_mcp?: string | number;
   [key: string]: any;
 }
 
@@ -86,11 +86,11 @@ export class MarketOperationsService {
           if (!dateVal && !timeblockStr) continue;
 
           let parsedDate: Date;
-          if (dateVal instanceof Date) {
+          if (dateVal && dateVal instanceof Date) {
             parsedDate = dateVal;
           } else {
             // Assume format DD-MM-YYYY or YYYY-MM-DD
-            const d = new Date(dateVal.toString());
+            const d = new Date(dateVal ? dateVal.toString() : '');
             if (isNaN(d.getTime())) {
               logger.warn(`Skipping row ${i} due to invalid date: ${dateVal}`);
               continue;
