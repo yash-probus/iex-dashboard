@@ -112,8 +112,8 @@ export default function DashboardPage() {
                 sx={{ 
                   mt: 'auto',
                   py: 1.2,
-                  bgcolor: alpha(theme.palette.primary.main, 0.05), 
-                  color: theme.palette.primary.main,
+                  bgcolor: theme.palette.primary.main, 
+                  color: '#FFFFFF',
                   fontWeight: 600,
                   textTransform: 'none',
                   borderRadius: 2,
