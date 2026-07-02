@@ -102,6 +102,13 @@ export default function DatabasePage() {
   });
   const [nppEndDate, setNppEndDate] = useState<string>(getTodayDateString());
 
+  const [genStartDate, setGenStartDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [genEndDate, setGenEndDate] = useState<string>(getTodayDateString());
+
   // Weather view date range — default to last 30 days + next 7 days forecast
   const [weatherStartDate, setWeatherStartDate] = useState<string>(() => {
     const d = new Date();
@@ -145,7 +152,7 @@ export default function DatabasePage() {
       if (showNpp) {
         const [demandRes, genRes] = await Promise.all([
           apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`),
-          apiClient.get(`/database/generation?date=${selectedDate}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`)
+          apiClient.get(`/database/generation?date=${selectedDate}&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`)
         ]);
 
         if (demandRes.data?.success) {
@@ -181,14 +188,22 @@ export default function DatabasePage() {
   const [committedNppStartDate, setCommittedNppStartDate] = useState(nppStartDate);
   const [committedNppEndDate, setCommittedNppEndDate] = useState(nppEndDate);
 
+  const [committedGenStartDate, setCommittedGenStartDate] = useState(genStartDate);
+  const [committedGenEndDate, setCommittedGenEndDate] = useState(genEndDate);
+
   const handleNppSubmit = () => {
     setCommittedNppStartDate(nppStartDate);
     setCommittedNppEndDate(nppEndDate);
   };
 
+  const handleGenSubmit = () => {
+    setCommittedGenStartDate(genStartDate);
+    setCommittedGenEndDate(genEndDate);
+  };
+
   useEffect(() => {
     fetchData();
-  }, [selectedDate, selectedTime, committedNppStartDate, committedNppEndDate, weatherStartDate, weatherEndDate, path]);
+  }, [selectedDate, selectedTime, committedNppStartDate, committedNppEndDate, committedGenStartDate, committedGenEndDate, weatherStartDate, weatherEndDate, path]);
 
   return (
     <Box
@@ -417,25 +432,69 @@ export default function DatabasePage() {
                   onStartDateChange={setNppStartDate} 
                   onEndDateChange={setNppEndDate} 
                   onExport={() => { 
-                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${nppStartDate}&endDate=${nppEndDate}`;
+                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`;
                     window.open(url, '_blank');
                   }}
                 />
               </Grid>
               <Grid item xs={12}>
-                <Box sx={{ mb: 3, mt: 4, display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ mb: 3, mt: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
                     Real Time Generation Data
                   </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>From</Typography>
+                      <input 
+                        type="date" 
+                        value={genStartDate}
+                        onChange={(e) => setGenStartDate(e.target.value)}
+                        style={{
+                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
+                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>To</Typography>
+                      <input 
+                        type="date" 
+                        value={genEndDate}
+                        onChange={(e) => setGenEndDate(e.target.value)}
+                        style={{
+                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
+                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                    </Box>
+                    <Button
+                      variant="contained"
+                      onClick={handleGenSubmit}
+                      sx={{
+                        height: '42px',
+                        px: 3,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        boxShadow: 'none',
+                        '&:hover': { boxShadow: 'none' },
+                      }}
+                    >
+                      Submit
+                    </Button>
+                  </Box>
                 </Box>
                 <GenerationDataView 
                   data={generationData} 
-                  startDate={nppStartDate} 
-                  endDate={nppEndDate} 
-                  onStartDateChange={setNppStartDate} 
-                  onEndDateChange={setNppEndDate} 
+                  startDate={genStartDate} 
+                  endDate={genEndDate} 
+                  onStartDateChange={setGenStartDate} 
+                  onEndDateChange={setGenEndDate} 
                   onExport={() => { 
-                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${nppStartDate}&endDate=${nppEndDate}`;
+                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`;
                     window.open(url, '_blank');
                   }}
                 />

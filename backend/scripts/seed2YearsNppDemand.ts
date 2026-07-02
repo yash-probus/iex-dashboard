@@ -198,11 +198,19 @@ async function seedGenerationForDate(dateStr: string): Promise<number> {
   let inserted = 0;
   for (let i = 0; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
-    const result = await (prisma as any).nppRawGenerationData.createMany({
-      data: batch,
-      skipDuplicates: true,
-    });
-    inserted += result.count;
+    for (const r of batch) {
+      try {
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO public."NppRawGenerationData" (id, date, "timeStr", thermal, gas, nuclear, hydro, wind, solar, "dataUpdatedAt", "fetchedAt", "createdAt", "updatedAt")
+           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+           ON CONFLICT (date, "timeStr") DO NOTHING`,
+          r.date, r.timeStr, r.thermal, r.gas, r.nuclear, r.hydro, r.wind, r.solar, r.dataUpdatedAt, r.fetchedAt
+        );
+        inserted++;
+      } catch (e: any) {
+        console.error(`  [SQL ERROR] ${r.date} ${r.timeStr}: ${e.message}`);
+      }
+    }
   }
   return inserted;
 }
@@ -225,6 +233,65 @@ async function main() {
   const allDates = getAllDates(START_DATE, END_DATE);
   console.log(`Total dates to process: ${allDates.length}\n`);
 
+  // Auto-create NppRawDemandData table if not exists using raw SQL
+  console.log('[INIT] Ensuring public."NppRawDemandData" table exists...');
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS public."NppRawDemandData" (
+        id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        "timeStr" TEXT NOT NULL,
+        "demandMet" DOUBLE PRECISION NOT NULL,
+        "dataUpdatedAt" TEXT,
+        "fetchedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "NppRawDemandData_pkey" PRIMARY KEY (id)
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_npp_date_time ON public."NppRawDemandData"(date, "timeStr");
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "NppRawDemandData_date_idx" ON public."NppRawDemandData"(date);
+    `);
+    console.log('[INIT] Table public."NppRawDemandData" is ready.');
+  } catch (e: any) {
+    console.error('[INIT] Error creating NppRawDemandData table:', e.message);
+  }
+
+  // Auto-create NppRawGenerationData table if not exists using raw SQL
+  console.log('[INIT] Ensuring public."NppRawGenerationData" table exists...');
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS public."NppRawGenerationData" (
+        id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        "timeStr" TEXT NOT NULL,
+        thermal DOUBLE PRECISION,
+        gas DOUBLE PRECISION,
+        nuclear DOUBLE PRECISION,
+        hydro DOUBLE PRECISION,
+        wind DOUBLE PRECISION,
+        solar DOUBLE PRECISION,
+        "dataUpdatedAt" TEXT,
+        "fetchedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "NppRawGenerationData_pkey" PRIMARY KEY (id)
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_npp_gen_date_time ON public."NppRawGenerationData"(date, "timeStr");
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "NppRawGenerationData_date_idx" ON public."NppRawGenerationData"(date);
+    `);
+    console.log('[INIT] Table public."NppRawGenerationData" is ready.');
+  } catch (e: any) {
+    console.error('[INIT] Error creating NppRawGenerationData table:', e.message);
+  }
+
   // Pre-check which dates already have demand data (skip if ≥ 5 rows exist)
   console.log('[PRE-CHECK] Loading already-seeded demand dates...');
   const existingDemandRaw = await prisma.$queryRawUnsafe<{date: string}[]>(
@@ -235,14 +302,12 @@ async function main() {
   console.log('[PRE-CHECK] Loading already-seeded generation dates...');
   let seededGenDates = new Set<string>();
   try {
-    const existingGen = await (prisma as any).nppRawGenerationData.groupBy({
-      by: ['date'],
-      _count: { date: true },
-      having: { date: { _count: { gte: 5 } } },
-    });
-    seededGenDates = new Set(existingGen.map((r: any) => r.date));
-  } catch {
-    console.log('[PRE-CHECK] nppRawGenerationData not available, skipping generation seeding.');
+    const existingGenRaw = await prisma.$queryRawUnsafe<{date: string}[]>(
+      `SELECT DISTINCT date FROM public."NppRawGenerationData" GROUP BY date HAVING COUNT(*) >= 5`
+    );
+    seededGenDates = new Set(existingGenRaw.map((r: any) => r.date));
+  } catch (e: any) {
+    console.log('[PRE-CHECK] nppRawGenerationData query failed, skipping generation seeding:', e.message);
   }
 
   console.log(`[PRE-CHECK] Already have demand for ${seededDemandDates.size} dates, generation for ${seededGenDates.size} dates.\n`);

@@ -166,7 +166,7 @@ export default function AllIndiaDemandView({
           <>
               <Box sx={{ height: 350, mb: 2, mt: 2 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis 
                       dataKey="timeStr" 
@@ -179,6 +179,7 @@ export default function AllIndiaDemandView({
                       domain={['auto', 'auto']}
                       tick={{ fontSize: 12, fill: '#64748B' }}
                       tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
+                      width={45}
                     />
                     <Tooltip 
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
