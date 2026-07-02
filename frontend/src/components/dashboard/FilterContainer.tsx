@@ -11,6 +11,7 @@ interface FilterContainerProps {
   onIntervalChange: (interval: IntervalFilter) => void;
   onExport?: () => void;
   onManageData?: () => void;
+  hideHourlyDaily?: boolean;
 }
 
 export default function FilterContainer({ 
@@ -19,7 +20,8 @@ export default function FilterContainer({
   onDateChange,
   onIntervalChange,
   onExport,
-  onManageData
+  onManageData,
+  hideHourlyDaily
 }: FilterContainerProps) {
   return (
     <Paper 
@@ -66,8 +68,12 @@ export default function FilterContainer({
           }}
         >
           <MenuItem value="15min" sx={{ fontSize: '13px' }}>15 Minute</MenuItem>
-          <MenuItem value="hourly" sx={{ fontSize: '13px' }}>Hourly</MenuItem>
-          <MenuItem value="daily" sx={{ fontSize: '13px' }}>Daily</MenuItem>
+          {!hideHourlyDaily && (
+            <>
+              <MenuItem value="hourly" sx={{ fontSize: '13px' }}>Hourly</MenuItem>
+              <MenuItem value="daily" sx={{ fontSize: '13px' }}>Daily</MenuItem>
+            </>
+          )}
         </TextField>
       </Box>
 

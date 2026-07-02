@@ -191,6 +191,7 @@ export default function GDAMPage() {
           onIntervalChange={handleIntervalChange}
           onExport={handleExport}
           onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
+          hideHourlyDaily={true}
         />
       )}
     </Box>

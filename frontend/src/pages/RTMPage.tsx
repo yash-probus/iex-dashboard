@@ -12,6 +12,7 @@ import EmptyState from '../components/dashboard/EmptyState';
 import { useMarketFilters } from '../hooks/useMarketFilters';
 import { useMarketData } from '../hooks/useMarketData';
 import { exportToCSV } from '../utils/export';
+import { useAuth } from '../contexts/AuthContext';
 
 const RTM_ACCENT = '#E0B50F'; // Resolved from var(--color-market-rtm) for alpha() support
 
@@ -25,6 +26,7 @@ const chartMetrics: ChartMetric[] = [
 
 export default function RTMPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { filters, handleDateChange, handleIntervalChange } = useMarketFilters();
   const { data, summaryMetrics, isLoading, error } = useMarketData('RTM', filters);
   const [marketView, setMarketView] = React.useState<'all-india' | 'state-wise'>('all-india');
@@ -180,6 +182,8 @@ export default function RTMPage() {
           onDateChange={handleDateChange}
           onIntervalChange={handleIntervalChange}
           onExport={handleExport}
+          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
+          hideHourlyDaily={true}
         />
       )}
     </Box>
