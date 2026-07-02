@@ -50,13 +50,13 @@ const statesTemplate = [
 ];
 
 async function seedHistoricalStateDemand() {
-  console.log('[StateSeed] Starting 2-year massive state data backfill (~2.6M rows)...');
+  console.log('[StateSeed] Starting 3-month state data backfill (~300k rows)...');
   
-  const startDate = '2024-04-01';
+  const startDate = '2026-04-01';
   const endDate = '2026-06-30';
   
   let currentDate = startDate;
-  const batchSize = 25000;
+  const batchSize = 10000;
   let batch = [];
   let inserted = 0;
 
