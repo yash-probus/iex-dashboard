@@ -77,7 +77,10 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
           width: '100%', 
           maxWidth: { xs: '90vw', sm: '440px' }, 
           borderRadius: 3,
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          backgroundColor: 'rgba(255, 255, 255, 0.65)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)'
         }
       }}
       BackdropProps={{

@@ -209,13 +209,9 @@ export default function DatabasePage() {
     <Box
       className="animate-fade-in-up"
       sx={{
-        minHeight: '100vh',
-        bgcolor: '#F8FAFC',
-        pt: { xs: 8, sm: 12 },
-        pb: 8,
-        px: { xs: 2, sm: 4, md: 8 },
-        maxWidth: theme.breakpoints.values.xl,
-        mx: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4
       }}
     >
       <Box sx={{ mb: 5, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
