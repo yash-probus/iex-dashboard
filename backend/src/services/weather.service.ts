@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
+import { ApiLogService } from '../modules/api-log/api-log.service';
 
 const prisma = new PrismaClient();
 
@@ -140,8 +141,10 @@ export class WeatherEngine {
       }
 
       console.log('[WeatherEngine] Weather forecast sync complete. 30 days stored in database.');
-    } catch (error) {
+      await ApiLogService.createLog('Weather API', url, 'SUCCESS', 'Fetched and stored 30-day forecast');
+    } catch (error: any) {
       console.error('[WeatherEngine] Failed to sync weather data:', error);
+      await ApiLogService.createLog('Weather API', "https://api.open-meteo.com/v1/forecast", 'ERROR', error.message);
     }
   }
 }

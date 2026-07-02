@@ -21,6 +21,14 @@ export default function AdminPage() {
       icon: <SettingsSuggestIcon fontSize="medium" />,
       color: '#F29F67',
       path: '/admin/resource-center'
+    },
+    {
+      key: 'api-logs',
+      title: 'API Health Logs',
+      description: 'Monitor background fetch operations for external APIs.',
+      icon: <SettingsSuggestIcon fontSize="medium" />,
+      color: '#10B981',
+      path: '/admin/api-logs'
     }
   ];
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import https from 'https';
 import { PrismaClient } from '@prisma/client';
+import { ApiLogService } from '../modules/api-log/api-log.service';
 
 const prisma = new PrismaClient();
 
@@ -196,14 +197,18 @@ export class VidyutPravahScraper {
       });
       const timeStr = formatter.format(d);
 
-      return {
+      const result = {
         date: dateStr,
         timeStr: timeStr,
         demandMet,
         dataUpdatedAt: d.toISOString(),
       };
+      
+      await ApiLogService.createLog('NPP Demand API', `https://npp.gov.in/dashBoard/demandmet1chartdata?date=${dateStr}`, 'SUCCESS', `Fetched demand data for ${dateStr}`);
+      return result;
     } catch (error: any) {
       console.error(`Error scraping NPP demand for ${dateStr}:`, error.message);
+      await ApiLogService.createLog('NPP Demand API', `https://npp.gov.in/dashBoard/demandmet1chartdata?date=${dateStr}`, 'ERROR', error.message);
       return null;
     }
   }
@@ -252,7 +257,7 @@ export class VidyutPravahScraper {
       });
       const timeStr = formatter.format(d);
 
-      return {
+      const result = {
         date: dateStr,
         timeStr: timeStr,
         thermal: latestData.thermal,
@@ -263,8 +268,12 @@ export class VidyutPravahScraper {
         solar: latestData.solar,
         dataUpdatedAt: d.toISOString(),
       };
+
+      await ApiLogService.createLog('NPP Generation API', `https://npp.gov.in/dashBoard/demandmet2chartdata?date=${dateStr}`, 'SUCCESS', `Fetched generation data for ${dateStr}`);
+      return result;
     } catch (error: any) {
       console.error(`Error scraping NPP generation for ${dateStr}:`, error.message);
+      await ApiLogService.createLog('NPP Generation API', `https://npp.gov.in/dashBoard/demandmet2chartdata?date=${dateStr}`, 'ERROR', error.message);
       return null;
     }
   }

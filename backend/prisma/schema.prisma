@@ -406,3 +406,16 @@ model HolidayCalendar {
   @@schema("public")
 }
 
+model ApiLog {
+  id        String   @id @default(uuid())
+  apiName   String   @db.VarChar(100)
+  endpoint  String?  @db.VarChar(255)
+  status    String   @db.VarChar(50) // SUCCESS, ERROR
+  message   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([apiName])
+  @@index([status])
+  @@index([createdAt])
+  @@schema("public")
+}
