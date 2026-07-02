@@ -17,7 +17,7 @@ export interface ColumnDefinition {
 }
 
 interface TableContainerProps {
-  title: string;
+  title?: string;
   data: any[];
   columns: ColumnDefinition[];
   onExport?: () => void;
@@ -49,11 +49,13 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
         flexDirection: 'column'
       }}
     >
-      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 600 }}>
-          {title}
-        </Typography>
-      </Box>
+      {title && (
+        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 600 }}>
+            {title}
+          </Typography>
+        </Box>
+      )}
 
       {/* Render all rows directly. High performance container. */}
       <MuiTableContainer sx={{ maxHeight: 600, backgroundColor: 'background.paper', height: 'fit-content' }}>

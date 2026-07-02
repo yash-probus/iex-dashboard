@@ -71,7 +71,6 @@ export default function RegionStatePage() {
       isExportDisabled={filteredData.length === 0}
     >
       <TableContainer 
-        title={`${config.title} Records`}
         data={filteredData}
         columns={columns}
         loading={loading}
