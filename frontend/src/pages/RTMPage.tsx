@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Alert } from '@mui/material';
+import { Box, Typography, Alert, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { TrendingUp, BarChart, ElectricBolt, ShowChart, Timer as TimerIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import FilterContainer from '../components/dashboard/FilterContainer';
@@ -27,6 +27,7 @@ export default function RTMPage() {
   const navigate = useNavigate();
   const { filters, handleDateChange, handleIntervalChange } = useMarketFilters();
   const { data, summaryMetrics, isLoading, error } = useMarketData('RTM', filters);
+  const [marketView, setMarketView] = React.useState<'all-india' | 'state-wise'>('all-india');
 
   const getColumns = (): ColumnDefinition[] => {
     const baseColumns: ColumnDefinition[] = [];
@@ -64,42 +65,76 @@ export default function RTMPage() {
       <Box sx={{ 
         display: 'flex', 
         alignItems: 'center', 
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
         gap: 2.5,
         mb: 1, 
         pb: 3, 
         borderBottom: '1px solid', 
         borderColor: 'divider' 
       }}>
-        <Box sx={{ 
-          color: RTM_ACCENT, 
-          backgroundColor: `${RTM_ACCENT}15`,
-          p: 2,
-          borderRadius: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <TimerIcon fontSize="large" />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+          <Box sx={{ 
+            color: RTM_ACCENT, 
+            backgroundColor: `${RTM_ACCENT}15`,
+            p: 2,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <TimerIcon fontSize="large" />
+          </Box>
+          <Box>
+            <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
+              Real Time Market
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              Analyze RTM market trends, volumes, and prices.
+            </Typography>
+          </Box>
         </Box>
-        <Box>
-          <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
-            Real Time Market
-          </Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Analyze RTM market trends, volumes, and prices.
-          </Typography>
-        </Box>
+
+        <ToggleButtonGroup
+          value={marketView}
+          exclusive
+          onChange={(e, value) => value && setMarketView(value)}
+          size="small"
+          sx={{
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 2.5,
+            p: 0.5,
+            '& .MuiToggleButton-root': {
+              border: 'none',
+              borderRadius: 2,
+              px: 2.5,
+              py: 0.75,
+              textTransform: 'none',
+              fontWeight: 600,
+              color: 'text.secondary',
+              '&.Mui-selected': {
+                bgcolor: RTM_ACCENT,
+                color: '#FFF',
+                '&:hover': {
+                  bgcolor: RTM_ACCENT,
+                }
+              }
+            }
+          }}
+        >
+          <ToggleButton value="all-india">All India</ToggleButton>
+          <ToggleButton value="state-wise">State Wise</ToggleButton>
+        </ToggleButtonGroup>
       </Box>
 
-      <FilterContainer 
-        accentColor={RTM_ACCENT} 
-        filters={filters}
-        onDateChange={handleDateChange}
-        onIntervalChange={handleIntervalChange}
-        onExport={handleExport}
-      />
-
-      {error ? (
+      {marketView === 'state-wise' ? (
+        <EmptyState 
+          title="State-wise Data Under Integration" 
+          description="State-wise Real Time Market (RTM) data is not yet available in the system. We are working on integrating state-level real-time clearing volumes, bids, and prices."
+        />
+      ) : error ? (
         <EmptyState 
           title="No Market Data Found" 
           description={error}
@@ -136,6 +171,16 @@ export default function RTMPage() {
             />
           )}
         </>
+      )}
+
+      {marketView === 'all-india' && (
+        <FilterContainer 
+          accentColor={RTM_ACCENT} 
+          filters={filters}
+          onDateChange={handleDateChange}
+          onIntervalChange={handleIntervalChange}
+          onExport={handleExport}
+        />
       )}
     </Box>
   );
