@@ -32,6 +32,14 @@ const MODULES = [
     path: '/resource-center',
     icon: <SettingsIcon sx={{ fontSize: 24 }} />,
     color: '#03A9F4'
+  },
+  {
+    key: 'api-logs',
+    title: 'API Logs',
+    description: 'Monitor background operations and check API health logs (NPP, Weather, etc).',
+    path: '/admin/api-logs',
+    icon: <StorageIcon sx={{ fontSize: 24 }} />,
+    color: '#10B981'
   }
 ];
 
