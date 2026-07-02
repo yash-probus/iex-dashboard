@@ -22,7 +22,7 @@ export default function ModuleLayout() {
     activeModuleColor = '#9C27B0';
   } else if (location.pathname.startsWith('/dam') || location.pathname.startsWith('/gdam') || location.pathname.startsWith('/rtm') || location.pathname.startsWith('/markets')) {
     activeItems = MARKET_ITEMS;
-    activeModuleTitle = 'Market Intelligence';
+    activeModuleTitle = 'IEX Market';
     activeModuleColor = '#00BFA5';
   } else if (location.pathname.startsWith('/resource-center')) {
     activeItems = RESOURCE_CENTER_ITEMS;

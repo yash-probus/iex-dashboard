@@ -19,7 +19,7 @@ const MODULES = [
   },
   {
     key: 'markets',
-    title: 'Market Intelligence',
+    title: 'IEX Market',
     description: 'Explore Day Ahead, Green Day Ahead, and Real Time Market analytics with precise interval data.',
     path: '/markets',
     icon: <ChartIcon sx={{ fontSize: 24 }} />,
