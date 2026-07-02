@@ -127,7 +127,7 @@ async function seedDemandForDate(dateStr: string): Promise<number> {
   let inserted = 0;
   for (let i = 0; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
-    const result = await prisma.nppRawDemandData.createMany({
+    const result = await (prisma as any).nppRawDemandData.createMany({
       data: batch,
       skipDuplicates: true,
     });
@@ -219,12 +219,12 @@ async function main() {
 
   // Pre-check which dates already have demand data (skip if ≥ 5 rows exist)
   console.log('[PRE-CHECK] Loading already-seeded demand dates...');
-  const existingDemand = await prisma.nppRawDemandData.groupBy({
+  const existingDemand = await (prisma as any).nppRawDemandData.groupBy({
     by: ['date'],
     _count: { date: true },
     having: { date: { _count: { gte: 5 } } },
   });
-  const seededDemandDates = new Set(existingDemand.map(r => r.date));
+  const seededDemandDates = new Set(existingDemand.map((r: any) => r.date));
 
   console.log('[PRE-CHECK] Loading already-seeded generation dates...');
   const existingGen = await (prisma as any).nppRawGenerationData.groupBy({
