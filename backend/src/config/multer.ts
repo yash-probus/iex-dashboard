@@ -5,7 +5,7 @@ import { AppError } from '../utils/AppError';
 
 // 1. Ensure directories exist on startup
 const uploadBasePath = path.join(__dirname, '../../uploads');
-const directories = ['dam', 'gdam', 'rtm'];
+const directories = ['dam', 'gdam', 'rtm', 'holidays', 'unknown'];
 
 directories.forEach((dir) => {
   const dirPath = path.join(uploadBasePath, dir);
