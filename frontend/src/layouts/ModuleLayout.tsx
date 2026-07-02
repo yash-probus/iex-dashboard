@@ -107,37 +107,42 @@ export default function ModuleLayout() {
             return (
               <React.Fragment key={item.key}>
                 <ListItem disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton 
-                    selected={buttonSelected}
-                    onClick={() => hasSubItems ? handleToggle(item.key) : navigate(item.path)}
-                    sx={{ 
-                      borderRadius: 2,
-                      py: 1.2,
-                      '&.Mui-selected': {
-                        bgcolor: alpha(activeModuleColor, 0.1),
+                    <ListItemButton 
+                      selected={buttonSelected}
+                      onClick={() => hasSubItems ? handleToggle(item.key) : navigate(item.path)}
+                      sx={{ 
+                        borderRadius: 2,
+                        py: 1.2,
+                        '&.Mui-selected': {
+                          bgcolor: alpha(activeModuleColor, 0.1),
+                          '&:hover': {
+                            bgcolor: alpha(activeModuleColor, 0.15),
+                          }
+                        },
                         '&:hover': {
-                          bgcolor: alpha(activeModuleColor, 0.15),
+                          bgcolor: '#1E293B',
+                          '& .MuiListItemIcon-root, & .MuiListItemText-primary, & .MuiSvgIcon-root': {
+                            color: '#FFFFFF !important'
+                          }
                         }
-                      },
-                      '&:hover': {
-                        bgcolor: alpha(theme.palette.action.hover, 0.5),
-                      }
-                    }}
-                  >
-                    <ListItemIcon sx={{ 
-                      minWidth: 40, 
-                      color: buttonSelected ? activeModuleColor : 'text.secondary'
-                    }}>
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary={item.title} 
-                      primaryTypographyProps={{ 
-                        variant: 'body2',
-                        fontWeight: buttonSelected ? 600 : 500,
-                        color: buttonSelected ? 'text.primary' : 'text.secondary'
-                      }} 
-                    />
+                      }}
+                    >
+                      <ListItemIcon sx={{ 
+                        minWidth: 40, 
+                        color: buttonSelected ? activeModuleColor : 'text.secondary',
+                        transition: 'color 0.2s ease-in-out'
+                      }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={item.title} 
+                        primaryTypographyProps={{ 
+                          variant: 'body2',
+                          fontWeight: buttonSelected ? 600 : 500,
+                          color: buttonSelected ? 'text.primary' : 'text.secondary',
+                          sx: { transition: 'color 0.2s ease-in-out' }
+                        }} 
+                      />
                     {hasSubItems && (
                       isOpen ? <ExpandLess sx={{ color: buttonSelected ? activeModuleColor : 'text.secondary' }} /> : <ExpandMore sx={{ color: buttonSelected ? activeModuleColor : 'text.secondary' }} />
                     )}
@@ -169,11 +174,22 @@ export default function ModuleLayout() {
                                     width: 2,
                                     backgroundColor: activeModuleColor
                                   }
+                                },
+                                '&:hover': {
+                                  bgcolor: '#1E293B',
+                                  borderRadius: 2,
+                                  '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+                                    color: '#FFFFFF !important'
+                                  }
                                 }
                               }}
                             >
                               {sub.icon && (
-                                <ListItemIcon sx={{ minWidth: 32, color: isSubActive ? activeModuleColor : 'text.secondary' }}>
+                                <ListItemIcon sx={{ 
+                                  minWidth: 32, 
+                                  color: isSubActive ? activeModuleColor : 'text.secondary',
+                                  transition: 'color 0.2s ease-in-out'
+                                }}>
                                   {sub.icon}
                                 </ListItemIcon>
                               )}
@@ -182,7 +198,8 @@ export default function ModuleLayout() {
                                 primaryTypographyProps={{
                                   variant: 'caption',
                                   fontWeight: isSubActive ? 600 : 500,
-                                  color: isSubActive ? activeModuleColor : 'text.secondary'
+                                  color: isSubActive ? activeModuleColor : 'text.secondary',
+                                  sx: { transition: 'color 0.2s ease-in-out' }
                                 }}
                               />
                             </ListItemButton>
