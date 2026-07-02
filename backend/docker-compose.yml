@@ -34,7 +34,7 @@ services:
       - PRISMA_HIDE_UPDATE_MESSAGE=true
       - TZ=Asia/Kolkata
       - DATABASE_URL=postgresql://postgres:postgres@iex-postgres:5432/iex_dashboard?schema=public
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed"
+    command: sh -c "npx prisma db push && npx prisma db seed"
 
   iex-backend:
     build:

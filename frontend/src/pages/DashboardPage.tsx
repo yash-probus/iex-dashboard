@@ -40,6 +40,14 @@ const MODULES = [
     path: '/admin/api-logs',
     icon: <StorageIcon sx={{ fontSize: 24 }} />,
     color: '#10B981'
+  },
+  {
+    key: 'market-operations',
+    title: 'Market Operations',
+    description: 'Compare and upload MCP data across DAM, RTM, and GDAM.',
+    path: '/markets/operations',
+    icon: <SettingsIcon sx={{ fontSize: 24 }} />,
+    color: '#FF7043'
   }
 ];
 
