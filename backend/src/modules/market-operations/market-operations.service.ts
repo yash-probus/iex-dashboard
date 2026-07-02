@@ -49,10 +49,11 @@ export class MarketOperationsService {
     }
   }
 
-  async uploadRecords(filePath: string) {
+  async uploadRecords(filePath: string, originalFileName?: string) {
     try {
-      const ext = path.extname(filePath).toLowerCase();
-      if (!['.xlsx', '.xls', '.csv'].includes(ext)) {
+      const fileNameToValidate = originalFileName || filePath;
+      const ext = path.extname(fileNameToValidate).toLowerCase();
+      if (!['.xlsx', '.xls', '.csv', '.xlxs'].includes(ext)) {
         throw new AppError('Invalid file type. Only Excel (.xlsx, .xls) and CSV (.csv) are supported.', 400);
       }
 

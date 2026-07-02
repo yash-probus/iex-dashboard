@@ -26,7 +26,7 @@ export class MarketOperationsController {
       if (!req.file) {
         return res.status(400).json({ success: false, message: 'No file uploaded' });
       }
-      const result = await marketOpsService.uploadRecords(req.file.path);
+      const result = await marketOpsService.uploadRecords(req.file.path, req.file.originalname);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('Error uploading market operations:', error);

@@ -36,13 +36,12 @@ const storage = multer.diskStorage({
 
 // 3. Configure Filter
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedExtensions = ['.csv', '.xlsx', '.xls'];
+  const allowedExtensions = ['.csv', '.xlsx', '.xls', '.xlxs'];
   const ext = path.extname(file.originalname).toLowerCase();
 
   if (allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
-    // Pass error to multer which will be caught by error handler
     cb(new AppError(`Unsupported file extension: ${ext}. Only .csv, .xlsx, .xls are allowed.`, 400));
   }
 };

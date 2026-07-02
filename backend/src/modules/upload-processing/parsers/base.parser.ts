@@ -18,7 +18,7 @@ export abstract class BaseParser implements IParser {
     try {
       if (ext === '.csv') {
         return await this.parseCSV(filePath);
-      } else if (ext === '.xlsx' || ext === '.xls') {
+      } else if (ext === '.xlsx' || ext === '.xls' || ext === '.xlxs') {
         return this.parseXLSX(filePath);
       } else {
         return {
@@ -46,13 +46,12 @@ export abstract class BaseParser implements IParser {
       let headers: string[] = [];
       let headersValid = false;
       const records: Record<string, string>[] = [];
+      
+      const stream = fs.createReadStream(filePath);
+      const csvStream = csv({ mapHeaders: ({ header }) => normalizeHeader(header) });
 
-      fs.createReadStream(filePath)
-        .pipe(
-          csv({
-            mapHeaders: ({ header }) => normalizeHeader(header),
-          })
-        )
+      stream
+        .pipe(csvStream)
         .on('headers', (h: string[]) => {
           headers = h;
           // Validate headers immediately
@@ -61,6 +60,7 @@ export abstract class BaseParser implements IParser {
           );
 
           if (missingHeaders.length > 0) {
+            stream.destroy();
             resolve({
               success: false,
               rowCount: 0,
@@ -75,6 +75,18 @@ export abstract class BaseParser implements IParser {
         .on('data', (data) => {
           if (!headersValid) return; // Ignore data if headers are bad
 
+          if (rowCount > 150) {
+            stream.destroy();
+            resolve({
+              success: false,
+              rowCount,
+              headers,
+              market: this.market,
+              error: `File is too large (expected 96 rows, but found > 150). Are you trying to upload a bulk/monthly archive? Please upload single-day files only.`,
+            });
+            return;
+          }
+
           // Check if row is completely empty
           const isEmpty = Object.values(data).every(
             (val) => val === undefined || val === null || String(val).trim() === ''
@@ -85,7 +97,7 @@ export abstract class BaseParser implements IParser {
               rowCount++;
               records.push(data as Record<string, string>);
             } else {
-              // Row validation failed, abort
+              stream.destroy();
               resolve({
                 success: false,
                 rowCount,
@@ -117,7 +129,7 @@ export abstract class BaseParser implements IParser {
             }
           }
         })
-        .on('error', (err) => {
+        .on('error', (err: any) => {
           resolve({
             success: false,
             rowCount: 0,
@@ -162,6 +174,16 @@ export abstract class BaseParser implements IParser {
         headers: [],
         market: this.market,
         error: 'File contains no data rows.',
+      };
+    }
+
+    if (rawData.length > 200) {
+      return {
+        success: false,
+        rowCount: rawData.length,
+        headers: [],
+        market: this.market,
+        error: `File is too large (expected ~96 rows, but found ${rawData.length}). Are you trying to upload a bulk/monthly archive? Please upload single-day files only.`,
       };
     }
 

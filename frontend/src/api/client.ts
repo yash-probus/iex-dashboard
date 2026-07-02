@@ -34,7 +34,14 @@ apiClient.interceptors.response.use(
     // Deliverable A4: Friendly Network Errors
     if (!error.response) {
       // Network Error, Server Offline, CORS
-      const friendlyError = new Error('Unable to connect to server. Please verify the backend is running.');
+      
+      // Special handling for upload timeouts or Nginx 413 Payload Too Large (which block CORS)
+      const isUploadError = error.config?.url?.includes('/upload/dataset');
+      const message = isUploadError 
+        ? 'Upload failed due to a network error or timeout. The file may be too large, or the connection dropped.'
+        : 'Unable to connect to server. Please verify the backend is running.';
+        
+      const friendlyError = new Error(message);
       return Promise.reject(friendlyError);
     }
 

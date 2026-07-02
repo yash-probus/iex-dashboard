@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import { CloudUpload as UploadIcon } from '@mui/icons-material';
-import ActionButton from '../../components/common/ActionButton';
-import UploadModal from '../../components/admin/UploadModal';
+import { Box, Typography, Button } from '@mui/material';
 import SummaryCards from '../../components/admin/SummaryCards';
 import DatasetTable from '../../components/admin/DatasetTable';
 import UploadHistoryTable from '../../components/admin/UploadHistoryTable';
+import UploadHub from '../../components/admin/UploadHub';
 
 export default function MarketDataAdminPage() {
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleRefreshTriggered = () => {
@@ -17,23 +14,17 @@ export default function MarketDataAdminPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Box>
-          <Typography variant="h1" sx={{ color: 'text.primary', mb: 0.5 }}>
-            Data Management
-          </Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Upload, replace, and manage market datasets.
-          </Typography>
-        </Box>
-        <ActionButton 
-          variant="primary" 
-          startIcon={<UploadIcon />} 
-          onClick={() => setUploadModalOpen(true)}
-        >
-          Upload Data
-        </ActionButton>
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="h1" sx={{ color: 'text.primary', mb: 0.5 }}>
+          Data Management
+        </Typography>
+        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+          Upload, replace, and manage market datasets seamlessly.
+        </Typography>
       </Box>
+
+      {/* New robust Upload Hub replacing the old modal */}
+      <UploadHub onUploadSuccess={handleRefreshTriggered} />
 
       <SummaryCards refreshTrigger={refreshTrigger} />
       
@@ -43,12 +34,6 @@ export default function MarketDataAdminPage() {
       />
 
       <UploadHistoryTable refreshTrigger={refreshTrigger} />
-
-      <UploadModal 
-        open={uploadModalOpen} 
-        onClose={() => setUploadModalOpen(false)} 
-        onUploadSuccess={handleRefreshTriggered}
-      />
     </Box>
   );
 }
