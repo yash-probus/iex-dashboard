@@ -53,8 +53,10 @@ export default function LoginPage() {
         display: 'flex', 
         height: '100vh', 
         width: '100vw',
-        bgcolor: '#f4f6f8', // Light background
-        backgroundImage: 'radial-gradient(circle at 20% 50%, #ffffff 0%, #eef2f6 70%)',
+        backgroundImage: 'url(/image.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         position: 'relative',
         overflow: 'hidden'
       }}
