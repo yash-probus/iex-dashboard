@@ -132,7 +132,7 @@ async function seedDemandForDate(dateStr: string): Promise<number> {
         await prisma.$executeRawUnsafe(
           `INSERT INTO public."NppRawDemandData" (id, date, "timeStr", "demandMet", "dataUpdatedAt", "fetchedAt", "createdAt", "updatedAt")
            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW())
-           ON CONFLICT ON CONSTRAINT uq_npp_date_time DO NOTHING`,
+           ON CONFLICT (date, "timeStr") DO NOTHING`,
           r.date, r.timeStr, r.demandMet, r.dataUpdatedAt, r.fetchedAt
         );
         inserted++;
