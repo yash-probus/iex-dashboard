@@ -12,6 +12,9 @@ import { CronService } from './services/cron.service';
 const app: Application = express();
 
 // 1. GLOBAL MIDDLEWARES
+// Trust proxy for rate limiter behind Nginx
+app.set('trust proxy', 1);
+
 // Security HTTP headers
 app.use(helmet());
 
