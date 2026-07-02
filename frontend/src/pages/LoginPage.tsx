@@ -74,18 +74,30 @@ export default function LoginPage() {
           zIndex: 2
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', maxWidth: 350 }}>
-          <Box 
-            component="img" 
-            src="/assets/logo.png" 
-            alt="Logo" 
+        <Box sx={{ maxWidth: 450 }}>
+          <Typography 
+            variant="h1" 
             sx={{ 
-              height: 'auto', 
-              width: '100%', 
-              objectFit: 'contain' 
-            }} 
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          />
+              fontWeight: 800, 
+              fontSize: '4.5rem', 
+              color: '#0d47a1', 
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 10px rgba(0,0,0,0.05)',
+              mb: 1
+            }}
+          >
+            Welcome
+          </Typography>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              color: '#475569', 
+              fontWeight: 500, 
+              opacity: 0.9 
+            }}
+          >
+            Smart Utility Monitoring Platform
+          </Typography>
         </Box>
       </Box>
 
@@ -115,26 +127,14 @@ export default function LoginPage() {
           }}
         >
           <Box sx={{ p: 4, pb: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-              <Box 
-                component="img" 
-                src="/assets/logo.png" 
-                alt="Prolt Energy" 
-                sx={{ 
-                  height: 72,
-                  width: 'auto', 
-                  objectFit: 'contain' 
-                }} 
-              />
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="h5" sx={{ color: '#0d47a1', fontWeight: 700 }}>
-                Sign In
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h4" sx={{ color: '#0d47a1', fontWeight: 800, letterSpacing: '-0.02em', mb: 0.5 }}>
+                Welcome
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#555', opacity: 0.8, fontWeight: 500 }}>
+                Sign in to your account
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ color: '#666', mb: 3, opacity: 0.8, lineHeight: 1.4 }}>
-              Smart Utility Monitoring Platform
-            </Typography>
 
             {error && (
               <Alert severity="error" sx={{ mb: 3, borderRadius: 2, bgcolor: 'rgba(211, 47, 47, 0.05)', color: '#d32f2f', '& .MuiAlert-icon': { color: '#d32f2f' } }}>
