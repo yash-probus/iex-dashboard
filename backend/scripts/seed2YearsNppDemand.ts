@@ -227,12 +227,17 @@ async function main() {
   const seededDemandDates = new Set(existingDemand.map((r: any) => r.date));
 
   console.log('[PRE-CHECK] Loading already-seeded generation dates...');
-  const existingGen = await (prisma as any).nppRawGenerationData.groupBy({
-    by: ['date'],
-    _count: { date: true },
-    having: { date: { _count: { gte: 5 } } },
-  });
-  const seededGenDates = new Set(existingGen.map((r: any) => r.date));
+  let seededGenDates = new Set<string>();
+  try {
+    const existingGen = await (prisma as any).nppRawGenerationData.groupBy({
+      by: ['date'],
+      _count: { date: true },
+      having: { date: { _count: { gte: 5 } } },
+    });
+    seededGenDates = new Set(existingGen.map((r: any) => r.date));
+  } catch {
+    console.log('[PRE-CHECK] nppRawGenerationData not available, skipping generation seeding.');
+  }
 
   console.log(`[PRE-CHECK] Already have demand for ${seededDemandDates.size} dates, generation for ${seededGenDates.size} dates.\n`);
 
@@ -269,9 +274,13 @@ async function main() {
       }
 
       if (!aborted && !genDone) {
-        genCount = await seedGenerationForDate(dateStr);
-        totalGenInserted += genCount;
-        await sleep(DELAY_MS);
+        try {
+          genCount = await seedGenerationForDate(dateStr);
+          totalGenInserted += genCount;
+          await sleep(DELAY_MS);
+        } catch {
+          // generation table not available, skip silently
+        }
       }
 
       console.log(`demand +${demandCount}  gen +${genCount}`);
