@@ -115,6 +115,18 @@ export default function LoginPage() {
           }}
         >
           <Box sx={{ p: 4, pb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+              <Box 
+                component="img" 
+                src="/assets/logo.png" 
+                alt="Prolt Energy" 
+                sx={{ 
+                  height: 44,
+                  width: 'auto', 
+                  objectFit: 'contain' 
+                }} 
+              />
+            </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
               <Typography variant="h5" sx={{ color: '#0d47a1', fontWeight: 700 }}>
                 Sign In
