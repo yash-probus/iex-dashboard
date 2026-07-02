@@ -23,134 +23,71 @@ interface RawMarketOpRow {
 export class MarketOperationsService {
   async getRecords(startDate?: string, endDate?: string) {
     try {
-      const where: any = {};
+      // Build date filters for subqueries
+      let dateFilterDam = '';
+      let dateFilterRtm = '';
+      let dateFilterGdam = '';
       
       if (startDate || endDate) {
-        where.date = {};
-        if (startDate) {
-          where.date.gte = new Date(startDate);
+        if (startDate && endDate) {
+          dateFilterDam = `AND d."deliveryDate" >= '${new Date(startDate).toISOString()}'::date AND d."deliveryDate" <= '${new Date(endDate).toISOString()}'::date`;
+          dateFilterRtm = `AND d."deliveryDate" >= '${new Date(startDate).toISOString()}'::date AND d."deliveryDate" <= '${new Date(endDate).toISOString()}'::date`;
+          dateFilterGdam = `AND d."deliveryDate" >= '${new Date(startDate).toISOString()}'::date AND d."deliveryDate" <= '${new Date(endDate).toISOString()}'::date`;
+        } else if (startDate) {
+          dateFilterDam = `AND d."deliveryDate" >= '${new Date(startDate).toISOString()}'::date`;
+          dateFilterRtm = `AND d."deliveryDate" >= '${new Date(startDate).toISOString()}'::date`;
+          dateFilterGdam = `AND d."deliveryDate" >= '${new Date(startDate).toISOString()}'::date`;
+        } else if (endDate) {
+          dateFilterDam = `AND d."deliveryDate" <= '${new Date(endDate).toISOString()}'::date`;
+          dateFilterRtm = `AND d."deliveryDate" <= '${new Date(endDate).toISOString()}'::date`;
+          dateFilterGdam = `AND d."deliveryDate" <= '${new Date(endDate).toISOString()}'::date`;
         }
-        if (endDate) {
-          where.date.lte = new Date(endDate);
-        }
       }
 
-      return await prisma.marketOperation.findMany({
-        where,
-        orderBy: [
-          { date: 'desc' },
-          { timeblock: 'asc' }
-        ],
-        take: 1000 // Limit for performance, frontend can add pagination if needed later
-      });
-    } catch (error) {
-      logger.error('Error fetching market operations:', error);
-      throw error;
-    }
-  }
+      // We use Prisma.$queryRawUnsafe to inject dynamic strings for the date filters securely,
+      // as they are parsed Dates converted to ISO strings.
+      const query = `
+        SELECT
+            COALESCE(dam.date, rtm.date, gdam.date) AS date,
+            COALESCE(dam.timeblock, rtm.timeblock, gdam.timeblock) AS timeblock,
+            dam.mcp AS damMcp,
+            rtm.mcp AS rtmMcp,
+            gdam.mcp AS gdamMcp
+        FROM
+            (SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+             FROM "DamRecord" dr 
+             JOIN "Dataset" d ON dr."datasetId" = d.id 
+             WHERE d.market = 'DAM' ${dateFilterDam}) dam
+        FULL OUTER JOIN
+            (SELECT d."deliveryDate" as date, rr."intervalNumber" as timeblock, rr.mcp 
+             FROM "RtmRecord" rr 
+             JOIN "Dataset" d ON rr."datasetId" = d.id 
+             WHERE d.market = 'RTM' ${dateFilterRtm}) rtm
+            ON dam.date = rtm.date AND dam.timeblock = rtm.timeblock
+        FULL OUTER JOIN
+            (SELECT d."deliveryDate" as date, gr."intervalNumber" as timeblock, gr.mcp 
+             FROM "GdamRecord" gr 
+             JOIN "Dataset" d ON gr."datasetId" = d.id 
+             WHERE d.market = 'GDAM' ${dateFilterGdam}) gdam
+            ON COALESCE(dam.date, rtm.date) = gdam.date AND COALESCE(dam.timeblock, rtm.timeblock) = gdam.timeblock
+        ORDER BY date DESC, timeblock ASC
+        LIMIT 1000;
+      `;
 
-  async uploadRecords(filePath: string, originalFileName?: string) {
-    try {
-      const fileNameToValidate = originalFileName || filePath;
-      const ext = path.extname(fileNameToValidate).toLowerCase();
-      if (!['.xlsx', '.xls', '.csv', '.xlxs'].includes(ext)) {
-        throw new AppError('Invalid file type. Only Excel (.xlsx, .xls) and CSV (.csv) are supported.', 400);
-      }
+      const result: any[] = await prisma.$queryRawUnsafe(query);
 
-      const workbook = xlsx.readFile(filePath, { cellDates: true });
-      let sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      
-      if (!worksheet || !worksheet['!ref']) {
-        throw new AppError('The uploaded file is empty.', 400);
-      }
-
-      const rawRows = xlsx.utils.sheet_to_json<RawMarketOpRow>(worksheet, { defval: '' });
-
-      if (rawRows.length === 0) {
-        throw new AppError('No data rows found in the uploaded file.', 400);
-      }
-
-      let upsertCount = 0;
-
-      await prisma.$transaction(async (tx) => {
-        for (let i = 0; i < rawRows.length; i++) {
-          const row = rawRows[i];
-
-          let dateVal = row.Date || row.date;
-          let timeblockStr = row.Timeblock || row.timeblock;
-          const damMcpStr = row['DAM MCP'] || row.dam_mcp;
-          const rtmMcpStr = row['RTM MCP'] || row.rtm_mcp;
-          const gdamMcpStr = row['GDAM MCP'] || row.gdam_mcp;
-
-          // Support combined DateTimeblock column from Excel
-          if (!dateVal && !timeblockStr && row.DateTimeblock) {
-            const dtb = row.DateTimeblock;
-            if (dtb instanceof Date) {
-              const roundedDate = new Date(Math.round(dtb.getTime() / 60000) * 60000);
-              dateVal = new Date(roundedDate.getFullYear(), roundedDate.getMonth(), roundedDate.getDate());
-              const hours = roundedDate.getHours();
-              const minutes = roundedDate.getMinutes();
-              timeblockStr = (hours * 4) + Math.floor(minutes / 15) + 1;
-            }
-          }
-
-          // Skip empty rows
-          if (!dateVal && !timeblockStr) continue;
-
-          let parsedDate: Date;
-          if (dateVal && dateVal instanceof Date) {
-            parsedDate = dateVal;
-          } else {
-            // Assume format DD-MM-YYYY or YYYY-MM-DD
-            const d = new Date(dateVal ? dateVal.toString() : '');
-            if (isNaN(d.getTime())) {
-              logger.warn(`Skipping row ${i} due to invalid date: ${dateVal}`);
-              continue;
-            }
-            parsedDate = d;
-          }
-
-          const timeblock = parseInt(timeblockStr as string, 10);
-          if (isNaN(timeblock)) {
-             logger.warn(`Skipping row ${i} due to invalid timeblock: ${timeblockStr}`);
-             continue;
-          }
-
-          const damMcp = parseFloat(damMcpStr as string) || 0;
-          const rtmMcp = parseFloat(rtmMcpStr as string) || 0;
-          const gdamMcp = parseFloat(gdamMcpStr as string) || 0;
-
-          await tx.marketOperation.upsert({
-            where: {
-              date_timeblock: {
-                date: parsedDate,
-                timeblock: timeblock
-              }
-            },
-            update: {
-              damMcp,
-              rtmMcp,
-              gdamMcp
-            },
-            create: {
-              date: parsedDate,
-              timeblock,
-              damMcp,
-              rtmMcp,
-              gdamMcp
-            }
-          });
-          
-          upsertCount++;
-        }
-      });
-
-      logger.info(`Successfully uploaded and saved ${upsertCount} market operation records.`);
-      return { success: true, count: upsertCount };
+      // Prisma raw query returns fields exactly as they are named in SELECT (damMcp, rtmMcp, etc.)
+      return result.map((r, index) => ({
+        id: `virtual-${index}`,
+        date: r.date,
+        timeblock: r.timeblock,
+        damMcp: r.dammcp || 0,
+        rtmMcp: r.rtmmcp || 0,
+        gdamMcp: r.gdammcp || 0
+      }));
 
     } catch (error) {
-      logger.error('Error processing market operations upload:', error);
+      logger.error('Error fetching dynamic market operations:', error);
       throw error;
     }
   }

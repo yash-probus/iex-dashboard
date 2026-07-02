@@ -5,16 +5,14 @@ import {
   Button, TextField, Alert
 } from '@mui/material';
 import { CloudUpload } from '@mui/icons-material';
-import { fetchMarketOperations, uploadMarketOperations, MarketOperation } from '../../api/marketOperations.api';
+import { fetchMarketOperations, MarketOperation } from '../../api/marketOperations.api';
 
 export default function MarketOperationsPage() {
   const [records, setRecords] = useState<MarketOperation[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+
 
   useEffect(() => {
     loadRecords();
@@ -32,26 +30,7 @@ export default function MarketOperationsPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
 
-    try {
-      setUploading(true);
-      setUploadError(null);
-      setUploadSuccess(null);
-      
-      const res = await uploadMarketOperations(file);
-      setUploadSuccess(`Successfully uploaded ${res.count} records!`);
-      loadRecords();
-    } catch (error: any) {
-      setUploadError(error.response?.data?.message || 'Failed to upload file');
-    } finally {
-      setUploading(false);
-      // Reset input
-      if (event.target) event.target.value = '';
-    }
-  };
 
   // Helper function to determine colors based on the lowest, middle, and highest prices
   const getCellColor = (value: number, dam: number, rtm: number, gdam: number) => {
@@ -101,27 +80,8 @@ export default function MarketOperationsPage() {
             Compare Market Clearing Prices (MCP) across DAM, RTM, and GDAM.
           </Typography>
         </Box>
-        <Box>
-          <Button
-            component="label"
-            variant="contained"
-            color="primary"
-            startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUpload />}
-            disabled={uploading}
-          >
-            Upload Data (CSV/Excel)
-            <input
-              type="file"
-              hidden
-              accept=".csv, .xlsx, .xls"
-              onChange={handleFileUpload}
-            />
-          </Button>
-        </Box>
       </Box>
 
-      {uploadError && <Alert severity="error" sx={{ mb: 3 }}>{uploadError}</Alert>}
-      {uploadSuccess && <Alert severity="success" sx={{ mb: 3 }}>{uploadSuccess}</Alert>}
 
       {/* Filters */}
       <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
