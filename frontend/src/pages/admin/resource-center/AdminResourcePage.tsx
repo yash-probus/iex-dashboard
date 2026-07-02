@@ -213,7 +213,6 @@ export default function AdminResourcePage() {
         </Box>
 
         <TableContainer 
-          title={`${config.title} Records`}
           data={filteredData}
           columns={columnsWithActions}
           emptyStateMessage={

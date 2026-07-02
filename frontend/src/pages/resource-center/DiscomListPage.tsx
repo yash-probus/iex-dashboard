@@ -57,7 +57,6 @@ export default function DiscomListPage() {
       isExportDisabled={filteredData.length === 0}
     >
       <TableContainer 
-        title={`${config.title} Records`}
         data={filteredData}
         columns={columns}
         loading={loading}

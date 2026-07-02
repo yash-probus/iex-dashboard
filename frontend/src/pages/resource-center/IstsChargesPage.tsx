@@ -59,7 +59,6 @@ export default function IstsChargesPage() {
       isExportDisabled={filteredData.length === 0}
     >
       <TableContainer 
-        title={`${config.title} Records`}
         data={filteredData}
         columns={columns}
         loading={loading}
