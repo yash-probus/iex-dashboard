@@ -136,7 +136,9 @@ async function seedDemandForDate(dateStr: string): Promise<number> {
           r.date, r.timeStr, r.demandMet, r.dataUpdatedAt, r.fetchedAt
         );
         inserted++;
-      } catch { /* skip duplicate */ }
+      } catch (e: any) {
+        console.error(`  [SQL ERROR] ${r.date} ${r.timeStr}: ${e.message}`);
+      }
     }
   }
   return inserted;
