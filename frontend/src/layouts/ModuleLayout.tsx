@@ -122,8 +122,11 @@ export default function ModuleLayout() {
                           }
                         },
                         '&:hover': {
-                          bgcolor: '#1E293B',
-                          color: '#FFFFFF'
+                          backgroundColor: '#1E293B !important',
+                          color: '#FFFFFF !important',
+                          '& .MuiListItemIcon-root, & .MuiListItemText-primary, & .MuiSvgIcon-root, & .MuiTypography-root': {
+                            color: '#FFFFFF !important',
+                          }
                         }
                       }}
                     >
@@ -156,52 +159,55 @@ export default function ModuleLayout() {
                         const isSubActive = location.pathname.includes(sub.path);
                         return (
                           <ListItem key={sub.key} disablePadding sx={{ mt: 0.5 }}>
-                            <ListItemButton
-                              selected={isSubActive}
-                              onClick={() => navigate(sub.path)}
-                              sx={{
-                                borderRadius: '0 8px 8px 0',
-                                py: 1,
-                                color: isSubActive ? activeModuleColor : 'text.secondary',
-                                '&.Mui-selected': {
-                                  bgcolor: 'transparent',
-                                  position: 'relative',
-                                  color: activeModuleColor,
-                                  '&::before': {
-                                    content: '""',
-                                    position: 'absolute',
-                                    left: -2,
-                                    top: 0,
-                                    bottom: 0,
-                                    width: 2,
-                                    backgroundColor: activeModuleColor
+                              <ListItemButton
+                                selected={isSubActive}
+                                onClick={() => navigate(sub.path)}
+                                sx={{
+                                  borderRadius: '0 8px 8px 0',
+                                  py: 1,
+                                  color: isSubActive ? activeModuleColor : 'text.secondary',
+                                  '&.Mui-selected': {
+                                    bgcolor: 'transparent',
+                                    position: 'relative',
+                                    color: activeModuleColor,
+                                    '&::before': {
+                                      content: '""',
+                                      position: 'absolute',
+                                      left: -2,
+                                      top: 0,
+                                      bottom: 0,
+                                      width: 2,
+                                      backgroundColor: activeModuleColor
+                                    }
+                                  },
+                                  '&:hover': {
+                                    backgroundColor: '#1E293B !important',
+                                    borderRadius: 2,
+                                    color: '#FFFFFF !important',
+                                    '& .MuiListItemIcon-root, & .MuiListItemText-primary, & .MuiSvgIcon-root, & .MuiTypography-root': {
+                                      color: '#FFFFFF !important',
+                                    }
                                   }
-                                },
-                                '&:hover': {
-                                  bgcolor: '#1E293B',
-                                  borderRadius: 2,
-                                  color: '#FFFFFF'
-                                }
-                              }}
-                            >
-                              {sub.icon && (
-                                <ListItemIcon sx={{ 
-                                  minWidth: 32, 
-                                  color: 'inherit',
-                                  transition: 'color 0.2s ease-in-out'
-                                }}>
-                                  {sub.icon}
-                                </ListItemIcon>
-                              )}
-                              <ListItemText 
-                                primary={sub.title} 
-                                primaryTypographyProps={{
-                                  variant: 'caption',
-                                  fontWeight: isSubActive ? 600 : 500,
-                                  color: 'inherit',
-                                  sx: { transition: 'color 0.2s ease-in-out' }
                                 }}
-                              />
+                              >
+                                {sub.icon && (
+                                  <ListItemIcon sx={{ 
+                                    minWidth: 32, 
+                                    color: 'inherit',
+                                    transition: 'color 0.2s ease-in-out'
+                                  }}>
+                                    {sub.icon}
+                                  </ListItemIcon>
+                                )}
+                                <ListItemText 
+                                  primary={sub.title} 
+                                  primaryTypographyProps={{
+                                    variant: 'caption',
+                                    fontWeight: isSubActive ? 600 : 500,
+                                    color: 'inherit',
+                                    sx: { transition: 'color 0.2s ease-in-out' }
+                                  }}
+                                />
                             </ListItemButton>
                           </ListItem>
                         );
