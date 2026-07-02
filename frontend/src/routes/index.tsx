@@ -47,7 +47,7 @@ export default function AppRoutes() {
             <Route path="dam" element={<DAMPage />} />
             <Route path="gdam" element={<GDAMPage />} />
             <Route path="rtm" element={<RTMPage />} />
-            <Route path="markets/operations" element={<MarketOperationsPage />} />
+            <Route path="market-operations" element={<MarketOperationsPage />} />
             <Route path="markets" element={<Navigate to="/dam" replace />} />
             
             {/* Resource Center Sub-pages */}

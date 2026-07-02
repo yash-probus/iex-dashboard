@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Paper, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, alpha, useTheme, Collapse } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, OverviewItemConfig } from '../constants/dashboardOverview';
+import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, OverviewItemConfig } from '../constants/dashboardOverview';
 
 export default function ModuleLayout() {
   const location = useLocation();
@@ -28,6 +28,10 @@ export default function ModuleLayout() {
     activeItems = RESOURCE_CENTER_ITEMS;
     activeModuleTitle = 'Resource Center';
     activeModuleColor = '#03A9F4';
+  } else if (location.pathname.startsWith('/market-operations')) {
+    activeItems = MARKET_OPERATIONS_ITEMS;
+    activeModuleTitle = 'Market Operations';
+    activeModuleColor = '#FF7043';
   }
 
   // Automatically open parent if a child is active

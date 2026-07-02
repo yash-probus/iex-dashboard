@@ -45,7 +45,7 @@ const MODULES = [
     key: 'market-operations',
     title: 'Market Operations',
     description: 'Compare and upload MCP data across DAM, RTM, and GDAM.',
-    path: '/markets/operations',
+    path: '/market-operations',
     icon: <SettingsIcon sx={{ fontSize: 24 }} />,
     color: '#FF7043'
   }
