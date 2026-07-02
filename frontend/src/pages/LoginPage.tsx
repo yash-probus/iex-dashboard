@@ -121,7 +121,7 @@ export default function LoginPage() {
                 src="/assets/logo.png" 
                 alt="Prolt Energy" 
                 sx={{ 
-                  height: 44,
+                  height: 72,
                   width: 'auto', 
                   objectFit: 'contain' 
                 }} 
