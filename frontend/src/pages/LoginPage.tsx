@@ -106,9 +106,9 @@ export default function LoginPage() {
           sx={{ 
             width: '100%', 
             maxWidth: 420, 
-            bgcolor: 'rgba(255, 255, 255, 0.95)', 
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0,0,0,0.05)',
+            bgcolor: 'rgba(255, 255, 255, 0.45)', 
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(255,255,255,0.2)',
             borderRadius: 3,
             overflow: 'hidden',
             boxShadow: '0 20px 50px rgba(0,0,0,0.08)'
