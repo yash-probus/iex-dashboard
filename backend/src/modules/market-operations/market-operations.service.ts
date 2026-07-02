@@ -77,11 +77,23 @@ export class MarketOperationsService {
         for (let i = 0; i < rawRows.length; i++) {
           const row = rawRows[i];
 
-          const dateVal = row.Date || row.date;
-          const timeblockStr = row.Timeblock || row.timeblock;
+          let dateVal = row.Date || row.date;
+          let timeblockStr = row.Timeblock || row.timeblock;
           const damMcpStr = row['DAM MCP'] || row.dam_mcp;
           const rtmMcpStr = row['RTM MCP'] || row.rtm_mcp;
           const gdamMcpStr = row['GDAM MCP'] || row.gdam_mcp;
+
+          // Support combined DateTimeblock column from Excel
+          if (!dateVal && !timeblockStr && row.DateTimeblock) {
+            const dtb = row.DateTimeblock;
+            if (dtb instanceof Date) {
+              const roundedDate = new Date(Math.round(dtb.getTime() / 60000) * 60000);
+              dateVal = new Date(roundedDate.getFullYear(), roundedDate.getMonth(), roundedDate.getDate());
+              const hours = roundedDate.getHours();
+              const minutes = roundedDate.getMinutes();
+              timeblockStr = (hours * 4) + Math.floor(minutes / 15) + 1;
+            }
+          }
 
           // Skip empty rows
           if (!dateVal && !timeblockStr) continue;
