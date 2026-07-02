@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Box, Typography, TextField, Button, CircularProgress, Alert, InputAdornment, IconButton, Paper, Tab, Tabs
+  Box, Typography, TextField, Button, CircularProgress, Alert, InputAdornment, IconButton, Paper
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tabValue, setTabValue] = useState(0);
   const [showDemoCredentials, setShowDemoCredentials] = useState(false);
 
   const navigate = useNavigate();
@@ -41,10 +40,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
   };
 
   return (
@@ -147,152 +142,112 @@ export default function LoginPage() {
               Smart Utility Monitoring Platform
             </Typography>
 
-            <Box sx={{ borderBottom: 1, borderColor: 'rgba(0,0,0,0.08)', mb: 3 }}>
-              <Tabs 
-                value={tabValue} 
-                onChange={handleTabChange} 
-                variant="fullWidth"
-                sx={{
-                  minHeight: 40,
-                  '& .MuiTab-root': {
-                    color: '#666',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    minHeight: 40,
-                    fontSize: '0.9rem',
-                    '&.Mui-selected': {
-                      color: '#0d47a1',
-                      bgcolor: 'rgba(0,0,0,0.03)',
-                      borderRadius: '4px 4px 0 0'
-                    }
-                  },
-                  '& .MuiTabs-indicator': {
-                    display: 'none' // Hidden as per design
-                  }
-                }}
-              >
-                <Tab label="Login" />
-                <Tab label="Sign Up" />
-                <Tab label="Reset Password" />
-              </Tabs>
-            </Box>
-
             {error && (
               <Alert severity="error" sx={{ mb: 3, borderRadius: 2, bgcolor: 'rgba(211, 47, 47, 0.05)', color: '#d32f2f', '& .MuiAlert-icon': { color: '#d32f2f' } }}>
                 {error}
               </Alert>
             )}
 
-            {tabValue === 0 && (
-              <Box component="form" onSubmit={handleSubmit} noValidate>
-                <Typography variant="caption" sx={{ color: '#555', fontWeight: 600, mb: 0.5, display: 'block' }}>
-                  Email
-                </Typography>
-                <TextField
-                  fullWidth
-                  id="username"
-                  name="username"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  disabled={loading}
-                  size="small"
-                  sx={{ 
-                    mb: 2.5,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: '#f4f6f8',
-                      borderRadius: 1.5,
-                      '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
-                    }
-                  }}
-                />
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+              <Typography variant="caption" sx={{ color: '#555', fontWeight: 600, mb: 0.5, display: 'block' }}>
+                Email
+              </Typography>
+              <TextField
+                fullWidth
+                id="username"
+                name="username"
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={loading}
+                size="small"
+                sx={{ 
+                  mb: 2.5,
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: '#f4f6f8',
+                    borderRadius: 1.5,
+                    '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
+                  }
+                }}
+              />
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                  <Typography variant="caption" sx={{ color: '#555', fontWeight: 600 }}>
-                    Password
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ color: '#555', fontWeight: 600 }}>
+                  Password
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#1976d2', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
+                  Forgot Password?
+                </Typography>
+              </Box>
+              <TextField
+                fullWidth
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                size="small"
+                sx={{ 
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: '#f4f6f8',
+                    borderRadius: 1.5,
+                    '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
+                  }
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                        >
+                        {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={loading}
+                sx={{ 
+                  mt: 1, 
+                  mb: 1, 
+                  py: 1.2, 
+                  bgcolor: '#4CAF50', 
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  borderRadius: 1.5,
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  boxShadow: '0 4px 14px rgba(76, 175, 80, 0.3)',
+                  '&:hover': {
+                    bgcolor: '#45a049',
+                    boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
+                  }
+                }}
+              >
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
+              </Button>
+
+              {showDemoCredentials && (
+                <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(0,0,0,0.08)', textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{ color: '#555', display: 'block', mb: 0.5 }}>
+                    Demo Credentials:
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#1976d2', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
-                    Forgot Password?
+                  <Typography variant="caption" sx={{ color: '#333', fontFamily: 'monospace', display: 'block' }}>
+                    admin / admin
                   </Typography>
                 </Box>
-                <TextField
-                  fullWidth
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  size="small"
-                  sx={{ 
-                    mb: 3,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: '#f4f6f8',
-                      borderRadius: 1.5,
-                      '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
-                    }
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          size="small"
-                        >
-                          {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  disabled={loading}
-                  sx={{ 
-                    mt: 1, 
-                    mb: 1, 
-                    py: 1.2, 
-                    bgcolor: '#4CAF50', 
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    borderRadius: 1.5,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    boxShadow: '0 4px 14px rgba(76, 175, 80, 0.3)',
-                    '&:hover': {
-                      bgcolor: '#45a049',
-                      boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
-                    }
-                  }}
-                >
-                  {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
-                </Button>
-
-                {showDemoCredentials && (
-                  <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(0,0,0,0.08)', textAlign: 'center' }}>
-                    <Typography variant="caption" sx={{ color: '#555', display: 'block', mb: 0.5 }}>
-                      Demo Credentials:
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#333', fontFamily: 'monospace', display: 'block' }}>
-                      admin / admin
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            )}
-            
-            {tabValue !== 0 && (
-              <Box sx={{ py: 4, textAlign: 'center' }}>
-                <Typography sx={{ color: '#666' }}>
-                  This feature is not currently available in the demo.
-                </Typography>
-              </Box>
-            )}
+              )}
+            </Box>
           </Box>
         </Paper>
       </Box>
