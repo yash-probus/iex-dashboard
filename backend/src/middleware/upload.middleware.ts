@@ -21,7 +21,7 @@ export const handleUpload = (req: Request, res: Response, next: NextFunction) =>
       
       // Pass the error down to the global error handler
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new AppError('File size exceeds the 10MB limit.', 400));
+        return next(new AppError('File size exceeds the 50MB limit.', 400));
       }
       return next(new AppError(err.message || 'File upload failed.', 400));
     }
