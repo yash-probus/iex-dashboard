@@ -53,6 +53,14 @@ export const MARKET_ITEMS: OverviewItemConfig[] = [
     icon: <TimerIcon fontSize="medium" />, 
     color: '#E0B50F'
   },
+  {
+    key: 'market-operations',
+    title: 'Market Operations',
+    description: 'Compare and upload MCP data across DAM, RTM, and GDAM.',
+    path: '/markets/operations',
+    icon: <SettingsIcon fontSize="medium" />,
+    color: '#FF7043'
+  },
 ];
 
 export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [

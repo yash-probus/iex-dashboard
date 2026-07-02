@@ -419,3 +419,18 @@ model ApiLog {
   @@index([createdAt])
   @@schema("public")
 }
+
+model MarketOperation {
+  id         String   @id @default(uuid())
+  date       DateTime @db.Date
+  timeblock  Int
+  damMcp     Decimal  @map("dam_mcp") @db.Decimal(10, 4)
+  rtmMcp     Decimal  @map("rtm_mcp") @db.Decimal(10, 4)
+  gdamMcp    Decimal  @map("gdam_mcp") @db.Decimal(10, 4)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([date, timeblock], map: "uq_market_op_date_timeblock")
+  @@map("market_operation")
+  @@schema("public")
+}

@@ -23,6 +23,8 @@ import DatabasePage from '../pages/DatabasePage';
 import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 
+import MarketOperationsPage from '../pages/market-operations/MarketOperationsPage';
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -45,6 +47,7 @@ export default function AppRoutes() {
             <Route path="dam" element={<DAMPage />} />
             <Route path="gdam" element={<GDAMPage />} />
             <Route path="rtm" element={<RTMPage />} />
+            <Route path="markets/operations" element={<MarketOperationsPage />} />
             <Route path="markets" element={<Navigate to="/dam" replace />} />
             
             {/* Resource Center Sub-pages */}
