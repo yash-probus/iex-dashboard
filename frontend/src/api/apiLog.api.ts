@@ -9,9 +9,20 @@ export interface ApiLog {
   createdAt: string;
 }
 
-export const fetchApiLogs = async (limit: number = 100): Promise<ApiLog[]> => {
+export const fetchApiLogs = async (
+  page: number = 1,
+  limit: number = 100,
+  startDate?: string,
+  endDate?: string,
+  apiName?: string
+): Promise<{ data: ApiLog[], total: number }> => {
   const response = await apiClient.get('/logs', {
-    params: { limit }
+    params: { page, limit, startDate, endDate, apiName }
   });
+  return response.data;
+};
+
+export const fetchUniqueApiNames = async (): Promise<string[]> => {
+  const response = await apiClient.get('/logs/api-names');
   return response.data;
 };

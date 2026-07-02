@@ -16,12 +16,51 @@ export class ApiLogService {
     }
   }
 
-  static async getLogs(limit: number = 100) {
-    return await prisma.apiLog.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: limit,
+  static async getLogs(
+    page: number = 1,
+    limit: number = 100,
+    startDate?: string,
+    endDate?: string,
+    apiName?: string
+  ) {
+    const where: any = {};
+    
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
+
+    if (apiName) {
+      where.apiName = apiName;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.apiLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.apiLog.count({ where }),
+    ]);
+
+    return { data, total };
+  }
+
+  static async getUniqueApiNames() {
+    const distinctLogs = await prisma.apiLog.findMany({
+      distinct: ['apiName'],
+      select: { apiName: true },
     });
+    return distinctLogs.map(log => log.apiName).filter(Boolean);
   }
 }
