@@ -12,7 +12,8 @@ import {
   PriceCheck as PriceCheckIcon,
   Timeline as TimelineIcon,
   Map as MapIcon,
-  Cloud as CloudIcon
+  Cloud as CloudIcon,
+  CalendarToday as CalendarIcon
 } from '@mui/icons-material';
 
 export type OverviewItemType = 'market' | 'resource' | 'database';
@@ -141,5 +142,13 @@ export const DATABASE_ITEMS: OverviewItemConfig[] = [
     path: '/database/weather',
     icon: <CloudIcon fontSize="medium" />,
     color: '#E0B50F'
+  },
+  {
+    key: 'holiday-calendar',
+    title: 'Holiday Calendar',
+    description: 'Trading and settlement holidays for power exchanges.',
+    path: '/database/holiday-calendar',
+    icon: <CalendarIcon fontSize="medium" />,
+    color: '#E91E63'
   }
 ];

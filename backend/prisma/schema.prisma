@@ -392,3 +392,17 @@ model NppRawGenerationData {
   @@index([date])
   @@schema("public")
 }
+
+model HolidayCalendar {
+  id          String   @id @default(uuid())
+  month       String   @db.VarChar(20)
+  holidayDate String   @db.VarChar(10) // DD-MM-YYYY
+  holidayName String   @db.VarChar(255)
+  holidayType String   @db.VarChar(50)
+  state       String   @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@schema("public")
+}
+

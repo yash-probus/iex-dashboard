@@ -37,6 +37,7 @@ import { apiClient } from '../api/client';
 import AllIndiaDemandView from './database/AllIndiaDemandView';
 import StateWiseDemandView from './database/StateWiseDemandView';
 import GenerationDataView from './database/GenerationDataView';
+import HolidayCalendarView from './database/HolidayCalendarView';
 
 interface WeatherDataRow {
   date: string;
@@ -69,6 +70,7 @@ export default function DatabasePage() {
   const showDateRange = showNpp || showGeneration;
   const showStateWise = path.includes('/state-wise-demand');
   const showWeather = path.includes('/weather');
+  const showHolidayCalendar = path.includes('/holiday-calendar');
   
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -137,6 +139,11 @@ export default function DatabasePage() {
   };
 
   const fetchData = async () => {
+    if (showHolidayCalendar) {
+      setLoading(false);
+      setErrorMsg(null);
+      return;
+    }
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -216,7 +223,7 @@ export default function DatabasePage() {
     >
       <Box sx={{ mb: 5, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
         
-        {(!showDateRange) && (
+        {(!showDateRange && !showHolidayCalendar) && (
         <Box 
           className="glass"
           sx={{ 
@@ -631,6 +638,13 @@ export default function DatabasePage() {
               </CardContent>
             </Card>
           </Grid>
+          )}
+
+          {/* Holiday Calendar Section */}
+          {showHolidayCalendar && (
+            <Grid item xs={12}>
+              <HolidayCalendarView />
+            </Grid>
           )}
 
             </Grid>

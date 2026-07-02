@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { DatabaseService } from './database.service';
+import { HolidayService } from './holiday.service';
 
 const databaseService = new DatabaseService();
+const holidayService = new HolidayService();
 
 export class DatabaseController {
   async getDemandData(req: Request, res: Response) {
@@ -83,6 +85,32 @@ export class DatabaseController {
       } else {
         res.end();
       }
+    }
+  }
+
+  async getHolidays(req: Request, res: Response) {
+    try {
+      const holidays = await holidayService.getHolidays();
+      res.status(200).json({ success: true, data: holidays });
+    } catch (error) {
+      console.error('Error fetching holidays:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch holiday calendar' });
+    }
+  }
+
+  async uploadHolidays(req: Request, res: Response) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
+      const result = await holidayService.uploadHolidays(req.file.path);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error('Error uploading holidays:', error);
+      res.status(error.statusCode || 500).json({ 
+        success: false, 
+        message: error.message || 'Failed to upload holiday calendar' 
+      });
     }
   }
 }

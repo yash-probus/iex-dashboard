@@ -37,6 +37,7 @@ export default function AppRoutes() {
             <Route path="database/all-india-demand" element={<DatabasePage />} />
             <Route path="database/state-wise-demand" element={<DatabasePage />} />
             <Route path="database/weather" element={<DatabasePage />} />
+            <Route path="database/holiday-calendar" element={<DatabasePage />} />
             <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
 
             {/* Market Sub-pages */}
