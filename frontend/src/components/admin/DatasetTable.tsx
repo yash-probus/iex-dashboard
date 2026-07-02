@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { Delete as DeleteIcon, Warning as WarningIcon, Error as ErrorIcon, Dataset as DatasetIcon } from '@mui/icons-material';
 import { datasetsApi, Dataset } from '../../api/datasets.api';
+import { formatOverviewDate } from '../../utils/date';
 import { useNotification } from '../../contexts/NotificationContext';
 import EmptyState from '../dashboard/EmptyState';
 
@@ -136,8 +137,8 @@ export default function DatasetTable({ refreshTrigger, onRefreshTriggered }: Dat
                 {datasets.map((row) => (
                   <TableRow key={row.id} hover>
                     <TableCell align="center" sx={{ fontWeight: 500 }}>{row.market}</TableCell>
-                    <TableCell align="center">{new Date(row.deliveryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
-                    <TableCell align="center" sx={{ color: 'text.secondary' }}>{new Date(row.uploadedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                    <TableCell align="center">{formatOverviewDate(row.deliveryDate)}</TableCell>
+                    <TableCell align="center" sx={{ color: 'text.secondary' }}>{formatOverviewDate(row.uploadedAt)}</TableCell>
                     <TableCell align="center">{getStatusChip(row.status)}</TableCell>
                     <TableCell align="center">
                       {row.status === 'ACTIVE' && (
@@ -182,7 +183,7 @@ export default function DatasetTable({ refreshTrigger, onRefreshTriggered }: Dat
             <Paper elevation={0} sx={{ p: 2, bgcolor: 'error.50', border: '1px solid', borderColor: 'error.main', borderRadius: 2 }}>
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Dataset Details:</Typography>
               <Typography variant="body2"><strong>Market:</strong> {deleteTarget.market}</Typography>
-              <Typography variant="body2"><strong>Delivery Date:</strong> {new Date(deleteTarget.deliveryDate).toLocaleDateString()}</Typography>
+              <Typography variant="body2"><strong>Delivery Date:</strong> {formatOverviewDate(deleteTarget.deliveryDate)}</Typography>
               <Typography variant="body2"><strong>File Name:</strong> {deleteTarget.fileName}</Typography>
             </Paper>
           )}

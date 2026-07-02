@@ -6,6 +6,7 @@ import {
 import { CloudUpload as UploadIcon, CheckCircle, Warning as WarningIcon, Description as FileIcon } from '@mui/icons-material';
 import { useNotification } from '../../contexts/NotificationContext';
 import { uploadApi } from '../../api/upload.api';
+import { formatOverviewDate } from '../../utils/date';
 
 interface UploadHubProps {
   onUploadSuccess: () => void;
@@ -190,7 +191,7 @@ export default function UploadHub({ onUploadSuccess }: UploadHubProps) {
       {step === 'replace_confirm' && (
         <Box sx={{ py: 2 }}>
           <Alert severity="warning" icon={<WarningIcon fontSize="inherit" />} sx={{ mb: 3 }}>
-            A dataset for <strong>{market}</strong> on <strong>{new Date(date).toLocaleDateString()}</strong> already exists.
+            A dataset for <strong>{market}</strong> on <strong>{formatOverviewDate(date)}</strong> already exists.
           </Alert>
           <Typography variant="body1" sx={{ mb: 2 }}>
             Are you sure you want to replace the existing dataset? 
@@ -212,7 +213,7 @@ export default function UploadHub({ onUploadSuccess }: UploadHubProps) {
           
           <Paper elevation={0} sx={{ p: 2, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.main', borderRadius: 2, width: '100%', maxWidth: 500, mt: 1 }}>
             <Typography variant="body2" sx={{ mb: 1 }}><strong>Market:</strong> {uploadResult.market}</Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}><strong>Delivery Date:</strong> {new Date(uploadResult.deliveryDate).toLocaleDateString()}</Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}><strong>Delivery Date:</strong> {formatOverviewDate(uploadResult.deliveryDate)}</Typography>
             <Typography variant="body2"><strong>Rows Parsed:</strong> {uploadResult.rowCount}</Typography>
           </Paper>
 

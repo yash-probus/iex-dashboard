@@ -4,8 +4,8 @@ import {
   TableContainer, TableHead, TableRow, CircularProgress,
   Button, TextField, Alert
 } from '@mui/material';
-import { CloudUpload } from '@mui/icons-material';
 import { fetchMarketOperations, MarketOperation } from '../../api/marketOperations.api';
+import { formatOverviewDate, formatTimeblock } from '../../utils/date';
 
 export default function MarketOperationsPage() {
   const [records, setRecords] = useState<MarketOperation[]>([]);
@@ -146,8 +146,8 @@ export default function MarketOperationsPage() {
 
                   return (
                     <TableRow key={row.id} hover>
-                      <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{row.timeblock}</TableCell>
+                      <TableCell>{formatOverviewDate(row.date)}</TableCell>
+                      <TableCell>{formatTimeblock(row.timeblock)}</TableCell>
                       <TableCell 
                         align="right" 
                         sx={{ 

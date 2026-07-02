@@ -4,6 +4,7 @@ import { CalendarToday as CalendarIcon } from '@mui/icons-material';
 import {
   ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { formatTimeblock } from '../../utils/date';
 
 export interface ChartMetric {
   key: string;
@@ -33,8 +34,8 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
   // Format X-Axis dynamically. If data is hourly/daily/etc it will just print the string.
   const formatXAxis = (tickItem: any) => {
     if (!tickItem) return '';
-    // If it's a raw number, it's a timeblock. Let's just return it.
-    if (typeof tickItem === 'number') return `Blk ${tickItem}`;
+    // If it's a raw number, it's a timeblock. Let's just return it using unified formatting.
+    if (typeof tickItem === 'number') return formatTimeblock(tickItem);
     // If it's a string like "2026-06-19-12" (hourly), format it
     if (typeof tickItem === 'string' && tickItem.includes('-')) {
       const parts = tickItem.split('-');

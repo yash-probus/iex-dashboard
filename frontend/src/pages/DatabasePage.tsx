@@ -36,6 +36,7 @@ import { apiClient } from '../api/client';
 
 import AllIndiaDemandView from './database/AllIndiaDemandView';
 import StateWiseDemandView from './database/StateWiseDemandView';
+import { formatOverviewDate } from '../utils/date';
 import GenerationDataView from './database/GenerationDataView';
 import HolidayCalendarView from './database/HolidayCalendarView';
 
@@ -98,7 +99,7 @@ export default function DatabasePage() {
     if (parts.length !== 3) return dateStr;
     const [year, month, day] = parts;
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    return formatOverviewDate(date);
   };
 
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());

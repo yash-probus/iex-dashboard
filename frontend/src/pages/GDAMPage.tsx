@@ -12,6 +12,7 @@ import EmptyState from '../components/dashboard/EmptyState';
 import { useMarketFilters } from '../hooks/useMarketFilters';
 import { useMarketData } from '../hooks/useMarketData';
 import { exportToCSV } from '../utils/export';
+import { formatOverviewDate, formatTimeblock } from '../utils/date';
 import { useAuth } from '../contexts/AuthContext';
 
 const GDAM_ACCENT = '#34B1AA'; // Resolved from var(--color-market-gdam) for alpha() support
@@ -35,14 +36,14 @@ export default function GDAMPage() {
     const baseColumns: ColumnDefinition[] = [];
     
     // Always include Date
-    baseColumns.push({ field: 'date', headerName: 'Date', sticky: true, width: 120, align: 'center' });
+    baseColumns.push({ field: 'date', headerName: 'Date', sticky: true, width: 120, align: 'center', valueFormatter: formatOverviewDate });
     
     if (filters.interval === '15min' || filters.interval === 'hourly') {
       baseColumns.push({ field: 'hour', headerName: 'Hour', sticky: true, width: 100, align: 'center' });
     }
     
     if (filters.interval === '15min') {
-      baseColumns.push({ field: 'timeBlock', headerName: 'Block', sticky: true, width: 100, align: 'center' });
+      baseColumns.push({ field: 'timeBlock', headerName: 'Block', sticky: true, width: 100, align: 'center', valueFormatter: formatTimeblock });
     }
 
     const formatNum = (v: any) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v;

@@ -3,6 +3,7 @@ import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Chip, CircularProgress, TablePagination, alpha
 } from '@mui/material';
+import { formatOverviewDate } from '../../utils/date';
 import { History as HistoryIcon, Error as ErrorIcon } from '@mui/icons-material';
 import { uploadApi, UploadHistoryRecord } from '../../api/upload.api';
 import EmptyState from '../dashboard/EmptyState';
@@ -112,8 +113,8 @@ export default function UploadHistoryTable({ refreshTrigger }: UploadHistoryTabl
                   <TableRow key={row.id} hover>
                     <TableCell align="center">{getActionChip(row.action)}</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 500 }}>{row.market}</TableCell>
-                    <TableCell align="center">{new Date(row.deliveryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
-                    <TableCell align="center" sx={{ color: 'text.secondary' }}>{new Date(row.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                    <TableCell align="center">{formatOverviewDate(row.deliveryDate)}</TableCell>
+                    <TableCell align="center" sx={{ color: 'text.secondary' }}>{formatOverviewDate(row.timestamp)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
