@@ -433,7 +433,7 @@ export default function Navbar() {
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', mt: 1 }}>
                 <Box
                   component="img"
-                  src="/assets/logo_navbar.png"
+                  src="/assets/logo.png"
                   alt="Prolt Energy"
                   onError={() => setLogoError(true)}
                   sx={{
