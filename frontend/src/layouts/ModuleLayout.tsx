@@ -113,23 +113,23 @@ export default function ModuleLayout() {
                       sx={{ 
                         borderRadius: 2,
                         py: 1.2,
+                        color: buttonSelected ? activeModuleColor : 'text.secondary',
                         '&.Mui-selected': {
                           bgcolor: alpha(activeModuleColor, 0.1),
+                          color: activeModuleColor,
                           '&:hover': {
                             bgcolor: alpha(activeModuleColor, 0.15),
                           }
                         },
                         '&:hover': {
                           bgcolor: '#1E293B',
-                          '& .MuiListItemIcon-root, & .MuiListItemText-primary, & .MuiSvgIcon-root': {
-                            color: '#FFFFFF !important'
-                          }
+                          color: '#FFFFFF'
                         }
                       }}
                     >
                       <ListItemIcon sx={{ 
                         minWidth: 40, 
-                        color: buttonSelected ? activeModuleColor : 'text.secondary',
+                        color: 'inherit',
                         transition: 'color 0.2s ease-in-out'
                       }}>
                         {item.icon}
@@ -139,7 +139,7 @@ export default function ModuleLayout() {
                         primaryTypographyProps={{ 
                           variant: 'body2',
                           fontWeight: buttonSelected ? 600 : 500,
-                          color: buttonSelected ? 'text.primary' : 'text.secondary',
+                          color: 'inherit',
                           sx: { transition: 'color 0.2s ease-in-out' }
                         }} 
                       />
@@ -162,9 +162,11 @@ export default function ModuleLayout() {
                               sx={{
                                 borderRadius: '0 8px 8px 0',
                                 py: 1,
+                                color: isSubActive ? activeModuleColor : 'text.secondary',
                                 '&.Mui-selected': {
                                   bgcolor: 'transparent',
                                   position: 'relative',
+                                  color: activeModuleColor,
                                   '&::before': {
                                     content: '""',
                                     position: 'absolute',
@@ -178,16 +180,14 @@ export default function ModuleLayout() {
                                 '&:hover': {
                                   bgcolor: '#1E293B',
                                   borderRadius: 2,
-                                  '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
-                                    color: '#FFFFFF !important'
-                                  }
+                                  color: '#FFFFFF'
                                 }
                               }}
                             >
                               {sub.icon && (
                                 <ListItemIcon sx={{ 
                                   minWidth: 32, 
-                                  color: isSubActive ? activeModuleColor : 'text.secondary',
+                                  color: 'inherit',
                                   transition: 'color 0.2s ease-in-out'
                                 }}>
                                   {sub.icon}
@@ -198,7 +198,7 @@ export default function ModuleLayout() {
                                 primaryTypographyProps={{
                                   variant: 'caption',
                                   fontWeight: isSubActive ? 600 : 500,
-                                  color: isSubActive ? activeModuleColor : 'text.secondary',
+                                  color: 'inherit',
                                   sx: { transition: 'color 0.2s ease-in-out' }
                                 }}
                               />
