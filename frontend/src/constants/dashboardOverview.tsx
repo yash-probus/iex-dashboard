@@ -68,68 +68,52 @@ export const MARKET_OPERATIONS_ITEMS: OverviewItemConfig[] = [
 
 export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
   {
-    key: 'region-state',
-    title: 'Region State',
-    description: 'Master mapping of Regions, Regional Grids, States and Union Territories.',
+    key: 'grid-utility',
+    title: 'Grid & Utility',
+    description: 'Grid & Utility master data.',
     path: '/resource-center/region-state',
     icon: <PublicIcon fontSize="medium" />,
-    color: '#8E24AA'
+    color: '#8E24AA',
+    subItems: [
+      { key: 'region-state', title: 'Region State', path: '/resource-center/region-state', icon: <PublicIcon fontSize="small" /> },
+      { key: 'discom-list', title: 'Discom List', path: '/resource-center/discom-list', icon: <BusinessIcon fontSize="small" /> }
+    ]
   },
   {
-    key: 'discom-list',
-    title: 'Discom List',
-    description: 'Master catalogue of all DISCOMs and their classifications.',
-    path: '/resource-center/discom-list',
-    icon: <BusinessIcon fontSize="medium" />,
-    color: '#00897B'
-  },
-  {
-    key: 'ists-charges',
-    title: 'ISTS Charges',
-    description: 'Interstate Transmission System loss percentages.',
+    key: 'transmission-charges',
+    title: 'Transmission Charges',
+    description: 'Transmission charges configurations.',
     path: '/resource-center/ists-charges',
     icon: <BoltIcon fontSize="medium" />,
-    color: '#E53935'
+    color: '#E53935',
+    subItems: [
+      { key: 'ists-charges', title: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <BoltIcon fontSize="small" /> },
+      { key: 'ctu-charges', title: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <HubIcon fontSize="small" /> }
+    ]
   },
   {
-    key: 'iex-fees',
-    title: 'IEX Fees',
-    description: 'Exchange fee configuration and associated charges.',
-    path: '/resource-center/iex-fees',
-    icon: <ReceiptIcon fontSize="medium" />,
-    color: '#FB8C00'
-  },
-  {
-    key: 'prolt-margin',
-    title: 'ProLT Margin',
-    description: 'Customer trading and ProLT margin definitions.',
-    path: '/resource-center/prolt-margin',
-    icon: <WalletIcon fontSize="medium" />,
-    color: '#3949AB'
-  },
-  {
-    key: 'ctu-charges',
-    title: 'CTU Charges',
-    description: 'Central Transmission Utility charge configurations.',
-    path: '/resource-center/ctu-charges',
-    icon: <HubIcon fontSize="medium" />,
-    color: '#C0CA33'
-  },
-  {
-    key: 'stu-charges',
-    title: 'STU Charges',
-    description: 'State Transmission Utility charges and wheeling configurations.',
+    key: 'utility-charges',
+    title: 'Utility Charges',
+    description: 'Utility charges and configurations.',
     path: '/resource-center/stu-charges',
     icon: <SettingsIcon fontSize="medium" />,
-    color: '#546E7A'
+    color: '#546E7A',
+    subItems: [
+      { key: 'stu-charges', title: 'STU Charges', path: '/resource-center/stu-charges', icon: <SettingsIcon fontSize="small" /> },
+      { key: 'state-tariff', title: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" /> }
+    ]
   },
   {
-    key: 'state-tariff',
-    title: 'State Tariff',
-    description: 'State-wise tariff schedules and Time-of-Day energy charges.',
-    path: '/resource-center/state-tariff',
-    icon: <PriceCheckIcon fontSize="medium" />,
-    color: '#00ACC1'
+    key: 'exchange-margins',
+    title: 'Exchange & Margins',
+    description: 'Exchange fees and margins.',
+    path: '/resource-center/iex-fees',
+    icon: <ReceiptIcon fontSize="medium" />,
+    color: '#FB8C00',
+    subItems: [
+      { key: 'iex-fees', title: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" /> },
+      { key: 'prolt-margin', title: 'ProLT Margin', path: '/resource-center/prolt-margin', icon: <WalletIcon fontSize="small" /> }
+    ]
   }
 ];
 
