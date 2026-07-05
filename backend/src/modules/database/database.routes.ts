@@ -11,6 +11,7 @@ router.get('/weather', (req, res) => databaseController.getWeatherData(req, res)
 router.get('/export/csv', (req, res) => databaseController.exportCSV(req, res));
 
 router.get('/holidays', (req: Request, res: Response) => databaseController.getHolidays(req, res));
+router.post('/holidays', (req: Request, res: Response) => databaseController.createHoliday(req, res));
 router.post('/holidays/upload', handleUpload, (req: Request, res: Response) => databaseController.uploadHolidays(req, res), uploadCleanupOnError);
 router.put('/holidays/:id', (req: Request, res: Response) => databaseController.updateHoliday(req, res));
 router.patch('/holidays/:id/toggle', (req: Request, res: Response) => databaseController.toggleHoliday(req, res));

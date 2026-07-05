@@ -113,6 +113,17 @@ export class DatabaseController {
     }
   }
 
+  async createHoliday(req: Request, res: Response) {
+    try {
+      const data = req.body;
+      const holiday = await holidayService.createHoliday(data);
+      res.status(201).json({ success: true, data: holiday });
+    } catch (error) {
+      console.error('Error creating holiday:', error);
+      res.status(500).json({ success: false, message: 'Failed to create holiday' });
+    }
+  }
+
   async uploadHolidays(req: Request, res: Response) {
     try {
       if (!req.file) {

@@ -18,7 +18,16 @@ import {
   InputAdornment,
   CircularProgress,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 import {
   Search as SearchIcon,
   CloudUpload as UploadIcon,
@@ -34,6 +43,7 @@ interface Holiday {
   holidayName: string;
   holidayType: string;
   state: string;
+  isActive?: boolean;
 }
 
 export default function HolidayCalendarView() {
@@ -41,8 +51,20 @@ export default function HolidayCalendarView() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('All');
+  const [selectedType, setSelectedType] = useState<string>('All');
+  const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  
+  // Single Holiday Modal state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newHoliday, setNewHoliday] = useState({
+    month: '',
+    holidayDate: '',
+    holidayName: '',
+    holidayType: 'SH',
+    state: 'National'
+  });
 
   const fetchHolidays = async () => {
     setLoading(true);
@@ -61,6 +83,20 @@ export default function HolidayCalendarView() {
   useEffect(() => {
     fetchHolidays();
   }, []);
+
+  const handleAddHoliday = async () => {
+    try {
+      const res = await apiClient.post('/database/holidays', newHoliday);
+      if (res.data?.success) {
+        setIsAddModalOpen(false);
+        setNewHoliday({ month: '', holidayDate: '', holidayName: '', holidayType: 'SH', state: 'National' });
+        fetchHolidays();
+      }
+    } catch (err) {
+      console.error('Error adding holiday:', err);
+      alert('Failed to add holiday.');
+    }
+  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -155,7 +191,19 @@ export default function HolidayCalendarView() {
       matchesYear = year === selectedYear;
     }
 
-    return matchesSearch && matchesYear;
+    let matchesType = true;
+    if (selectedType !== 'All') {
+      matchesType = h.holidayType.toLowerCase() === selectedType.toLowerCase();
+    }
+
+    let matchesStatus = true;
+    if (selectedStatus !== 'All') {
+      const isActive = h.isActive ?? true;
+      if (selectedStatus === 'Active') matchesStatus = isActive === true;
+      if (selectedStatus === 'Inactive') matchesStatus = isActive === false;
+    }
+
+    return matchesSearch && matchesYear && matchesType && matchesStatus;
   });
 
   const getTypeChipColor = (type: string) => {
@@ -190,6 +238,15 @@ export default function HolidayCalendarView() {
             sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
           >
             Download Template
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setIsAddModalOpen(true)}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+          >
+            Add Holiday
           </Button>
           <Button
             variant="contained"
@@ -244,6 +301,71 @@ export default function HolidayCalendarView() {
             <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
               {/* Filters */}
               <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    style={{
+                      padding: '8.5px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #E2E8F0',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                      backgroundColor: '#FFF',
+                      color: '#0F172A',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {uniqueYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y === 'All' ? 'All Years' : y}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    style={{
+                      padding: '8.5px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #E2E8F0',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                      backgroundColor: '#FFF',
+                      color: '#0F172A',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="All">All Types</option>
+                    <option value="SH">Settlement (SH)</option>
+                    <option value="CH">Clearing (CH)</option>
+                    <option value="CH_SH">Clearing & Settlement (CH_SH)</option>
+                  </select>
+
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    style={{
+                      padding: '8.5px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #E2E8F0',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                      backgroundColor: '#FFF',
+                      color: '#0F172A',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="All">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </Box>
+
                 <TextField
                   placeholder="Search holiday, state..."
                   variant="outlined"
@@ -262,29 +384,6 @@ export default function HolidayCalendarView() {
                     ),
                   }}
                 />
-                <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', maxW: '100%', pb: 0.5 }}>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    style={{
-                      padding: '8.5px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #E2E8F0',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      fontSize: '0.875rem',
-                      backgroundColor: '#FFF',
-                      color: '#0F172A',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {uniqueYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </Box>
               </Box>
 
               {loading ? (
@@ -300,6 +399,7 @@ export default function HolidayCalendarView() {
                         <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Holiday Name</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>State</TableCell>
                       </TableRow>
                     </TableHead>
@@ -318,6 +418,19 @@ export default function HolidayCalendarView() {
                                 sx={{
                                   bgcolor: chipStyle.bg,
                                   color: chipStyle.color,
+                                  fontWeight: 'bold',
+                                  borderRadius: '6px',
+                                  fontSize: '0.75rem',
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={row.isActive === false ? 'Inactive' : 'Active'}
+                                size="small"
+                                sx={{
+                                  bgcolor: row.isActive === false ? '#FEE2E2' : '#DCFCE7',
+                                  color: row.isActive === false ? '#B91C1C' : '#15803D',
                                   fontWeight: 'bold',
                                   borderRadius: '6px',
                                   fontSize: '0.75rem',
@@ -350,6 +463,73 @@ export default function HolidayCalendarView() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Add Single Holiday Dialog */}
+      <Dialog open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>Add Single Holiday</DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
+            <FormControl fullWidth>
+              <TextField
+                label="Month"
+                size="small"
+                value={newHoliday.month}
+                onChange={(e) => setNewHoliday({ ...newHoliday, month: e.target.value })}
+                placeholder="e.g. January"
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                label="Date"
+                type="date"
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                value={newHoliday.holidayDate}
+                onChange={(e) => setNewHoliday({ ...newHoliday, holidayDate: e.target.value })}
+                helperText="Select the date of the holiday"
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                label="Holiday Name"
+                size="small"
+                value={newHoliday.holidayName}
+                onChange={(e) => setNewHoliday({ ...newHoliday, holidayName: e.target.value })}
+                placeholder="e.g. Republic Day"
+              />
+            </FormControl>
+            <FormControl fullWidth size="small">
+              <InputLabel>Holiday Type</InputLabel>
+              <Select
+                value={newHoliday.holidayType}
+                label="Holiday Type"
+                onChange={(e) => setNewHoliday({ ...newHoliday, holidayType: e.target.value })}
+              >
+                <MenuItem value="SH">Settlement (SH)</MenuItem>
+                <MenuItem value="CH">Clearing (CH)</MenuItem>
+                <MenuItem value="CH_SH">Clearing & Settlement (CH_SH)</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                label="State"
+                size="small"
+                value={newHoliday.state}
+                onChange={(e) => setNewHoliday({ ...newHoliday, state: e.target.value })}
+                placeholder="e.g. National or State Name"
+              />
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button onClick={() => setIsAddModalOpen(false)} variant="outlined">
+            Cancel
+          </Button>
+          <Button onClick={handleAddHoliday} variant="contained" color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -144,6 +144,24 @@ export class HolidayService {
     }
   }
 
+  async createHoliday(data: { month: string; holidayDate: string; holidayName: string; holidayType: string; state: string; }) {
+    try {
+      return await prisma.holidayCalendar.create({
+        data: {
+          month: data.month,
+          holidayDate: data.holidayDate,
+          holidayName: data.holidayName,
+          holidayType: data.holidayType,
+          state: data.state,
+          isActive: true
+        }
+      });
+    } catch (error) {
+      logger.error('Error creating single holiday:', error);
+      throw error;
+    }
+  }
+
   async toggleHoliday(id: string) {
     try {
       const record = await prisma.holidayCalendar.findUnique({ where: { id } });

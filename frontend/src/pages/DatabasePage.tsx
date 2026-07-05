@@ -629,7 +629,7 @@ export default function DatabasePage() {
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {weatherTab === 'forecast' 
-                          ? '30-day rolling hourly forecast. Updates every hour. Source: Open-Meteo.'
+                          ? '16-day rolling hourly forecast. Updates every hour. Source: Open-Meteo.'
                           : 'Historical daily actuals from the last 2 years. Updates every day. Source: Open-Meteo Archive.'}
                       </Typography>
                     </Box>
@@ -734,7 +734,7 @@ export default function DatabasePage() {
 
                 
                 {weatherData && weatherData.length > 0 ? (
-                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', flexGrow: 1, minHeight: 400 }}>
+                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', flexGrow: 1, height: 600, maxHeight: 600 }}>
                     <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
@@ -760,8 +760,22 @@ export default function DatabasePage() {
                               return row.isActual;
                             }
                           })
-                          .map((row: WeatherDataRow, i: number) => (                            <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                              <TableCell>{formatDateStr(row.date)}{row.timeStr ? ` (${row.timeStr})` : ''}</TableCell>
+                          .map((row: WeatherDataRow, i: number) => (
+                            <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
+                              <TableCell>
+                                {(() => {
+                                  const d = new Date(row.date);
+                                  const datePart = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+                                  if (row.timeStr) {
+                                    const [hr, min] = row.timeStr.split(':');
+                                    const hour = parseInt(hr, 10);
+                                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                                    const h = hour % 12 || 12;
+                                    return `${datePart} ${String(h).padStart(2, '0')}:${min} ${ampm}`;
+                                  }
+                                  return datePart;
+                                })()}
+                              </TableCell>
                               <TableCell>{row.maxTemp != null ? row.maxTemp.toFixed(1) : '-'}</TableCell>
                               <TableCell>{row.minTemp != null ? row.minTemp.toFixed(1) : '-'}</TableCell>
                               <TableCell>{row.relativeHumidity != null ? Math.round(row.relativeHumidity) : '-'}</TableCell>

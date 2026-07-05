@@ -376,7 +376,15 @@ export default function CityStateView() {
       </Card>
 
       {/* Add Entry Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 4 } }}>
+      <Dialog 
+        open={dialogOpen} 
+        onClose={handleCloseDialog} 
+        fullWidth 
+        maxWidth="sm" 
+        scroll="paper"
+        disableScrollLock
+        PaperProps={{ sx: { borderRadius: 4, m: 2 } }}
+      >
         <form onSubmit={handleSave}>
           <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Add State & City Entry</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1.5 }}>
