@@ -15,7 +15,10 @@ import {
   alpha,
   ToggleButton,
   ToggleButtonGroup,
-  Grid
+  Grid,
+  FormControl,
+  Select,
+  MenuItem
 } from '@mui/material';import { ElectricBolt as ElectricBoltIcon } from '@mui/icons-material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -173,7 +176,28 @@ export default function GenerationDataView({
               Graph Dashboard
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <Select
+                value={selectedSource}
+                onChange={(e) => setSelectedSource(e.target.value)}
+                sx={{
+                  borderRadius: '8px',
+                  height: '34px',
+                  bgcolor: '#FFF',
+                  fontSize: '0.875rem',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
+                }}
+              >
+                <MenuItem value="all">All Sources</MenuItem>
+                <MenuItem value="thermal">Thermal</MenuItem>
+                <MenuItem value="gas">Gas</MenuItem>
+                <MenuItem value="nuclear">Nuclear</MenuItem>
+                <MenuItem value="hydro">Hydro</MenuItem>
+                <MenuItem value="wind">Wind</MenuItem>
+                <MenuItem value="solar">Solar</MenuItem>
+              </Select>
+            </FormControl>
             <ToggleButtonGroup
               color="primary"
               value={viewType}
