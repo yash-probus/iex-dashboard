@@ -18,7 +18,7 @@ export default function ModuleLayout() {
 
   if (location.pathname.startsWith('/database')) {
     activeItems = DATABASE_ITEMS;
-    activeModuleTitle = 'Database Analytics';
+    activeModuleTitle = 'Demand & Generation Data';
     activeModuleColor = '#9C27B0';
   } else if (location.pathname.startsWith('/dam') || location.pathname.startsWith('/gdam') || location.pathname.startsWith('/rtm') || location.pathname.startsWith('/markets')) {
     activeItems = MARKET_ITEMS;
@@ -30,7 +30,7 @@ export default function ModuleLayout() {
     activeModuleColor = '#03A9F4';
   } else if (location.pathname.startsWith('/market-operations')) {
     activeItems = MARKET_OPERATIONS_ITEMS;
-    activeModuleTitle = 'Market Operations';
+    activeModuleTitle = 'Market Trend';
     activeModuleColor = '#FF7043';
   }
 
@@ -63,8 +63,9 @@ export default function ModuleLayout() {
     <Box sx={{ 
       display: 'flex', 
       flexDirection: { xs: 'column', md: 'row' }, 
-      gap: 3, 
-      flexGrow: 1 
+      gap: 0, 
+      flexGrow: 1,
+      minHeight: { xs: 'auto', md: 'calc(100vh - 120px)' }
     }}>
       {/* Sidebar */}
       <Paper 
@@ -84,14 +85,7 @@ export default function ModuleLayout() {
           bgcolor: 'background.paper'
         }}
       >
-        <Box sx={{ p: 2.5, bgcolor: alpha(activeModuleColor, 0.05), borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle2" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>
-            Module Navigation
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: activeModuleColor }}>
-            {activeModuleTitle}
-          </Typography>
-        </Box>
+
 
         <List sx={{ p: 1.5, flexGrow: 1, overflowY: 'auto' }}>
           {activeItems.map((item) => {
@@ -222,7 +216,7 @@ export default function ModuleLayout() {
       </Paper>
 
       {/* Main Content */}
-      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+      <Box id="module-content-wrapper" sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         <Outlet />
       </Box>
     </Box>

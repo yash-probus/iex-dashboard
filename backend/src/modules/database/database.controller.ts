@@ -53,7 +53,10 @@ export class DatabaseController {
     try {
       const startDate = req.query.startDate as string | undefined;
       const endDate = req.query.endDate as string | undefined;
-      const weatherData = await databaseService.getWeatherData(startDate, endDate);
+      const type = req.query.type as string | undefined;
+      const latitude = req.query.latitude as string | undefined;
+      const longitude = req.query.longitude as string | undefined;
+      const weatherData = await databaseService.getWeatherData(startDate, endDate, type, latitude, longitude);
       res.status(200).json({
         success: true,
         data: weatherData
@@ -68,8 +71,20 @@ export class DatabaseController {
     try {
       const { dataset, startDate, endDate } = req.query as { dataset: string, startDate: string, endDate: string };
       
-      if (!dataset || !startDate || !endDate) {
-        return res.status(400).json({ success: false, message: 'Missing dataset, startDate, or endDate' });
+      if (!dataset) {
+        return res.status(400).json({ success: false, message: 'Missing dataset parameter' });
+      }
+
+      if (dataset === 'city_state') {
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="state_and_city_export.csv"`);
+        await databaseService.exportCityStateAsCsvStream(res);
+        res.end();
+        return;
+      }
+
+      if (!startDate || !endDate) {
+        return res.status(400).json({ success: false, message: 'Missing startDate or endDate' });
       }
 
       res.setHeader('Content-Type', 'text/csv');
@@ -111,6 +126,59 @@ export class DatabaseController {
         success: false, 
         message: error.message || 'Failed to upload holiday calendar' 
       });
+    }
+  }
+
+  async getCityStateData(req: Request, res: Response) {
+    try {
+      const data = await databaseService.getCityStateData();
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error('Error fetching city state data:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch city state data' });
+    }
+  }
+
+  async createCityStateData(req: Request, res: Response) {
+    try {
+      const { cityName, stateName, population, latitude, longitude } = req.body;
+      if (!cityName || !stateName || population == null || latitude == null || longitude == null) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+      }
+      const data = await databaseService.createCityStateData({
+        cityName: String(cityName).trim(),
+        stateName: String(stateName).trim(),
+        population: parseInt(population, 10),
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      });
+      res.status(201).json({ success: true, data });
+    } catch (error: any) {
+      console.error('Error creating city state data:', error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to create city state data' });
+    }
+  }
+
+  async updateHoliday(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      const { month, holidayDate, holidayName, holidayType, state, isActive } = req.body;
+      const updated = await holidayService.updateHoliday(id, { month, holidayDate, holidayName, holidayType, state, isActive });
+      res.status(200).json({ success: true, data: updated });
+    } catch (error: any) {
+      console.error('Error updating holiday:', error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to update holiday' });
+    }
+  }
+
+  async toggleHoliday(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      const updated = await holidayService.toggleHoliday(id);
+      res.status(200).json({ success: true, data: updated });
+    } catch (error: any) {
+      console.error('Error toggling holiday:', error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to toggle holiday' });
     }
   }
 }

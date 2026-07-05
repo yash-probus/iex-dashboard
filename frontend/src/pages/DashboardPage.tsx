@@ -1,8 +1,8 @@
 import React from 'react';
 import { Box, Typography, Grid, Button, Paper, alpha, useTheme } from '@mui/material';
-import { 
-  BarChart as ChartIcon, 
-  Storage as StorageIcon, 
+import {
+  BarChart as ChartIcon,
+  Storage as StorageIcon,
   SettingsSuggest as SettingsIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 const MODULES = [
   {
     key: 'database',
-    title: 'Database Analytics',
+    title: 'Demand & Generation Data',
     description: 'Access centralized repositories for nationwide and state-level power demand, plus historical weather data.',
     path: '/database',
     icon: <StorageIcon sx={{ fontSize: 24 }} />,
@@ -34,20 +34,20 @@ const MODULES = [
     color: '#03A9F4'
   },
   {
-    key: 'api-logs',
-    title: 'API Logs',
-    description: 'Monitor background operations and check API health logs (NPP, Weather, etc).',
-    path: '/admin/api-logs',
-    icon: <StorageIcon sx={{ fontSize: 24 }} />,
-    color: '#10B981'
-  },
-  {
     key: 'market-operations',
     title: 'Market Operations',
     description: 'Compare and upload MCP data across DAM, RTM, and GDAM.',
     path: '/market-operations',
     icon: <SettingsIcon sx={{ fontSize: 24 }} />,
     color: '#FF7043'
+  },
+  {
+    key: 'api-logs',
+    title: 'API Logs',
+    description: 'Monitor background operations and check API health logs (NPP, Weather, etc).',
+    path: '/admin/api-logs',
+    icon: <StorageIcon sx={{ fontSize: 24 }} />,
+    color: '#10B981'
   }
 ];
 
@@ -55,17 +55,17 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { admin } = useAuth();
   const theme = useTheme();
-  
+
   // Fallback if admin.name isn't available
   const displayName = admin && (admin as any).name ? (admin as any).name : 'Admin User';
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
+    <Box sx={{
+      display: 'flex',
       flexDirection: 'column',
-      py: 2,
+      pb: 2,
     }}>
-      <Box sx={{ mb: 4, pt: 2 }}>
+      <Box sx={{ mb: 4, pt: 0 }}>
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5, fontSize: '0.9rem' }}>
           Welcome back, <Box component="span" sx={{ color: 'text.primary', fontWeight: 600 }}>{displayName}</Box>
         </Typography>
@@ -87,6 +87,7 @@ export default function DashboardPage() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: 'center',
                 borderRadius: 3,
                 border: '1px solid',
                 borderColor: 'divider',
@@ -99,28 +100,28 @@ export default function DashboardPage() {
                 }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1.5 }}>
-                <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 1, bgcolor: alpha(mod.color, 0.1), borderRadius: 1.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 1, gap: 1.5 }}>
+                <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 1.5, bgcolor: alpha(mod.color, 0.1), borderRadius: 1.5 }}>
                   {mod.icon}
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.2rem', letterSpacing: '-0.5px', textAlign: 'center' }}>
                   {mod.title}
                 </Typography>
               </Box>
-              
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4, flexGrow: 1, lineHeight: 1.6, fontSize: '0.9rem', mt: 1 }}>
+
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4, flexGrow: 1, lineHeight: 1.6, fontSize: '0.9rem', mt: 1, textAlign: 'center' }}>
                 {mod.description}
               </Typography>
 
-              <Button 
+              <Button
                 fullWidth
                 variant="contained"
                 disableElevation
                 onClick={() => navigate(mod.path)}
-                sx={{ 
+                sx={{
                   mt: 'auto',
                   py: 1.2,
-                  bgcolor: theme.palette.primary.main, 
+                  bgcolor: theme.palette.primary.main,
                   color: '#FFFFFF',
                   fontWeight: 600,
                   textTransform: 'none',

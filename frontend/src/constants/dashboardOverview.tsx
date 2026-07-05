@@ -58,7 +58,7 @@ export const MARKET_ITEMS: OverviewItemConfig[] = [
 export const MARKET_OPERATIONS_ITEMS: OverviewItemConfig[] = [
   {
     key: 'market-operations',
-    title: 'Market Operations',
+    title: 'Market Trend',
     description: 'Compare and upload MCP data across DAM, RTM, and GDAM.',
     path: '/market-operations',
     icon: <SettingsIcon fontSize="medium" />,
@@ -127,16 +127,29 @@ export const DATABASE_ITEMS: OverviewItemConfig[] = [
     color: '#3B8FF3',
     subItems: [
       { key: 'all-india-demand', title: 'All India Demand', path: '/database/all-india-demand', icon: <TimelineIcon fontSize="small" /> },
+      { key: 'generation-data', title: 'Generation Data', path: '/database/generation-data', icon: <BoltIcon fontSize="small" /> },
       { key: 'state-wise-demand', title: 'State Wise Demand', path: '/database/state-wise-demand', icon: <MapIcon fontSize="small" /> }
     ]
+  },
+  {
+    key: 'city-state-data',
+    title: 'State & City Data',
+    description: 'Geographical coordinates and population database.',
+    path: '/database/city-state-data',
+    icon: <PublicIcon fontSize="medium" />,
+    color: '#9C27B0'
   },
   {
     key: 'weather',
     title: 'Weather Data',
     description: 'Historical weather data from Open-Meteo.',
-    path: '/database/weather',
+    path: '/database/weather/forecast',
     icon: <CloudIcon fontSize="medium" />,
-    color: '#E0B50F'
+    color: '#E0B50F',
+    subItems: [
+      { key: 'weather-forecast', title: 'Forecasted Data', path: '/database/weather/forecast', icon: <CloudIcon fontSize="small" /> },
+      { key: 'weather-historical', title: 'Historical Data', path: '/database/weather/historical', icon: <CloudIcon fontSize="small" /> }
+    ]
   },
   {
     key: 'holiday-calendar',

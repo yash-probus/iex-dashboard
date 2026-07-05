@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -26,6 +26,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Cloud as CloudIcon,
@@ -39,9 +41,13 @@ import StateWiseDemandView from './database/StateWiseDemandView';
 import { formatOverviewDate } from '../utils/date';
 import GenerationDataView from './database/GenerationDataView';
 import HolidayCalendarView from './database/HolidayCalendarView';
+import CityStateView from './database/CityStateView';
+import { State, City } from 'country-state-city';
+import DateRangePicker from '../components/common/DateRangePicker';
 
 interface WeatherDataRow {
   date: string;
+  timeStr?: string;
   maxTemp: number;
   minTemp: number;
   windSpeed: number;
@@ -70,12 +76,52 @@ export default function DatabasePage() {
   const showGeneration = path.includes('/generation-data');
   const showDateRange = showNpp || showGeneration;
   const showStateWise = path.includes('/state-wise-demand');
-  const showWeather = path.includes('/weather');
+  const showWeatherForecast = path.includes('/weather/forecast');
+  const showWeatherHistorical = path.includes('/weather/historical');
+  const showWeather = showWeatherForecast || showWeatherHistorical;
   const showHolidayCalendar = path.includes('/holiday-calendar');
+  const showCityState = path.includes('/city-state-data');
   
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherDataRow[] | null>(null);
+  const navigate = useNavigate();
+  const weatherTab = showWeatherHistorical ? 'historical' : 'forecast';
+
+  // Load all states in India (IN)
+  const allStates = React.useMemo(() => {
+    return State.getStatesOfCountry('IN').sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
+
+  const [selectedStateCode, setSelectedStateCode] = useState<string>(() => {
+    const delhi = allStates.find(s => s.name === 'Delhi' || s.isoCode === 'DL');
+    return delhi?.isoCode || allStates[0]?.isoCode || '';
+  });
+
+  const allCitiesInState = React.useMemo(() => {
+    if (!selectedStateCode) return [];
+    return City.getCitiesOfState('IN', selectedStateCode).sort((a, b) => a.name.localeCompare(b.name));
+  }, [selectedStateCode]);
+
+  const [selectedCityName, setSelectedCityName] = useState<string>(() => {
+    const defaultCity = allCitiesInState.find(c => c.name === 'New Delhi') || allCitiesInState[0];
+    return defaultCity?.name || '';
+  });
+
+  useEffect(() => {
+    if (allCitiesInState.length > 0) {
+      const hasNewDelhi = allCitiesInState.find(c => c.name === 'New Delhi');
+      setSelectedCityName(hasNewDelhi ? 'New Delhi' : allCitiesInState[0].name);
+    } else {
+      setSelectedCityName('');
+    }
+  }, [selectedStateCode, allCitiesInState]);
+
+  const activeCityObj = allCitiesInState.find(c => c.name === selectedCityName);
+  const activeLat = activeCityObj?.latitude ? parseFloat(activeCityObj.latitude) : undefined;
+  const activeLon = activeCityObj?.longitude ? parseFloat(activeCityObj.longitude) : undefined;
+
+
 
   const [allIndiaDemand, setAllIndiaDemand] = useState<any>(null);
   const [stateWiseDemand, setStateWiseDemand] = useState<any>(null);
@@ -121,21 +167,27 @@ export default function DatabasePage() {
   });
   const [genEndDate, setGenEndDate] = useState<string>(getTodayDateString());
 
-  // Weather view date range — default to last 30 days + next 7 days forecast
-  const [weatherStartDate, setWeatherStartDate] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return d.toISOString().split('T')[0];
-  });
-  const [weatherEndDate, setWeatherEndDate] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().split('T')[0];
-  });
+  // Weather view date range
+  const [weatherStartDate, setWeatherStartDate] = useState<string>('');
+  const [weatherEndDate, setWeatherEndDate] = useState<string>('');
+
+  useEffect(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    if (weatherTab === 'historical') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      setWeatherStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
+      setWeatherEndDate(todayStr);
+    } else {
+      setWeatherStartDate(todayStr);
+      setWeatherEndDate(todayStr);
+    }
+  }, [weatherTab]);
 
   const [exportOpen, setExportOpen] = useState(false);
   const [exportDataset, setExportDataset] = useState<string>(() => {
-    if (path.includes('/weather')) return 'weather';
+    if (path.includes('/weather')) return 'weather_forecast';
     if (path.includes('/state-wise-demand')) return 'state';
     return 'npp';
   });
@@ -149,7 +201,7 @@ export default function DatabasePage() {
   };
 
   const fetchData = async () => {
-    if (showHolidayCalendar) {
+    if (showHolidayCalendar || showCityState) {
       setLoading(false);
       setErrorMsg(null);
       return;
@@ -158,7 +210,9 @@ export default function DatabasePage() {
     setErrorMsg(null);
     try {
       if (showWeather) {
-        const weatherRes = await apiClient.get(`/database/weather?startDate=${weatherStartDate}&endDate=${weatherEndDate}`);
+        const latParam = committedLat != null ? `&latitude=${committedLat}` : '';
+        const lonParam = committedLon != null ? `&longitude=${committedLon}` : '';
+        const weatherRes = await apiClient.get(`/database/weather?type=${weatherTab}&startDate=${committedWeatherStartDate}&endDate=${committedWeatherEndDate}${latParam}${lonParam}`);
         if (weatherRes.data?.success && weatherRes.data?.data) {
           setWeatherData(weatherRes.data.data);
         } else {
@@ -201,26 +255,66 @@ export default function DatabasePage() {
     }
   };
 
-  // Committed date range — only updated when Submit is clicked
   const [committedNppStartDate, setCommittedNppStartDate] = useState(nppStartDate);
   const [committedNppEndDate, setCommittedNppEndDate] = useState(nppEndDate);
-
+ 
   const [committedGenStartDate, setCommittedGenStartDate] = useState(genStartDate);
   const [committedGenEndDate, setCommittedGenEndDate] = useState(genEndDate);
 
+  const [committedWeatherStartDate, setCommittedWeatherStartDate] = useState(weatherStartDate);
+  const [committedWeatherEndDate, setCommittedWeatherEndDate] = useState(weatherEndDate);
+  const [committedLat, setCommittedLat] = useState<number | undefined>(undefined);
+  const [committedLon, setCommittedLon] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (activeLat != null && committedLat === undefined) {
+      setCommittedLat(activeLat);
+    }
+    if (activeLon != null && committedLon === undefined) {
+      setCommittedLon(activeLon);
+    }
+  }, [activeLat, activeLon]);
+ 
+  const checkDateRange = (start: string, end: string) => {
+    const s = new Date(start);
+    const e = new Date(end);
+    const diffTime = e.getTime() - s.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 31;
+  };
+ 
   const handleNppSubmit = () => {
+    if (!checkDateRange(nppStartDate, nppEndDate)) {
+      alert('You can only select a maximum of 31 days.');
+      return;
+    }
     setCommittedNppStartDate(nppStartDate);
     setCommittedNppEndDate(nppEndDate);
   };
-
+ 
   const handleGenSubmit = () => {
+    if (!checkDateRange(genStartDate, genEndDate)) {
+      alert('You can only select a maximum of 31 days.');
+      return;
+    }
     setCommittedGenStartDate(genStartDate);
     setCommittedGenEndDate(genEndDate);
   };
 
+  const handleWeatherSubmit = () => {
+    if (!checkDateRange(weatherStartDate, weatherEndDate)) {
+      alert('You can only select a maximum of 31 days.');
+      return;
+    }
+    setCommittedWeatherStartDate(weatherStartDate);
+    setCommittedWeatherEndDate(weatherEndDate);
+    setCommittedLat(activeLat);
+    setCommittedLon(activeLon);
+  };
+ 
   useEffect(() => {
     fetchData();
-  }, [selectedDate, selectedTime, committedNppStartDate, committedNppEndDate, committedGenStartDate, committedGenEndDate, weatherStartDate, weatherEndDate, path]);
+  }, [selectedDate, selectedTime, committedNppStartDate, committedNppEndDate, committedGenStartDate, committedGenEndDate, committedWeatherStartDate, committedWeatherEndDate, committedLat, committedLon, weatherTab, path]);
 
   return (
     <Box
@@ -228,13 +322,13 @@ export default function DatabasePage() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 4
+        gap: 4,
+        flexGrow: 1
       }}
     >
-      <Box sx={{ mb: 5, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
-        
-        {(!showDateRange && !showHolidayCalendar && !showWeather) && (
-        <Box 
+      {(!showDateRange && !showHolidayCalendar && !showWeather && !showCityState) && (
+        <Box sx={{ mb: 5, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
+          <Box 
           className="glass"
           sx={{ 
             display: 'flex', 
@@ -309,8 +403,8 @@ export default function DatabasePage() {
             Export CSV
           </Button>
         </Box>
-        )}
-      </Box>
+        </Box>
+      )}
 
 
       <Dialog open={exportOpen} onClose={() => setExportOpen(false)} maxWidth="sm" fullWidth>
@@ -327,7 +421,8 @@ export default function DatabasePage() {
                 <MenuItem value="npp">All India Demand (NPP)</MenuItem>
                 <MenuItem value="generation">Generation Data</MenuItem>
                 <MenuItem value="state">State Wise Demand</MenuItem>
-                <MenuItem value="weather">Weather Data</MenuItem>
+                <MenuItem value="weather_forecast">Weather Forecasted Data (Hourly)</MenuItem>
+                <MenuItem value="weather_historical">Weather Historical Data (Daily)</MenuItem>
               </Select>
             </FormControl>
             
@@ -379,140 +474,112 @@ export default function DatabasePage() {
           <Button variant="outlined" color="primary" onClick={fetchData}>Retry</Button>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', gap: 4 }}>
+        <Box sx={{ display: 'flex', gap: 4, flexGrow: 1 }}>
           {/* Main Content */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Grid container spacing={4}>
+          <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+            <Grid container spacing={4} sx={{ flexGrow: 1 }}>
 
 
-          {/* NPP Data Section (Demand & Generation) */}
+          {/* NPP Demand Section */}
           {showNpp && (
-            <>
-              <Grid item xs={12}>
-                <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                    Real Time Demand Met Data
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>From</Typography>
-                      <input 
-                        type="date" 
-                        value={nppStartDate}
-                        onChange={(e) => setNppStartDate(e.target.value)}
-                        style={{
-                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
-                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
-                          transition: 'all 0.2s'
-                        }}
-                      />
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>To</Typography>
-                      <input 
-                        type="date" 
-                        value={nppEndDate}
-                        onChange={(e) => setNppEndDate(e.target.value)}
-                        style={{
-                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
-                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
-                          transition: 'all 0.2s'
-                        }}
-                      />
-                    </Box>
-                    <Button
-                      variant="contained"
-                      onClick={handleNppSubmit}
-                      sx={{
-                        height: '42px',
-                        px: 3,
-                        borderRadius: '10px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        fontSize: '0.875rem',
-                        boxShadow: 'none',
-                        '&:hover': { boxShadow: 'none' },
+            <Grid item xs={12}>
+              <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '2.5rem', md: '4rem' } }}>
+                  Real Time Demand Met Data
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
+                    <DateRangePicker 
+                      startDate={nppStartDate}
+                      endDate={nppEndDate}
+                      onChange={(start, end) => {
+                        setNppStartDate(start);
+                        setNppEndDate(end);
                       }}
-                    >
-                      Submit
-                    </Button>
+                    />
                   </Box>
+                  <Button
+                    variant="contained"
+                    onClick={handleNppSubmit}
+                    sx={{
+                      height: '42px',
+                      px: 3,
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      boxShadow: 'none',
+                      '&:hover': { boxShadow: 'none' },
+                    }}
+                  >
+                    Submit
+                  </Button>
                 </Box>
-                <AllIndiaDemandView 
-                  data={allIndiaDemand} 
-                  startDate={nppStartDate} 
-                  endDate={nppEndDate} 
-                  onStartDateChange={setNppStartDate} 
-                  onEndDateChange={setNppEndDate} 
-                  onExport={() => { 
-                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`;
-                    window.open(url, '_blank');
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Box sx={{ mb: 3, mt: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                    Real Time Generation Data
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>From</Typography>
-                      <input 
-                        type="date" 
-                        value={genStartDate}
-                        onChange={(e) => setGenStartDate(e.target.value)}
-                        style={{
-                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
-                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
-                          transition: 'all 0.2s'
-                        }}
-                      />
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>To</Typography>
-                      <input 
-                        type="date" 
-                        value={genEndDate}
-                        onChange={(e) => setGenEndDate(e.target.value)}
-                        style={{
-                          padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', outline: 'none',
-                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A',
-                          transition: 'all 0.2s'
-                        }}
-                      />
-                    </Box>
-                    <Button
-                      variant="contained"
-                      onClick={handleGenSubmit}
-                      sx={{
-                        height: '42px',
-                        px: 3,
-                        borderRadius: '10px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        fontSize: '0.875rem',
-                        boxShadow: 'none',
-                        '&:hover': { boxShadow: 'none' },
+              </Box>
+              <AllIndiaDemandView 
+                data={allIndiaDemand} 
+                startDate={nppStartDate} 
+                endDate={nppEndDate} 
+                onStartDateChange={setNppStartDate} 
+                onEndDateChange={setNppEndDate} 
+                onExport={() => { 
+                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`;
+                  window.open(url, '_blank');
+                }}
+              />
+            </Grid>
+          )}
+
+          {/* NPP Generation Section */}
+          {showGeneration && (
+            <Grid item xs={12}>
+              <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '2.5rem', md: '4rem' } }}>
+                  Real Time Generation Data
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
+                    <DateRangePicker 
+                      startDate={genStartDate}
+                      endDate={genEndDate}
+                      onChange={(start, end) => {
+                        setGenStartDate(start);
+                        setGenEndDate(end);
                       }}
-                    >
-                      Submit
-                    </Button>
+                    />
                   </Box>
+                  <Button
+                    variant="contained"
+                    onClick={handleGenSubmit}
+                    sx={{
+                      height: '42px',
+                      px: 3,
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      boxShadow: 'none',
+                      '&:hover': { boxShadow: 'none' },
+                    }}
+                  >
+                    Submit
+                  </Button>
                 </Box>
-                <GenerationDataView 
-                  data={generationData} 
-                  startDate={genStartDate} 
-                  endDate={genEndDate} 
-                  onStartDateChange={setGenStartDate} 
-                  onEndDateChange={setGenEndDate} 
-                  onExport={() => { 
-                    const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`;
-                    window.open(url, '_blank');
-                  }}
-                />
-              </Grid>
-            </>
+              </Box>
+              <GenerationDataView 
+                data={generationData} 
+                startDate={genStartDate} 
+                endDate={genEndDate} 
+                onStartDateChange={setGenStartDate} 
+                onEndDateChange={setGenEndDate} 
+                onExport={() => { 
+                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`;
+                  window.open(url, '_blank');
+                }}
+              />
+            </Grid>
           )}
 
           {/* State Wise Demand Section */}
@@ -524,7 +591,7 @@ export default function DatabasePage() {
 
           {/* Weather Data Section */}
           {showWeather && (
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
             <Card
               elevation={0}
               sx={{
@@ -532,6 +599,9 @@ export default function DatabasePage() {
                 border: '1px solid',
                 borderColor: alpha(theme.palette.divider, 0.1),
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                flexGrow: 1,
                 transition: 'transform 0.2s',
                 '&:hover': {
                   transform: 'translateY(-4px)',
@@ -539,7 +609,7 @@ export default function DatabasePage() {
                 },
               }}
             >
-              <CardContent sx={{ p: 4 }}>
+              <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box
@@ -555,46 +625,94 @@ export default function DatabasePage() {
                     </Box>
                     <Box>
                       <Typography variant="h6" fontWeight="600">
-                        Weather Data (New Delhi)
+                        {weatherTab === 'forecast' ? 'Forecasted Weather Data' : 'Historical Weather Data'} ({selectedCityName || 'New Delhi'})
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Historical actuals from Jul 2024 + 7-day rolling forecast. Source: Open-Meteo.
+                        {weatherTab === 'forecast' 
+                          ? '30-day rolling hourly forecast. Updates every hour. Source: Open-Meteo.'
+                          : 'Historical daily actuals from the last 2 years. Updates every day. Source: Open-Meteo Archive.'}
                       </Typography>
                     </Box>
                   </Box>
-                  {/* Date range controls */}
+                  {/* State, City & Date range controls */}
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>State</Typography>
+                      <Select
+                        value={selectedStateCode}
+                        onChange={(e) => setSelectedStateCode(e.target.value)}
+                        sx={{
+                          borderRadius: '8px',
+                          height: '38px',
+                          bgcolor: '#FFF',
+                          fontSize: '0.875rem',
+                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
+                        }}
+                      >
+                        {allStates.map((state) => (
+                          <MenuItem key={state.isoCode} value={state.isoCode}>
+                            {state.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>City</Typography>
+                      <Select
+                        value={selectedCityName}
+                        onChange={(e) => setSelectedCityName(e.target.value)}
+                        sx={{
+                          borderRadius: '8px',
+                          height: '38px',
+                          bgcolor: '#FFF',
+                          fontSize: '0.875rem',
+                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
+                        }}
+                      >
+                        {allCitiesInState.map((city) => (
+                          <MenuItem key={city.name} value={city.name}>
+                            {city.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
                     <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>From</Typography>
-                      <input
-                        type="date"
-                        value={weatherStartDate}
-                        onChange={(e) => setWeatherStartDate(e.target.value)}
-                        min="2024-07-01"
-                        style={{
-                          padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none',
-                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A'
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
+                      <DateRangePicker 
+                        startDate={weatherStartDate}
+                        endDate={weatherEndDate}
+                        onChange={(start, end) => {
+                          setWeatherStartDate(start);
+                          setWeatherEndDate(end);
                         }}
                       />
                     </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>To</Typography>
-                      <input
-                        type="date"
-                        value={weatherEndDate}
-                        onChange={(e) => setWeatherEndDate(e.target.value)}
-                        style={{
-                          padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none',
-                          fontFamily: 'inherit', fontSize: '0.875rem', backgroundColor: '#FFF', color: '#0F172A'
-                        }}
-                      />
-                    </Box>
+                    <Button
+                      variant="contained"
+                      onClick={handleWeatherSubmit}
+                      sx={{
+                        height: '42px',
+                        px: 3,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        boxShadow: 'none',
+                        '&:hover': { boxShadow: 'none' },
+                      }}
+                    >
+                      Submit
+                    </Button>
                   </Box>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
+
+
                 
                 {weatherData && weatherData.length > 0 ? (
-                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 500 }}>
+                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', flexGrow: 1, minHeight: 400 }}>
                     <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
@@ -613,8 +731,15 @@ export default function DatabasePage() {
                       </TableHead>
                       <TableBody>
                         {weatherData
+                          .filter((row: WeatherDataRow) => {
+                            if (weatherTab === 'forecast') {
+                              return !row.isActual;
+                            } else {
+                              return row.isActual;
+                            }
+                          })
                           .map((row: WeatherDataRow, i: number) => (                            <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                              <TableCell>{formatDateStr(row.date)}</TableCell>
+                              <TableCell>{formatDateStr(row.date)}{row.timeStr ? ` (${row.timeStr})` : ''}</TableCell>
                               <TableCell>{row.maxTemp != null ? row.maxTemp.toFixed(1) : '-'}</TableCell>
                               <TableCell>{row.minTemp != null ? row.minTemp.toFixed(1) : '-'}</TableCell>
                               <TableCell>{row.relativeHumidity != null ? Math.round(row.relativeHumidity) : '-'}</TableCell>
@@ -643,7 +768,9 @@ export default function DatabasePage() {
                     </Table>
                   </TableContainer>
                 ) : (
-                  <Typography>Unable to load weather data.</Typography>
+                  <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                    No weather data available for the selected date range.
+                  </Typography>
                 )}
               </CardContent>
             </Card>
@@ -654,6 +781,13 @@ export default function DatabasePage() {
           {showHolidayCalendar && (
             <Grid item xs={12}>
               <HolidayCalendarView />
+            </Grid>
+          )}
+
+          {/* City & State Data Section */}
+          {showCityState && (
+            <Grid item xs={12}>
+              <CityStateView />
             </Grid>
           )}
 

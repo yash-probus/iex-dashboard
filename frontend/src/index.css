@@ -18,6 +18,13 @@
   --color-market-rtm: #F59E0B;
 }
 
+html {
+  zoom: 0.75;
+}
+html.login-page {
+  zoom: 1;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
@@ -72,4 +79,52 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Global full-page vertical stretching for module dashboard cards & tables */
+#module-content-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+}
+
+#module-content-wrapper > div {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  height: 100% !important;
+}
+
+/* Stretch Grid & Cards */
+#module-content-wrapper > div > .MuiGrid-container {
+  flex-grow: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#module-content-wrapper > div > .MuiGrid-container > .MuiGrid-item {
+  flex-grow: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#module-content-wrapper > div > .MuiGrid-container > .MuiGrid-item > .MuiCard-root,
+#module-content-wrapper > div > .MuiPaper-root {
+  flex-grow: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#module-content-wrapper > div > .MuiGrid-container > .MuiGrid-item > .MuiCard-root > .MuiCardContent-root,
+#module-content-wrapper > div > .MuiPaper-root > .MuiCardContent-root {
+  flex-grow: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Auto-grow Table Containers */
+#module-content-wrapper > div > .MuiGrid-container > .MuiGrid-item > .MuiCard-root > .MuiCardContent-root > .MuiTableContainer-root,
+#module-content-wrapper > div > .MuiPaper-root > .MuiCardContent-root > .MuiTableContainer-root {
+  flex-grow: 1 !important;
+  min-height: 400px !important;
 }

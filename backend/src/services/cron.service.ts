@@ -22,11 +22,21 @@ export class CronService {
       }
     });
 
-    // Run every day at midnight for Weather Actuals + Forecast
+    // Run every hour for Weather Forecast (Hourly)
+    cron.schedule('0 * * * *', async () => {
+      console.log('[Cron] Running hourly weather forecast tasks');
+      try {
+        await WeatherEngine.updateHourlyForecast();
+      } catch (error) {
+        console.error('[Cron] Error in hourly weather forecast schedule:', error);
+      }
+    });
+
+    // Run every day at midnight for Weather Historical
     cron.schedule('0 0 * * *', async () => {
       console.log('[Cron] Running daily midnight tasks');
       try {
-        await WeatherEngine.updateWeatherForecasts();
+        await WeatherEngine.updateDailyHistorical();
       } catch (error) {
         console.error('[Cron] Error in daily schedule:', error);
       }

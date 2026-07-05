@@ -6,7 +6,7 @@ export class ApiLogService {
       return await prisma.apiLog.create({
         data: {
           apiName,
-          endpoint,
+          endpoint: endpoint ? endpoint.slice(0, 255) : null,
           status,
           message,
         },

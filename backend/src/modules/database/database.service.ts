@@ -31,20 +31,155 @@ interface StateRegionMap {
   }>;
 }
 
+import axios from 'axios';
+
 export class DatabaseService {
-  async getWeatherData(startDate?: string, endDate?: string) {
+  async getWeatherData(startDate?: string, endDate?: string, type?: string, latitude?: string, longitude?: string) {
     try {
-      const forecasts = await prisma.weatherForecast.findMany({
-        where: startDate && endDate
-          ? { date: { gte: startDate, lte: endDate } }
-          : startDate
-          ? { date: { gte: startDate } }
-          : endDate
-          ? { date: { lte: endDate } }
-          : undefined,
-        orderBy: { date: 'asc' }
-      });
-      return forecasts;
+      if (latitude && longitude) {
+        const lat = parseFloat(latitude);
+        const lon = parseFloat(longitude);
+
+        if (type === 'historical') {
+          const start = startDate || new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().split('T')[0];
+          const end = endDate || new Date().toISOString().split('T')[0];
+          const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max,precipitation_probability_max,sunrise,sunset&timezone=Asia/Kolkata`;
+          
+          const response = await axios.get(url);
+          const daily = response.data?.daily;
+          if (!daily || !daily.time) return [];
+
+          const dailyDates: string[] = daily.time;
+          const maxTemps: number[] = daily.temperature_2m_max;
+          const minTemps: number[] = daily.temperature_2m_min;
+          const windSpeeds: number[] = daily.wind_speed_10m_max;
+          const relativeHumidities: number[] = daily.relative_humidity_2m_max;
+          const precipProbs: number[] = daily.precipitation_probability_max || [];
+          const precipSums: number[] = daily.precipitation_sum;
+          const sunshineDurations: number[] = daily.sunshine_duration;
+          const sunrises: string[] = daily.sunrise;
+          const sunsets: string[] = daily.sunset;
+
+          const data = [];
+          for (let i = 0; i < dailyDates.length; i++) {
+            const date = dailyDates[i];
+            const rawSunrise = sunrises[i] || "";
+            const rawSunset = sunsets[i] || "";
+            const sunrise = rawSunrise.includes('T') ? rawSunrise.split('T')[1] : rawSunrise || '05:30';
+            const sunset = rawSunset.includes('T') ? rawSunset.split('T')[1] : rawSunset || '19:00';
+            
+            data.push({
+              id: `hist-${date}`,
+              date,
+              maxTemp: maxTemps[i] != null ? Number(maxTemps[i].toFixed(1)) : 30,
+              minTemp: minTemps[i] != null ? Number(minTemps[i].toFixed(1)) : 18,
+              windSpeed: windSpeeds[i] != null ? Number(windSpeeds[i].toFixed(1)) : 10,
+              relativeHumidity: relativeHumidities[i] != null ? Number(relativeHumidities[i].toFixed(1)) : 50,
+              precipitationProb: precipProbs[i] != null ? Number(precipProbs[i].toFixed(1)) : 0,
+              precipitationSum: precipSums[i] != null ? Number(precipSums[i].toFixed(2)) : 0,
+              sunshineDuration: sunshineDurations[i] != null ? Number((sunshineDurations[i] / 3600).toFixed(2)) : 8.0,
+              sunrise,
+              sunset,
+              isActual: true,
+              updatedAt: new Date()
+            });
+          }
+          return data;
+        } else {
+          // Forecast
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation_probability,precipitation&daily=sunrise,sunset,sunshine_duration&forecast_days=16&past_days=1&timezone=Asia/Kolkata`;
+          const response = await axios.get(url);
+          const hourly = response.data?.hourly;
+          const daily = response.data?.daily;
+          
+          if (!hourly || !hourly.time) return [];
+
+          const hourlyTime: string[] = hourly.time;
+          const temps: number[] = hourly.temperature_2m;
+          const relativeHumidities: number[] = hourly.relative_humidity_2m;
+          const windSpeeds: number[] = hourly.wind_speed_10m;
+          const precipProbs: number[] = hourly.precipitation_probability;
+          const precipSums: number[] = hourly.precipitation;
+
+          const dailyDates: string[] = daily ? daily.time : [];
+          const dailySunrises: string[] = daily ? daily.sunrise : [];
+          const dailySunsets: string[] = daily ? daily.sunset : [];
+          const dailySunshineDurations: number[] = daily ? daily.sunshine_duration : [];
+
+          const now = new Date();
+          const currentHourStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:00`;
+
+          const data = [];
+          for (let i = 0; i < hourlyTime.length; i++) {
+            const datetimeStr = hourlyTime[i];
+            const [date, timeStr] = datetimeStr.split('T');
+            if (startDate && date < startDate) continue;
+            if (endDate && date > endDate) continue;
+
+            const dailyIndex = dailyDates.indexOf(date);
+            let sunrise = "05:30";
+            let sunset = "19:00";
+            let sunshineDuration = 8.0;
+
+            if (dailyIndex !== -1) {
+              const rawSunrise = dailySunrises[dailyIndex];
+              const rawSunset = dailySunsets[dailyIndex];
+              sunrise = rawSunrise ? rawSunrise.split('T')[1] : "05:30";
+              sunset = rawSunset ? rawSunset.split('T')[1] : "19:00";
+              sunshineDuration = dailySunshineDurations[dailyIndex] ? Number((dailySunshineDurations[dailyIndex] / 3600).toFixed(2)) : 0;
+            }
+
+            const isActual = datetimeStr <= currentHourStr;
+            data.push({
+              id: `forecast-${date}-${timeStr}`,
+              date,
+              timeStr,
+              maxTemp: temps[i],
+              minTemp: temps[i],
+              windSpeed: windSpeeds[i] || 10,
+              relativeHumidity: relativeHumidities[i] || 0,
+              precipitationProb: precipProbs[i] || 0,
+              precipitationSum: precipSums[i] || 0,
+              sunshineDuration,
+              sunrise,
+              sunset,
+              isActual,
+              updatedAt: new Date()
+            });
+          }
+          return data;
+        }
+      }
+
+      if (type === 'historical') {
+        const data = await prisma.weatherHistorical.findMany({
+          where: startDate && endDate
+            ? { date: { gte: startDate, lte: endDate } }
+            : startDate
+            ? { date: { gte: startDate } }
+            : endDate
+            ? { date: { lte: endDate } }
+            : undefined,
+          orderBy: { date: 'asc' }
+        });
+        return data;
+      } else {
+        // default to forecast (hourly)
+        const data = await prisma.weatherForecastHourly.findMany({
+          where: startDate && endDate
+            ? { date: { gte: startDate, lte: endDate } }
+            : startDate
+            ? { date: { gte: startDate } }
+            : endDate
+            ? { date: { lte: endDate } }
+            : undefined,
+          orderBy: [
+            { date: 'asc' },
+            { timeStr: 'asc' }
+          ]
+        });
+        return data;
+      }
     } catch (error: unknown) {
       console.error('Error fetching weather data:', error);
       throw error;
@@ -194,7 +329,7 @@ export class DatabaseService {
       return {
         raw: rawRecords.map(r => ({
           ...r,
-          timeStr: `${r.date} ${r.timeStr}`
+          timeStr: `${r.date} ${r.timeStr.includes(' ') ? r.timeStr.split(' ')[1] : r.timeStr}`
         })),
         adjusted: adjustedData
       };
@@ -276,7 +411,9 @@ export class DatabaseService {
         res.write('date,timeStr,thermal,gas,nuclear,hydro,wind,solar\n');
       } else if (dataset === 'state') {
         res.write('date,timeStr,stateName,region,demand,unit,price\n');
-      } else if (dataset === 'weather') {
+      } else if (dataset === 'weather_forecast' || dataset === 'weather') {
+        res.write('date,timeStr,maxTemp,minTemp,windSpeed,relativeHumidity,precipitationProb,precipitationSum,sunshineDuration,sunrise,sunset\n');
+      } else if (dataset === 'weather_historical') {
         res.write('date,maxTemp,minTemp,windSpeed,relativeHumidity,precipitationProb,precipitationSum,sunshineDuration,sunrise,sunset\n');
       }
 
@@ -317,8 +454,19 @@ export class DatabaseService {
           for (const row of records) {
             res.write(`${row.date},${row.timeStr},"${row.stateName}","${row.region}",${row.demand},${row.unit},${row.price}\n`);
           }
-        } else if (dataset === 'weather') {
-          records = await prisma.weatherForecast.findMany({
+        } else if (dataset === 'weather_forecast' || dataset === 'weather') {
+          records = await prisma.weatherForecastHourly.findMany({
+            where: { date: { gte: startDate, lte: endDate } },
+            orderBy: [{ date: 'asc' }, { timeStr: 'asc' }],
+            skip,
+            take: batchSize
+          });
+
+          for (const row of records) {
+            res.write(`${row.date},${row.timeStr},${row.maxTemp},${row.minTemp},${row.windSpeed},${row.relativeHumidity},${row.precipitationProb},${row.precipitationSum},${row.sunshineDuration},${row.sunrise},${row.sunset}\n`);
+          }
+        } else if (dataset === 'weather_historical') {
+          records = await prisma.weatherHistorical.findMany({
             where: { date: { gte: startDate, lte: endDate } },
             orderBy: { date: 'asc' },
             skip,
@@ -342,6 +490,52 @@ export class DatabaseService {
     } catch (e: unknown) {
       console.error('Error in exportDataAsCsvStream:', e);
       throw e;
+    }
+  }
+
+  async getCityStateData() {
+    try {
+      return await prisma.cityStateData.findMany({
+        orderBy: [
+          { stateName: 'asc' },
+          { cityName: 'asc' }
+        ]
+      });
+    } catch (error) {
+      console.error('Error in getCityStateData:', error);
+      throw error;
+    }
+  }
+
+  async exportCityStateAsCsvStream(res: Response) {
+    try {
+      res.write('cityName,stateName,population,latitude,longitude\n');
+      const records = await prisma.cityStateData.findMany({
+        orderBy: [
+          { stateName: 'asc' },
+          { cityName: 'asc' }
+        ]
+      });
+      for (const row of records) {
+        res.write(`"${row.cityName}","${row.stateName}",${row.population},${row.latitude},${row.longitude}\n`);
+      }
+    } catch (e: unknown) {
+      console.error('Error in exportCityStateAsCsvStream:', e);
+      throw e;
+    }
+  }
+
+  async createCityStateData(data: { cityName: string; stateName: string; population: number; latitude: number; longitude: number; }) {
+    try {
+      return await prisma.cityStateData.create({
+        data
+      });
+    } catch (error: any) {
+      console.error('Error in createCityStateData:', error);
+      if (error.code === 'P2002') {
+        throw new Error('City and State entry already exists.');
+      }
+      throw error;
     }
   }
 }

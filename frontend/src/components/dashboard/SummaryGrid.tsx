@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from '@mui/material';
+import { Box } from '@mui/material';
 
 interface SummaryGridProps {
   children: React.ReactNode;
@@ -7,12 +7,12 @@ interface SummaryGridProps {
 
 export default function SummaryGrid({ children }: SummaryGridProps) {
   return (
-    <Grid container spacing={2}>
+    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'nowrap', overflowX: 'auto' }}>
       {React.Children.map(children, (child) => (
-        <Grid item xs={12} sm={6} md={3}>
+        <Box sx={{ flex: '1 1 0', minWidth: 180 }}>
           {child}
-        </Grid>
+        </Box>
       ))}
-    </Grid>
+    </Box>
   );
 }

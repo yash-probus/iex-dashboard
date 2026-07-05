@@ -31,10 +31,10 @@ const prisma = new PrismaClient();
 // Config
 // ─────────────────────────────────────────
 const START_DATE = '2024-07-01';
-const END_DATE   = '2026-07-02';
-const DELAY_MS   = 1200;   // ms between date iterations (per endpoint)
+const END_DATE = '2026-07-02';
+const DELAY_MS = 1200;   // ms between date iterations (per endpoint)
 const MAX_RETRIES = 4;
-const BATCH_SIZE  = 500;
+const BATCH_SIZE = 500;
 
 // ─────────────────────────────────────────
 // Helpers
@@ -111,8 +111,8 @@ function generateSimulatedDemand(dateStr: string): any[] {
   for (let h = 0; h < 24; h++) {
     for (let m = 0; m < 60; m += 15) {
       const timeStrOnly = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-      const timeStr = `${dateStr} ${timeStrOnly}`;
-      
+      const timeStr = timeStrOnly;
+
       let timeMult = 1.0;
       if (h >= 19 && h <= 22) timeMult = 1.15;
       else if (h >= 2 && h <= 5) timeMult = 0.85;
@@ -148,7 +148,7 @@ function generateSimulatedGeneration(dateStr: string): any[] {
   for (let h = 0; h < 24; h++) {
     for (let m = 0; m < 60; m += 15) {
       const timeStrOnly = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-      const timeStr = `${dateStr} ${timeStrOnly}`;
+      const timeStr = timeStrOnly;
 
       let timeMult = 1.0;
       if (h >= 19 && h <= 22) timeMult = 1.15;
@@ -209,7 +209,7 @@ async function seedDemandForDate(dateStr: string): Promise<number> {
         const dateObj = new Date(epochMs);
         return {
           date: dateStr,
-          timeStr: `${dateStr} ${toISTTimeStr(epochMs)}`,
+          timeStr: toISTTimeStr(epochMs),
           demandMet: Number(item.value_of_data),
           dataUpdatedAt: dateObj.toISOString(),
           fetchedAt: new Date(),
@@ -272,16 +272,16 @@ async function seedGenerationForDate(dateStr: string): Promise<number> {
       const value = Number(item.value_of_data) || 0;
 
       if (name.includes('THERMAL')) byTime[timeStr].thermal = value;
-      else if (name.includes('GAS'))     byTime[timeStr].gas = value;
+      else if (name.includes('GAS')) byTime[timeStr].gas = value;
       else if (name.includes('NUCLEAR')) byTime[timeStr].nuclear = value;
-      else if (name.includes('HYDRO'))   byTime[timeStr].hydro = value;
-      else if (name.includes('WIND'))    byTime[timeStr].wind = value;
-      else if (name.includes('SOLAR'))   byTime[timeStr].solar = value;
+      else if (name.includes('HYDRO')) byTime[timeStr].hydro = value;
+      else if (name.includes('WIND')) byTime[timeStr].wind = value;
+      else if (name.includes('SOLAR')) byTime[timeStr].solar = value;
     }
 
     records = Object.entries(byTime).map(([timeStr, g]) => ({
       date: dateStr,
-      timeStr: `${dateStr} ${timeStr}`,
+      timeStr: timeStr,
       thermal: g.thermal,
       gas: g.gas,
       nuclear: g.nuclear,
@@ -291,6 +291,7 @@ async function seedGenerationForDate(dateStr: string): Promise<number> {
       dataUpdatedAt: new Date(g.epochMs).toISOString(),
       fetchedAt: new Date(),
     }));
+    console.log(records)
   }
 
   if (records.length === 0) {
@@ -397,7 +398,7 @@ async function main() {
 
   // Pre-check which dates already have demand data (skip if ≥ 5 rows exist)
   console.log('[PRE-CHECK] Loading already-seeded demand dates...');
-  const existingDemandRaw = await prisma.$queryRawUnsafe<{date: string}[]>(
+  const existingDemandRaw = await prisma.$queryRawUnsafe<{ date: string }[]>(
     `SELECT DISTINCT date FROM public."NppRawDemandData" GROUP BY date HAVING COUNT(*) >= 5`
   );
   const seededDemandDates = new Set(existingDemandRaw.map((r: any) => r.date));
@@ -405,7 +406,7 @@ async function main() {
   console.log('[PRE-CHECK] Loading already-seeded generation dates...');
   let seededGenDates = new Set<string>();
   try {
-    const existingGenRaw = await prisma.$queryRawUnsafe<{date: string}[]>(
+    const existingGenRaw = await prisma.$queryRawUnsafe<{ date: string }[]>(
       `SELECT DISTINCT date FROM public."NppRawGenerationData" GROUP BY date HAVING COUNT(*) >= 5`
     );
     seededGenDates = new Set(existingGenRaw.map((r: any) => r.date));
@@ -416,16 +417,16 @@ async function main() {
   console.log(`[PRE-CHECK] Already have demand for ${seededDemandDates.size} dates, generation for ${seededGenDates.size} dates.\n`);
 
   let totalDemandInserted = 0;
-  let totalGenInserted    = 0;
-  let skippedDates        = 0;
-  let failedDates         = 0;
+  let totalGenInserted = 0;
+  let skippedDates = 0;
+  let failedDates = 0;
 
   for (let i = 0; i < allDates.length; i++) {
     if (aborted) break;
 
     const dateStr = allDates[i];
     const demandDone = seededDemandDates.has(dateStr);
-    const genDone    = seededGenDates.has(dateStr);
+    const genDone = seededGenDates.has(dateStr);
 
     if (demandDone && genDone) {
       skippedDates++;
@@ -439,7 +440,7 @@ async function main() {
 
     try {
       let demandCount = 0;
-      let genCount    = 0;
+      let genCount = 0;
 
       if (!demandDone) {
         demandCount = await seedDemandForDate(dateStr);

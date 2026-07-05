@@ -70,10 +70,20 @@ export class HolidayService {
 
         // Resolve case-insensitive columns
         const monthVal = (row.Month || row.month || '').toString().trim();
-        const dateVal = (row.Holiday_date || row.holiday_date || '').toString().trim();
+        let dateVal = (row.Holiday_date || row.holiday_date || '').toString().trim();
         const nameVal = (row.Holiday_name || row.holiday_name || '').toString().trim();
         const typeVal = (row.Holiday_type || row.holiday_type || '').toString().trim();
         const stateVal = (row.State || row.state || '').toString().trim();
+
+        // Convert Excel serial date to human-readable string DD-MM-YYYY
+        const serial = Number(dateVal);
+        if (dateVal && !isNaN(serial) && serial > 30000 && serial < 60000) {
+          const jsDate = new Date(Math.round((serial - 25569) * 86400 * 1000));
+          const day = String(jsDate.getUTCDate()).padStart(2, '0');
+          const month = String(jsDate.getUTCMonth() + 1).padStart(2, '0');
+          const year = jsDate.getUTCFullYear();
+          dateVal = `${day}-${month}-${year}`;
+        }
 
         // Skip rows that look like duplicates of header (e.g. Month = "Month") or are empty
         if (!monthVal && !dateVal && !nameVal) continue;
@@ -111,6 +121,39 @@ export class HolidayService {
 
     } catch (error) {
       logger.error('Error processing holiday upload:', error);
+      throw error;
+    }
+  }
+
+  async updateHoliday(id: string, data: { month?: string; holidayDate?: string; holidayName?: string; holidayType?: string; state?: string; isActive?: boolean; }) {
+    try {
+      return await prisma.holidayCalendar.update({
+        where: { id },
+        data: {
+          month: data.month,
+          holidayDate: data.holidayDate,
+          holidayName: data.holidayName,
+          holidayType: data.holidayType,
+          state: data.state,
+          isActive: data.isActive
+        }
+      });
+    } catch (error) {
+      logger.error('Error updating holiday calendar record:', error);
+      throw error;
+    }
+  }
+
+  async toggleHoliday(id: string) {
+    try {
+      const record = await prisma.holidayCalendar.findUnique({ where: { id } });
+      if (!record) throw new Error('Holiday calendar record not found');
+      return await prisma.holidayCalendar.update({
+        where: { id },
+        data: { isActive: !record.isActive }
+      });
+    } catch (error) {
+      logger.error('Error toggling holiday calendar record:', error);
       throw error;
     }
   }

@@ -12,12 +12,13 @@ export default function DashboardLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          py: 3,
+          pt: 0,
+          pb: 3,
           display: 'flex',
           flexDirection: 'column'
         }}
       >
-        <Container maxWidth={false} disableGutters sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2.5, px: { xs: 2, sm: 4 } }}>
+        <Container maxWidth={false} disableGutters sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2.5, px: 0 }}>
           <Outlet />
         </Container>
       </Box>

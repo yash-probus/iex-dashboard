@@ -40,7 +40,7 @@ export default function HolidayCalendarView() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState<string>('All');
+  const [selectedYear, setSelectedYear] = useState<string>('All');
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -113,9 +113,9 @@ export default function HolidayCalendarView() {
       ['August', '15-08-2025', 'Independence Day', 'CH_SH', 'Andhra Pradesh'],
     ];
 
-    const csvContent = "data:text/csv;charset=utf-8," 
+    const csvContent = "data:text/csv;charset=utf-8,"
       + csvRows.map(e => e.map(val => `"${val.replace(/"/g, '""')}"`).join(",")).join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -125,6 +125,22 @@ export default function HolidayCalendarView() {
     document.body.removeChild(link);
   };
 
+  // Dynamically extract unique years from the holiday dates
+  const uniqueYears = React.useMemo(() => {
+    const yearsSet = new Set<string>();
+    holidays.forEach(h => {
+      const dateParts = h.holidayDate.split('-');
+      if (dateParts.length === 3) {
+        if (dateParts[0].length === 4) {
+          yearsSet.add(dateParts[0]);
+        } else if (dateParts[2].length === 4) {
+          yearsSet.add(dateParts[2]);
+        }
+      }
+    });
+    return ['All', ...Array.from(yearsSet).sort()];
+  }, [holidays]);
+
   // Filter logic
   const filteredHolidays = holidays.filter((h) => {
     const matchesSearch =
@@ -132,12 +148,15 @@ export default function HolidayCalendarView() {
       h.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
       h.holidayType.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesMonth = selectedMonth === 'All' || h.month.toLowerCase() === selectedMonth.toLowerCase();
+    let matchesYear = true;
+    if (selectedYear !== 'All') {
+      const dateParts = h.holidayDate.split('-');
+      const year = dateParts[0].length === 4 ? dateParts[0] : dateParts[2];
+      matchesYear = year === selectedYear;
+    }
 
-    return matchesSearch && matchesMonth;
+    return matchesSearch && matchesYear;
   });
-
-  const months = ['All', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const getTypeChipColor = (type: string) => {
     const t = type.toUpperCase();
@@ -162,105 +181,54 @@ export default function HolidayCalendarView() {
             Manage and view power exchange settlement and clearing holidays.
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<DownloadIcon />}
-          onClick={downloadTemplate}
-          sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
-        >
-          Download Template
-        </Button>
-      </Box>
-
-      <Grid container spacing={4}>
-        {/* Upload Card */}
-        <Grid item xs={12} md={4}>
-          <Card
-            elevation={0}
-            sx={{
-              borderRadius: 4,
-              border: '1px dashed',
-              borderColor: alpha('#3B8FF3', 0.4),
-              bgcolor: alpha('#3B8FF3', 0.02),
-              p: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              minHeight: 250,
-            }}
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<DownloadIcon />}
+            onClick={downloadTemplate}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
           >
+            Download Template
+          </Button>
+          <Button
+            variant="contained"
+            component="label"
+            color="primary"
+            startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon />}
+            disabled={uploading}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, bgcolor: '#FF7043', '&:hover': { bgcolor: '#F4511E' } }}
+          >
+            {uploading ? 'Uploading...' : 'Upload'}
             <input
               accept=".csv, .xlsx, .xls"
-              id="upload-holiday-file"
               type="file"
-              style={{ display: 'none' }}
+              hidden
               onChange={handleFileUpload}
-              disabled={uploading}
             />
-            <label htmlFor="upload-holiday-file" style={{ width: '100%', cursor: 'pointer' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <Box
-                  sx={{
-                    p: 2,
-                    borderRadius: '50%',
-                    bgcolor: alpha('#3B8FF3', 0.1),
-                    color: '#3B8FF3',
-                  }}
-                >
-                  <UploadIcon sx={{ fontSize: 40 }} />
-                </Box>
-                <Typography variant="h6" fontWeight="600">
-                  {uploading ? 'Processing File...' : 'Upload Holiday Calendar'}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ maxW: 240 }}>
-                  Supports .xlsx, .xls, and .csv formats matching the required headers.
-                </Typography>
-                {uploading ? (
-                  <CircularProgress size={24} sx={{ mt: 1 }} />
-                ) : (
-                  <Button
-                    variant="contained"
-                    component="span"
-                    color="primary"
-                    sx={{
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      px: 3,
-                      boxShadow: 'none',
-                      '&:hover': { boxShadow: 'none' },
-                    }}
-                  >
-                    Select File
-                  </Button>
-                )}
-              </Box>
-            </label>
+          </Button>
+        </Box>
+      </Box>
 
-            {uploadStatus && (
-              <Box
-                sx={{
-                  mt: 3,
-                  p: 1.5,
-                  borderRadius: 2,
-                  width: '100%',
-                  bgcolor: uploadStatus.type === 'success' ? '#DCFCE7' : '#FEE2E2',
-                  color: uploadStatus.type === 'success' ? '#15803D' : '#B91C1C',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                }}
-              >
-                {uploadStatus.message}
-              </Box>
-            )}
-          </Card>
-        </Grid>
+      {uploadStatus && (
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            width: '100%',
+            bgcolor: uploadStatus.type === 'success' ? '#DCFCE7' : '#FEE2E2',
+            color: uploadStatus.type === 'success' ? '#15803D' : '#B91C1C',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+          }}
+        >
+          {uploadStatus.message}
+        </Box>
+      )}
 
+      <Grid container spacing={4} sx={{ flexGrow: 1 }}>
         {/* Calendar List Card */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={12} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
           <Card
             elevation={0}
             sx={{
@@ -268,9 +236,12 @@ export default function HolidayCalendarView() {
               border: '1px solid',
               borderColor: 'divider',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              flexGrow: 1
             }}
           >
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
               {/* Filters */}
               <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
                 <TextField
@@ -293,8 +264,8 @@ export default function HolidayCalendarView() {
                 />
                 <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', maxW: '100%', pb: 0.5 }}>
                   <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
                     style={{
                       padding: '8.5px 14px',
                       borderRadius: '10px',
@@ -307,9 +278,9 @@ export default function HolidayCalendarView() {
                       cursor: 'pointer',
                     }}
                   >
-                    {months.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
+                    {uniqueYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
                       </option>
                     ))}
                   </select>
@@ -321,7 +292,7 @@ export default function HolidayCalendarView() {
                   <CircularProgress />
                 </Box>
               ) : filteredHolidays.length > 0 ? (
-                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 400 }}>
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', flexGrow: 1, minHeight: 400 }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>

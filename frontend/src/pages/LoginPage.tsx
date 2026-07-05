@@ -17,6 +17,13 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  React.useEffect(() => {
+    document.documentElement.classList.add('login-page');
+    return () => {
+      document.documentElement.classList.remove('login-page');
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);

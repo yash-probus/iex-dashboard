@@ -62,10 +62,10 @@ export default function ResourcePageLayout({
           InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment> }}
         />
         <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <ActionButton 
-            variant="secondary" 
-            startIcon={<DownloadIcon fontSize="small" />} 
-            onClick={onExport} 
+          <ActionButton
+            variant="secondary"
+            startIcon={<DownloadIcon fontSize="small" />}
+            onClick={onExport}
             disabled={isExportDisabled}
           >
             Export Data

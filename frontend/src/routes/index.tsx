@@ -38,8 +38,12 @@ export default function AppRoutes() {
           <Route element={<ModuleLayout />}>
             {/* Database Sub-pages */}
             <Route path="database/all-india-demand" element={<DatabasePage />} />
+            <Route path="database/generation-data" element={<DatabasePage />} />
             <Route path="database/state-wise-demand" element={<DatabasePage />} />
-            <Route path="database/weather" element={<DatabasePage />} />
+            <Route path="database/city-state-data" element={<DatabasePage />} />
+            <Route path="database/weather" element={<Navigate to="/database/weather/forecast" replace />} />
+            <Route path="database/weather/forecast" element={<DatabasePage />} />
+            <Route path="database/weather/historical" element={<DatabasePage />} />
             <Route path="database/holiday-calendar" element={<DatabasePage />} />
             <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
 

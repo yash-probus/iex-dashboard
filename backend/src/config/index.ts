@@ -11,7 +11,7 @@ interface Config {
     secret: string;
     expiresIn: string;
   };
-  corsOrigin: string;
+  corsOrigin: string | string[];
 }
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -26,7 +26,11 @@ const config: Config = {
     secret: jwtSecret,
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
-  corsOrigin: process.env.CORS_ORIGIN || '*',
+  corsOrigin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.includes(',')
+      ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+      : process.env.CORS_ORIGIN
+    : '*',
 };
 
 export default config;
