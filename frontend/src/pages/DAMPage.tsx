@@ -135,8 +135,10 @@ export default function DAMPage() {
         <FilterContainer 
           accentColor={DAM_ACCENT} 
           filters={filters}
-          onDateChange={handleDateChange}
-          onIntervalChange={handleIntervalChange}
+          onSearch={(newFilters, selectedState) => {
+            if (newFilters.date !== filters.date) handleDateChange(newFilters.date);
+            if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);
+          }}
           onExport={handleExport}
           onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
           hideHourlyDaily={true}
