@@ -140,6 +140,18 @@ export default function GDAMPage() {
         </ToggleButtonGroup>
       </Box>
 
+      {marketView === 'all-india' && (
+        <FilterContainer 
+          accentColor={GDAM_ACCENT} 
+          filters={filters}
+          onDateChange={handleDateChange}
+          onIntervalChange={handleIntervalChange}
+          onExport={handleExport}
+          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
+          hideHourlyDaily={true}
+        />
+      )}
+
       {marketView === 'state-wise' ? (
         <EmptyState 
           title="State-wise Data Under Integration" 
@@ -184,17 +196,6 @@ export default function GDAMPage() {
         </>
       )}
 
-      {marketView === 'all-india' && (
-        <FilterContainer 
-          accentColor={GDAM_ACCENT} 
-          filters={filters}
-          onDateChange={handleDateChange}
-          onIntervalChange={handleIntervalChange}
-          onExport={handleExport}
-          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
-          hideHourlyDaily={true}
-        />
-      )}
     </Box>
   );
 }

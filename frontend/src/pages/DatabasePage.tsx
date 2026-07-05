@@ -484,7 +484,7 @@ export default function DatabasePage() {
           {showNpp && (
             <Grid item xs={12}>
               <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '2.5rem', md: '4rem' } }}>
+                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '1.875rem', md: '3rem' } }}>
                   Real Time Demand Met Data
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -535,7 +535,7 @@ export default function DatabasePage() {
           {showGeneration && (
             <Grid item xs={12}>
               <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '2.5rem', md: '4rem' } }}>
+                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '1.875rem', md: '3rem' } }}>
                   Real Time Generation Data
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>

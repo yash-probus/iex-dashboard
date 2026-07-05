@@ -131,6 +131,18 @@ export default function DAMPage() {
         </ToggleButtonGroup>
       </Box>
 
+      {marketView === 'all-india' && (
+        <FilterContainer 
+          accentColor={DAM_ACCENT} 
+          filters={filters}
+          onDateChange={handleDateChange}
+          onIntervalChange={handleIntervalChange}
+          onExport={handleExport}
+          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
+          hideHourlyDaily={true}
+        />
+      )}
+
       {marketView === 'state-wise' ? (
         <EmptyState 
           title="State-wise Data Under Integration" 
@@ -175,17 +187,6 @@ export default function DAMPage() {
         </>
       )}
 
-      {marketView === 'all-india' && (
-        <FilterContainer 
-          accentColor={DAM_ACCENT} 
-          filters={filters}
-          onDateChange={handleDateChange}
-          onIntervalChange={handleIntervalChange}
-          onExport={handleExport}
-          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
-          hideHourlyDaily={true}
-        />
-      )}
     </Box>
   );
 }

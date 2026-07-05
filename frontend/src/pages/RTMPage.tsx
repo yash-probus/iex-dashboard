@@ -132,6 +132,18 @@ export default function RTMPage() {
         </ToggleButtonGroup>
       </Box>
 
+      {marketView === 'all-india' && (
+        <FilterContainer 
+          accentColor={RTM_ACCENT} 
+          filters={filters}
+          onDateChange={handleDateChange}
+          onIntervalChange={handleIntervalChange}
+          onExport={handleExport}
+          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
+          hideHourlyDaily={true}
+        />
+      )}
+
       {marketView === 'state-wise' ? (
         <EmptyState 
           title="State-wise Data Under Integration" 
@@ -176,17 +188,6 @@ export default function RTMPage() {
         </>
       )}
 
-      {marketView === 'all-india' && (
-        <FilterContainer 
-          accentColor={RTM_ACCENT} 
-          filters={filters}
-          onDateChange={handleDateChange}
-          onIntervalChange={handleIntervalChange}
-          onExport={handleExport}
-          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
-          hideHourlyDaily={true}
-        />
-      )}
     </Box>
   );
 }

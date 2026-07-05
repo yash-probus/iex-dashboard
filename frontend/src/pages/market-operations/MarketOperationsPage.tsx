@@ -16,12 +16,14 @@ export default function MarketOperationsPage() {
 
   useEffect(() => {
     loadRecords();
-  }, [startDate, endDate]);
+  }, []);
 
-  const loadRecords = async () => {
+  const loadRecords = async (overrideStart?: string, overrideEnd?: string) => {
     try {
       setLoading(true);
-      const data = await fetchMarketOperations(startDate || undefined, endDate || undefined);
+      const sDate = overrideStart !== undefined ? overrideStart : startDate;
+      const eDate = overrideEnd !== undefined ? overrideEnd : endDate;
+      const data = await fetchMarketOperations(sDate || undefined, eDate || undefined);
       setRecords(data);
     } catch (error) {
       console.error('Failed to load market operations', error);
@@ -94,9 +96,17 @@ export default function MarketOperationsPage() {
             InputLabelProps={{ shrink: true }}
             size="small"
           />
+          <Button
+            variant="contained"
+            onClick={() => loadRecords()}
+            disabled={!startDate && !endDate}
+            sx={{ px: 3 }}
+          >
+            Submit
+          </Button>
           <Button 
             variant="outlined" 
-            onClick={() => { setStartDate(''); setEndDate(''); }}
+            onClick={() => { setStartDate(''); setEndDate(''); loadRecords('', ''); }}
             disabled={!startDate && !endDate}
           >
             Clear Filters
