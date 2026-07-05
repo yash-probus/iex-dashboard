@@ -91,6 +91,31 @@ export default function GenerationDataView({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Source Selection Dropdown */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <Select
+            value={selectedSource}
+            onChange={(e) => setSelectedSource(e.target.value)}
+            sx={{
+              borderRadius: '8px',
+              height: '38px',
+              bgcolor: '#FFF',
+              fontSize: '0.875rem',
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
+            }}
+          >
+            <MenuItem value="all">All Sources</MenuItem>
+            <MenuItem value="thermal">Thermal</MenuItem>
+            <MenuItem value="gas">Gas</MenuItem>
+            <MenuItem value="nuclear">Nuclear</MenuItem>
+            <MenuItem value="hydro">Hydro</MenuItem>
+            <MenuItem value="wind">Wind</MenuItem>
+            <MenuItem value="solar">Solar</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
       {/* Latest Snapshot Cards */}
       <Box>
         <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Latest Snapshot</Typography>
@@ -177,27 +202,6 @@ export default function GenerationDataView({
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <Select
-                value={selectedSource}
-                onChange={(e) => setSelectedSource(e.target.value)}
-                sx={{
-                  borderRadius: '8px',
-                  height: '34px',
-                  bgcolor: '#FFF',
-                  fontSize: '0.875rem',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
-                }}
-              >
-                <MenuItem value="all">All Sources</MenuItem>
-                <MenuItem value="thermal">Thermal</MenuItem>
-                <MenuItem value="gas">Gas</MenuItem>
-                <MenuItem value="nuclear">Nuclear</MenuItem>
-                <MenuItem value="hydro">Hydro</MenuItem>
-                <MenuItem value="wind">Wind</MenuItem>
-                <MenuItem value="solar">Solar</MenuItem>
-              </Select>
-            </FormControl>
             <ToggleButtonGroup
               color="primary"
               value={viewType}
