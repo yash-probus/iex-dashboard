@@ -43,7 +43,7 @@ export default function GDAMPage() {
     }
     
     if (filters.interval === '15min') {
-      baseColumns.push({ field: 'timeBlock', headerName: 'Block', sticky: true, width: 100, align: 'center', valueFormatter: formatTimeblock });
+      baseColumns.push({ field: 'timeBlock', headerName: 'Block', sticky: true, width: 100, align: 'center' });
     }
 
     const formatNum = (v: any) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v;

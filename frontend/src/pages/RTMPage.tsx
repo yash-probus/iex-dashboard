@@ -43,7 +43,7 @@ export default function RTMPage() {
     }
     
     if (filters.interval === '15min') {
-      baseColumns.push({ field: 'timeBlock', headerName: 'Block', sticky: true, width: 100, align: 'center', valueFormatter: formatTimeblock });
+      baseColumns.push({ field: 'timeBlock', headerName: 'Block', sticky: true, width: 100, align: 'center' });
       baseColumns.push({ field: 'sessionId', headerName: 'Session ID', sticky: true, width: 100, align: 'center' });
     }
 
