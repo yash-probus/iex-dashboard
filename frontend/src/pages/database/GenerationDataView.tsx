@@ -72,6 +72,8 @@ export default function GenerationDataView({
 }: GenerationDataViewProps) {
   const [viewType, setViewType] = useState<'raw' | 'adjusted'>('adjusted');
 
+    const [selectedSource, setSelectedSource] = useState<string>('all');
+
   const handleViewChange = (
     event: React.MouseEvent<HTMLElement>,
     newView: 'raw' | 'adjusted' | null,
@@ -91,7 +93,7 @@ export default function GenerationDataView({
         <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Latest Snapshot</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4} md={2}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.thermal, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.thermal, 0.2) }}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.thermal, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.thermal, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'thermal' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'thermal' ? 'all' : 'thermal')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">THERMAL (MW)</Typography>
                 <Typography variant="h6" color={COLORS.thermal}>{latestSnapshot?.thermal?.toLocaleString() || '-'}</Typography>
@@ -99,7 +101,7 @@ export default function GenerationDataView({
             </Card>
           </Grid>
           <Grid item xs={12} sm={4} md={2}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.gas, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.gas, 0.2) }}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.gas, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.gas, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'gas' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'gas' ? 'all' : 'gas')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">GAS (MW)</Typography>
                 <Typography variant="h6" color={COLORS.gas}>{latestSnapshot?.gas?.toLocaleString() || '-'}</Typography>
@@ -107,7 +109,7 @@ export default function GenerationDataView({
             </Card>
           </Grid>
           <Grid item xs={12} sm={4} md={2}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.nuclear, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.nuclear, 0.2) }}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.nuclear, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.nuclear, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'nuclear' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'nuclear' ? 'all' : 'nuclear')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">NUCLEAR (MW)</Typography>
                 <Typography variant="h6" color={COLORS.nuclear}>{latestSnapshot?.nuclear?.toLocaleString() || '-'}</Typography>
@@ -115,7 +117,7 @@ export default function GenerationDataView({
             </Card>
           </Grid>
           <Grid item xs={12} sm={4} md={2}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.hydro, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.hydro, 0.2) }}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.hydro, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.hydro, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'hydro' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'hydro' ? 'all' : 'hydro')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">HYDRO (MW)</Typography>
                 <Typography variant="h6" color={COLORS.hydro}>{latestSnapshot?.hydro?.toLocaleString() || '-'}</Typography>
@@ -123,7 +125,7 @@ export default function GenerationDataView({
             </Card>
           </Grid>
           <Grid item xs={12} sm={4} md={2}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.wind, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.wind, 0.2) }}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.wind, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.wind, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'wind' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'wind' ? 'all' : 'wind')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">WIND (MW)</Typography>
                 <Typography variant="h6" color={COLORS.wind}>{latestSnapshot?.wind?.toLocaleString() || '-'}</Typography>
@@ -131,7 +133,7 @@ export default function GenerationDataView({
             </Card>
           </Grid>
           <Grid item xs={12} sm={4} md={2}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.solar, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.solar, 0.2) }}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.solar, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.solar, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'solar' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'solar' ? 'all' : 'solar')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">SOLAR (MW)</Typography>
                 <Typography variant="h6" color={COLORS.solar}>{latestSnapshot?.solar?.toLocaleString() || '-'}</Typography>
@@ -139,6 +141,7 @@ export default function GenerationDataView({
             </Card>
           </Grid>
         </Grid>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Tip: Click on a card to filter the graph by that source.</Typography>
       </Box>
 
       {/* Date Pickers removed from here as they are now adjoining the heading in the parent */}
@@ -171,7 +174,6 @@ export default function GenerationDataView({
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
-
             <ToggleButtonGroup
               color="primary"
               value={viewType}
@@ -213,12 +215,12 @@ export default function GenerationDataView({
                       itemStyle={{ fontWeight: 500 }}
                     />
                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                    <Area type="monotone" dataKey="thermal" name="Thermal" stackId="1" stroke={COLORS.thermal} fill={COLORS.thermal} />
-                    <Area type="monotone" dataKey="gas" name="Gas" stackId="1" stroke={COLORS.gas} fill={COLORS.gas} />
-                    <Area type="monotone" dataKey="nuclear" name="Nuclear" stackId="1" stroke={COLORS.nuclear} fill={COLORS.nuclear} />
-                    <Area type="monotone" dataKey="hydro" name="Hydro" stackId="1" stroke={COLORS.hydro} fill={COLORS.hydro} />
-                    <Area type="monotone" dataKey="wind" name="Wind" stackId="1" stroke={COLORS.wind} fill={COLORS.wind} />
-                    <Area type="monotone" dataKey="solar" name="Solar" stackId="1" stroke={COLORS.solar} fill={COLORS.solar} />
+                    {(selectedSource === 'all' || selectedSource === 'thermal') && <Area type="monotone" dataKey="thermal" name="Thermal" stackId="1" stroke={COLORS.thermal} fill={COLORS.thermal} />}
+                    {(selectedSource === 'all' || selectedSource === 'gas') && <Area type="monotone" dataKey="gas" name="Gas" stackId="1" stroke={COLORS.gas} fill={COLORS.gas} />}
+                    {(selectedSource === 'all' || selectedSource === 'nuclear') && <Area type="monotone" dataKey="nuclear" name="Nuclear" stackId="1" stroke={COLORS.nuclear} fill={COLORS.nuclear} />}
+                    {(selectedSource === 'all' || selectedSource === 'hydro') && <Area type="monotone" dataKey="hydro" name="Hydro" stackId="1" stroke={COLORS.hydro} fill={COLORS.hydro} />}
+                    {(selectedSource === 'all' || selectedSource === 'wind') && <Area type="monotone" dataKey="wind" name="Wind" stackId="1" stroke={COLORS.wind} fill={COLORS.wind} />}
+                    {(selectedSource === 'all' || selectedSource === 'solar') && <Area type="monotone" dataKey="solar" name="Solar" stackId="1" stroke={COLORS.solar} fill={COLORS.solar} />}
                   </AreaChart>
                 </ResponsiveContainer>
               </Box>

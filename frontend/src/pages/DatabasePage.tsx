@@ -705,6 +705,28 @@ export default function DatabasePage() {
                     >
                       Submit
                     </Button>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => {
+                        const dataset = weatherTab === 'forecast' ? 'weather_forecast' : 'weather_historical';
+                        const latParam = committedLat != null ? `&latitude=${committedLat}` : '';
+                        const lonParam = committedLon != null ? `&longitude=${committedLon}` : '';
+                        const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=${dataset}&startDate=${committedWeatherStartDate}&endDate=${committedWeatherEndDate}${latParam}${lonParam}`;
+                        window.open(url, '_blank');
+                      }}
+                      sx={{
+                        height: '42px',
+                        px: 3,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      Export CSV
+                    </Button>
                   </Box>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
