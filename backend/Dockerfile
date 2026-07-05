@@ -26,8 +26,8 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install openssl (required for Prisma Client to run on alpine)
-RUN apk add --no-cache openssl
+# Install openssl and chromium dependencies
+RUN apk add --no-cache openssl chromium nss freetype harfbuzz ca-certificates ttf-freefont
 
 # Copy package configurations and prisma files
 COPY package*.json ./
@@ -46,6 +46,8 @@ EXPOSE 5000
 
 ENV PORT=5000
 ENV NODE_ENV=production
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Start command
 CMD ["node", "dist/server.js"]

@@ -62,6 +62,32 @@ export class CronService {
       }
     });
 
+    // Run every day at 1:30 AM for DAM Scraper
+    cron.schedule('30 1 * * *', async () => {
+      console.log('[Cron] Running daily DAM scraper');
+      try {
+        const { ScraperService } = await import('../modules/scraper/scraper.service');
+        const { PersistenceService } = await import('../modules/persistence/persistence.service');
+        
+        const records = await ScraperService.scrapeDam();
+        if (records.length > 0) {
+          const deliveryDate = new Date();
+          deliveryDate.setUTCHours(0, 0, 0, 0);
+          
+          await PersistenceService.persistDataset({
+            market: 'DAM',
+            deliveryDate,
+            fileName: `scraped_dam_${deliveryDate.toISOString().split('T')[0]}.csv`,
+            records,
+            action: 'replace'
+          });
+          console.log(`[Cron] Successfully scraped and saved ${records.length} DAM records`);
+        }
+      } catch (error) {
+        console.error('[Cron] Error in DAM scraper schedule:', error);
+      }
+    });
+
     // Run every 4 minutes for NPP Data
     cron.schedule('*/4 * * * *', async () => {
       console.log('[Cron] Running 4-minute scheduled tasks');
