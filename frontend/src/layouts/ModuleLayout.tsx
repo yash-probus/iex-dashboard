@@ -59,20 +59,16 @@ export default function ModuleLayout() {
     }
   };
 
-  const hideSidebar = activeItems.length === 1 && (!activeItems[0].subItems || activeItems[0].subItems.length === 0);
-
   return (
     <Box sx={{ 
       display: 'flex', 
       flexDirection: { xs: 'column', md: 'row' }, 
-      gap: hideSidebar ? 0 : 3, 
+      gap: 0, 
       flexGrow: 1,
-      minHeight: { xs: 'auto', md: 'calc(100vh - 120px)' },
-      px: hideSidebar ? 2 : 0
+      minHeight: { xs: 'auto', md: 'calc(100vh - 120px)' }
     }}>
       {/* Sidebar */}
-      {!hideSidebar && (
-        <Paper 
+      <Paper 
         elevation={0}
         sx={{ 
           width: { xs: '100%', md: 280 }, 
@@ -218,7 +214,6 @@ export default function ModuleLayout() {
           })}
         </List>
       </Paper>
-      )}
 
       {/* Main Content */}
       <Box id="module-content-wrapper" sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
