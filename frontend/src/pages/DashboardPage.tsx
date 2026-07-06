@@ -95,7 +95,6 @@ export default function DashboardPage() {
                 backgroundColor: theme.palette.background.paper,
                 transition: 'all 0.3s ease',
                 cursor: 'pointer',
-                onClick: () => navigate(mod.path),
                 '&:hover': {
                   borderColor: alpha(mod.color, 0.4),
                   boxShadow: `0 12px 40px -10px ${alpha(mod.color, 0.2)}`,
