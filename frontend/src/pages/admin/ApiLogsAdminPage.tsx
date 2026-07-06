@@ -75,7 +75,7 @@ export default function ApiLogsAdminPage() {
   };
 
   return (
-    <Box sx={{ pb: 6 }}>
+    <Box sx={{ pb: 2, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
           API Health Logs
@@ -128,8 +128,8 @@ export default function ApiLogsAdminPage() {
       </Paper>
 
       {/* Table Section */}
-      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
+        <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
           <Table stickyHeader sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow>
