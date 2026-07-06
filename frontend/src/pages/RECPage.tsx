@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Alert, ToggleButton, ToggleButtonGroup, CircularProgress } from '@mui/material';
-import { TrendingUp, BarChart, ElectricBolt, ShowChart, FileDownload as DownloadIcon, FileUpload as UploadIcon } from '@mui/icons-material';
+import { TrendingUp, BarChart, ElectricBolt, ShowChart, FileDownload as DownloadIcon, FileUpload as UploadIcon, Add as AddIcon, GetApp as TemplateIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import FilterContainer from '../components/dashboard/FilterContainer';
 import ActionButton from '../components/common/ActionButton';
@@ -10,6 +10,7 @@ import MarketChart, { ChartMetric } from '../components/dashboard/MarketChart';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import { SummaryCardSkeleton, ChartSkeleton, TableSkeleton } from '../components/dashboard/Skeletons';
 import EmptyState from '../components/dashboard/EmptyState';
+import RECEntryDialog from '../components/dashboard/RECEntryDialog';
 import { useMarketFilters } from '../hooks/useMarketFilters';
 import { useMarketData } from '../hooks/useMarketData';
 import { exportToCSV } from '../utils/export';
@@ -37,7 +38,59 @@ export default function RECPage() {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isEntryDialogOpen, setIsEntryDialogOpen] = React.useState(false);
   const { showNotification } = useNotification();
+
+  const handleDownloadTemplate = () => {
+    const headers = ['Date', 'Purchase Bid (MW)', 'Sell Bid (MW)', 'MCV (MW)', 'Final Scheduled Volume (MW)', 'MCP (Rs/MWh)'];
+    const csvContent = headers.join(',') + '\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'REC_Market_Template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleManualEntrySubmit = async (formData: any) => {
+    setIsUploading(true);
+    try {
+      // Generate CSV content with exactly the required headers
+      const headers = ['Date', 'Purchase Bid (MW)', 'Sell Bid (MW)', 'MCV (MW)', 'Final Scheduled Volume (MW)', 'MCP (Rs/MWh)'];
+      const row = [
+        formData.date,
+        formData.purchaseBid,
+        formData.sellBid,
+        formData.mcv,
+        formData.fsv,
+        formData.mcp
+      ];
+      const csvContent = headers.join(',') + '\n' + row.join(',') + '\n';
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const file = new File([blob], `REC_Manual_${formData.date}.csv`, { type: 'text/csv' });
+      
+      try {
+        await uploadApi.uploadDataset('REC', formData.date, file);
+      } catch (uploadErr: any) {
+        if (uploadErr.response?.status === 409) {
+          // If dataset already exists, overwrite it
+          await uploadApi.uploadDataset('REC', formData.date, file, 'replace');
+        } else {
+          throw uploadErr;
+        }
+      }
+      showNotification("Entry added successfully. Refreshing...", 'success');
+      setIsEntryDialogOpen(false);
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err: any) {
+      showNotification(err.response?.data?.message || err.message || 'Failed to save entry', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -167,6 +220,22 @@ export default function RECPage() {
           />
           <ActionButton
             variant="secondary"
+            startIcon={<TemplateIcon fontSize="small" />}
+            onClick={handleDownloadTemplate}
+            accentColor={REC_ACCENT}
+          >
+            Download Template
+          </ActionButton>
+          <ActionButton
+            variant="secondary"
+            startIcon={<AddIcon fontSize="small" />}
+            onClick={() => setIsEntryDialogOpen(true)}
+            accentColor={REC_ACCENT}
+          >
+            Add Entry
+          </ActionButton>
+          <ActionButton
+            variant="secondary"
             startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon fontSize="small" />}
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
@@ -274,6 +343,13 @@ export default function RECPage() {
         </>
       )}
 
+      {/* Manual Entry Dialog */}
+      <RECEntryDialog 
+        open={isEntryDialogOpen} 
+        onClose={() => setIsEntryDialogOpen(false)}
+        onSubmit={handleManualEntrySubmit}
+        isSubmitting={isUploading}
+      />
     </Box>
   );
 }
