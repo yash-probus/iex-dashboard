@@ -46,10 +46,10 @@ export default function RECPage() {
     setIsUploading(true);
     try {
       await uploadApi.uploadDataset('REC', filters.startDate, file, 'replace');
-      showNotification('success', 'Data uploaded successfully. Refreshing...');
+      showNotification("Data uploaded successfully. Refreshing...", 'success');
       setTimeout(() => window.location.reload(), 1500);
     } catch (err: any) {
-      showNotification('error', err.response?.data?.message || err.message || 'Upload failed');
+      showNotification(err.response?.data?.message || err.message || 'Upload failed', 'error');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -60,44 +60,44 @@ export default function RECPage() {
 
   const getColumns = (): ColumnDefinition[] => {
     const formatNum = (v: any) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v;
-    
+
     return [
-      { 
-        field: 'year', 
-        headerName: 'Year', 
+      {
+        field: 'year',
+        headerName: 'Year',
         sticky: true,
-        width: 100, 
+        width: 100,
         align: 'center',
         renderCell: (row: any) => {
           const d = new Date(row.date);
           return isNaN(d.getTime()) ? '-' : d.getFullYear();
         }
       },
-      { 
-        field: 'monthDate', 
-        headerName: 'Month', 
+      {
+        field: 'monthDate',
+        headerName: 'Month',
         sticky: true,
-        width: 140, 
+        width: 140,
         align: 'center',
         renderCell: (row: any) => {
-           const d = new Date(row.date);
-           if (isNaN(d.getTime())) return '-';
-           const month = d.toLocaleString('default', { month: 'long' });
-           const day = String(d.getDate()).padStart(2, '0');
-           const mm = String(d.getMonth() + 1).padStart(2, '0');
-           const yyyy = d.getFullYear();
-           return (
-             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-               <Typography variant="body2" sx={{ fontWeight: 500 }}>{month}</Typography>
-               <Typography variant="caption" color="text.secondary">{`${day}-${mm}-${yyyy}`}</Typography>
-             </Box>
-           );
+          const d = new Date(row.date);
+          if (isNaN(d.getTime())) return '-';
+          const month = d.toLocaleString('default', { month: 'long' });
+          const day = String(d.getDate()).padStart(2, '0');
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const yyyy = d.getFullYear();
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>{month}</Typography>
+              <Typography variant="caption" color="text.secondary">{`${day}-${mm}-${yyyy}`}</Typography>
+            </Box>
+          );
         }
       },
-      { 
-        field: 'type', 
-        headerName: 'Type', 
-        width: 100, 
+      {
+        field: 'type',
+        headerName: 'Type',
+        width: 100,
         align: 'center',
         renderCell: () => 'REC'
       },
@@ -115,20 +115,20 @@ export default function RECPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: 2.5,
-        mb: 1, 
-        pb: 3, 
-        borderBottom: '1px solid', 
-        borderColor: 'divider' 
+        mb: 1,
+        pb: 3,
+        borderBottom: '1px solid',
+        borderColor: 'divider'
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-          <Box sx={{ 
-            color: REC_ACCENT, 
+          <Box sx={{
+            color: REC_ACCENT,
             backgroundColor: `${REC_ACCENT}15`,
             p: 2,
             borderRadius: 2,
@@ -156,18 +156,18 @@ export default function RECPage() {
             ref={fileInputRef}
             onChange={handleFileUpload}
           />
-          <ActionButton 
-            variant="secondary" 
-            startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon fontSize="small" />} 
+          <ActionButton
+            variant="secondary"
+            startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon fontSize="small" />}
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
             accentColor={REC_ACCENT}
           >
             {isUploading ? 'Uploading...' : 'Upload Data'}
           </ActionButton>
-          <ActionButton 
-            variant="secondary" 
-            startIcon={<DownloadIcon fontSize="small" />} 
+          <ActionButton
+            variant="secondary"
+            startIcon={<DownloadIcon fontSize="small" />}
             onClick={handleExport}
             accentColor={REC_ACCENT}
           >
@@ -209,8 +209,8 @@ export default function RECPage() {
       </Box>
 
       {marketView === 'all-india' && (
-        <FilterContainer 
-          accentColor={REC_ACCENT} 
+        <FilterContainer
+          accentColor={REC_ACCENT}
           filters={filters}
           onSearch={(newFilters, selectedState) => {
             if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
@@ -222,13 +222,13 @@ export default function RECPage() {
       )}
 
       {marketView === 'state-wise' ? (
-        <EmptyState 
-          title="State-wise Data Under Integration" 
+        <EmptyState
+          title="State-wise Data Under Integration"
           description="State-wise REC Market data is not yet available in the system. We are working on integrating state-level market clearing volumes, purchase/sell bids, and prices."
         />
       ) : error ? (
-        <EmptyState 
-          title="No Market Data Found" 
+        <EmptyState
+          title="No Market Data Found"
           description={error}
         />
       ) : (
@@ -243,8 +243,8 @@ export default function RECPage() {
           {isLoading ? (
             <ChartSkeleton />
           ) : (
-            <MarketChart 
-              title="REC Market Overview" 
+            <MarketChart
+              title="REC Market Overview"
               data={data}
               metrics={chartMetrics}
               dateRangeLabel={`${filters.startDate} to ${filters.endDate}`}
@@ -255,8 +255,8 @@ export default function RECPage() {
           {isLoading ? (
             <TableSkeleton />
           ) : (
-            <TableContainer 
-              title="REC Interval Data" 
+            <TableContainer
+              title="REC Interval Data"
               data={data}
               columns={columns}
               onExport={handleExport}
