@@ -17,12 +17,15 @@ async function run() {
       const damRecords = await ScraperService.scrapeDam();
       console.log(`Scraped ${damRecords.length} DAM records.`);
       if (damRecords.length > 0) {
+        const existing = await prisma.dataset.findFirst({
+          where: { market: 'DAM', deliveryDate, status: 'ACTIVE' }
+        });
         await PersistenceService.persistDataset({
           market: 'DAM',
           deliveryDate,
           fileName: `scraped_dam_${dateStr}.csv`,
           records: damRecords,
-          action: 'replace'
+          action: existing ? 'replace' : undefined
         });
         console.log('Successfully saved DAM data!');
       }
@@ -34,12 +37,15 @@ async function run() {
       const gdamRecords = await ScraperService.scrapeGdam();
       console.log(`Scraped ${gdamRecords.length} GDAM records.`);
       if (gdamRecords.length > 0) {
+        const existing = await prisma.dataset.findFirst({
+          where: { market: 'GDAM', deliveryDate, status: 'ACTIVE' }
+        });
         await PersistenceService.persistDataset({
           market: 'GDAM',
           deliveryDate,
           fileName: `scraped_gdam_${dateStr}.csv`,
           records: gdamRecords,
-          action: 'replace'
+          action: existing ? 'replace' : undefined
         });
         console.log('Successfully saved GDAM data!');
       }
@@ -51,12 +57,15 @@ async function run() {
       const rtmRecords = await ScraperService.scrapeRtm();
       console.log(`Scraped ${rtmRecords.length} RTM records.`);
       if (rtmRecords.length > 0) {
+        const existing = await prisma.dataset.findFirst({
+          where: { market: 'RTM', deliveryDate, status: 'ACTIVE' }
+        });
         await PersistenceService.persistDataset({
           market: 'RTM',
           deliveryDate,
           fileName: `scraped_rtm_${dateStr}.csv`,
           records: rtmRecords,
-          action: 'replace'
+          action: existing ? 'replace' : undefined
         });
         console.log('Successfully saved RTM data!');
       }
