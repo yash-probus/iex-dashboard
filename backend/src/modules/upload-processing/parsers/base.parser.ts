@@ -8,6 +8,7 @@ import { IParser, ParserResult, normalizeHeader } from '../upload-processing.typ
 export abstract class BaseParser implements IParser {
   protected abstract market: MarketType;
   protected abstract requiredHeaders: string[];
+  protected maxRows: number = 200; // Default limit for daily files (DAM, RTM)
 
   // Subclasses must implement this to validate numeric rules on a row
   protected abstract validateRow(row: any): boolean;
@@ -75,14 +76,14 @@ export abstract class BaseParser implements IParser {
         .on('data', (data) => {
           if (!headersValid) return; // Ignore data if headers are bad
 
-          if (rowCount > 150) {
+          if (rowCount > this.maxRows) {
             stream.destroy();
             resolve({
               success: false,
               rowCount,
               headers,
               market: this.market,
-              error: `File is too large (expected 96 rows, but found > 150). Are you trying to upload a bulk/monthly archive? Please upload single-day files only.`,
+              error: `File is too large (found > ${this.maxRows} rows). Are you trying to upload a bulk/monthly archive? Please upload files within the row limit.`,
             });
             return;
           }
@@ -177,13 +178,13 @@ export abstract class BaseParser implements IParser {
       };
     }
 
-    if (rawData.length > 200) {
+    if (rawData.length > this.maxRows) {
       return {
         success: false,
         rowCount: rawData.length,
         headers: [],
         market: this.market,
-        error: `File is too large (expected ~96 rows, but found ${rawData.length}). Are you trying to upload a bulk/monthly archive? Please upload single-day files only.`,
+        error: `File is too large (expected within ${this.maxRows} rows, but found ${rawData.length}). Please upload a valid file.`,
       };
     }
 

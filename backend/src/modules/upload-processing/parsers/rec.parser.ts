@@ -4,6 +4,7 @@ import { normalizeHeader } from '../upload-processing.types';
 
 export class RecParser extends BaseParser {
   protected market: MarketType = 'REC';
+  protected maxRows: number = 2000; // REC files can have many more rows than daily DAM/RTM
 
   protected requiredHeaders = [
     'Purchase Bid (MW)',
