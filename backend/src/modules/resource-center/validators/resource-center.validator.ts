@@ -1,6 +1,50 @@
 import { AppError } from '../../../utils/AppError';
 import { ResourceType } from '../types/resource-center.types';
 
+const MONTH_MAP: Record<string, number> = {
+  january: 1, jan: 1,
+  february: 2, feb: 2,
+  march: 3, mar: 3,
+  april: 4, apr: 4,
+  may: 5,
+  june: 6, jun: 6,
+  july: 7, jul: 7,
+  august: 8, aug: 8,
+  september: 9, sep: 9,
+  october: 10, oct: 10,
+  november: 11, nov: 11,
+  december: 12, dec: 12
+};
+
+const parseMonth = (val: any): number => {
+  if (typeof val === 'number') return val;
+  const str = String(val).toLowerCase().trim();
+  if (str === '') return NaN;
+
+  // Try direct parse as integer (handles 1-12 or YYYYMM)
+  const num = parseInt(str, 10);
+  if (!isNaN(num) && String(num) === str) {
+    return num;
+  }
+
+  // Check pattern YYYY-MM or MM/YYYY
+  const dashMatch = str.match(/^(\d{4})-(\d{2})$/);
+  if (dashMatch) return parseInt(dashMatch[2], 10);
+  
+  const slashMatch = str.match(/^(\d{2})\/(\d{4})$/);
+  if (slashMatch) return parseInt(slashMatch[1], 10);
+
+  // Check if it matches a month name directly or as substring
+  // We check full names first to avoid matching parts (though not strictly necessary here)
+  for (const [key, mNum] of Object.entries(MONTH_MAP)) {
+    if (str.includes(key)) {
+      return mNum;
+    }
+  }
+
+  return NaN;
+};
+
 // Map of mandatory fields for each resource type based on the DB schema
 const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
   'region-state': ['stateName'],
@@ -63,9 +107,9 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
   const monthFields = ['month'];
   for (const field of monthFields) {
     if (data[field] !== undefined && data[field] !== null) {
-      const val = parseInt(String(data[field]), 10);
+      const val = parseMonth(data[field]);
       if (isNaN(val)) {
-        throw new AppError(`Validation error: ${field} must be a number`, 400);
+        throw new AppError(`Validation error: ${field} must be a number or a valid month name`, 400);
       }
       
       const isCyclic = val >= 1 && val <= 12;
