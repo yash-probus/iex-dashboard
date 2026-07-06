@@ -1,6 +1,6 @@
 import { BaseTransformer } from './base.transformer';
 import { MarketType } from '../../upload/upload.types';
-import { RecIntervalRecord } from '../transformation.types';
+import { RecIntervalRecord, TransformationResult } from '../transformation.types';
 
 export class RecTransformer extends BaseTransformer {
   protected market: MarketType = 'REC';
