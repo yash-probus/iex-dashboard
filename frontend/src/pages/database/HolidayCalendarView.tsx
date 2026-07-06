@@ -400,7 +400,6 @@ export default function HolidayCalendarView() {
                         <TableCell sx={{ fontWeight: 'bold' }}>Holiday Name</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>State</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -410,7 +409,16 @@ export default function HolidayCalendarView() {
                           <TableRow key={row.id} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                             <TableCell sx={{ fontWeight: 500 }}>{row.month}</TableCell>
                             <TableCell>{row.holidayDate}</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>{row.holidayName}</TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                  {row.holidayName}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                  {row.state}
+                                </Typography>
+                              </Box>
+                            </TableCell>
                             <TableCell>
                               <Chip
                                 label={row.holidayType}
@@ -436,11 +444,6 @@ export default function HolidayCalendarView() {
                                   fontSize: '0.75rem',
                                 }}
                               />
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" color="text.secondary">
-                                {row.state}
-                              </Typography>
                             </TableCell>
                           </TableRow>
                         );
