@@ -1,5 +1,5 @@
-import { ScraperService } from '../src/modules/scraper/scraper.service';
-import { PersistenceService } from '../src/modules/persistence/persistence.service';
+import { ScraperService } from '../modules/scraper/scraper.service';
+import { PersistenceService } from '../modules/persistence/persistence.service';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
