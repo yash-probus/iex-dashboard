@@ -220,19 +220,18 @@ export default function DatabasePage() {
         }
       }
 
-      if (showNpp) {
-        const [demandRes, genRes] = await Promise.all([
-          apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`),
-          apiClient.get(`/database/generation?date=${selectedDate}&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`)
-        ]);
-
+      if (showNpp || showStateWise) {
+        const demandRes = await apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`);
         if (demandRes.data?.success) {
           setAllIndiaDemand(demandRes.data.data.allIndiaDemand);
           setStateWiseDemand(demandRes.data.data.stateWiseDemand);
         } else {
           console.error("demandRes missing data", demandRes);
         }
+      }
 
+      if (showGeneration) {
+        const genRes = await apiClient.get(`/database/generation?date=${selectedDate}&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`);
         if (genRes.data?.success) {
           setGenerationData(genRes.data.data);
         } else {
@@ -240,13 +239,7 @@ export default function DatabasePage() {
         }
       }
 
-      if (showStateWise) {
-        const demandRes = await apiClient.get(`/database/demand?date=${selectedDate}&time=${selectedTime}&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`);
-        if (demandRes.data?.success) {
-          setAllIndiaDemand(demandRes.data.data.allIndiaDemand);
-          setStateWiseDemand(demandRes.data.data.stateWiseDemand);
-        }
-      }
+
     } catch (err: any) {
       console.error('Error fetching database data:', err);
       setErrorMsg(err.message || 'Failed to load data. Please try again.');
