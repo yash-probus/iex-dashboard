@@ -115,17 +115,7 @@ export default function MarketOperationsPage() {
               >
                 Submit
               </Button>
-              <Button 
-                variant="outlined" 
-                onClick={() => { 
-                  setStartDate(getTodayFormatted()); 
-                  setEndDate(getTodayFormatted()); 
-                  loadRecords(getTodayFormatted(), getTodayFormatted()); 
-                }}
-                sx={{ height: '42px', borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
-              >
-                Clear Filters
-              </Button>
+              {/* Clear Filters removed */}
             </Box>
           </Box>
 
