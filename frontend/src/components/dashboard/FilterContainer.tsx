@@ -56,12 +56,12 @@ export default function FilterContainer({
         gap: 2
       }}
     >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.primary' }}>
+        <FilterIcon fontSize="small" sx={{ color: accentColor }} />
+        <Box component="span" sx={{ fontSize: '13px', fontWeight: 600 }}>Filters</Box>
+      </Box>
+      
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.primary', pr: 2, borderRight: '1px solid', borderColor: 'divider' }}>
-          <FilterIcon fontSize="small" sx={{ color: accentColor }} />
-          <Box component="span" sx={{ fontSize: '13px', fontWeight: 600 }}>Filters</Box>
-        </Box>
-        
         <DateRangePicker 
           startDate={localStartDate}
           endDate={localEndDate}
@@ -70,8 +70,6 @@ export default function FilterContainer({
             setLocalEndDate(e);
           }}
         />
-
-
 
         <Button
           variant="contained"
