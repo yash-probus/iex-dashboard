@@ -80,6 +80,19 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
     throw new AppError('Invalid payload format', 400);
   }
 
+  // Check if the payload is completely blank (all values are empty/whitespace)
+  let isBlank = true;
+  for (const key in payload) {
+    const val = payload[key];
+    if (val !== undefined && val !== null && String(val).trim() !== '') {
+      isBlank = false;
+      break;
+    }
+  }
+  if (isBlank) {
+    return null;
+  }
+
   // Clone payload to mutate
   const data = { ...payload };
 

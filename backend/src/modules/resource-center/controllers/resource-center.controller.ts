@@ -33,6 +33,9 @@ export const createResourceRecord = asyncHandler(async (req: Request, res: Respo
   }
 
   const validData = validatePayload(resourceType as ResourceType, req.body);
+  if (!validData) {
+    throw new AppError('Payload cannot be empty', 400);
+  }
   const data = await resourceCenterService.createResourceRecord(resourceType as ResourceType, validData);
 
   res.status(201).json({
@@ -52,7 +55,9 @@ export const createBulkResourceRecords = asyncHandler(async (req: Request, res: 
     throw new AppError('Payload must be an array of records', 400);
   }
 
-  const validDataArray = req.body.map(record => validatePayload(resourceType as ResourceType, record));
+  const validDataArray = req.body
+    .map(record => validatePayload(resourceType as ResourceType, record))
+    .filter(record => record !== null);
   
   const result = await resourceCenterService.createBulkResourceRecords(resourceType as ResourceType, validDataArray);
 
@@ -77,6 +82,9 @@ export const updateResourceRecord = asyncHandler(async (req: Request, res: Respo
 
   // Option A chosen from plan: allow update even if no changes
   const validData = validatePayload(resourceType as ResourceType, req.body);
+  if (!validData) {
+    throw new AppError('Payload cannot be empty', 400);
+  }
   const data = await resourceCenterService.updateResourceRecord(resourceType as ResourceType, numId, validData);
 
   res.status(200).json({
