@@ -11,10 +11,11 @@ interface IndiaMapProps {
 // Map the geojson state names to the regions exactly
 const stateToRegion: Record<string, string> = {
   'Jammu and Kashmir': 'Northern States',
+  'Ladakh': 'Northern States',
   'Himachal Pradesh': 'Northern States',
   'Punjab': 'Northern States',
   'Haryana': 'Northern States',
-  'Uttaranchal': 'Northern States', // TopoJSON name for Uttarakhand
+  'Uttarakhand': 'Northern States',
   'Delhi': 'Northern States',
   'Uttar Pradesh': 'Northern States',
   'Rajasthan': 'Northern States',
@@ -23,22 +24,23 @@ const stateToRegion: Record<string, string> = {
   'Gujarat': 'Western States',
   'Madhya Pradesh': 'Western States',
   'Maharashtra': 'Western States',
+  'Chhattisgarh': 'Western States',
   'Goa': 'Western States',
-  'Daman and Diu': 'Western States',
-  'Dadra and Nagar Haveli': 'Western States',
+  'Dadra and Nagar Haveli and Daman and Diu': 'Western States',
 
   'Andhra Pradesh': 'Southern States',
+  'Telangana': 'Southern States',
   'Karnataka': 'Southern States',
   'Kerala': 'Southern States',
   'Tamil Nadu': 'Southern States',
   'Puducherry': 'Southern States',
   'Lakshadweep': 'Southern States',
-  'Andaman and Nicobar': 'Southern States',
+  'Andaman and Nicobar Islands': 'Southern States',
 
   'Bihar': 'Eastern States',
   'Jharkhand': 'Eastern States',
   'West Bengal': 'Eastern States',
-  'Orissa': 'Eastern States', // TopoJSON name for Odisha
+  'Odisha': 'Eastern States',
   'Sikkim': 'Eastern States',
 
   'Arunachal Pradesh': 'North-Eastern States',
@@ -76,7 +78,7 @@ export default function IndiaMap({ regionData }: IndiaMapProps) {
   }, [regionData]);
 
   const handleMouseEnter = (geo: any, event: any) => {
-    const stateName = geo.properties.NAME_1;
+    const stateName = geo.properties.name;
     const regionName = stateToRegion[stateName];
     const price = regionName && regionPrices[regionName] !== undefined ? regionPrices[regionName].toFixed(2) : '--';
     
@@ -89,15 +91,15 @@ export default function IndiaMap({ regionData }: IndiaMapProps) {
       <ComposableMap
         projection="geoMercator"
         projectionConfig={{
-          scale: 1000,
-          center: [80, 22] // Center on India
+          scale: 900,
+          center: [81, 23.5] // Adjusted center and scale so Kashmir isn't cut off
         }}
         style={{ width: "100%", height: "100%" }}
       >
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => {
-              const stateName = geo.properties.NAME_1;
+              const stateName = geo.properties.name;
               const regionName = stateToRegion[stateName];
               const color = regionName ? regionColors[regionName] : '#E5E7EB';
 

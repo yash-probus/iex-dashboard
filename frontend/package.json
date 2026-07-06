@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@amcharts/amcharts4-geodata": "^4.1.31",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.16.0",
@@ -18,7 +19,9 @@
     "@tanstack/react-query-devtools": "^5.101.0",
     "axios": "^1.18.0",
     "country-state-city": "^3.2.1",
+    "d3-geo": "^3.1.1",
     "lucide-react": "^0.400.0",
+    "mapbox-gl": "^3.25.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.24.0",
