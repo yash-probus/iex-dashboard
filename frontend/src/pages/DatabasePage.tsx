@@ -598,27 +598,7 @@ export default function DatabasePage() {
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                         View real-time and historical generation data for various fuel types.
                       </Typography>
-                      {/* Latest Time Badge */}
-                      {generationData?.raw?.length > 0 && (
-                        <Box sx={{
-                          mt: 1.5,
-                          display: 'inline-flex',
-                          flexDirection: 'column',
-                          px: 2,
-                          py: 1,
-                          borderRadius: 3,
-                          bgcolor: alpha('#3B82F6', 0.08),
-                          border: '1px solid',
-                          borderColor: alpha('#3B82F6', 0.2),
-                        }}>
-                          <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            Latest Time
-                          </Typography>
-                          <Typography variant="body1" color="#3B82F6" fontWeight="700">
-                            {generationData.raw[generationData.raw.length - 1]?.timeStr?.slice(0, 16) || '-'}
-                          </Typography>
-                        </Box>
-                      )}
+                      {/* Latest Time Badge Removed */}
                     </Box>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                       <Box>
