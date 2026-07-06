@@ -154,7 +154,7 @@ model RegionState {
   regionCode   String?        @map("region_code") @db.VarChar(10)
   regionName   String?        @map("region_name") @db.VarChar(50)
   stateName    String         @map("state_name") @db.VarChar(50)
-  stateCode    Int?           @unique(map: "uq_region_state_code") @map("state_code")
+  stateCode    String?        @unique(map: "uq_region_state_code") @map("state_code") @db.VarChar(10)
   stateOrUt    state_ut_enum? @map("state_or_ut")
 
   @@map("region_state")
@@ -164,7 +164,7 @@ model RegionState {
 model DiscomList {
   code       String  @unique(map: "uq_discom_list_code") @db.VarChar(20)
   legalName  String  @unique(map: "uq_discom_list_name") @map("legal_name") @db.VarChar(255)
-  stateCode  Int?    @map("state_code")
+  stateCode  String? @map("state_code") @db.VarChar(10)
   discomType String? @map("discom_type") @db.VarChar(30)
   id         Int     @id @default(autoincrement())
 
@@ -243,7 +243,7 @@ model IstsChargeDocs {
 
 
 model StuCharges {
-  stateCode                           Int      @map("state_code")
+  stateCode                           String   @map("state_code") @db.VarChar(10)
   state                               String   @db.VarChar(100)
   category                            String?  @db.VarChar(50)
   subCategory                         String?  @map("sub_category") @db.VarChar(100)
@@ -265,7 +265,7 @@ model StuCharges {
 }
 
 model StateTariff {
-  stateCode         Int      @map("state_code")
+  stateCode         String   @map("state_code") @db.VarChar(10)
   month             Int
   state             String   @db.VarChar(100)
   category          String?  @db.VarChar(50)

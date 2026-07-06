@@ -77,7 +77,7 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
 
   // 4. Decimal/Number Validation
   const numericFields = [
-    'stateCode', 'istsLossPercent', 'exchangeFees', 'exchangeFeesGst',
+    'istsLossPercent', 'exchangeFees', 'exchangeFeesGst',
     'nldcApplicationFees', 'nldcSchedulingFees', 'sldcSchedulingFees', 'otherFixCharges',
     'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst',
     'ctuChargesRsPerKwh', 'dsmChargesRsPerKwh', 'stuChargesRsPerKwh', 'demandCharges',
