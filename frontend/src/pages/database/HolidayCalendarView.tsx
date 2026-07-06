@@ -397,6 +397,7 @@ export default function HolidayCalendarView() {
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Month</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>State</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Holiday Name</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
@@ -410,14 +411,14 @@ export default function HolidayCalendarView() {
                             <TableCell sx={{ fontWeight: 500 }}>{row.month}</TableCell>
                             <TableCell>{row.holidayDate}</TableCell>
                             <TableCell>
-                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                  {row.holidayName}
-                                </Typography>
-                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                                  {row.state}
-                                </Typography>
-                              </Box>
+                              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                {row.state}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                {row.holidayName}
+                              </Typography>
                             </TableCell>
                             <TableCell>
                               <Chip
