@@ -169,8 +169,26 @@ export default function DatabasePage() {
   const [genEndDate, setGenEndDate] = useState<string>(getTodayDateString());
 
   // Weather view date range
-  const [weatherStartDate, setWeatherStartDate] = useState<string>('');
-  const [weatherEndDate, setWeatherEndDate] = useState<string>('');
+  const [weatherStartDate, setWeatherStartDate] = useState<string>(() => {
+    const today = new Date();
+    if (showWeatherHistorical) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      return thirtyDaysAgo.toISOString().split('T')[0];
+    } else {
+      return today.toISOString().split('T')[0];
+    }
+  });
+  const [weatherEndDate, setWeatherEndDate] = useState<string>(() => {
+    const today = new Date();
+    if (showWeatherHistorical) {
+      return today.toISOString().split('T')[0];
+    } else {
+      const thirtyDaysAhead = new Date();
+      thirtyDaysAhead.setDate(today.getDate() + 30);
+      return thirtyDaysAhead.toISOString().split('T')[0];
+    }
+  });
   const [weatherPage, setWeatherPage] = useState(0);
   const [weatherRowsPerPage, setWeatherRowsPerPage] = useState(10);
 
@@ -268,8 +286,8 @@ export default function DatabasePage() {
 
   const [committedWeatherStartDate, setCommittedWeatherStartDate] = useState(weatherStartDate);
   const [committedWeatherEndDate, setCommittedWeatherEndDate] = useState(weatherEndDate);
-  const [committedLat, setCommittedLat] = useState<number | undefined>(undefined);
-  const [committedLon, setCommittedLon] = useState<number | undefined>(undefined);
+  const [committedLat, setCommittedLat] = useState<number | undefined>(activeLat);
+  const [committedLon, setCommittedLon] = useState<number | undefined>(activeLon);
 
   useEffect(() => {
     if (activeLat != null && committedLat === undefined) {
