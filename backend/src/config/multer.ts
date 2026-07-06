@@ -5,7 +5,7 @@ import { AppError } from '../utils/AppError';
 
 // 1. Ensure directories exist on startup
 const uploadBasePath = path.join(__dirname, '../../uploads');
-const directories = ['dam', 'gdam', 'rtm', 'holidays', 'unknown'];
+const directories = ['dam', 'gdam', 'rtm', 'rec', 'holidays', 'unknown'];
 
 directories.forEach((dir) => {
   const dirPath = path.join(uploadBasePath, dir);
@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const market = req.body.market?.toLowerCase().trim() || 'unknown';
     // Example: dam_2026-06-22_1719031123.csv
-    const deliveryDate = req.body.date?.trim() || 'unknown-date';
+    const deliveryDate = (req.body.date || req.body.deliveryDate || 'unknown-date').trim();
     const timestamp = Date.now();
     const ext = path.extname(file.originalname).toLowerCase();
     
