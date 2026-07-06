@@ -136,23 +136,37 @@ export default function RECPage() {
         }
       },
       {
-        field: 'monthDate',
+        field: 'month',
         headerName: 'Month',
         sticky: true,
-        width: 140,
+        width: 100,
         align: 'center',
         renderCell: (row: any) => {
           const d = new Date(row.date);
           if (isNaN(d.getTime())) return '-';
-          const month = d.toLocaleString('default', { month: 'long' });
+          return (
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {d.toLocaleString('default', { month: 'long' })}
+            </Typography>
+          );
+        }
+      },
+      {
+        field: 'date',
+        headerName: 'Date',
+        sticky: true,
+        width: 120,
+        align: 'center',
+        renderCell: (row: any) => {
+          const d = new Date(row.date);
+          if (isNaN(d.getTime())) return '-';
           const day = String(d.getDate()).padStart(2, '0');
           const mm = String(d.getMonth() + 1).padStart(2, '0');
           const yyyy = d.getFullYear();
           return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>{month}</Typography>
-              <Typography variant="caption" color="text.secondary">{`${day}-${mm}-${yyyy}`}</Typography>
-            </Box>
+            <Typography variant="body2" color="text.secondary">
+              {`${day}-${mm}-${yyyy}`}
+            </Typography>
           );
         }
       },
