@@ -57,18 +57,18 @@ export class MarketOperationsService {
             (SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
              FROM "DamRecord" dr 
              JOIN "Dataset" d ON dr."datasetId" = d.id 
-             WHERE d.market = 'DAM' ${dateFilterDam}) dam
+             WHERE d.market = 'DAM' AND d.status = 'ACTIVE' ${dateFilterDam}) dam
         FULL OUTER JOIN
             (SELECT d."deliveryDate" as date, rr."intervalNumber" as timeblock, rr.mcp 
              FROM "RtmRecord" rr 
              JOIN "Dataset" d ON rr."datasetId" = d.id 
-             WHERE d.market = 'RTM' ${dateFilterRtm}) rtm
+             WHERE d.market = 'RTM' AND d.status = 'ACTIVE' ${dateFilterRtm}) rtm
             ON dam.date = rtm.date AND dam.timeblock = rtm.timeblock
         FULL OUTER JOIN
             (SELECT d."deliveryDate" as date, gr."intervalNumber" as timeblock, gr.mcp 
              FROM "GdamRecord" gr 
              JOIN "Dataset" d ON gr."datasetId" = d.id 
-             WHERE d.market = 'GDAM' ${dateFilterGdam}) gdam
+             WHERE d.market = 'GDAM' AND d.status = 'ACTIVE' ${dateFilterGdam}) gdam
             ON COALESCE(dam.date, rtm.date) = gdam.date AND COALESCE(dam.timeblock, rtm.timeblock) = gdam.timeblock
         ORDER BY date DESC, timeblock ASC
         LIMIT 1000;
