@@ -241,7 +241,7 @@ export default function CityStateView() {
       >
         <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
           {/* Filters */}
-          <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
             <TextField
               placeholder="Search city, state..."
               variant="outlined"
@@ -252,19 +252,18 @@ export default function CityStateView() {
                 setPage(0);
               }}
               sx={{
-                flexGrow: 1,
-                minWidth: '200px',
+                width: 400,
                 '& .MuiOutlinedInput-root': { borderRadius: '10px' },
               }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon color="action" />
+                    <SearchIcon color="action" fontSize="small" />
                   </InputAdornment>
                 ),
               }}
             />
-            <FormControl size="small" sx={{ minWidth: 200 }}>
+            <FormControl size="small" sx={{ width: 250 }}>
               <InputLabel id="state-filter-label">Filter by State</InputLabel>
               <Select
                 labelId="state-filter-label"
@@ -291,8 +290,19 @@ export default function CityStateView() {
             </Box>
           ) : sortedData.length > 0 ? (
             <>
-              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', flexGrow: 1, minHeight: 400 }}>
-                <Table size="small" stickyHeader>
+              <TableContainer 
+                component={Paper} 
+                elevation={0} 
+                sx={{ 
+                  border: '1px solid', 
+                  borderColor: 'divider', 
+                  borderRadius: '10px',
+                  maxHeight: 'calc(100vh - 340px)', // This enables the sticky header to work
+                  overflow: 'auto',
+                  flexGrow: 1
+                }}
+              >
+                <Table stickyHeader>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>
@@ -348,10 +358,10 @@ export default function CityStateView() {
                       .map((row) => (
                         <TableRow key={row.id} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                           <TableCell sx={{ fontWeight: 600 }}>{row.cityName}</TableCell>
-                          <TableCell>{row.stateName}</TableCell>
-                          <TableCell>{row.population.toLocaleString('en-IN')}</TableCell>
-                          <TableCell>{row.latitude.toFixed(4)}° N</TableCell>
-                          <TableCell>{row.longitude.toFixed(4)}° E</TableCell>
+                          <TableCell sx={{ color: 'text.secondary' }}>{row.stateName}</TableCell>
+                          <TableCell sx={{ color: 'text.secondary' }}>{row.population.toLocaleString('en-IN')}</TableCell>
+                          <TableCell sx={{ color: 'text.secondary' }}>{row.latitude.toFixed(4)}° N</TableCell>
+                          <TableCell sx={{ color: 'text.secondary' }}>{row.longitude.toFixed(4)}° E</TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
@@ -381,9 +391,7 @@ export default function CityStateView() {
         onClose={handleCloseDialog} 
         fullWidth 
         maxWidth="sm" 
-        scroll="paper"
-        disableScrollLock
-        PaperProps={{ sx: { borderRadius: 4, m: 2 } }}
+        PaperProps={{ sx: { borderRadius: '16px', m: 2 } }}
       >
         <form onSubmit={handleSave}>
           <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Add State & City Entry</DialogTitle>
