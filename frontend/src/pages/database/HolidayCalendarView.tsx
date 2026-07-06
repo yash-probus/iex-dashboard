@@ -391,7 +391,7 @@ export default function HolidayCalendarView() {
                   <CircularProgress />
                 </Box>
               ) : filteredHolidays.length > 0 ? (
-                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', flexGrow: 1, minHeight: 400 }}>
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 'calc(100vh - 280px)', minHeight: 400, overflowY: 'auto' }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
