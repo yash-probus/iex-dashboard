@@ -56,8 +56,8 @@ export class HolidayService {
         throw new AppError('The uploaded file is empty.', 400);
       }
 
-      // Parse spreadsheet rows as JSON objects
-      const rawRows = xlsx.utils.sheet_to_json<RawHolidayRow>(worksheet, { defval: '' });
+      // Pass raw: false so xlsx automatically formats date cells based on the sheet format if possible
+      const rawRows = xlsx.utils.sheet_to_json<any>(worksheet, { defval: '', raw: false, dateNF: 'dd-mm-yyyy' });
 
       if (rawRows.length === 0) {
         throw new AppError('No data rows found in the uploaded file.', 400);
@@ -68,14 +68,22 @@ export class HolidayService {
       for (let i = 0; i < rawRows.length; i++) {
         const row = rawRows[i];
 
-        // Resolve case-insensitive columns
-        const monthVal = (row.Month || row.month || '').toString().trim();
-        let dateVal = (row.Holiday_date || row.holiday_date || '').toString().trim();
-        const nameVal = (row.Holiday_name || row.holiday_name || '').toString().trim();
-        const typeVal = (row.Holiday_type || row.holiday_type || '').toString().trim();
-        const stateVal = (row.State || row.state || '').toString().trim();
+        // Case-insensitive / Space-tolerant mapping
+        const getVal = (keys: string[]) => {
+          for (const k of Object.keys(row)) {
+            if (keys.includes(k.trim().toLowerCase())) return String(row[k]).trim();
+          }
+          return '';
+        };
 
-        // Convert Excel serial date to human-readable string DD-MM-YYYY
+        const monthVal = getVal(['month']);
+        let dateVal = getVal(['holiday_date', 'holiday date', 'date']);
+        const nameVal = getVal(['holiday_name', 'holiday name', 'name']);
+        const typeVal = getVal(['holiday_type', 'holiday type', 'type']);
+        const stateVal = getVal(['state']);
+
+        // Because we used raw: false, it might already be a string like "14-04-2025".
+        // If it's still a serial number (e.g., "45781"), convert it:
         const serial = Number(dateVal);
         if (dateVal && !isNaN(serial) && serial > 30000 && serial < 60000) {
           const jsDate = new Date(Math.round((serial - 25569) * 86400 * 1000));
@@ -87,11 +95,11 @@ export class HolidayService {
 
         // Skip rows that look like duplicates of header (e.g. Month = "Month") or are empty
         if (!monthVal && !dateVal && !nameVal) continue;
-        if (monthVal.toLowerCase() === 'month' && dateVal.toLowerCase() === 'holiday_date') continue;
+        if (monthVal.toLowerCase() === 'month' && dateVal.toLowerCase().includes('date')) continue;
 
         // Validation
         if (!dateVal || !nameVal) {
-          logger.warn(`Skipping invalid holiday row at index ${i}: Missing date or name`);
+          logger.warn(`Skipping invalid holiday row at index ${i}: Missing date or name. Extracted Date: ${dateVal}, Name: ${nameVal}`);
           continue;
         }
 
