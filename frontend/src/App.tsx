@@ -65,7 +65,7 @@ const theme = createTheme({
           padding: '8px 16px',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            boxShadow: '0 4px 12px rgba(234, 88, 12, 0.15)',
+            boxShadow: '0 4px 12px rgba(46, 81, 255, 0.15)',
             transform: 'translateY(-1px)'
           },
           '&:active': {
@@ -73,12 +73,12 @@ const theme = createTheme({
           }
         },
         contained: {
-          background: 'linear-gradient(to right, #EA580C, #F97316)',
+          // removed forced orange background
         },
         outlined: {
           borderColor: '#E2E8F0',
           '&:hover': {
-            borderColor: '#EA580C',
+            borderColor: '#2E51FF',
             backgroundColor: 'transparent'
           }
         }
@@ -132,8 +132,8 @@ const theme = createTheme({
           fontWeight: 600,
           color: '#64748B',
           textTransform: 'none',
-          fontSize: '11px',
-          letterSpacing: '0.05em',
+          fontSize: '13px',
+          letterSpacing: '0.02em',
           backgroundColor: '#F8FAFC',
           whiteSpace: 'nowrap',
         }

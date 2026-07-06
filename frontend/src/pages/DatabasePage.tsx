@@ -475,103 +475,149 @@ export default function DatabasePage() {
 
           {/* NPP Demand Section */}
           {showNpp && (
-            <Grid item xs={12}>
-              <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '1.875rem', md: '3rem' } }}>
-                  Real Time Demand Met Data
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
-                    <DateRangePicker 
-                      startDate={nppStartDate}
-                      endDate={nppEndDate}
-                      onChange={(start, end) => {
-                        setNppStartDate(start);
-                        setNppEndDate(end);
-                      }}
-                    />
-                  </Box>
-                  <Button
-                    variant="contained"
-                    onClick={handleNppSubmit}
-                    sx={{
-                      height: '42px',
-                      px: 3,
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      boxShadow: 'none',
-                      '&:hover': { boxShadow: 'none' },
-                    }}
-                  >
-                    Submit
-                  </Button>
-                </Box>
-              </Box>
-              <AllIndiaDemandView 
-                data={allIndiaDemand} 
-                startDate={nppStartDate} 
-                endDate={nppEndDate} 
-                onStartDateChange={setNppStartDate} 
-                onEndDateChange={setNppEndDate} 
-                onExport={() => { 
-                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`;
-                  window.open(url, '_blank');
+            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 4,
+                  border: '1px solid',
+                  borderColor: alpha(theme.palette.divider, 0.1),
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flexGrow: 1,
                 }}
-              />
+              >
+                <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                    <Box>
+                      <Typography variant="h4" fontWeight="700" color="text.primary">
+                        Real Time Demand Met Data
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        View real-time and historical all India power demand data.
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
+                        <DateRangePicker 
+                          startDate={nppStartDate}
+                          endDate={nppEndDate}
+                          onChange={(start, end) => {
+                            setNppStartDate(start);
+                            setNppEndDate(end);
+                          }}
+                        />
+                      </Box>
+                      <Button
+                        variant="contained"
+                        onClick={handleNppSubmit}
+                        sx={{
+                          height: '42px',
+                          px: 3,
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.875rem',
+                          boxShadow: 'none',
+                          '&:hover': { boxShadow: 'none' },
+                        }}
+                      >
+                        Submit
+                      </Button>
+                    </Box>
+                  </Box>
+                  
+                  <Divider />
+                  
+                  <AllIndiaDemandView 
+                    data={allIndiaDemand} 
+                    startDate={nppStartDate} 
+                    endDate={nppEndDate} 
+                    onStartDateChange={setNppStartDate} 
+                    onEndDateChange={setNppEndDate} 
+                    onExport={() => { 
+                      const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=npp&startDate=${committedNppStartDate}&endDate=${committedNppEndDate}`;
+                      window.open(url, '_blank');
+                    }}
+                  />
+                </CardContent>
+              </Card>
             </Grid>
           )}
 
           {/* NPP Generation Section */}
           {showGeneration && (
-            <Grid item xs={12}>
-              <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '1.875rem', md: '3rem' } }}>
-                  Real Time Generation Data
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
-                    <DateRangePicker 
-                      startDate={genStartDate}
-                      endDate={genEndDate}
-                      onChange={(start, end) => {
-                        setGenStartDate(start);
-                        setGenEndDate(end);
-                      }}
-                    />
-                  </Box>
-                  <Button
-                    variant="contained"
-                    onClick={handleGenSubmit}
-                    sx={{
-                      height: '42px',
-                      px: 3,
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      boxShadow: 'none',
-                      '&:hover': { boxShadow: 'none' },
-                    }}
-                  >
-                    Submit
-                  </Button>
-                </Box>
-              </Box>
-              <GenerationDataView 
-                data={generationData} 
-                startDate={genStartDate} 
-                endDate={genEndDate} 
-                onStartDateChange={setGenStartDate} 
-                onEndDateChange={setGenEndDate} 
-                onExport={() => { 
-                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`;
-                  window.open(url, '_blank');
+            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 4,
+                  border: '1px solid',
+                  borderColor: alpha(theme.palette.divider, 0.1),
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flexGrow: 1,
                 }}
-              />
+              >
+                <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                    <Box>
+                      <Typography variant="h4" fontWeight="700" color="text.primary">
+                        Real Time Generation Data
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        View real-time and historical generation data for various fuel types.
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
+                        <DateRangePicker 
+                          startDate={genStartDate}
+                          endDate={genEndDate}
+                          onChange={(start, end) => {
+                            setGenStartDate(start);
+                            setGenEndDate(end);
+                          }}
+                        />
+                      </Box>
+                      <Button
+                        variant="contained"
+                        onClick={handleGenSubmit}
+                        sx={{
+                          height: '42px',
+                          px: 3,
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.875rem',
+                          boxShadow: 'none',
+                          '&:hover': { boxShadow: 'none' },
+                        }}
+                      >
+                        Submit
+                      </Button>
+                    </Box>
+                  </Box>
+                  
+                  <Divider />
+                  
+                  <GenerationDataView 
+                    data={generationData} 
+                    startDate={genStartDate} 
+                    endDate={genEndDate} 
+                    onStartDateChange={setGenStartDate} 
+                    onEndDateChange={setGenEndDate} 
+                    onExport={() => { 
+                      const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`;
+                      window.open(url, '_blank');
+                    }}
+                  />
+                </CardContent>
+              </Card>
             </Grid>
           )}
 
@@ -602,41 +648,30 @@ export default function DatabasePage() {
                 },
               }}
             >
-              <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: alpha('#3B8FF3', 0.1),
-                        color: '#3B8FF3',
-                        mr: 2,
-                      }}
-                    >
-                      <CloudIcon />
-                    </Box>
-                    <Box>
-                      <Typography variant="h6" fontWeight="600">
-                        {weatherTab === 'forecast' ? 'Forecasted Weather Data' : 'Historical Weather Data'} ({selectedCityName || 'New Delhi'})
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {weatherTab === 'forecast' 
-                          ? '16-day rolling 15-minutely forecast. Updates every hour. Source: Open-Meteo.'
-                          : 'Historical daily actuals from the last 2 years. Updates every day. Source: Open-Meteo Archive.'}
-                      </Typography>
-                    </Box>
+              <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                  <Box>
+                    <Typography variant="h4" fontWeight="700" color="text.primary">
+                      {weatherTab === 'forecast' ? 'Forecasted Weather Data' : 'Historical Weather Data'} ({selectedCityName || 'New Delhi'})
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {weatherTab === 'forecast' 
+                        ? '16-day rolling 15-minutely forecast. Updates every hour. Source: Open-Meteo.'
+                        : 'Historical daily actuals from the last 2 years. Updates every day. Source: Open-Meteo Archive.'}
+                    </Typography>
                   </Box>
                   {/* State, City & Date range controls */}
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                    <Box>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>State</Typography>
                       <Select
+                        size="small"
                         value={selectedStateCode}
                         onChange={(e) => setSelectedStateCode(e.target.value)}
                         sx={{
-                          borderRadius: '8px',
-                          height: '38px',
+                          borderRadius: '10px',
+                          height: '42px',
+                          minWidth: 140,
                           bgcolor: '#FFF',
                           fontSize: '0.875rem',
                           '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
@@ -648,16 +683,18 @@ export default function DatabasePage() {
                           </MenuItem>
                         ))}
                       </Select>
-                    </FormControl>
+                    </Box>
 
-                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                    <Box>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>City</Typography>
                       <Select
+                        size="small"
                         value={selectedCityName}
                         onChange={(e) => setSelectedCityName(e.target.value)}
                         sx={{
-                          borderRadius: '8px',
-                          height: '38px',
+                          borderRadius: '10px',
+                          height: '42px',
+                          minWidth: 140,
                           bgcolor: '#FFF',
                           fontSize: '0.875rem',
                           '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
@@ -669,7 +706,7 @@ export default function DatabasePage() {
                           </MenuItem>
                         ))}
                       </Select>
-                    </FormControl>
+                    </Box>
 
                     <Box>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
@@ -722,26 +759,24 @@ export default function DatabasePage() {
                     </Button>
                   </Box>
                 </Box>
-                <Divider sx={{ mb: 3 }} />
+                <Divider />
 
-
-                
                 {weatherData && weatherData.length > 0 ? (
-                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', flexGrow: 1, height: 600, maxHeight: 600 }}>
+                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '10px', flexGrow: 1, maxHeight: 600 }}>
                     <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Max Temp (°C)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Min Temp (°C)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Humidity (%)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Precip. Prob (%)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Precip. (mm)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Sunshine (hrs)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Sunrise</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Sunset</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Wind Speed (km/h)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Date</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Max Temp (°C)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Min Temp (°C)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Humidity (%)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Precip. Prob (%)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Precip. (mm)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunshine (hrs)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunrise</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunset</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Wind Speed (km/h)</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Status</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>

@@ -193,40 +193,6 @@ export default function CityStateView() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', flexGrow: 1 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h4" fontWeight="700">
-            State & City Data
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            View geographical coordinates and population statistics for cities across India.
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<DownloadIcon />}
-            onClick={() => {
-              const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=city_state`;
-              window.open(url, '_blank');
-            }}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
-          >
-            Export Data
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleOpenDialog}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
-          >
-            Add Entry
-          </Button>
-        </Box>
-      </Box>
-
       <Card
         elevation={0}
         sx={{
@@ -240,6 +206,41 @@ export default function CityStateView() {
         }}
       >
         <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box>
+              <Typography variant="h4" fontWeight="700">
+                State & City Data
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                View geographical coordinates and population statistics for cities across India.
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<DownloadIcon />}
+                onClick={() => {
+                  const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=city_state`;
+                  window.open(url, '_blank');
+                }}
+                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+              >
+                Export Data
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleOpenDialog}
+                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+              >
+                Add Entry
+              </Button>
+            </Box>
+          </Box>
+
+
           {/* Filters */}
           <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
             <TextField

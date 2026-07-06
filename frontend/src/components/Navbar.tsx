@@ -433,7 +433,7 @@ export default function Navbar() {
             aria-label="Home"
           >
             {!logoError ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', mt: 1 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center' }}>
                 <Box
                   component="img"
                   src="/assets/logo.png"
