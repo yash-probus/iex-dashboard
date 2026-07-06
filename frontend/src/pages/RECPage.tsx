@@ -46,7 +46,7 @@ export default function RECPage() {
     setIsUploading(true);
     try {
       try {
-        await uploadApi.uploadDataset('REC', filters.startDate, file, 'upload');
+        await uploadApi.uploadDataset('REC', filters.startDate, file);
       } catch (uploadErr: any) {
         if (uploadErr.response?.status === 409) {
           // If dataset already exists, overwrite it
