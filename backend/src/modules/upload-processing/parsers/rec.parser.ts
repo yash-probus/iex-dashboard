@@ -7,25 +7,23 @@ export class RecParser extends BaseParser {
   protected maxRows: number = 2000; // REC files can have many more rows than daily DAM/RTM
 
   protected requiredHeaders = [
-    'Purchase Bid (MW)',
-    'Sell Bid (MW)',
-    'MCV (MW)',
-    'Final Scheduled Volume (MW)',
-    'MCP (Rs/MWh)'
+    'Month',
+    'Buy Bids (REC)',
+    'Sell Bids (REC)',
+    'Cleared Volume (REC)',
+    'Cleared Price(Rs/REC)'
   ];
 
   protected validateRow(row: any): boolean {
-    const pBid = row[normalizeHeader('Purchase Bid (MW)')];
-    const sBid = row[normalizeHeader('Sell Bid (MW)')];
-    const mcv = row[normalizeHeader('MCV (MW)')];
-    const fsv = row[normalizeHeader('Final Scheduled Volume (MW)')];
-    const mcp = row[normalizeHeader('MCP (Rs/MWh)')];
+    const pBid = row[normalizeHeader('Buy Bids (REC)')];
+    const sBid = row[normalizeHeader('Sell Bids (REC)')];
+    const cv = row[normalizeHeader('Cleared Volume (REC)')];
+    const cp = row[normalizeHeader('Cleared Price(Rs/REC)')];
 
     if (!this.parseNumberField(pBid) || 
         !this.parseNumberField(sBid) || 
-        !this.parseNumberField(mcv) || 
-        !this.parseNumberField(fsv) || 
-        !this.parseNumberField(mcp)) {
+        !this.parseNumberField(cv) || 
+        !this.parseNumberField(cp)) {
       return false;
     }
 
