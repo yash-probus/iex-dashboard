@@ -78,7 +78,26 @@ export default function ResourcePageLayout({
       skipEmptyLines: true,
       dynamicTyping: true,
       complete: (results) => {
-        onUpload(results.data);
+        if (config) {
+          // Create mapping from headerName to database field
+          const headerToField: Record<string, string> = {};
+          config.columns.forEach(col => {
+            headerToField[col.headerName.trim().toLowerCase()] = col.field;
+          });
+
+          const mappedData = results.data.map((row: any) => {
+            const newRow: any = {};
+            for (const key in row) {
+              const normalizedKey = key.trim().toLowerCase();
+              const fieldName = headerToField[normalizedKey] || key;
+              newRow[fieldName] = row[key];
+            }
+            return newRow;
+          });
+          onUpload(mappedData);
+        } else {
+          onUpload(results.data);
+        }
       },
       error: (err: any) => {
         alert('Error parsing CSV: ' + err.message);
