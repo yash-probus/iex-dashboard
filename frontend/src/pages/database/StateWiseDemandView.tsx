@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Paper, Divider, useTheme, Grid, Card, CardContent, Chip, CircularProgress } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import IndiaMap from '../../components/dashboard/IndiaMap';
 
 interface StateData {
   name: string;
@@ -117,64 +118,70 @@ export default function StateWiseDemandView({ data }: { data?: { timestamp?: str
         </Box>
       </Paper>
 
-      {/* List Area */}
+      {/* Map and Details Area */}
       <Box sx={{ width: '100%', px: 4, mb: 6 }}>
-        <Grid container spacing={3}>
-          {regions.map((region, idx) => {
-            const style = regionColors[region.name] || { color: '#6B7280', bgColor: '#F3F4F6' };
-            return (
-              <Grid item xs={12} md={6} lg={4} key={idx}>
-                <Card 
-                  elevation={0} 
-                  sx={{ 
-                    height: '100%', 
-                    border: '1px solid', 
-                    borderColor: 'divider',
-                    bgcolor: style.bgColor,
-                    borderRadius: 3,
-                    transition: 'transform 0.2s',
-                    '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }
-                  }}
-                >
-                  <CardContent sx={{ p: 3, height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', color: style.color }}>
-                        <LocationOnIcon sx={{ mr: 1 }} />
-                        <Typography variant="h6" fontWeight="bold">
-                          {region.name}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="h5" fontWeight="900" sx={{ color: '#111827' }}>
+        <Grid container spacing={4}>
+          {/* Map Column */}
+          <Grid item xs={12} lg={7} xl={8}>
+            <Paper elevation={0} sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 3, height: '100%' }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: 'text.primary' }}>
+                Interactive Heatmap
+              </Typography>
+              <IndiaMap regionData={regions} />
+            </Paper>
+          </Grid>
+          
+          {/* Detailed Region Cards Column */}
+          <Grid item xs={12} lg={5} xl={4}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, height: '100%', maxHeight: '700px', overflowY: 'auto', pr: 1 }}>
+              {regions.map((region, idx) => {
+                const style = regionColors[region.name] || { color: '#6B7280', bgColor: '#F3F4F6' };
+                return (
+                  <Card 
+                    key={idx}
+                    elevation={0} 
+                    sx={{ 
+                      border: '1px solid', 
+                      borderColor: 'divider',
+                      bgcolor: style.bgColor,
+                      borderRadius: 3,
+                    }}
+                  >
+                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', color: style.color }}>
+                          <LocationOnIcon sx={{ mr: 1, fontSize: 20 }} />
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            {region.name}
+                          </Typography>
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight="900" sx={{ color: '#111827' }}>
                           {region.price.toFixed(2)} <Typography component="span" variant="caption" color="text.secondary">₹/Unit</Typography>
                         </Typography>
                       </Box>
-                    </Box>
-                    
-                    <Divider sx={{ my: 2, opacity: 0.5 }} />
-                    
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {region.states.map((state, sIdx) => (
-                        <Chip 
-                          key={sIdx} 
-                          label={`${state.name} (${state.demand.toLocaleString()} ${state.unit})`} 
-                          size="small" 
-                          sx={{ 
-                            bgcolor: 'white', 
-                            color: '#4B5563',
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            fontWeight: 500,
-                            fontSize: '0.75rem'
-                          }} 
-                        />
-                      ))}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
+                      
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {region.states.map((state, sIdx) => (
+                          <Chip 
+                            key={sIdx} 
+                            label={`${state.name} (${state.demand.toLocaleString()} ${state.unit})`} 
+                            size="small" 
+                            sx={{ 
+                              bgcolor: 'white', 
+                              color: '#4B5563',
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              fontSize: '0.7rem'
+                            }} 
+                          />
+                        ))}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Box>
+          </Grid>
         </Grid>
       </Box>
       
