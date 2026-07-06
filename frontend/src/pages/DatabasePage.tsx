@@ -28,6 +28,7 @@ import {
   MenuItem,
   Tabs,
   Tab,
+  TablePagination,
 } from '@mui/material';
 import {
   Cloud as CloudIcon,
@@ -170,6 +171,8 @@ export default function DatabasePage() {
   // Weather view date range
   const [weatherStartDate, setWeatherStartDate] = useState<string>('');
   const [weatherEndDate, setWeatherEndDate] = useState<string>('');
+  const [weatherPage, setWeatherPage] = useState(0);
+  const [weatherRowsPerPage, setWeatherRowsPerPage] = useState(10);
 
   useEffect(() => {
     const today = new Date();
@@ -299,6 +302,7 @@ export default function DatabasePage() {
       alert('You can only select a maximum of 31 days.');
       return;
     }
+    setWeatherPage(0);
     setCommittedWeatherStartDate(weatherStartDate);
     setCommittedWeatherEndDate(weatherEndDate);
     setCommittedLat(activeLat);
@@ -762,8 +766,9 @@ export default function DatabasePage() {
                 <Divider />
 
                 {weatherData && weatherData.length > 0 ? (
-                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '10px', flexGrow: 1, maxHeight: 600 }}>
-                    <Table size="small" stickyHeader>
+                  <Box sx={{ width: '100%', overflow: 'hidden' }}>
+                    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '10px', flexGrow: 1, maxHeight: 600 }}>
+                      <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Date</TableCell>
@@ -780,15 +785,17 @@ export default function DatabasePage() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {weatherData
-                          .filter((row: WeatherDataRow) => {
+                        {(() => {
+                          const filteredData = weatherData.filter((row: WeatherDataRow) => {
                             if (weatherTab === 'forecast') {
                               return !row.isActual;
                             } else {
                               return row.isActual;
                             }
-                          })
-                          .map((row: WeatherDataRow, i: number) => (
+                          });
+                          const paginatedData = filteredData.slice(weatherPage * weatherRowsPerPage, weatherPage * weatherRowsPerPage + weatherRowsPerPage);
+                          
+                          return paginatedData.map((row: WeatherDataRow, i: number) => (
                             <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                               <TableCell>
                                 {(() => {
@@ -827,10 +834,24 @@ export default function DatabasePage() {
                                 </Box>
                               </TableCell>
                             </TableRow>
-                          ))}
+                          ));
+                        })()}
                       </TableBody>
                     </Table>
                   </TableContainer>
+                  <TablePagination
+                    rowsPerPageOptions={[10, 25, 50, 100]}
+                    component="div"
+                    count={weatherData.filter((r) => weatherTab === 'forecast' ? !r.isActual : r.isActual).length}
+                    rowsPerPage={weatherRowsPerPage}
+                    page={weatherPage}
+                    onPageChange={(e, newPage) => setWeatherPage(newPage)}
+                    onRowsPerPageChange={(e) => {
+                      setWeatherRowsPerPage(parseInt(e.target.value, 10));
+                      setWeatherPage(0);
+                    }}
+                  />
+                </Box>
                 ) : (
                   <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
                     No weather data available for the selected date range.
