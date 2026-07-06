@@ -3,6 +3,7 @@ import { Box, Typography, TextField, InputAdornment } from '@mui/material';
 import { Search as SearchIcon, FileDownload as DownloadIcon, FileUpload as UploadIcon } from '@mui/icons-material';
 import ActionButton from '../common/ActionButton';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { Add as AddIcon, GetApp as TemplateIcon } from '@mui/icons-material';
 import ResourceFormModal from '../../components/admin/ResourceFormModal';
 import { RESOURCE_CONFIG } from '../../pages/admin/resource-center/config/resourceConfig';
@@ -69,40 +70,69 @@ export default function ResourcePageLayout({
     }
   };
 
+  const processParsedData = (rawData: any[]) => {
+    if (config) {
+      // Create mapping from headerName to database field
+      const headerToField: Record<string, string> = {};
+      config.columns.forEach(col => {
+        headerToField[col.headerName.trim().toLowerCase()] = col.field;
+      });
+
+      const mappedData = rawData.map((row: any) => {
+        const newRow: any = {};
+        for (const key in row) {
+          const normalizedKey = key.trim().toLowerCase();
+          const fieldName = headerToField[normalizedKey] || key;
+          newRow[fieldName] = row[key];
+        }
+        return newRow;
+      });
+      if (onUpload) {
+        onUpload(mappedData);
+      }
+    } else {
+      if (onUpload) {
+        onUpload(rawData);
+      }
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !onUpload) return;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      dynamicTyping: true,
-      complete: (results) => {
-        if (config) {
-          // Create mapping from headerName to database field
-          const headerToField: Record<string, string> = {};
-          config.columns.forEach(col => {
-            headerToField[col.headerName.trim().toLowerCase()] = col.field;
-          });
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
 
-          const mappedData = results.data.map((row: any) => {
-            const newRow: any = {};
-            for (const key in row) {
-              const normalizedKey = key.trim().toLowerCase();
-              const fieldName = headerToField[normalizedKey] || key;
-              newRow[fieldName] = row[key];
-            }
-            return newRow;
-          });
-          onUpload(mappedData);
-        } else {
-          onUpload(results.data);
+    if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = evt.target?.result;
+          if (data) {
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const parsedJson = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+            processParsedData(parsedJson);
+          }
+        } catch (err: any) {
+          alert('Error parsing Excel file: ' + err.message);
         }
-      },
-      error: (err: any) => {
-        alert('Error parsing CSV: ' + err.message);
-      }
-    });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+        complete: (results) => {
+          processParsedData(results.data);
+        },
+        error: (err: any) => {
+          alert('Error parsing CSV: ' + err.message);
+        }
+      });
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -141,7 +171,7 @@ export default function ResourcePageLayout({
         <Box sx={{ display: 'flex', gap: 1.5 }}>
           <input
             type="file"
-            accept=".csv"
+            accept=".csv, .xlsx, .xls"
             hidden
             ref={fileInputRef}
             onChange={handleFileChange}

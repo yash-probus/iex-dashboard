@@ -13,6 +13,18 @@ const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
   'state-tariff': ['stateCode', 'month', 'state', 'tod']
 };
 
+// Map of allowed fields for each resource type to filter out unknown keys from raw payloads
+const VALID_FIELDS: Record<ResourceType, string[]> = {
+  'region-state': ['regionalGrid', 'regionCode', 'regionName', 'stateName', 'stateCode', 'stateOrUt'],
+  'discom-list': ['code', 'legalName', 'stateCode', 'discomType'],
+  'ists-charges': ['state', 'date', 'istsLossPercent'],
+  'iex-fees': ['month', 'exchangeFees', 'exchangeFeesGst', 'nldcApplicationFees', 'nldcSchedulingFees', 'sldcSchedulingFees', 'otherFixCharges'],
+  'prolt-margin': ['month', 'customerId', 'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst'],
+  'ctu-charges': ['month', 'year', 'pdfUrl'],
+  'stu-charges': ['stateCode', 'state', 'category', 'subCategory', 'voltageLevel', 'month', 'stuChargesRsPerKwh', 'demandCharges', 'percentFppaCharges', 'additionalCharges', 'crossSubsidy', 'distributionWheelingChargesRsPerKwh', 'stuLossPercent', 'distributionWheelingLossPercent'],
+  'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges']
+};
+
 /**
  * Normalizes empty strings and whitespace to undefined.
  * Throws AppError if required fields are missing.
@@ -112,5 +124,14 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
     data.stateOrUt = val; // PostgreSQL expects 'state' or 'ut'
   }
 
-  return data;
+  // 6. Strip Unknown Fields to avoid Prisma query errors on bulk upload
+  const allowed = VALID_FIELDS[resourceType] || [];
+  const cleaned: any = {};
+  for (const field of allowed) {
+    if (data[field] !== undefined) {
+      cleaned[field] = data[field];
+    }
+  }
+
+  return cleaned;
 };
