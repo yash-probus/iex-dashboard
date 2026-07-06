@@ -47,6 +47,14 @@ export class ScraperService {
           mcv = row[5];
           fsv = row[6];
           mcp = row[7];
+        } else if (row.length === 7) {
+          currentHour = parseInt(row[0], 10);
+          timeBlock = row[1];
+          pb = row[2];
+          sb = row[3];
+          mcv = row[4];
+          fsv = row[5];
+          mcp = row[6];
         } else if (row.length === 6) {
           timeBlock = row[0];
           pb = row[1];
@@ -57,6 +65,8 @@ export class ScraperService {
         } else {
           continue; 
         }
+
+        if (!timeBlock || !timeBlock.includes(':')) continue;
 
         const [start] = timeBlock.split(' - ');
         if (!start) continue;
@@ -113,33 +123,35 @@ export class ScraperService {
 
       const records: GdamIntervalRecord[] = [];
       for (const row of data) {
-        // Expect columns: TimeBlock, PurchaseBid, SellBidTotal, SellBidSolar, SellBidNonSolar, SellBidHydro,
-        //                 MCVTotal, MCVSolar, MCVNonSolar, MCVHydro, FSVTotal, FSVSolar, FSVNonSolar, FSVHydro, MCP
-        if (row.length < 2) continue;
-        const timeBlock = row[0];
-        if (!timeBlock || !timeBlock.includes(':')) continue;
+        // Find the index of the time block column dynamically
+        const timeBlockIdx = row.findIndex(c => c && c.includes(':') && c.includes('-'));
+        if (timeBlockIdx === -1) continue;
+
+        const timeBlock = row[timeBlockIdx];
         const [start] = timeBlock.split(' - ');
         if (!start) continue;
         const [hh, mm] = start.split(':').map(Number);
         const intervalNumber = (hh * 4) + (mm / 15) + 1;
 
+        const offset = timeBlockIdx;
+
         records.push({
           intervalNumber,
           intervalTime: timeBlock,
-          purchaseBid:    this.parseNumber(row[1]  ?? '0'),
-          sellBidTotal:   this.parseNumber(row[2]  ?? '0'),
-          sellBidSolar:   this.parseNumber(row[3]  ?? '0'),
-          sellBidNonSolar:this.parseNumber(row[4]  ?? '0'),
-          sellBidHydro:   this.parseNumber(row[5]  ?? '0'),
-          mcvTotal:       this.parseNumber(row[6]  ?? '0'),
-          mcvSolar:       this.parseNumber(row[7]  ?? '0'),
-          mcvNonSolar:    this.parseNumber(row[8]  ?? '0'),
-          mcvHydro:       this.parseNumber(row[9]  ?? '0'),
-          fsvTotal:       this.parseNumber(row[10] ?? '0'),
-          fsvSolar:       this.parseNumber(row[11] ?? '0'),
-          fsvNonSolar:    this.parseNumber(row[12] ?? '0'),
-          fsvHydro:       this.parseNumber(row[13] ?? '0'),
-          mcp:            this.parseNumber(row[14] ?? '0'),
+          purchaseBid:    this.parseNumber(row[offset + 1]  ?? '0'),
+          sellBidTotal:   this.parseNumber(row[offset + 2]  ?? '0'),
+          sellBidSolar:   this.parseNumber(row[offset + 3]  ?? '0'),
+          sellBidNonSolar:this.parseNumber(row[offset + 4]  ?? '0'),
+          sellBidHydro:   this.parseNumber(row[offset + 5]  ?? '0'),
+          mcvTotal:       this.parseNumber(row[offset + 6]  ?? '0'),
+          mcvSolar:       this.parseNumber(row[offset + 7]  ?? '0'),
+          mcvNonSolar:    this.parseNumber(row[offset + 8]  ?? '0'),
+          mcvHydro:       this.parseNumber(row[offset + 9]  ?? '0'),
+          fsvTotal:       this.parseNumber(row[offset + 10] ?? '0'),
+          fsvSolar:       this.parseNumber(row[offset + 11] ?? '0'),
+          fsvNonSolar:    this.parseNumber(row[offset + 12] ?? '0'),
+          fsvHydro:       this.parseNumber(row[offset + 13] ?? '0'),
+          mcp:            this.parseNumber(row[offset + 14] ?? '0'),
         });
       }
 
@@ -180,22 +192,27 @@ export class ScraperService {
       });
 
       const records: RtmIntervalRecord[] = [];
-      let intervalNumber = 1;
-
       for (const row of data) {
-        if (row.length < 5) continue;
-        const timeBlock = row[0];
-        if (!timeBlock || !timeBlock.includes(':')) continue;
+        const timeBlockIdx = row.findIndex(c => c && c.includes(':') && c.includes('-'));
+        if (timeBlockIdx === -1) continue;
+
+        const timeBlock = row[timeBlockIdx];
+        const [start] = timeBlock.split('-');
+        if (!start) continue;
+        const [hh, mm] = start.split(':').map(Number);
+        const intervalNumber = (hh * 4) + (mm / 15) + 1;
+
+        const offset = timeBlockIdx;
 
         records.push({
-          intervalNumber: intervalNumber++,
-          intervalTime: timeBlock.split('-')[0]?.trim() || timeBlock,
+          intervalNumber,
+          intervalTime: start.trim(),
           sessionId: '1',
-          purchaseBid: this.parseNumber(row[1] ?? '0'),
-          sellBid:     this.parseNumber(row[2] ?? '0'),
-          mcv:         this.parseNumber(row[3] ?? '0'),
-          fsv:         this.parseNumber(row[4] ?? '0'),
-          mcp:         this.parseNumber(row[5] ?? '0'),
+          purchaseBid: this.parseNumber(row[offset + 1] ?? '0'),
+          sellBid:     this.parseNumber(row[offset + 2] ?? '0'),
+          mcv:         this.parseNumber(row[offset + 3] ?? '0'),
+          fsv:         this.parseNumber(row[offset + 4] ?? '0'),
+          mcp:         this.parseNumber(row[offset + 5] ?? '0'),
         });
       }
 

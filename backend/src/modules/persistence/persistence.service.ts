@@ -16,8 +16,8 @@ export class PersistenceService {
     const { market, deliveryDate, fileName, records, action } = params;
     const isReplacement = action === 'replace';
 
-    // Pre-flight check: Must have exactly 96 records (except for REC)
-    if (market !== 'REC' && records.length !== 96) {
+    // Pre-flight check: Must have exactly 96 records (except for REC and RTM)
+    if (market !== 'REC' && market !== 'RTM' && records.length !== 96) {
       throw new AppError(`Persistence rejected: Expected exactly 96 records, got ${records.length}`, 400);
     }
 
