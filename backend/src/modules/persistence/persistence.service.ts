@@ -16,8 +16,8 @@ export class PersistenceService {
     const { market, deliveryDate, fileName, records, action } = params;
     const isReplacement = action === 'replace';
 
-    // Pre-flight check: Must have exactly 96 records
-    if (records.length !== 96) {
+    // Pre-flight check: Must have exactly 96 records (except for REC)
+    if (market !== 'REC' && records.length !== 96) {
       throw new AppError(`Persistence rejected: Expected exactly 96 records, got ${records.length}`, 400);
     }
 
@@ -162,7 +162,7 @@ export class PersistenceService {
         }
 
         // 2e. Post-Insertion Verification
-        if (insertedCount !== 96) {
+        if (market !== 'REC' && insertedCount !== 96) {
           throw new AppError(`Critical Integrity Error: Expected 96 records, but inserted ${insertedCount}.`, 500);
         }
 
