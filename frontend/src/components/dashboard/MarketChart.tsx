@@ -37,19 +37,25 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
     // If it's a raw number, it's a timeblock. Let's just return it using unified formatting.
     if (typeof tickItem === 'number') return formatTimeblock(tickItem);
     // If it's a string like "2026-06-19-12" (hourly), format it
-    if (typeof tickItem === 'string' && tickItem.includes('-')) {
+    if (typeof tickItem === 'string' && tickItem.split('-').length === 4) {
       const parts = tickItem.split('-');
-      if (parts.length === 4) return `${parts[3]}:00`; // Return the hour
-      if (parts.length === 3) return `${parts[1]}/${parts[2]}`; // MM/DD
-      return tickItem;
+      return `${parts[3]}:00`; // Return the hour
+    }
+    // If it's a date string like "2026-06-19", format as nice date
+    if (typeof tickItem === 'string' && tickItem.split('-').length === 3) {
+      const d = new Date(tickItem);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
     }
     return tickItem;
   };
 
   const getXAxisKey = () => {
+    if (interval === 'daily' || interval === 'monthly') return 'label';
     if (data.length > 0) {
-      if ('timeBlock' in data[0] && data[0].timeBlock > 0) return 'timeBlock';
-      if ('hour' in data[0] && data[0].hour > 0) return 'hour'; // Need a better compound key, we'll use a derived 'label' below
+      // If it's timeBlock data but passed as strings like "00:00-00:15"
+      if (interval === '15min' || interval === 'hourly') return 'label';
     }
     return 'label';
   };
@@ -57,8 +63,11 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
   // Derive a generic label for the X axis
   let chartData = data.map(d => {
     let label = d.date;
-    if (d.hour && d.timeBlock) label = d.timeBlock;
-    else if (d.hour) label = `${d.date}-${d.hour}`;
+    if (interval === '15min') {
+      label = d.timeBlock || d.intervalTime || d.date;
+    } else if (interval === 'hourly') {
+      label = d.hour ? `${d.date}-${d.hour}` : d.date;
+    }
     return { ...d, label };
   });
 
