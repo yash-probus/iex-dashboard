@@ -130,6 +130,20 @@ export default function GenerationDataView({
           '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(0,0,0,0.2)' }
         }}>
           <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
+            <Card elevation={0} sx={{ bgcolor: alpha('#3B82F6', 0.08), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B82F6', 0.2) }}>
+              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
+                <Typography variant="h6" color="#3B82F6" sx={{ fontSize: '1rem', fontWeight: 700 }}>
+                  {latestSnapshot?.timeStr
+                    ? latestSnapshot.timeStr.length > 16
+                      ? latestSnapshot.timeStr.slice(0, 16)
+                      : latestSnapshot.timeStr
+                    : '-'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.thermal, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.thermal, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'thermal' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'thermal' ? 'all' : 'thermal')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">THERMAL (MW)</Typography>
@@ -174,20 +188,6 @@ export default function GenerationDataView({
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">SOLAR (MW)</Typography>
                 <Typography variant="h6" color={COLORS.solar}>{latestSnapshot?.solar?.toLocaleString() || '-'}</Typography>
-              </CardContent>
-            </Card>
-          </Box>
-          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
-            <Card elevation={0} sx={{ bgcolor: alpha('#3B82F6', 0.08), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B82F6', 0.2) }}>
-              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
-                <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
-                <Typography variant="h6" color="#3B82F6" sx={{ fontSize: '1rem', fontWeight: 700 }}>
-                  {latestSnapshot?.timeStr
-                    ? latestSnapshot.timeStr.length > 16
-                      ? latestSnapshot.timeStr.slice(0, 16)
-                      : latestSnapshot.timeStr
-                    : '-'}
-                </Typography>
               </CardContent>
             </Card>
           </Box>
