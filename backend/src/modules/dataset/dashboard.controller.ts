@@ -31,6 +31,16 @@ export const getRtmAnalytics = async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data });
 };
 
+export const getRecData = async (req: Request, res: Response) => {
+  const data = await DashboardService.getDashboardData('REC', req.query.startDate as string, req.query.endDate as string, req.query.interval as string);
+  res.status(200).json({ success: true, data });
+};
+
+export const getRecAnalytics = async (req: Request, res: Response) => {
+  const data = await DashboardService.getAnalytics('REC', req.query.startDate as string, req.query.endDate as string, req.query.interval as string);
+  res.status(200).json({ success: true, data });
+};
+
 export const getOverviewData = async (req: Request, res: Response) => {
   const data = await DashboardService.getOverview();
   res.status(200).json({ success: true, data });
