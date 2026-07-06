@@ -44,7 +44,7 @@ export default function CityStateView() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
   
   // Filter & Sort State
   const [selectedStateFilter, setSelectedStateFilter] = useState('');
