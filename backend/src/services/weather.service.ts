@@ -73,12 +73,12 @@ export class WeatherEngine {
 
         const minutes = ['00', '15', '30', '45'];
         for (const minute of minutes) {
-          const timeStr = `${baseTimeStr.split(':')[0]}:${minute}`;
+          const timeStrSlot = `${timeStr.split(':')[0]}:${minute}`;
           await prisma.weatherForecastHourly.upsert({
             where: {
               date_timeStr: {
                 date,
-                timeStr
+                timeStr: timeStrSlot
               }
             },
             update: {
@@ -95,7 +95,7 @@ export class WeatherEngine {
             },
             create: {
               date,
-              timeStr,
+              timeStr: timeStrSlot,
               maxTemp: temps[i],
               minTemp: temps[i],
               windSpeed: windSpeeds[i] || 10,
@@ -143,7 +143,7 @@ export class WeatherEngine {
 
           const minutes = ['00', '15', '30', '45'];
           for (const minute of minutes) {
-            const timeStrSlot = `${baseHour}:${minute}`;
+            const timeStrSlot = `${String(hour).padStart(2, '0')}:${minute}`;
             await prisma.weatherForecastHourly.upsert({
               where: {
                 date_timeStr: {

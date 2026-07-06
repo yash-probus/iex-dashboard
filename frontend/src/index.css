@@ -19,10 +19,10 @@
 }
 
 html {
-  zoom: 0.75;
+  /* Removed zoom: 0.75 which broke layout padding */
 }
 html.login-page {
-  zoom: 1;
+  /* Inherits normal scale */
 }
 
 body {

@@ -63,7 +63,7 @@ export default function ModuleLayout() {
     <Box sx={{ 
       display: 'flex', 
       flexDirection: { xs: 'column', md: 'row' }, 
-      gap: 0, 
+      gap: 3, 
       flexGrow: 1,
       minHeight: { xs: 'auto', md: 'calc(100vh - 120px)' }
     }}>

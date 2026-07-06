@@ -18,7 +18,7 @@ export default function DashboardLayout() {
           flexDirection: 'column'
         }}
       >
-        <Container maxWidth={false} disableGutters sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2.5, px: 0 }}>
+        <Container maxWidth={false} disableGutters sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3, px: 4 }}>
           <Outlet />
         </Container>
       </Box>
