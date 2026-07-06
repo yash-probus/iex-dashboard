@@ -240,6 +240,18 @@ export default function DatabasePage() {
     setErrorMsg(null);
     try {
       if (showWeather) {
+        // Prevent querying future dates for historical weather or past dates for forecast when tabs switch.
+        // The date-adjusting useEffect will run immediately after and trigger the correct API call.
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (weatherTab === 'historical' && committedWeatherEndDate > todayStr) {
+          setLoading(false);
+          return;
+        }
+        if (weatherTab === 'forecast' && committedWeatherStartDate < todayStr) {
+          setLoading(false);
+          return;
+        }
+
         const latParam = committedLat != null ? `&latitude=${committedLat}` : '';
         const lonParam = committedLon != null ? `&longitude=${committedLon}` : '';
         const weatherRes = await apiClient.get(`/database/weather?type=${weatherTab}&startDate=${committedWeatherStartDate}&endDate=${committedWeatherEndDate}${latParam}${lonParam}`);
