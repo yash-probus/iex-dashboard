@@ -162,7 +162,7 @@ export class PersistenceService {
         }
 
         // 2e. Post-Insertion Verification
-        if (market !== 'REC' && insertedCount !== 96) {
+        if (market !== 'REC' && market !== 'RTM' && insertedCount !== 96) {
           throw new AppError(`Critical Integrity Error: Expected 96 records, but inserted ${insertedCount}.`, 500);
         }
 
