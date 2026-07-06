@@ -64,8 +64,8 @@ export default function MarketOperationsPage() {
   };
 
   return (
-    <Box sx={{ pb: 6 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+    <Box sx={{ pb: 6, width: '100%', maxWidth: '100vw', margin: 0, padding: 0 }}>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, px: 2 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
             Market Operations

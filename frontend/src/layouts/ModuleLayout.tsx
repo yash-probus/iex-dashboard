@@ -68,7 +68,7 @@ export default function ModuleLayout() {
       gap: hideSidebar ? 0 : 3, 
       flexGrow: 1,
       minHeight: { xs: 'auto', md: 'calc(100vh - 120px)' },
-      px: hideSidebar ? 2 : 0
+      px: 0
     }}>
       {/* Sidebar */}
       {!hideSidebar && (
