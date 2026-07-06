@@ -101,7 +101,16 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
 
   for (const field of numericFields) {
     if (data[field] !== undefined && data[field] !== null) {
-      const val = Number(data[field]);
+      let rawVal = data[field];
+      if (typeof rawVal === 'string') {
+        // Clean formatting characters: %, currency symbols (₹, rs), commas, and whitespace
+        rawVal = rawVal.replace(/[%₹,\s]|rs\.?/gi, '');
+        if (rawVal === '') {
+          data[field] = null;
+          continue;
+        }
+      }
+      const val = Number(rawVal);
       if (!Number.isFinite(val)) {
         throw new AppError(`Validation error: ${field} must be a finite number`, 400);
       }
