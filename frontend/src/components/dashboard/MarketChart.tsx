@@ -41,9 +41,23 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
       const parts = tickItem.split('-');
       return `${parts[3]}:00`; // Return the hour
     }
-    // If it's a date string like "2026-06-19", format as nice date
+    // If it's a date string like "2026-06-19" or "14-01-2026", format as nice date
     if (typeof tickItem === 'string' && tickItem.split('-').length === 3) {
-      const d = new Date(tickItem);
+      const parts = tickItem.split('-');
+      let d = new Date(tickItem); // Try default parsing first
+      
+      // If it looks like DD-MM-YYYY (e.g. 14-01-2026)
+      if (parts[0].length <= 2 && parts[2].length === 4) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const year = parseInt(parts[2], 10);
+        d = new Date(year, month, day);
+      }
+      // If it looks like YYYY-MM-DD (e.g. 2026-01-14)
+      else if (parts[0].length === 4 && parts[2].length <= 2) {
+        d = new Date(tickItem);
+      }
+
       if (!isNaN(d.getTime())) {
         return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       }
