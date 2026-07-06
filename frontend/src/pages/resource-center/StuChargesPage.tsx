@@ -73,7 +73,7 @@ export default function StuChargesPage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="stu-charges"
       title={config.title}
       subtitle={config.subtitle}
       icon={<DeviceHubIcon fontSize="large" />}

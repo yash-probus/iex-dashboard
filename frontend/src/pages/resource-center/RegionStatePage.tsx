@@ -57,7 +57,7 @@ export default function RegionStatePage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="region-state"
       title={config.title}
       subtitle={config.subtitle}
       icon={<MapIcon fontSize="large" />}

@@ -76,7 +76,7 @@ export default function StateTariffPage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="state-tariff"
       title={config.title}
       subtitle={config.subtitle}
       icon={<PriceCheckIcon fontSize="large" />}

@@ -3,6 +3,9 @@ import { Box, Typography, TextField, InputAdornment } from '@mui/material';
 import { Search as SearchIcon, FileDownload as DownloadIcon, FileUpload as UploadIcon } from '@mui/icons-material';
 import ActionButton from '../common/ActionButton';
 import Papa from 'papaparse';
+import { Add as AddIcon, GetApp as TemplateIcon } from '@mui/icons-material';
+import ResourceFormModal from '../../components/admin/ResourceFormModal';
+import { RESOURCE_CONFIG } from '../../pages/admin/resource-center/config/resourceConfig';
 
 interface ResourcePageLayoutProps {
   title: string;
@@ -17,6 +20,7 @@ interface ResourcePageLayoutProps {
   onUpload?: (data: any[]) => void;
   onExport: () => void;
   isExportDisabled?: boolean;
+  resourceType?: string;
   children: React.ReactNode;
 }
 
@@ -33,9 +37,37 @@ export default function ResourcePageLayout({
   onUpload,
   onExport,
   isExportDisabled = false,
+  resourceType,
   children
 }: ResourcePageLayoutProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isEntryDialogOpen, setIsEntryDialogOpen] = React.useState(false);
+
+  const config = resourceType ? RESOURCE_CONFIG[resourceType] : null;
+
+  const handleDownloadTemplate = () => {
+    if (!config) return;
+    const headers = config.columns.map(c => c.headerName).join(',');
+    const csvContent = headers + '\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${config.exportFilename}_template.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleManualEntrySubmit = (formData: any) => {
+    if (onUpload) {
+      // Convert standard formData into format expected by bulkUpload backend (array of objects)
+      // Usually the backend maps headers to database fields, but bulkUpload takes parsed JSON objects
+      // For simplicity, we just pass the object as an array of 1 item
+      onUpload([formData]);
+      setIsEntryDialogOpen(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,6 +127,24 @@ export default function ResourcePageLayout({
             ref={fileInputRef}
             onChange={handleFileChange}
           />
+          {config && (
+            <>
+              <ActionButton
+                variant="secondary"
+                startIcon={<TemplateIcon fontSize="small" />}
+                onClick={handleDownloadTemplate}
+              >
+                Download Template
+              </ActionButton>
+              <ActionButton
+                variant="secondary"
+                startIcon={<AddIcon fontSize="small" />}
+                onClick={() => setIsEntryDialogOpen(true)}
+              >
+                Add Entry
+              </ActionButton>
+            </>
+          )}
           <ActionButton
             variant="secondary"
             startIcon={<UploadIcon fontSize="small" />}
@@ -120,6 +170,16 @@ export default function ResourcePageLayout({
       </Box>
 
       {children}
+
+      {config && (
+        <ResourceFormModal
+          open={isEntryDialogOpen}
+          title={config.title}
+          fields={config.fields}
+          onClose={() => setIsEntryDialogOpen(false)}
+          onSave={handleManualEntrySubmit}
+        />
+      )}
     </Box>
   );
 }

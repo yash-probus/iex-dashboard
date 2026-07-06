@@ -43,7 +43,7 @@ export default function DiscomListPage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="discom-list"
       title={config.title}
       subtitle={config.subtitle}
       icon={<DomainIcon fontSize="large" />}

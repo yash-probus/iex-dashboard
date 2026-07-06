@@ -45,7 +45,7 @@ export default function IstsChargesPage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="ists-charges"
       title={config.title}
       subtitle={config.subtitle}
       icon={<BoltIcon fontSize="large" />}

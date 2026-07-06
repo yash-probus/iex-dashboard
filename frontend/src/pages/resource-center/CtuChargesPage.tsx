@@ -59,7 +59,7 @@ export default function CtuChargesPage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="ctu-charges"
       title={config.title}
       subtitle={config.subtitle}
       icon={<AccountTreeIcon fontSize="large" />}

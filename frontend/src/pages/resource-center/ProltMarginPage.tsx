@@ -54,7 +54,7 @@ export default function ProltMarginPage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="prolt-margin"
       title={config.title}
       subtitle={config.subtitle}
       icon={<ShowChartIcon fontSize="large" />}

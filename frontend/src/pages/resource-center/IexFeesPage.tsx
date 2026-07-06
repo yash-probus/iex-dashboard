@@ -57,7 +57,7 @@ export default function IexFeesPage() {
   };
 
   return (
-    <ResourcePageLayout
+    <ResourcePageLayout resourceType="iex-fees"
       title={config.title}
       subtitle={config.subtitle}
       icon={<ReceiptIcon fontSize="large" />}
