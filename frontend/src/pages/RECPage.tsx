@@ -45,7 +45,16 @@ export default function RECPage() {
 
     setIsUploading(true);
     try {
-      await uploadApi.uploadDataset('REC', filters.startDate, file, 'replace');
+      try {
+        await uploadApi.uploadDataset('REC', filters.startDate, file, 'upload');
+      } catch (uploadErr: any) {
+        if (uploadErr.response?.status === 409) {
+          // If dataset already exists, overwrite it
+          await uploadApi.uploadDataset('REC', filters.startDate, file, 'replace');
+        } else {
+          throw uploadErr;
+        }
+      }
       showNotification("Data uploaded successfully. Refreshing...", 'success');
       setTimeout(() => window.location.reload(), 1500);
     } catch (err: any) {
