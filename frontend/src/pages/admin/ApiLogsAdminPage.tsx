@@ -25,6 +25,10 @@ export default function ApiLogsAdminPage() {
   const [endDate, setEndDate] = useState<string>(getTodayFormatted());
   const [selectedApiName, setSelectedApiName] = useState<string>('');
   
+  const [committedStartDate, setCommittedStartDate] = useState<string>(getTodayFormatted());
+  const [committedEndDate, setCommittedEndDate] = useState<string>(getTodayFormatted());
+  const [committedApiName, setCommittedApiName] = useState<string>('');
+
   const [apiNamesList, setApiNamesList] = useState<string[]>([]);
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export default function ApiLogsAdminPage() {
 
   useEffect(() => {
     loadLogs();
-  }, [page, rowsPerPage, startDate, endDate, selectedApiName]);
+  }, [page, rowsPerPage, committedStartDate, committedEndDate, committedApiName]);
 
   const loadApiNames = async () => {
     try {
@@ -48,7 +52,13 @@ export default function ApiLogsAdminPage() {
     try {
       setLoading(true);
       // Backend expects 1-based page, MUI is 0-based
-      const result = await fetchApiLogs(page + 1, rowsPerPage, startDate || undefined, endDate || undefined, selectedApiName || undefined);
+      const result = await fetchApiLogs(
+        page + 1, 
+        rowsPerPage, 
+        committedStartDate || undefined, 
+        committedEndDate || undefined, 
+        committedApiName || undefined
+      );
       setLogs(result.data);
       setTotalRecords(result.total);
     } catch (error) {
@@ -58,10 +68,22 @@ export default function ApiLogsAdminPage() {
     }
   };
 
+  const handleSubmitFilters = () => {
+    setCommittedStartDate(startDate);
+    setCommittedEndDate(endDate);
+    setCommittedApiName(selectedApiName);
+    setPage(0);
+  };
+
   const handleClearFilters = () => {
-    setStartDate(getTodayFormatted());
-    setEndDate(getTodayFormatted());
+    const today = getTodayFormatted();
+    setStartDate(today);
+    setEndDate(today);
     setSelectedApiName('');
+    
+    setCommittedStartDate(today);
+    setCommittedEndDate(today);
+    setCommittedApiName('');
     setPage(0);
   };
 
@@ -94,7 +116,6 @@ export default function ApiLogsAdminPage() {
             onChange={(s, e) => {
               setStartDate(s);
               setEndDate(e);
-              setPage(0);
             }}
           />
           
@@ -104,7 +125,7 @@ export default function ApiLogsAdminPage() {
               labelId="api-name-select-label"
               value={selectedApiName}
               label="API Name"
-              onChange={(e) => { setSelectedApiName(e.target.value); setPage(0); }}
+              onChange={(e) => setSelectedApiName(e.target.value)}
             >
               <MenuItem value="">
                 <em>All APIs</em>
@@ -114,6 +135,15 @@ export default function ApiLogsAdminPage() {
               ))}
             </Select>
           </FormControl>
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmitFilters}
+            sx={{ height: 40 }}
+          >
+            Submit
+          </Button>
 
           <Button 
             variant="outlined" 
