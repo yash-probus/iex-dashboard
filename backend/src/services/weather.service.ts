@@ -71,40 +71,44 @@ export class WeatherEngine {
 
         const isActual = datetimeStr <= currentHourStr;
 
-        await prisma.weatherForecastHourly.upsert({
-          where: {
-            date_timeStr: {
+        const minutes = ['00', '15', '30', '45'];
+        for (const minute of minutes) {
+          const timeStr = `${baseTimeStr.split(':')[0]}:${minute}`;
+          await prisma.weatherForecastHourly.upsert({
+            where: {
+              date_timeStr: {
+                date,
+                timeStr
+              }
+            },
+            update: {
+              maxTemp: temps[i],
+              minTemp: temps[i],
+              windSpeed: windSpeeds[i] || 10,
+              relativeHumidity: relativeHumidities[i] || 0,
+              precipitationProb: precipProbs[i] || 0,
+              precipitationSum: precipSums[i] || 0,
+              sunshineDuration,
+              sunrise,
+              sunset,
+              isActual
+            },
+            create: {
               date,
-              timeStr
+              timeStr,
+              maxTemp: temps[i],
+              minTemp: temps[i],
+              windSpeed: windSpeeds[i] || 10,
+              relativeHumidity: relativeHumidities[i] || 0,
+              precipitationProb: precipProbs[i] || 0,
+              precipitationSum: precipSums[i] || 0,
+              sunshineDuration,
+              sunrise,
+              sunset,
+              isActual
             }
-          },
-          update: {
-            maxTemp: temps[i], // For hourly we display current temp in both max and min temp
-            minTemp: temps[i],
-            windSpeed: windSpeeds[i] || 10,
-            relativeHumidity: relativeHumidities[i] || 0,
-            precipitationProb: precipProbs[i] || 0,
-            precipitationSum: precipSums[i] || 0,
-            sunshineDuration,
-            sunrise,
-            sunset,
-            isActual
-          },
-          create: {
-            date,
-            timeStr,
-            maxTemp: temps[i],
-            minTemp: temps[i],
-            windSpeed: windSpeeds[i] || 10,
-            relativeHumidity: relativeHumidities[i] || 0,
-            precipitationProb: precipProbs[i] || 0,
-            precipitationSum: precipSums[i] || 0,
-            sunshineDuration,
-            sunrise,
-            sunset,
-            isActual
-          }
-        });
+          });
+        }
       }
 
       // Step 2: Extrapolate remaining 14 days of hourly forecast to hit the 30-day requirement
@@ -137,40 +141,44 @@ export class WeatherEngine {
           const extraPrecipProb = Number(Math.min(100, Math.max(0, sourcePrecipProb + randomNoiseLarge())).toFixed(1));
           const extraPrecip = Number(Math.max(0, sourcePrecip + randomNoiseSmall()).toFixed(2));
 
-          await prisma.weatherForecastHourly.upsert({
-            where: {
-              date_timeStr: {
+          const minutes = ['00', '15', '30', '45'];
+          for (const minute of minutes) {
+            const timeStrSlot = `${baseHour}:${minute}`;
+            await prisma.weatherForecastHourly.upsert({
+              where: {
+                date_timeStr: {
+                  date: extrapolatedDate,
+                  timeStr: timeStrSlot
+                }
+              },
+              update: {
+                maxTemp: extraTemp,
+                minTemp: extraTemp,
+                windSpeed: extraWind,
+                relativeHumidity: extraHumidity,
+                precipitationProb: extraPrecipProb,
+                precipitationSum: extraPrecip,
+                sunshineDuration: lastDailySunshine,
+                sunrise: lastDailySunrise,
+                sunset: lastDailySunset,
+                isActual: false
+              },
+              create: {
                 date: extrapolatedDate,
-                timeStr
+                timeStr: timeStrSlot,
+                maxTemp: extraTemp,
+                minTemp: extraTemp,
+                windSpeed: extraWind,
+                relativeHumidity: extraHumidity,
+                precipitationProb: extraPrecipProb,
+                precipitationSum: extraPrecip,
+                sunshineDuration: lastDailySunshine,
+                sunrise: lastDailySunrise,
+                sunset: lastDailySunset,
+                isActual: false
               }
-            },
-            update: {
-              maxTemp: extraTemp,
-              minTemp: extraTemp,
-              windSpeed: extraWind,
-              relativeHumidity: extraHumidity,
-              precipitationProb: extraPrecipProb,
-              precipitationSum: extraPrecip,
-              sunshineDuration: lastDailySunshine,
-              sunrise: lastDailySunrise,
-              sunset: lastDailySunset,
-              isActual: false
-            },
-            create: {
-              date: extrapolatedDate,
-              timeStr,
-              maxTemp: extraTemp,
-              minTemp: extraTemp,
-              windSpeed: extraWind,
-              relativeHumidity: extraHumidity,
-              precipitationProb: extraPrecipProb,
-              precipitationSum: extraPrecip,
-              sunshineDuration: lastDailySunshine,
-              sunrise: lastDailySunrise,
-              sunset: lastDailySunset,
-              isActual: false
-            }
-          });
+            });
+          }
         }
       }
 

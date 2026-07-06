@@ -421,7 +421,7 @@ export default function DatabasePage() {
                 <MenuItem value="npp">All India Demand (NPP)</MenuItem>
                 <MenuItem value="generation">Generation Data</MenuItem>
                 <MenuItem value="state">State Wise Demand</MenuItem>
-                <MenuItem value="weather_forecast">Weather Forecasted Data (Hourly)</MenuItem>
+                <MenuItem value="weather_forecast">Weather Forecasted Data (15-Minutely)</MenuItem>
                 <MenuItem value="weather_historical">Weather Historical Data (Daily)</MenuItem>
               </Select>
             </FormControl>
@@ -629,7 +629,7 @@ export default function DatabasePage() {
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {weatherTab === 'forecast' 
-                          ? '16-day rolling hourly forecast. Updates every hour. Source: Open-Meteo.'
+                          ? '16-day rolling 15-minutely forecast. Updates every hour. Source: Open-Meteo.'
                           : 'Historical daily actuals from the last 2 years. Updates every day. Source: Open-Meteo Archive.'}
                       </Typography>
                     </Box>
