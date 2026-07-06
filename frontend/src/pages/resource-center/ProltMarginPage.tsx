@@ -15,7 +15,7 @@ const formatMonth = (m: any) => {
 };
 
 export default function ProltMarginPage() {
-  const { data, loading, error } = useResourceData<ProltMargin>('prolt-margin');
+  const { data, loading, error, refresh, bulkUpload } = useResourceData<ProltMargin>('prolt-margin');
   const [searchQuery, setSearchQuery] = useState('');
   const config = RESOURCE_CENTER_PAGES.PROLT_MARGIN;
 
@@ -64,6 +64,15 @@ export default function ProltMarginPage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={config.searchPlaceholder}
+      onUpload={async (parsedData) => {
+        try {
+          await bulkUpload(parsedData);
+          refresh();
+          alert('Upload successful!');
+        } catch (err: any) {
+          alert('Upload failed: ' + err.message);
+        }
+      }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
     >

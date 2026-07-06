@@ -6,6 +6,7 @@ import {
   TablePagination
 } from '@mui/material';
 import { fetchApiLogs, fetchUniqueApiNames, ApiLog } from '../../api/apiLog.api';
+import DateRangePicker from '../../components/common/DateRangePicker';
 
 export default function ApiLogsAdminPage() {
   const [logs, setLogs] = useState<ApiLog[]>([]);
@@ -15,8 +16,13 @@ export default function ApiLogsAdminPage() {
   // Filter States
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  const getTodayFormatted = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const [startDate, setStartDate] = useState<string>(getTodayFormatted());
+  const [endDate, setEndDate] = useState<string>(getTodayFormatted());
   const [selectedApiName, setSelectedApiName] = useState<string>('');
   
   const [apiNamesList, setApiNamesList] = useState<string[]>([]);
@@ -53,8 +59,8 @@ export default function ApiLogsAdminPage() {
   };
 
   const handleClearFilters = () => {
-    setStartDate('');
-    setEndDate('');
+    setStartDate(getTodayFormatted());
+    setEndDate(getTodayFormatted());
     setSelectedApiName('');
     setPage(0);
   };
@@ -82,23 +88,14 @@ export default function ApiLogsAdminPage() {
       {/* Filters Section */}
       <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-          <TextField
-            label="Start Date"
-            type="date"
-            value={startDate}
-            onChange={(e) => { setStartDate(e.target.value); setPage(0); }}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            sx={{ minWidth: 150 }}
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={endDate}
-            onChange={(e) => { setEndDate(e.target.value); setPage(0); }}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            sx={{ minWidth: 150 }}
+          <DateRangePicker 
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(s, e) => {
+              setStartDate(s);
+              setEndDate(e);
+              setPage(0);
+            }}
           />
           
           <FormControl size="small" sx={{ minWidth: 200 }}>

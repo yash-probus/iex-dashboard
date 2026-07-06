@@ -16,6 +16,11 @@ export const createResource = async (resourceType: string, payload: any): Promis
   return response.data;
 };
 
+export const uploadBulk = async (resourceType: string, payloadArray: any[]): Promise<ResourceResponse> => {
+  const response = await apiClient.post(`/resource-center/${resourceType}/bulk`, payloadArray);
+  return response.data;
+};
+
 export const updateResource = async (resourceType: string, id: number, payload: any): Promise<ResourceResponse> => {
   const response = await apiClient.put(`/resource-center/${resourceType}/${id}`, payload);
   return response.data;

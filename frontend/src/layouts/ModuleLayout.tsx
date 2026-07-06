@@ -20,7 +20,7 @@ export default function ModuleLayout() {
     activeItems = DATABASE_ITEMS;
     activeModuleTitle = 'Demand & Generation Data';
     activeModuleColor = theme.palette.primary.main;
-  } else if (location.pathname.startsWith('/dam') || location.pathname.startsWith('/gdam') || location.pathname.startsWith('/rtm') || location.pathname.startsWith('/markets')) {
+  } else if (location.pathname.startsWith('/dam') || location.pathname.startsWith('/gdam') || location.pathname.startsWith('/rtm') || location.pathname.startsWith('/rec') || location.pathname.startsWith('/markets')) {
     activeItems = MARKET_ITEMS;
     activeModuleTitle = 'IEX Market';
     activeModuleColor = '#00BFA5';
@@ -217,7 +217,7 @@ export default function ModuleLayout() {
       </Paper>
 
       {/* Main Content */}
-      <Box id="module-content-wrapper" sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: 'calc(100vh - 120px)' } }}>
+      <Box id="module-content-wrapper" sx={{ flexGrow: 1, minWidth: 0 }}>
         <Outlet />
       </Box>
     </Box>

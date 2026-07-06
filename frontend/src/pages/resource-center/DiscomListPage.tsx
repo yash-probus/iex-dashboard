@@ -10,7 +10,7 @@ import { RESOURCE_CENTER_PAGES } from './constants/resourceCenter.constants';
 import { DiscomList } from './types/resourceCenter.types';
 
 export default function DiscomListPage() {
-  const { data, loading, error } = useResourceData<DiscomList>('discom-list');
+  const { data, loading, error, refresh, bulkUpload } = useResourceData<DiscomList>('discom-list');
   const [searchQuery, setSearchQuery] = useState('');
   const config = RESOURCE_CENTER_PAGES.DISCOM_LIST;
 
@@ -53,6 +53,15 @@ export default function DiscomListPage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={config.searchPlaceholder}
+      onUpload={async (parsedData) => {
+        try {
+          await bulkUpload(parsedData);
+          refresh();
+          alert('Upload successful!');
+        } catch (err: any) {
+          alert('Upload failed: ' + err.message);
+        }
+      }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
     >

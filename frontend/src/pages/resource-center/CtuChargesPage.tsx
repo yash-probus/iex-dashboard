@@ -16,7 +16,7 @@ const formatMonth = (m: any) => {
 };
 
 export default function CtuChargesPage() {
-  const { data, loading, error } = useResourceData<CtuCharges>('ctu-charges');
+  const { data, loading, error, refresh, bulkUpload } = useResourceData<CtuCharges>('ctu-charges');
   const [searchQuery, setSearchQuery] = useState('');
   const config = RESOURCE_CENTER_PAGES.CTU_CHARGES;
 
@@ -69,6 +69,15 @@ export default function CtuChargesPage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={config.searchPlaceholder}
+      onUpload={async (parsedData) => {
+        try {
+          await bulkUpload(parsedData);
+          refresh();
+          alert('Upload successful!');
+        } catch (err: any) {
+          alert('Upload failed: ' + err.message);
+        }
+      }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
     >

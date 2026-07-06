@@ -62,29 +62,70 @@ export class CronService {
       }
     });
 
-    // Run every day at 1:30 AM for DAM Scraper
-    cron.schedule('30 1 * * *', async () => {
-      console.log('[Cron] Running daily DAM scraper');
+    // Run every day at 7:00 AM for Market Data (DAM, GDAM, RTM) Scrapers
+    cron.schedule('0 7 * * *', async () => {
+      console.log('[Cron] Running daily Market Data scrapers at 7 AM');
       try {
         const { ScraperService } = await import('../modules/scraper/scraper.service');
         const { PersistenceService } = await import('../modules/persistence/persistence.service');
         
-        const records = await ScraperService.scrapeDam();
-        if (records.length > 0) {
-          const deliveryDate = new Date();
-          deliveryDate.setUTCHours(0, 0, 0, 0);
-          
-          await PersistenceService.persistDataset({
-            market: 'DAM',
-            deliveryDate,
-            fileName: `scraped_dam_${deliveryDate.toISOString().split('T')[0]}.csv`,
-            records,
-            action: 'replace'
-          });
-          console.log(`[Cron] Successfully scraped and saved ${records.length} DAM records`);
+        const deliveryDate = new Date();
+        deliveryDate.setUTCHours(0, 0, 0, 0);
+        const dateStr = deliveryDate.toISOString().split('T')[0];
+
+        // Scrape and persist DAM
+        try {
+          const damRecords = await ScraperService.scrapeDam();
+          if (damRecords.length > 0) {
+            await PersistenceService.persistDataset({
+              market: 'DAM',
+              deliveryDate,
+              fileName: `scraped_dam_${dateStr}.csv`,
+              records: damRecords,
+              action: 'replace'
+            });
+            console.log(`[Cron] Successfully scraped and saved ${damRecords.length} DAM records`);
+          }
+        } catch (e) {
+          console.error('[Cron] DAM scrape failed:', e);
         }
+
+        // Scrape and persist GDAM
+        try {
+          const gdamRecords = await ScraperService.scrapeGdam();
+          if (gdamRecords.length > 0) {
+            await PersistenceService.persistDataset({
+              market: 'GDAM',
+              deliveryDate,
+              fileName: `scraped_gdam_${dateStr}.csv`,
+              records: gdamRecords,
+              action: 'replace'
+            });
+            console.log(`[Cron] Successfully scraped and saved ${gdamRecords.length} GDAM records`);
+          }
+        } catch (e) {
+          console.error('[Cron] GDAM scrape failed:', e);
+        }
+
+        // Scrape and persist RTM
+        try {
+          const rtmRecords = await ScraperService.scrapeRtm();
+          if (rtmRecords.length > 0) {
+            await PersistenceService.persistDataset({
+              market: 'RTM',
+              deliveryDate,
+              fileName: `scraped_rtm_${dateStr}.csv`,
+              records: rtmRecords,
+              action: 'replace'
+            });
+            console.log(`[Cron] Successfully scraped and saved ${rtmRecords.length} RTM records`);
+          }
+        } catch (e) {
+          console.error('[Cron] RTM scrape failed:', e);
+        }
+
       } catch (error) {
-        console.error('[Cron] Error in DAM scraper schedule:', error);
+        console.error('[Cron] Error in Market Data scraper schedule:', error);
       }
     });
 

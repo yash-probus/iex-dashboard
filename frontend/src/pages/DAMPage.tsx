@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Typography, Alert, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { TrendingUp, BarChart, ElectricBolt, ShowChart } from '@mui/icons-material';
+import { TrendingUp, BarChart, ElectricBolt, ShowChart, FileDownload as DownloadIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import FilterContainer from '../components/dashboard/FilterContainer';
+import ActionButton from '../components/common/ActionButton';
 import SummaryGrid from '../components/dashboard/SummaryGrid';
 import SummaryCard from '../components/dashboard/SummaryCard';
 import MarketChart, { ChartMetric } from '../components/dashboard/MarketChart';
@@ -60,7 +61,7 @@ export default function DAMPage() {
 
   const columns = getColumns();
 
-  const handleExport = () => exportToCSV(data, `DAM_Data_${filters.date}`, columns);
+  const handleExport = () => exportToCSV(data, `DAM_Data_${filters.startDate}_to_${filters.endDate}`, columns);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -97,38 +98,48 @@ export default function DAMPage() {
           </Box>
         </Box>
 
-        <ToggleButtonGroup
-          value={marketView}
-          exclusive
-          onChange={(e, value) => value && setMarketView(value)}
-          size="small"
-          sx={{
-            bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 2.5,
-            p: 0.5,
-            '& .MuiToggleButton-root': {
-              border: 'none',
-              borderRadius: 2,
-              px: 2.5,
-              py: 0.75,
-              textTransform: 'none',
-              fontWeight: 600,
-              color: 'text.secondary',
-              '&.Mui-selected': {
-                bgcolor: DAM_ACCENT,
-                color: '#FFF',
-                '&:hover': {
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <ActionButton 
+            variant="secondary" 
+            startIcon={<DownloadIcon fontSize="small" />} 
+            onClick={handleExport}
+            accentColor={DAM_ACCENT}
+          >
+            Export Data
+          </ActionButton>
+          <ToggleButtonGroup
+            value={marketView}
+            exclusive
+            onChange={(e, value) => value && setMarketView(value)}
+            size="small"
+            sx={{
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2.5,
+              p: 0.5,
+              '& .MuiToggleButton-root': {
+                border: 'none',
+                borderRadius: 2,
+                px: 2.5,
+                py: 0.75,
+                textTransform: 'none',
+                fontWeight: 600,
+                color: 'text.secondary',
+                '&.Mui-selected': {
                   bgcolor: DAM_ACCENT,
+                  color: '#FFF',
+                  '&:hover': {
+                    bgcolor: DAM_ACCENT,
+                  }
                 }
               }
-            }
-          }}
-        >
-          <ToggleButton value="all-india">All India</ToggleButton>
-          <ToggleButton value="state-wise">State Wise</ToggleButton>
-        </ToggleButtonGroup>
+            }}
+          >
+            <ToggleButton value="all-india">All India</ToggleButton>
+            <ToggleButton value="state-wise">State Wise</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
       </Box>
 
       {marketView === 'all-india' && (
@@ -136,10 +147,9 @@ export default function DAMPage() {
           accentColor={DAM_ACCENT} 
           filters={filters}
           onSearch={(newFilters, selectedState) => {
-            if (newFilters.date !== filters.date) handleDateChange(newFilters.date);
+            if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
             if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);
           }}
-          onExport={handleExport}
           onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
           hideHourlyDaily={true}
         />
@@ -171,7 +181,7 @@ export default function DAMPage() {
               title="DAM Market Overview" 
               data={data}
               metrics={chartMetrics}
-              dateRangeLabel={filters.date}
+              dateRangeLabel={`${filters.startDate} to ${filters.endDate}`}
               interval={filters.interval}
             />
           )}

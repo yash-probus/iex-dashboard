@@ -40,6 +40,16 @@ export interface RtmIntervalRecord {
   mcp: number;
 }
 
+export interface RecIntervalRecord {
+  intervalNumber: number;
+  intervalTime: string;
+  purchaseBid: number;
+  sellBid: number;
+  mcv: number;
+  fsv: number;
+  mcp: number;
+}
+
 export interface TransformationResult {
   market: MarketType;
   intervalCount: number;

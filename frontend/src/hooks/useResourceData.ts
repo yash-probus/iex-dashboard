@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getResourceData } from '../api/resourceCenter.api';
+import { getResourceData, uploadBulk } from '../api/resourceCenter.api';
 
 export function useResourceData<T>(resourceType: string) {
   const [data, setData] = useState<T[]>([]);
@@ -27,5 +27,9 @@ export function useResourceData<T>(resourceType: string) {
     fetchResource();
   }, [fetchResource]);
 
-  return { data, loading, error, refresh: fetchResource };
+  const bulkUploadData = async (payloadArray: any[]) => {
+    return await uploadBulk(resourceType, payloadArray);
+  };
+
+  return { data, loading, error, refresh: fetchResource, bulkUpload: bulkUploadData };
 }

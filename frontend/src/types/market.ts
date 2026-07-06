@@ -29,12 +29,16 @@ export interface GDAMRecord extends BaseRecord {
   fsvHydro: number;
 }
 
+export interface RECRecord extends BaseRecord {
+  // Uses the same base fields as DAM
+}
+
 export interface RTMRecord extends DAMRecord {
   sessionId: string; // e.g., "S-01"
 }
 
-export type MarketType = 'DAM' | 'GDAM' | 'RTM';
-export type AnyMarketRecord = DAMRecord | GDAMRecord | RTMRecord;
+export type MarketType = 'DAM' | 'GDAM' | 'RTM' | 'REC';
+export type AnyMarketRecord = DAMRecord | GDAMRecord | RTMRecord | RECRecord;
 
 export interface MarketSummary {
   averageMcp: number;

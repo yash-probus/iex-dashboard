@@ -116,92 +116,57 @@ export class DashboardService {
   /**
    * Universal fetch for dashboard interval data
    */
-  public static async getDashboardData(market: string, dateStr: string, interval: string = '15min') {
-    if (!dateStr) throw new AppError('Date parameter is required', 400);
-    const deliveryDate = new Date(dateStr);
+  public static async getDashboardData(market: string, startDateStr: string, endDateStr: string, interval: string = '15min') {
+    if (!startDateStr || !endDateStr) throw new AppError('Date range parameters are required', 400);
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
     
     let intervals: any[] = [];
     let datasetMeta: any = null;
 
-    if (interval === 'daily') {
-      // Fetch up to 7 latest ACTIVE datasets <= deliveryDate
-      const datasets = await prisma.dataset.findMany({
-        where: {
-          market: market.toUpperCase() as any,
-          status: 'ACTIVE',
-          deliveryDate: { lte: deliveryDate }
-        },
-        orderBy: { deliveryDate: 'desc' },
-        take: 7
-      });
+    // Fetch all active datasets within the range, ordered chronologically
+    const datasets = await prisma.dataset.findMany({
+      where: {
+        market: market.toUpperCase() as any,
+        status: 'ACTIVE',
+        deliveryDate: { gte: startDate, lte: endDate }
+      },
+      orderBy: { deliveryDate: 'asc' }
+    });
 
-      if (datasets.length === 0) {
-        throw new AppError(`No ACTIVE datasets found for ${market.toUpperCase()} up to ${dateStr}`, 404);
+    if (datasets.length === 0) {
+      throw new AppError(`No ACTIVE datasets found for ${market.toUpperCase()} between ${startDateStr} and ${endDateStr}`, 404);
+    }
+
+    datasetMeta = {
+      market: datasets[0].market,
+      startDate: startDateStr,
+      endDate: endDateStr,
+      status: datasets[0].status
+    };
+
+    for (const ds of datasets) {
+      let records: any[] = [];
+      if (market.toUpperCase() === 'DAM') {
+        records = await prisma.damRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
+      } else if (market.toUpperCase() === 'GDAM') {
+        records = await prisma.gdamRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
+      } else if (market.toUpperCase() === 'RTM') {
+        records = await prisma.rtmRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
+      } else if (market.toUpperCase() === 'REC') {
+        records = await prisma.recRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
       }
 
-      datasetMeta = {
-        market: datasets[0].market,
-        deliveryDate: dateStr,
-        status: datasets[0].status
-      };
+      const dateString = ds.deliveryDate.toISOString().split('T')[0];
+      const formatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const prettyDate = formatter.format(ds.deliveryDate);
 
-      for (const ds of datasets) {
-        let records: any[] = [];
-        if (market.toUpperCase() === 'DAM') {
-          records = await prisma.damRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
-        } else if (market.toUpperCase() === 'GDAM') {
-          records = await prisma.gdamRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
-        } else if (market.toUpperCase() === 'RTM') {
-          records = await prisma.rtmRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
-        }
-
-        const dateString = ds.deliveryDate.toISOString().split('T')[0];
-        // Format to "23 Jun 2026"
-        const formatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        const prettyDate = formatter.format(ds.deliveryDate);
-
+      if (interval === 'daily') {
         const dailyAveraged = this.averageRecords(records, { date: prettyDate, sortDate: dateString });
         if (dailyAveraged) {
           intervals.push(dailyAveraged);
         }
-      }
-
-    } else {
-      // 15min or hourly (Single dataset fetch)
-      const dataset = await prisma.dataset.findFirst({
-        where: {
-          market: market.toUpperCase() as any,
-          deliveryDate,
-          status: 'ACTIVE'
-        }
-      });
-
-      if (!dataset) {
-        throw new AppError(`No ACTIVE dataset found for ${market.toUpperCase()} on ${dateStr}`, 404);
-      }
-
-      datasetMeta = {
-        id: dataset.id,
-        market: dataset.market,
-        deliveryDate: dataset.deliveryDate.toISOString().split('T')[0],
-        status: dataset.status
-      };
-
-      let records: any[] = [];
-      if (market.toUpperCase() === 'DAM') {
-        records = await prisma.damRecord.findMany({ where: { datasetId: dataset.id }, orderBy: { intervalNumber: 'asc' } });
-      } else if (market.toUpperCase() === 'GDAM') {
-        records = await prisma.gdamRecord.findMany({ where: { datasetId: dataset.id }, orderBy: { intervalNumber: 'asc' } });
-      } else if (market.toUpperCase() === 'RTM') {
-        records = await prisma.rtmRecord.findMany({ where: { datasetId: dataset.id }, orderBy: { intervalNumber: 'asc' } });
-      }
-
-      // Format date to "23 Jun 2026" for display
-      const formatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-      const prettyDate = formatter.format(dataset.deliveryDate);
-
-      if (interval === 'hourly') {
-        // Group into 24 hours
+      } else if (interval === 'hourly') {
         for (let i = 0; i < 24; i++) {
           const chunk = records.slice(i * 4, i * 4 + 4);
           if (chunk.length === 0) continue;
@@ -214,11 +179,11 @@ export class DashboardService {
         }
       } else {
         // Default 15min
-        intervals = this.formatRecords(records, prettyDate);
+        intervals.push(...this.formatRecords(records, prettyDate));
       }
     }
 
-    const analytics = this.computeAnalytics(market, dateStr, intervals);
+    const analytics = this.computeAnalytics(market, `${startDateStr} to ${endDateStr}`, intervals);
 
     return {
       dataset: datasetMeta,
@@ -230,8 +195,8 @@ export class DashboardService {
   /**
    * Analytics backward compatibility wrapper
    */
-  public static async getAnalytics(market: string, dateStr: string, interval: string = '15min') {
-    const data = await this.getDashboardData(market, dateStr, interval);
+  public static async getAnalytics(market: string, startDateStr: string, endDateStr: string, interval: string = '15min') {
+    const data = await this.getDashboardData(market, startDateStr, endDateStr, interval);
     return data.analytics;
   }
 

@@ -3,9 +3,9 @@ import path from 'path';
 import prisma from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { logger } from '../../logger';
-import { PersistDatasetParams, DamDbPayload, GdamDbPayload, RtmDbPayload } from './persistence.types';
+import { PersistDatasetParams, DamDbPayload, GdamDbPayload, RtmDbPayload, RecDbPayload } from './persistence.types';
 import { toDecimal } from '../../utils/prisma-decimal';
-import { DamIntervalRecord, GdamIntervalRecord, RtmIntervalRecord } from '../transformation/transformation.types';
+import { DamIntervalRecord, GdamIntervalRecord, RtmIntervalRecord, RecIntervalRecord } from '../transformation/transformation.types';
 
 export class PersistenceService {
   /**
@@ -143,6 +143,21 @@ export class PersistenceService {
           }));
 
           const result = await tx.rtmRecord.createMany({ data: dbRecords });
+          insertedCount = result.count;
+        }
+        else if (market === 'REC') {
+          const dbRecords: RecDbPayload[] = (records as RecIntervalRecord[]).map((r) => ({
+            datasetId: dataset.id,
+            intervalNumber: r.intervalNumber,
+            intervalTime: r.intervalTime,
+            purchaseBid: toDecimal(r.purchaseBid),
+            sellBid: toDecimal(r.sellBid),
+            mcv: toDecimal(r.mcv),
+            fsv: toDecimal(r.fsv),
+            mcp: toDecimal(r.mcp),
+          }));
+
+          const result = await tx.recRecord.createMany({ data: dbRecords });
           insertedCount = result.count;
         }
 

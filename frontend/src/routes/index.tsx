@@ -5,6 +5,7 @@ import ModuleLayout from '../layouts/ModuleLayout';
 import DAMPage from '../pages/DAMPage';
 import GDAMPage from '../pages/GDAMPage';
 import RTMPage from '../pages/RTMPage';
+import RECPage from '../pages/RECPage';
 import RegionStatePage from '../pages/resource-center/RegionStatePage';
 import DiscomListPage from '../pages/resource-center/DiscomListPage';
 import IstsChargesPage from '../pages/resource-center/IstsChargesPage';
@@ -51,6 +52,7 @@ export default function AppRoutes() {
             <Route path="dam" element={<DAMPage />} />
             <Route path="gdam" element={<GDAMPage />} />
             <Route path="rtm" element={<RTMPage />} />
+            <Route path="rec" element={<RECPage />} />
             <Route path="market-operations" element={<MarketOperationsPage />} />
             <Route path="markets" element={<Navigate to="/dam" replace />} />
             

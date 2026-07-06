@@ -41,6 +41,27 @@ export const createResourceRecord = asyncHandler(async (req: Request, res: Respo
     data
   });
 });
+export const createBulkResourceRecords = asyncHandler(async (req: Request, res: Response) => {
+  const { resourceType } = req.params;
+  
+  if (!isValidResourceType(resourceType)) {
+    throw new AppError('Unsupported resource type', 400);
+  }
+
+  if (!Array.isArray(req.body)) {
+    throw new AppError('Payload must be an array of records', 400);
+  }
+
+  const validDataArray = req.body.map(record => validatePayload(resourceType as ResourceType, record));
+  
+  const result = await resourceCenterService.createBulkResourceRecords(resourceType as ResourceType, validDataArray);
+
+  res.status(201).json({
+    success: true,
+    message: `Bulk uploaded ${validDataArray.length} records successfully`,
+    data: result
+  });
+});
 
 export const updateResourceRecord = asyncHandler(async (req: Request, res: Response) => {
   const { resourceType, id } = req.params;

@@ -319,7 +319,7 @@ export default function HolidayCalendarView() {
                   >
                     {uniqueYears.map((y) => (
                       <option key={y} value={y}>
-                        {y === 'All' ? 'All Years' : y}
+                        {y === 'All' ? 'Calendar Year' : y}
                       </option>
                     ))}
                   </select>
@@ -340,9 +340,9 @@ export default function HolidayCalendarView() {
                     }}
                   >
                     <option value="All">All Types</option>
-                    <option value="SH">Settlement (SH)</option>
-                    <option value="CH">Clearing (CH)</option>
-                    <option value="CH_SH">Clearing & Settlement (CH_SH)</option>
+                    <option value="SH">State Holiday (SH)</option>
+                    <option value="CH">Central Holiday (CH)</option>
+                    <option value="CH_SH">Central & State Holiday (CH_SH)</option>
                   </select>
 
                   <select
@@ -469,14 +469,34 @@ export default function HolidayCalendarView() {
         <DialogTitle sx={{ fontWeight: 'bold' }}>Add Single Holiday</DialogTitle>
         <DialogContent dividers>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-            <FormControl fullWidth>
-              <TextField
+            <FormControl fullWidth size="small">
+              <InputLabel id="month-select-label">Month</InputLabel>
+              <Select
+                labelId="month-select-label"
                 label="Month"
-                size="small"
                 value={newHoliday.month}
                 onChange={(e) => setNewHoliday({ ...newHoliday, month: e.target.value })}
-                placeholder="e.g. January"
-              />
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 260,
+                      overflowY: 'auto',
+                      borderRadius: '10px',
+                      mt: 0.5,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                      '&::-webkit-scrollbar': { width: '6px' },
+                      '&::-webkit-scrollbar-track': { background: 'transparent' },
+                      '&::-webkit-scrollbar-thumb': { background: 'rgba(0,0,0,0.15)', borderRadius: '10px' },
+                    },
+                  },
+                  anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                  transformOrigin: { vertical: 'top', horizontal: 'left' },
+                }}
+              >
+                {['January','February','March','April','May','June','July','August','September','October','November','December'].map((m) => (
+                  <MenuItem key={m} value={m}>{m}</MenuItem>
+                ))}
+              </Select>
             </FormControl>
             <FormControl fullWidth>
               <TextField
@@ -505,9 +525,9 @@ export default function HolidayCalendarView() {
                 label="Holiday Type"
                 onChange={(e) => setNewHoliday({ ...newHoliday, holidayType: e.target.value })}
               >
-                <MenuItem value="SH">Settlement (SH)</MenuItem>
-                <MenuItem value="CH">Clearing (CH)</MenuItem>
-                <MenuItem value="CH_SH">Clearing & Settlement (CH_SH)</MenuItem>
+                <MenuItem value="SH">State Holiday (SH)</MenuItem>
+                <MenuItem value="CH">Central Holiday (CH)</MenuItem>
+                <MenuItem value="CH_SH">Central & State Holiday (CH_SH)</MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth>

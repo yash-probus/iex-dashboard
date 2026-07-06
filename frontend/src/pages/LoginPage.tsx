@@ -125,7 +125,7 @@ export default function LoginPage() {
         >
           <Box sx={{ p: 4, pb: 3 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h4" sx={{ color: '#0d47a1', fontWeight: 800, letterSpacing: '-0.02em', mb: 0.5 }}>
+              <Typography variant="h2" sx={{ color: '#0d47a1', fontWeight: 800, letterSpacing: '-0.02em', mb: 0.5, fontSize: '2.2rem' }}>
                 Welcome
               </Typography>
               <Typography variant="body2" sx={{ color: '#555', opacity: 0.8, fontWeight: 500 }}>

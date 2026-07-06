@@ -1,8 +1,18 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import { PrismaClient } from '@prisma/client';
 import { ApiLogService } from '../modules/api-log/api-log.service';
 
 const prisma = new PrismaClient();
+
+const axiosClient = axios.create({ timeout: 10000 });
+axiosRetry(axiosClient, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: (error) => {
+    return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response?.status === 429;
+  },
+});
 
 export class WeatherEngine {
   /**
@@ -14,7 +24,7 @@ export class WeatherEngine {
     try {
       // Fetch 16-day hourly forecast from Open-Meteo for New Delhi
       const url = "https://api.open-meteo.com/v1/forecast?latitude=28.61&longitude=77.20&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation_probability,precipitation&daily=sunrise,sunset,sunshine_duration&forecast_days=16&past_days=1&timezone=Asia/Kolkata";
-      const response = await axios.get(url);
+      const response = await axiosClient.get(url);
       
       const hourly = response.data.hourly;
       const daily = response.data.daily;
@@ -223,7 +233,7 @@ export class WeatherEngine {
         timezone: 'Asia/Kolkata',
       };
 
-      const res = await axios.get(url, { params });
+      const res = await axiosClient.get(url, { params });
       const daily = res.data?.daily;
       if (!daily?.time) return;
 

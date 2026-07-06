@@ -105,6 +105,7 @@ export default function UploadHub({ onUploadSuccess }: UploadHubProps) {
                 <MenuItem value="DAM">Day Ahead Market (DAM)</MenuItem>
                 <MenuItem value="GDAM">Green Day Ahead (GDAM)</MenuItem>
                 <MenuItem value="RTM">Real Time Market (RTM)</MenuItem>
+                <MenuItem value="REC">Renewable Energy Certificates (REC)</MenuItem>
               </Select>
             </FormControl>
             

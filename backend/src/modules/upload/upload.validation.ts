@@ -12,7 +12,7 @@ export const validateUploadRequest = (req: Request, res: Response, next: NextFun
 
   market = market.trim();
 
-  const validMarkets: MarketType[] = ['DAM', 'GDAM', 'RTM'];
+  const validMarkets: MarketType[] = ['DAM', 'GDAM', 'RTM', 'REC'];
   if (!validMarkets.includes(market.toUpperCase() as MarketType)) {
     return next(new AppError(`Invalid market type. Allowed: ${validMarkets.join(', ')}`, 400));
   }

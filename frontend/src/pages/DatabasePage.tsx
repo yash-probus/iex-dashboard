@@ -180,11 +180,20 @@ export default function DatabasePage() {
     if (weatherTab === 'historical') {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(today.getDate() - 30);
-      setWeatherStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
+      const startStr = thirtyDaysAgo.toISOString().split('T')[0];
+      setWeatherStartDate(startStr);
       setWeatherEndDate(todayStr);
+      setCommittedWeatherStartDate(startStr);
+      setCommittedWeatherEndDate(todayStr);
     } else {
+      // Forecast: show next 30 days by default
+      const thirtyDaysAhead = new Date();
+      thirtyDaysAhead.setDate(today.getDate() + 30);
+      const endStr = thirtyDaysAhead.toISOString().split('T')[0];
       setWeatherStartDate(todayStr);
-      setWeatherEndDate(todayStr);
+      setWeatherEndDate(endStr);
+      setCommittedWeatherStartDate(todayStr);
+      setCommittedWeatherEndDate(endStr);
     }
   }, [weatherTab]);
 
@@ -320,10 +329,12 @@ export default function DatabasePage() {
         display: 'flex',
         flexDirection: 'column',
         gap: 4,
-        flexGrow: 1
+        height: 'auto',
+        minHeight: 0,
+        pb: 4,
       }}
     >
-      {(!showDateRange && !showHolidayCalendar && !showWeather && !showCityState) && (
+      {(!showDateRange && !showHolidayCalendar && !showWeather && !showCityState && !showStateWise) && (
         <Box sx={{ mb: 5, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
           <Box 
           className="glass"
@@ -471,25 +482,20 @@ export default function DatabasePage() {
           <Button variant="outlined" color="primary" onClick={fetchData}>Retry</Button>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', gap: 4, flexGrow: 1 }}>
-          {/* Main Content */}
-          <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-            <Grid container spacing={4} sx={{ flexGrow: 1 }}>
-
-
+        <>
           {/* NPP Demand Section */}
           {showNpp && (
-            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 4,
+                  borderRadius: 3,
                   border: '1px solid',
-                  borderColor: alpha(theme.palette.divider, 0.1),
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                  borderColor: 'divider',
                   display: 'flex',
                   flexDirection: 'column',
                   flexGrow: 1,
+                  bgcolor: 'background.paper',
+                  overflow: 'hidden'
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
@@ -548,22 +554,21 @@ export default function DatabasePage() {
                   />
                 </CardContent>
               </Card>
-            </Grid>
           )}
 
           {/* NPP Generation Section */}
           {showGeneration && (
-            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 4,
+                  borderRadius: 3,
                   border: '1px solid',
-                  borderColor: alpha(theme.palette.divider, 0.1),
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                  borderColor: 'divider',
                   display: 'flex',
                   flexDirection: 'column',
                   flexGrow: 1,
+                  bgcolor: 'background.paper',
+                  overflow: 'hidden'
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
@@ -575,6 +580,27 @@ export default function DatabasePage() {
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                         View real-time and historical generation data for various fuel types.
                       </Typography>
+                      {/* Latest Time Badge */}
+                      {generationData?.raw?.length > 0 && (
+                        <Box sx={{
+                          mt: 1.5,
+                          display: 'inline-flex',
+                          flexDirection: 'column',
+                          px: 2,
+                          py: 1,
+                          borderRadius: 3,
+                          bgcolor: alpha('#3B82F6', 0.08),
+                          border: '1px solid',
+                          borderColor: alpha('#3B82F6', 0.2),
+                        }}>
+                          <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Latest Time
+                          </Typography>
+                          <Typography variant="body1" color="#3B82F6" fontWeight="700">
+                            {generationData.raw[generationData.raw.length - 1]?.timeStr?.slice(0, 16) || '-'}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                       <Box>
@@ -622,34 +648,26 @@ export default function DatabasePage() {
                   />
                 </CardContent>
               </Card>
-            </Grid>
           )}
 
           {/* State Wise Demand Section */}
           {showStateWise && (
-          <Grid item xs={12}>
             <StateWiseDemandView data={stateWiseDemand} />
-          </Grid>
           )}
 
           {/* Weather Data Section */}
           {showWeather && (
-          <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
             <Card
               elevation={0}
               sx={{
-                borderRadius: 4,
+                borderRadius: 3,
                 border: '1px solid',
-                borderColor: alpha(theme.palette.divider, 0.1),
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                borderColor: 'divider',
                 display: 'flex',
                 flexDirection: 'column',
                 flexGrow: 1,
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.1)',
-                },
+                bgcolor: 'background.paper',
+                overflow: 'hidden'
               }}
             >
               <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
@@ -859,26 +877,19 @@ export default function DatabasePage() {
                 )}
               </CardContent>
             </Card>
-          </Grid>
           )}
 
           {/* Holiday Calendar Section */}
           {showHolidayCalendar && (
-            <Grid item xs={12}>
               <HolidayCalendarView />
-            </Grid>
           )}
 
           {/* City & State Data Section */}
           {showCityState && (
-            <Grid item xs={12}>
               <CityStateView />
-            </Grid>
           )}
 
-            </Grid>
-          </Box>
-        </Box>
+        </>
       )}
     </Box>
   );

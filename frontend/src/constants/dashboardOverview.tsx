@@ -53,6 +53,14 @@ export const MARKET_ITEMS: OverviewItemConfig[] = [
     icon: <TimerIcon fontSize="medium" />, 
     color: '#E0B50F'
   },
+  { 
+    key: 'rec', 
+    title: 'REC Market', 
+    description: 'Renewable Energy Certificates market analytics and data.',
+    path: '/rec', 
+    icon: <ChartIcon fontSize="medium" />, 
+    color: '#8B5CF6'
+  },
 ];
 
 export const MARKET_OPERATIONS_ITEMS: OverviewItemConfig[] = [

@@ -2,16 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, CircularProgress,
-  Button, TextField, Card, CardContent, Divider
+  Button, TextField, Card, CardContent, Divider, TablePagination
 } from '@mui/material';
 import { fetchMarketOperations, MarketOperation } from '../../api/marketOperations.api';
 import { formatOverviewDate, formatTimeblock } from '../../utils/date';
+import DateRangePicker from '../../components/common/DateRangePicker';
 
 export default function MarketOperationsPage() {
+  const getTodayFormatted = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
   const [records, setRecords] = useState<MarketOperation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(getTodayFormatted());
+  const [endDate, setEndDate] = useState(getTodayFormatted());
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(96);
 
 
   useEffect(() => {
@@ -25,6 +33,7 @@ export default function MarketOperationsPage() {
       const eDate = overrideEnd !== undefined ? overrideEnd : endDate;
       const data = await fetchMarketOperations(sDate || undefined, eDate || undefined);
       setRecords(data);
+      setPage(0);
     } catch (error) {
       console.error('Failed to load market operations', error);
     } finally {
@@ -89,29 +98,15 @@ export default function MarketOperationsPage() {
             </Box>
             
             {/* Filters */}
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Start Date</Typography>
-                <TextField
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: '42px', bgcolor: '#FFF' } }}
-                />
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>End Date</Typography>
-                <TextField
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: '42px', bgcolor: '#FFF' } }}
-                />
-              </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+              <DateRangePicker 
+                startDate={startDate}
+                endDate={endDate}
+                onChange={(s, e) => {
+                  setStartDate(s);
+                  setEndDate(e);
+                }}
+              />
               <Button
                 variant="contained"
                 onClick={() => loadRecords()}
@@ -122,8 +117,11 @@ export default function MarketOperationsPage() {
               </Button>
               <Button 
                 variant="outlined" 
-                onClick={() => { setStartDate(''); setEndDate(''); loadRecords('', ''); }}
-                disabled={!startDate && !endDate}
+                onClick={() => { 
+                  setStartDate(getTodayFormatted()); 
+                  setEndDate(getTodayFormatted()); 
+                  loadRecords(getTodayFormatted(), getTodayFormatted()); 
+                }}
                 sx={{ height: '42px', borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
               >
                 Clear Filters
@@ -161,8 +159,10 @@ export default function MarketOperationsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  records.map((row, index) => {
-                    const dam = Number(row.damMcp);
+                  records
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((row, index) => {
+                      const dam = Number(row.damMcp);
                     const rtm = Number(row.rtmMcp);
                     const gdam = Number(row.gdamMcp);
                     const damVsRtm = dam - rtm;
@@ -204,6 +204,18 @@ export default function MarketOperationsPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[24, 48, 96, 192]}
+            component="div"
+            count={records.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+          />
         </CardContent>
       </Card>
     </Box>

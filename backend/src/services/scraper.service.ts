@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import https from 'https';
 import { PrismaClient } from '@prisma/client';
 import { ApiLogService } from '../modules/api-log/api-log.service';
@@ -13,6 +14,15 @@ const axiosClient = axios.create({
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
   }
+});
+
+// Configure retry
+axiosRetry(axiosClient, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: (error) => {
+    return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response?.status === 429;
+  },
 });
 
 // Region mappings

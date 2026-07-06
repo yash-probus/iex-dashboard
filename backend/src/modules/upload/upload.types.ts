@@ -1,4 +1,4 @@
-export type MarketType = 'DAM' | 'GDAM' | 'RTM';
+export type MarketType = 'DAM' | 'GDAM' | 'RTM' | 'REC';
 
 export interface UploadRequest {
   market: MarketType;

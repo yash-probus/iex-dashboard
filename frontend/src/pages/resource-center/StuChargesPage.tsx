@@ -15,7 +15,7 @@ const formatMonth = (m: any) => {
 };
 
 export default function StuChargesPage() {
-  const { data, loading, error } = useResourceData<StuCharges>('stu-charges');
+  const { data, loading, error, refresh, bulkUpload } = useResourceData<StuCharges>('stu-charges');
   const [searchQuery, setSearchQuery] = useState('');
   const config = RESOURCE_CENTER_PAGES.STU_CHARGES;
 
@@ -83,6 +83,15 @@ export default function StuChargesPage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={config.searchPlaceholder}
+      onUpload={async (parsedData) => {
+        try {
+          await bulkUpload(parsedData);
+          refresh();
+          alert('Upload successful!');
+        } catch (err: any) {
+          alert('Upload failed: ' + err.message);
+        }
+      }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
     >

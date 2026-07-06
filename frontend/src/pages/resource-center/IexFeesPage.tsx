@@ -16,7 +16,7 @@ const formatMonth = (m: any) => {
 };
 
 export default function IexFeesPage() {
-  const { data, loading, error } = useResourceData<IexFees>('iex-fees');
+  const { data, loading, error, refresh, bulkUpload } = useResourceData<IexFees>('iex-fees');
   const [searchQuery, setSearchQuery] = useState('');
   const config = RESOURCE_CENTER_PAGES.IEX_FEES;
 
@@ -67,6 +67,15 @@ export default function IexFeesPage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={config.searchPlaceholder}
+      onUpload={async (parsedData) => {
+        try {
+          await bulkUpload(parsedData);
+          refresh();
+          alert('Upload successful!');
+        } catch (err: any) {
+          alert('Upload failed: ' + err.message);
+        }
+      }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
     >

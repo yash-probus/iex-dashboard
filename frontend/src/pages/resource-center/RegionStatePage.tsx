@@ -9,7 +9,7 @@ import { useResourceData } from '../../hooks/useResourceData';
 import { RegionState } from './types/resourceCenter.types';
 
 export default function RegionStatePage() {
-  const { data, loading, error } = useResourceData<RegionState>('region-state');
+  const { data, loading, error, refresh, bulkUpload } = useResourceData<RegionState>('region-state');
   const [searchQuery, setSearchQuery] = useState('');
 
   const config = {
@@ -67,6 +67,15 @@ export default function RegionStatePage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={config.searchPlaceholder}
+      onUpload={async (parsedData) => {
+        try {
+          await bulkUpload(parsedData);
+          refresh();
+          alert('Upload successful!');
+        } catch (err: any) {
+          alert('Upload failed: ' + err.message);
+        }
+      }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
     >

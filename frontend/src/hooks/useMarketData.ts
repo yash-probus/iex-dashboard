@@ -3,7 +3,7 @@ import { dashboardApi } from '../api/dashboard.api';
 import { MarketFilters } from './useMarketFilters';
 
 export function useMarketData(
-  marketType: 'DAM' | 'GDAM' | 'RTM',
+  marketType: 'DAM' | 'GDAM' | 'RTM' | 'REC',
   filters: MarketFilters
 ) {
   const [data, setData] = useState<any[]>([]);
@@ -27,7 +27,7 @@ export function useMarketData(
       
       try {
         // Fetch intervals and analytics in unified payload
-        const dataRes = await dashboardApi.getMarketData(marketType, filters.date, filters.interval);
+        const dataRes = await dashboardApi.getMarketData(marketType, filters.startDate, filters.endDate, filters.interval);
 
         if (isMounted) {
           setData(dataRes.data.intervals || []);
@@ -60,7 +60,7 @@ export function useMarketData(
     return () => {
       isMounted = false;
     };
-  }, [marketType, filters.date, filters.interval]);
+  }, [marketType, filters.startDate, filters.endDate, filters.interval]);
 
   return {
     data,

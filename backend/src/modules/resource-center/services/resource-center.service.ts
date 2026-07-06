@@ -66,6 +66,35 @@ export const createResourceRecord = async (resourceType: ResourceType, payload: 
     throw error;
   }
 };
+export const createBulkResourceRecords = async (resourceType: ResourceType, payloadArray: any[]) => {
+  const tableInfo = RESOURCE_REGISTRY[resourceType];
+  const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
+
+  try {
+    if (resourceType === 'ists-charges') {
+      payloadArray.forEach(payload => {
+        if (payload.date) {
+          payload.date = parseInt(String(payload.date).replace(/-/g, ''), 10);
+        }
+      });
+    }
+
+    const created = await prisma.$transaction(async (tx) => {
+      const del = tx[tableInfo.modelName as keyof typeof tx] as any;
+      await del.deleteMany({});
+      return await del.createMany({
+        data: payloadArray
+      });
+    });
+
+    return created;
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      throw new AppError('Record already exists (Duplicate Conflict)', 409);
+    }
+    throw error;
+  }
+};
 
 export const updateResourceRecord = async (resourceType: ResourceType, id: number, payload: any) => {
   const tableInfo = RESOURCE_REGISTRY[resourceType];

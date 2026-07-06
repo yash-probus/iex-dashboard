@@ -276,6 +276,22 @@ export default function CityStateView() {
                   setPage(0);
                 }}
                 sx={{ borderRadius: '10px', bgcolor: '#FFF' }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 280,
+                      overflowY: 'auto',
+                      borderRadius: '10px',
+                      mt: 0.5,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                      '&::-webkit-scrollbar': { width: '6px' },
+                      '&::-webkit-scrollbar-track': { background: 'transparent' },
+                      '&::-webkit-scrollbar-thumb': { background: 'rgba(0,0,0,0.15)', borderRadius: '10px' },
+                    },
+                  },
+                  anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                  transformOrigin: { vertical: 'top', horizontal: 'left' },
+                }}
               >
                 <MenuItem value=""><em>All States</em></MenuItem>
                 {uniqueStates.map((state) => (

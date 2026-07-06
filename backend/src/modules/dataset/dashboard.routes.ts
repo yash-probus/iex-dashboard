@@ -4,9 +4,11 @@ import {
   getDamData, 
   getGdamData, 
   getRtmData, 
+  getRecData, 
   getDamAnalytics, 
   getGdamAnalytics, 
   getRtmAnalytics,
+  getRecAnalytics,
   getOverviewData
 } from './dashboard.controller';
 
@@ -19,7 +21,9 @@ dashboardRouter.get('/overview', asyncHandler(getOverviewData));
 dashboardRouter.get('/dam', asyncHandler(getDamData));
 dashboardRouter.get('/gdam', asyncHandler(getGdamData));
 dashboardRouter.get('/rtm', asyncHandler(getRtmData));
+dashboardRouter.get('/rec', asyncHandler(getRecData));
 
 dashboardRouter.get('/dam/analytics', asyncHandler(getDamAnalytics));
 dashboardRouter.get('/gdam/analytics', asyncHandler(getGdamAnalytics));
 dashboardRouter.get('/rtm/analytics', asyncHandler(getRtmAnalytics));
+dashboardRouter.get('/rec/analytics', asyncHandler(getRecAnalytics));

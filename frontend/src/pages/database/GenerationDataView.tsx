@@ -119,56 +119,79 @@ export default function GenerationDataView({
       {/* Latest Snapshot Cards */}
       <Box>
         <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Latest Snapshot</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={4} md={2}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          overflowX: 'auto', 
+          pb: 2,
+          '&::-webkit-scrollbar': { height: '6px' },
+          '&::-webkit-scrollbar-track': { background: 'transparent' },
+          '&::-webkit-scrollbar-thumb': { background: 'rgba(0,0,0,0.1)', borderRadius: '10px' },
+          '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(0,0,0,0.2)' }
+        }}>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.thermal, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.thermal, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'thermal' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'thermal' ? 'all' : 'thermal')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">THERMAL (MW)</Typography>
                 <Typography variant="h6" color={COLORS.thermal}>{latestSnapshot?.thermal?.toLocaleString() || '-'}</Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={4} md={2}>
+          </Box>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.gas, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.gas, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'gas' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'gas' ? 'all' : 'gas')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">GAS (MW)</Typography>
                 <Typography variant="h6" color={COLORS.gas}>{latestSnapshot?.gas?.toLocaleString() || '-'}</Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={4} md={2}>
+          </Box>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.nuclear, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.nuclear, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'nuclear' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'nuclear' ? 'all' : 'nuclear')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">NUCLEAR (MW)</Typography>
                 <Typography variant="h6" color={COLORS.nuclear}>{latestSnapshot?.nuclear?.toLocaleString() || '-'}</Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={4} md={2}>
+          </Box>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.hydro, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.hydro, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'hydro' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'hydro' ? 'all' : 'hydro')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">HYDRO (MW)</Typography>
                 <Typography variant="h6" color={COLORS.hydro}>{latestSnapshot?.hydro?.toLocaleString() || '-'}</Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={4} md={2}>
+          </Box>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.wind, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.wind, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'wind' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'wind' ? 'all' : 'wind')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">WIND (MW)</Typography>
                 <Typography variant="h6" color={COLORS.wind}>{latestSnapshot?.wind?.toLocaleString() || '-'}</Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={4} md={2}>
+          </Box>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.solar, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.solar, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'solar' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'solar' ? 'all' : 'solar')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">SOLAR (MW)</Typography>
                 <Typography variant="h6" color={COLORS.solar}>{latestSnapshot?.solar?.toLocaleString() || '-'}</Typography>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </Box>
+          <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
+            <Card elevation={0} sx={{ bgcolor: alpha('#3B82F6', 0.08), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B82F6', 0.2) }}>
+              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
+                <Typography variant="h6" color="#3B82F6" sx={{ fontSize: '1rem', fontWeight: 700 }}>
+                  {latestSnapshot?.timeStr
+                    ? latestSnapshot.timeStr.length > 16
+                      ? latestSnapshot.timeStr.slice(0, 16)
+                      : latestSnapshot.timeStr
+                    : '-'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Tip: Click on a card to filter the graph by that source.</Typography>
       </Box>
 
@@ -222,8 +245,8 @@ export default function GenerationDataView({
           <Typography color="text.secondary">No NPP Generation Data available for the selected date range.</Typography>
         ) : (
           <>
-              <Box sx={{ height: 400, mb: 2, mt: 2 }}>
-                <ResponsiveContainer width="100%" height="100%">
+              <Box sx={{ width: '100%', mb: 2, mt: 2 }}>
+                <ResponsiveContainer width="100%" height={450}>
                   <AreaChart data={chartData} margin={{ top: 10, right: 5, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis 

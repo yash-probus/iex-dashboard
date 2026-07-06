@@ -21,6 +21,7 @@ const MARKET_ITEMS = [
   { label: 'DAM', path: '/dam', icon: <BarChart fontSize="small" sx={{ color: '#3B8FF3' }} /> },
   { label: 'GDAM', path: '/gdam', icon: <ElectricBolt fontSize="small" sx={{ color: '#34B1AA' }} /> },
   { label: 'RTM', path: '/rtm', icon: <TimerIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
+  { label: 'REC', path: '/rec', icon: <BarChart fontSize="small" sx={{ color: '#8B5CF6' }} /> },
 ];
 
 const RESOURCE_ROUTES = [
