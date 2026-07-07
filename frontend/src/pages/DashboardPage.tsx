@@ -4,6 +4,7 @@ import {
   BarChart as ChartIcon,
   Storage as StorageIcon,
   SettingsSuggest as SettingsIcon,
+  Calculate as CalculateIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -40,6 +41,14 @@ const MODULES = [
     path: '/market-operations',
     icon: <SettingsIcon sx={{ fontSize: 24 }} />,
     color: '#FF7043'
+  },
+  {
+    key: 'savings-calculator',
+    title: 'Savings Calculator',
+    description: 'Calculate landed cost of open access power (IEX) and compare savings against state utility tariffs.',
+    path: '/savings-calculator',
+    icon: <CalculateIcon sx={{ fontSize: 24 }} />,
+    color: '#8B5CF6'
   },
   {
     key: 'api-logs',

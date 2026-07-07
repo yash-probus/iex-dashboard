@@ -22,7 +22,7 @@ Spins up the following containers:
   1. It builds the production bundle using `vite build` (Node.js).
   2. It copies the output `/dist` folder into a lightweight `nginx:alpine` image.
   3. Nginx serves the static HTML/CSS/JS files and dynamically handles React Router's client-side routing (by redirecting 404s back to `index.html`).
-  It maps the external port `8081` to the container's internal port `80`.
+  It maps the external port `8081` to the container's internal port `8081`.
 
 ## Deployment Commands
 When code is updated (e.g., merged to `main`), the deployment process on the server is simply:

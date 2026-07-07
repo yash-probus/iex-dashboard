@@ -25,6 +25,7 @@ import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 import MarketOperationsPage from '../pages/market-operations/MarketOperationsPage';
+import SavingsCalculatorPage from '../pages/SavingsCalculatorPage';
 
 export default function AppRoutes() {
   return (
@@ -34,6 +35,7 @@ export default function AppRoutes() {
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="savings-calculator" element={<SavingsCalculatorPage />} />
           
           {/* Module Layout wrapping all module sub-pages */}
           <Route element={<ModuleLayout />}>
