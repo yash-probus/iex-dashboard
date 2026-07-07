@@ -509,3 +509,20 @@ model CityStateData {
   @@unique([cityName, stateName], map: "uq_city_state_name")
   @@schema("public")
 }
+
+model SavingsCalculatorEntry {
+  id               String   @id @default(uuid())
+  clientName       String   @map("client_name") @db.VarChar(255)
+  industryName     String   @map("industry_name") @db.VarChar(255)
+  address          String   @db.Text
+  sanctionedLoadKw Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
+  stateCode        String?  @map("state_code") @db.VarChar(10)
+  discom           String?  @map("discom") @db.VarChar(100)
+  consumerCategory String?  @map("consumer_category") @db.VarChar(100)
+  voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("savings_calculator_entries")
+  @@schema("public")
+}

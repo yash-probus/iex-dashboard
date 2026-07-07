@@ -47,6 +47,7 @@ import scraperRoutes from './modules/scraper/scraper.routes';
 import databaseRoutes from './modules/database/database.routes';
 import apiLogRoutes from './modules/api-log/api-log.routes';
 import marketOperationsRoutes from './modules/market-operations/market-operations.routes';
+import savingsCalculatorRoutes from './modules/savings-calculator/savings-calculator.routes';
 
 // Initialize scheduled background jobs
 CronService.init();
@@ -62,6 +63,7 @@ app.use('/api/scraper', scraperRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/logs', apiLogRoutes);
 app.use('/api/market-operations', marketOperationsRoutes);
+app.use('/api/savings-calculator', savingsCalculatorRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
