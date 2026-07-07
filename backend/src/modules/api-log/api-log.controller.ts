@@ -27,4 +27,18 @@ export class ApiLogController {
       res.status(500).json({ message: 'Internal server error' });
     }
   }
+
+  static async getStats(req: Request, res: Response) {
+    try {
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const apiName = req.query.apiName as string | undefined;
+
+      const result = await ApiLogService.getStats(startDate, endDate, apiName);
+      res.json(result);
+    } catch (error) {
+      console.error('[ApiLogController] Failed to fetch stats:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
 }

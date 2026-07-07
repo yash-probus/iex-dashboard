@@ -9,6 +9,13 @@ export interface ApiLog {
   createdAt: string;
 }
 
+export interface ApiLogStats {
+  total: number;
+  success: number;
+  error: number;
+  accuracy: number;
+}
+
 export const fetchApiLogs = async (
   page: number = 1,
   limit: number = 100,
@@ -24,5 +31,16 @@ export const fetchApiLogs = async (
 
 export const fetchUniqueApiNames = async (): Promise<string[]> => {
   const response = await apiClient.get('/logs/api-names');
+  return response.data;
+};
+
+export const fetchApiLogStats = async (
+  startDate?: string,
+  endDate?: string,
+  apiName?: string
+): Promise<ApiLogStats> => {
+  const response = await apiClient.get('/logs/stats', {
+    params: { startDate, endDate, apiName }
+  });
   return response.data;
 };
