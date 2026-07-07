@@ -529,7 +529,7 @@ export default function DatabasePage() {
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                     <Box>
                       <Typography variant="h4" fontWeight="700" color="text.primary">
                         Real Time Demand Met Data
@@ -602,7 +602,7 @@ export default function DatabasePage() {
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                     <Box>
                       <Typography variant="h4" fontWeight="700" color="text.primary">
                         Real Time Generation Data
@@ -681,7 +681,7 @@ export default function DatabasePage() {
               }}
             >
               <CardContent sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                   <Box>
                     <Typography variant="h4" fontWeight="700" color="text.primary">
                       {weatherTab === 'forecast' ? 'Forecasted Weather Data' : 'Historical Weather Data'} ({selectedCityName || 'New Delhi'})
