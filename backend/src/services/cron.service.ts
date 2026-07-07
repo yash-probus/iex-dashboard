@@ -4,6 +4,7 @@ import { VidyutPravahScraper } from './scraper.service';
 import { WeatherEngine } from './weather.service';
 import { seedCtuCharges } from '../scripts/seed-ctu';
 import { seedIstsCharges } from '../scripts/seed-ists';
+import { ApiLogService } from '../modules/api-log/api-log.service';
 
 const prisma = new PrismaClient();
 
@@ -40,6 +41,8 @@ export class CronService {
       } catch (error) {
         console.error('[Cron] Error in daily schedule:', error);
       }
+    }, {
+      timezone: 'Asia/Kolkata'
     });
     
     // Run every 7 days (Weekly on Sunday at 1:00 AM) for ISTS Transmission Losses
@@ -50,6 +53,8 @@ export class CronService {
       } catch (error) {
         console.error('[Cron] Error in weekly ISTS schedule:', error);
       }
+    }, {
+      timezone: 'Asia/Kolkata'
     });
 
     // Run on the 1st of every month at 2:00 AM for CTU Charges
@@ -60,6 +65,8 @@ export class CronService {
       } catch (error) {
         console.error('[Cron] Error in monthly CTU schedule:', error);
       }
+    }, {
+      timezone: 'Asia/Kolkata'
     });
 
     // Run every day at 7:00 AM for Market Data (DAM, GDAM, RTM) Scrapers
@@ -69,64 +76,93 @@ export class CronService {
         const { ScraperService } = await import('../modules/scraper/scraper.service');
         const { PersistenceService } = await import('../modules/persistence/persistence.service');
         
-        const deliveryDate = new Date();
-        deliveryDate.setUTCHours(0, 0, 0, 0);
-        const dateStr = deliveryDate.toISOString().split('T')[0];
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+        const dateStr = formatter.format(new Date());
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const deliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
         // Scrape and persist DAM
         try {
           const damRecords = await ScraperService.scrapeDam();
           if (damRecords.length > 0) {
+            const existing = await prisma.dataset.findFirst({
+              where: { market: 'DAM', deliveryDate, status: 'ACTIVE' }
+            });
             await PersistenceService.persistDataset({
               market: 'DAM',
               deliveryDate,
               fileName: `scraped_dam_${dateStr}.csv`,
               records: damRecords,
-              action: 'replace'
+              action: existing ? 'replace' : undefined
             });
             console.log(`[Cron] Successfully scraped and saved ${damRecords.length} DAM records`);
+            await ApiLogService.createLog('IEX DAM Scraper', 'https://www.iexindia.com/market-data/day-ahead-market/market-snapshot', 'SUCCESS', `Successfully scraped and saved ${damRecords.length} DAM records`);
+          } else {
+            await ApiLogService.createLog('IEX DAM Scraper', 'https://www.iexindia.com/market-data/day-ahead-market/market-snapshot', 'SUCCESS', 'Scraper returned 0 records');
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('[Cron] DAM scrape failed:', e);
+          await ApiLogService.createLog('IEX DAM Scraper', 'https://www.iexindia.com/market-data/day-ahead-market/market-snapshot', 'ERROR', e.message || String(e));
         }
 
         // Scrape and persist GDAM
         try {
           const gdamRecords = await ScraperService.scrapeGdam();
           if (gdamRecords.length > 0) {
+            const existing = await prisma.dataset.findFirst({
+              where: { market: 'GDAM', deliveryDate, status: 'ACTIVE' }
+            });
             await PersistenceService.persistDataset({
               market: 'GDAM',
               deliveryDate,
               fileName: `scraped_gdam_${dateStr}.csv`,
               records: gdamRecords,
-              action: 'replace'
+              action: existing ? 'replace' : undefined
             });
             console.log(`[Cron] Successfully scraped and saved ${gdamRecords.length} GDAM records`);
+            await ApiLogService.createLog('IEX GDAM Scraper', 'https://www.iexindia.com/market-data/green-day-ahead-market/market-snapshot', 'SUCCESS', `Successfully scraped and saved ${gdamRecords.length} GDAM records`);
+          } else {
+            await ApiLogService.createLog('IEX GDAM Scraper', 'https://www.iexindia.com/market-data/green-day-ahead-market/market-snapshot', 'SUCCESS', 'Scraper returned 0 records');
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('[Cron] GDAM scrape failed:', e);
+          await ApiLogService.createLog('IEX GDAM Scraper', 'https://www.iexindia.com/market-data/green-day-ahead-market/market-snapshot', 'ERROR', e.message || String(e));
         }
 
         // Scrape and persist RTM
         try {
           const rtmRecords = await ScraperService.scrapeRtm();
           if (rtmRecords.length > 0) {
+            const existing = await prisma.dataset.findFirst({
+              where: { market: 'RTM', deliveryDate, status: 'ACTIVE' }
+            });
             await PersistenceService.persistDataset({
               market: 'RTM',
               deliveryDate,
               fileName: `scraped_rtm_${dateStr}.csv`,
               records: rtmRecords,
-              action: 'replace'
+              action: existing ? 'replace' : undefined
             });
             console.log(`[Cron] Successfully scraped and saved ${rtmRecords.length} RTM records`);
+            await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'SUCCESS', `Successfully scraped and saved ${rtmRecords.length} RTM records`);
+          } else {
+            await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'SUCCESS', 'Scraper returned 0 records');
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('[Cron] RTM scrape failed:', e);
+          await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'ERROR', e.message || String(e));
         }
 
       } catch (error) {
         console.error('[Cron] Error in Market Data scraper schedule:', error);
       }
+    }, {
+      timezone: 'Asia/Kolkata'
     });
 
     // Run every 4 minutes for NPP Data

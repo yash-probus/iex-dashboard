@@ -15,17 +15,28 @@ async function run() {
       // Let's check the date on the website? The scrapeDam function does not parse the date from the website.
       // We will set the delivery date to today for now, or tomorrow?
       // "do the scrapping for dam also" - the user wants data for 05/07/2026.
-      const deliveryDate = new Date();
-      deliveryDate.setUTCHours(0, 0, 0, 0);
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      const dateStr = formatter.format(new Date());
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const deliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
       
       console.log('Persisting data for date:', deliveryDate.toISOString());
       
+      const existing = await prisma.dataset.findFirst({
+        where: { market: 'DAM', deliveryDate, status: 'ACTIVE' }
+      });
+
       await PersistenceService.persistDataset({
         market: 'DAM',
         deliveryDate,
-        fileName: `scraped_dam_${deliveryDate.toISOString().split('T')[0]}.csv`,
+        fileName: `scraped_dam_${dateStr}.csv`,
         records,
-        action: 'replace'
+        action: existing ? 'replace' : undefined
       });
       console.log('Successfully saved DAM data!');
     }
