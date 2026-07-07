@@ -105,7 +105,7 @@ async function main() {
 
     // Map other fields
     const category = String(row['Consumer Category'] || '').trim();
-    const subCategory = String(row['DISCOM'] || '').trim();
+    const subCategoryRaw = String(row['DISCOM'] || '').trim();
     const season = String(row['Season'] || '').trim();
 
     // Map TOD fields
@@ -129,13 +129,21 @@ async function main() {
     const voltageFormats = Array.from(new Set([
       digits,
       `${digits}kV`,
-      `${digits} kV`
+      `${digits} kV`,
+      `${digits}kv`,
+      `${digits} kv`
     ]));
 
-    for (const month of months) {
-      for (const voltageLevel of voltageFormats) {
-        try {
-          await prisma.stateTariff.upsert({
+    let subCategoriesToSeed = [subCategoryRaw];
+    if (stateCode === 'UP' && subCategoryRaw === 'MVVNL') {
+      subCategoriesToSeed = ['MVVNL', 'PVVNL', 'DVVNL', 'PUVVNL', 'KESCO'];
+    }
+
+    for (const subCategory of subCategoriesToSeed) {
+      for (const month of months) {
+        for (const voltageLevel of voltageFormats) {
+          try {
+            await prisma.stateTariff.upsert({
             where: {
               stateCode_month_category_subCategory_voltageLevel_season_todName_tod: {
                 stateCode,
