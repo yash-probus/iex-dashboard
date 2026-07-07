@@ -28,6 +28,9 @@ import {
   CalculationSlotDetail
 } from '../api/savingsCalculator.api';
 import { exportToCSV } from '../utils/export';
+import { getResourceData } from '../api/resourceCenter.api';
+import { STATE_TARIFF_MOCK_DATA } from './resource-center/mockData/stateTariff.mock';
+import { DISCOM_LIST_MOCK_DATA } from './resource-center/mockData/discomList.mock';
 
 type DialogMode = 'create' | 'edit' | 'view' | null;
 
@@ -79,6 +82,9 @@ export default function SavingsCalculatorPage() {
   });
 
   // Fetch entries
+  const [tariffData, setTariffData] = useState<any[]>([]);
+  const [discomList, setDiscomList] = useState<any[]>([]);
+
   const loadEntries = async () => {
     try {
       setLoading(true);
@@ -93,9 +99,78 @@ export default function SavingsCalculatorPage() {
     }
   };
 
+  const loadResourceData = async () => {
+    try {
+      const [tariffRes, discomRes] = await Promise.all([
+        getResourceData('state-tariff'),
+        getResourceData('discom-list')
+      ]);
+      if (tariffRes.success && tariffRes.data.length > 0) {
+        setTariffData(tariffRes.data);
+      } else {
+        setTariffData(STATE_TARIFF_MOCK_DATA);
+      }
+      if (discomRes.success && discomRes.data.length > 0) {
+        setDiscomList(discomRes.data);
+      } else {
+        setDiscomList(DISCOM_LIST_MOCK_DATA);
+      }
+    } catch (err) {
+      console.error('Failed to load resource data, falling back to mock data:', err);
+      setTariffData(STATE_TARIFF_MOCK_DATA);
+      setDiscomList(DISCOM_LIST_MOCK_DATA);
+    }
+  };
+
   useEffect(() => {
     loadEntries();
+    loadResourceData();
   }, []);
+
+  // Memoized derived states
+  const uniqueStates = React.useMemo(() => {
+    const statesMap = new Map<string, string>();
+    tariffData.forEach((row: any) => {
+      if (row.stateCode) {
+        statesMap.set(row.stateCode, row.state || row.stateCode);
+      }
+    });
+    return Array.from(statesMap.entries()).map(([code, name]) => ({
+      stateCode: code,
+      stateName: name
+    }));
+  }, [tariffData]);
+
+  const filteredDiscoms = React.useMemo(() => {
+    if (!stateCode) return discomList;
+    return discomList.filter(
+      (d) => d.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()
+    );
+  }, [discomList, stateCode]);
+
+  const uniqueCategories = React.useMemo(() => {
+    const categoriesSet = new Set<string>();
+    tariffData.forEach((row: any) => {
+      if (row.category && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
+        categoriesSet.add(row.category);
+      }
+    });
+    return Array.from(categoriesSet);
+  }, [tariffData, stateCode]);
+
+  const uniqueVoltageLevels = React.useMemo(() => {
+    const levelsSet = new Set<string>([
+      '11 kV', '11kV', '22 kV', '22kV', '33 kV', '33kV',
+      '66 kV', '66kV', '110 kV', '110kV', '132 kV', '132kV',
+      '220 kV', '220kV'
+    ]);
+    tariffData.forEach((row: any) => {
+      if (row.voltageLevel && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
+        levelsSet.add(row.voltageLevel);
+      }
+    });
+    return Array.from(levelsSet);
+  }, [tariffData, stateCode]);
 
   // Form Reset Helper
   const resetForm = () => {
@@ -495,18 +570,36 @@ export default function SavingsCalculatorPage() {
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <TextField
+                    select
                     label="State Code"
                     value={stateCode}
-                    onChange={(e) => setStateCode(e.target.value)}
+                    onChange={(e) => {
+                      setStateCode(e.target.value);
+                      setDiscom('');
+                      setConsumerCategory('');
+                      setVoltageLevel('');
+                    }}
                     disabled={dialogMode === 'view'}
                     fullWidth
                     variant="outlined"
                     size="small"
-                    placeholder="e.g. MH, UP"
-                  />
+                    SelectProps={{ native: true }}
+                    InputLabelProps={{ shrink: true }}
+                  >
+                    <option value="" disabled>Select State</option>
+                    {uniqueStates.map((s) => (
+                      <option key={s.stateCode} value={s.stateCode}>
+                        {s.stateCode} - {s.stateName}
+                      </option>
+                    ))}
+                    {stateCode && !uniqueStates.some((s) => s.stateCode === stateCode) && (
+                      <option value={stateCode}>{stateCode}</option>
+                    )}
+                  </TextField>
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
+                    select
                     label="DISCOM"
                     value={discom}
                     onChange={(e) => setDiscom(e.target.value)}
@@ -514,14 +607,26 @@ export default function SavingsCalculatorPage() {
                     fullWidth
                     variant="outlined"
                     size="small"
-                    placeholder="e.g. MSEDCL"
-                  />
+                    SelectProps={{ native: true }}
+                    InputLabelProps={{ shrink: true }}
+                  >
+                    <option value="" disabled>Select DISCOM</option>
+                    {filteredDiscoms.map((d) => (
+                      <option key={d.code} value={d.code}>
+                        {d.code} - {d.legalName}
+                      </option>
+                    ))}
+                    {discom && !filteredDiscoms.some((d) => d.code === discom) && (
+                      <option value={discom}>{discom}</option>
+                    )}
+                  </TextField>
                 </Grid>
               </Grid>
 
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <TextField
+                    select
                     label="Consumer Category"
                     value={consumerCategory}
                     onChange={(e) => setConsumerCategory(e.target.value)}
@@ -529,11 +634,23 @@ export default function SavingsCalculatorPage() {
                     fullWidth
                     variant="outlined"
                     size="small"
-                    placeholder="e.g. HV-2, Industrial"
-                  />
+                    SelectProps={{ native: true }}
+                    InputLabelProps={{ shrink: true }}
+                  >
+                    <option value="" disabled>Select Category</option>
+                    {uniqueCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                    {consumerCategory && !uniqueCategories.includes(consumerCategory) && (
+                      <option value={consumerCategory}>{consumerCategory}</option>
+                    )}
+                  </TextField>
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
+                    select
                     label="Voltage Level"
                     value={voltageLevel}
                     onChange={(e) => setVoltageLevel(e.target.value)}
@@ -541,8 +658,19 @@ export default function SavingsCalculatorPage() {
                     fullWidth
                     variant="outlined"
                     size="small"
-                    placeholder="e.g. 11 kV, 33 kV"
-                  />
+                    SelectProps={{ native: true }}
+                    InputLabelProps={{ shrink: true }}
+                  >
+                    <option value="" disabled>Select Voltage</option>
+                    {uniqueVoltageLevels.map((lvl) => (
+                      <option key={lvl} value={lvl}>
+                        {lvl}
+                      </option>
+                    ))}
+                    {voltageLevel && !uniqueVoltageLevels.includes(voltageLevel) && (
+                      <option value={voltageLevel}>{voltageLevel}</option>
+                    )}
+                  </TextField>
                 </Grid>
               </Grid>
             </Grid>
