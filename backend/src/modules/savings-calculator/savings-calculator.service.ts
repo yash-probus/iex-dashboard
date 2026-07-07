@@ -83,14 +83,20 @@ export class SavingsCalculatorService {
     // 15-minute slot energy limit in kWh = load (kW) * 0.25 hours
     const maxEnergyPerSlot = sanctionedLoad * 0.25;
 
+    const whereClause: any = {
+      stateCode,
+      month,
+      category,
+      voltageLevel: voltage
+    };
+
+    if (entry.discom) {
+      whereClause.subCategory = entry.discom;
+    }
+
     // Fetch matching StateTariff slabs from DB
     const tariffs = await prisma.stateTariff.findMany({
-      where: {
-        stateCode,
-        month,
-        category,
-        voltageLevel: voltage
-      }
+      where: whereClause
     });
 
     // Query combined DAM, GDAM, and RTM records for the selected month using FULL OUTER JOIN
