@@ -13,7 +13,15 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
   PlayArrow as PlayIcon,
-  Download as DownloadIcon
+  Download as DownloadIcon,
+  CheckCircle as CheckCircleIcon,
+  LocationOn as LocationIcon,
+  ElectricBolt as ElectricBoltIcon,
+  Category as CategoryIcon,
+  Bolt as BoltIcon,
+  Speed as SpeedIcon,
+  Business as BusinessIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
@@ -43,6 +51,7 @@ export default function SavingsCalculatorPage() {
   // Dialog State
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
   const [selectedEntry, setSelectedEntry] = useState<SavingsCalculatorEntry | null>(null);
+  const [activeStep, setActiveStep] = useState<number>(0);
   
   // Form Fields State
   const [clientName, setClientName] = useState('');
@@ -199,9 +208,32 @@ export default function SavingsCalculatorPage() {
       setDiscom(entry.discom || '');
       setConsumerCategory(entry.consumerCategory || '');
       setVoltageLevel(entry.voltageLevel || '');
+      setActiveStep(5); // Start at final step for edit mode
     } else {
       setSelectedEntry(null);
       resetForm();
+      setActiveStep(0); // Start at step 0 for create mode
+    }
+  };
+
+  const isStepValid = (step: number) => {
+    switch (step) {
+      case 0:
+        return clientName.trim() !== '' && industryName.trim() !== '' && address.trim() !== '';
+      case 1:
+        return stateCode.trim() !== '';
+      case 2:
+        return discom.trim() !== '';
+      case 3:
+        return consumerCategory.trim() !== '';
+      case 4:
+        return voltageLevel.trim() !== '';
+      case 5:
+        if (!sanctionedLoadKw.trim()) return false;
+        const parsed = parseFloat(sanctionedLoadKw);
+        return !isNaN(parsed) && parsed > 0;
+      default:
+        return false;
     }
   };
 
@@ -352,6 +384,122 @@ export default function SavingsCalculatorPage() {
     exportToCSV(exportData, filename);
   };
 
+  const renderStep = (
+    stepIndex: number, 
+    stepMeta: { icon: React.ReactNode; title: string; question: string; summary: string; content: React.ReactNode }
+  ) => {
+    const isCompleted = stepIndex < activeStep || dialogMode === 'view';
+    const isActive = stepIndex === activeStep && dialogMode !== 'view';
+    const isFuture = stepIndex > activeStep && dialogMode !== 'view';
+
+    if (isFuture) return null;
+
+    if (isCompleted) {
+      return (
+        <Card 
+          key={stepIndex}
+          elevation={0}
+          sx={{ 
+            border: '1px solid', 
+            borderColor: 'divider', 
+            bgcolor: '#F8FAFC',
+            borderRadius: '12px',
+            p: 1.75,
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              borderColor: dialogMode !== 'view' ? '#8B5CF6' : 'divider',
+              bgcolor: dialogMode !== 'view' ? `${alpha('#8B5CF6', 0.02)}` : '#F8FAFC'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <CheckCircleIcon sx={{ color: '#10B981', fontSize: 22 }} />
+              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                {stepMeta.summary}
+              </Typography>
+            </Box>
+            {dialogMode !== 'view' && (
+              <IconButton size="small" onClick={() => setActiveStep(stepIndex)} title="Edit step">
+                <EditIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+              </IconButton>
+            )}
+          </Box>
+        </Card>
+      );
+    }
+
+    if (isActive) {
+      return (
+        <Card 
+          key={stepIndex}
+          elevation={0}
+          sx={{ 
+            border: '2px solid #8B5CF6', 
+            borderRadius: '16px',
+            p: 3,
+            boxShadow: '0 4px 12px -2px rgba(139, 92, 246, 0.08), 0 2px 6px -1px rgba(139, 92, 246, 0.04)',
+            bgcolor: '#FFF'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+            <Box sx={{ color: '#8B5CF6', display: 'flex', alignItems: 'center' }}>
+              {stepMeta.icon}
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1rem' }}>
+              {stepMeta.question}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ mb: 3 }}>
+            {stepMeta.content}
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+            {stepIndex > 0 && (
+              <Button 
+                onClick={() => setActiveStep(stepIndex - 1)}
+                sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
+              >
+                Back
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              onClick={() => {
+                if (isStepValid(stepIndex)) {
+                  if (stepIndex < 5) {
+                    setActiveStep(stepIndex + 1);
+                  } else {
+                    handleSubmit();
+                  }
+                } else {
+                  if (stepIndex === 5) {
+                    setFormErrors({ sanctionedLoadKw: 'Sanctioned load must be a positive number.' });
+                  }
+                }
+              }}
+              endIcon={stepIndex === 5 ? undefined : <ArrowForwardIcon />}
+              sx={{ 
+                textTransform: 'none', 
+                borderRadius: 2.5, 
+                fontWeight: 600, 
+                bgcolor: '#8B5CF6',
+                '&:hover': {
+                  bgcolor: '#7C3AED'
+                }
+              }}
+            >
+              {stepIndex === 5 ? (dialogMode === 'edit' ? 'Save Entry' : 'Create Entry') : 'Continue'}
+            </Button>
+          </Box>
+        </Card>
+      );
+    }
+
+    return null;
+  };
+
   // Define main table columns
   const columns: ColumnDefinition[] = [
     { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150 },
@@ -483,13 +631,13 @@ export default function SavingsCalculatorPage() {
       <Dialog 
         open={dialogMode !== null} 
         onClose={handleCloseDialog}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3, p: 1 }
+          sx: { borderRadius: 4, p: 1 }
         }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, pb: 1 }}>
           {dialogMode === 'create' && 'Create New Entry'}
           {dialogMode === 'edit' && 'Edit Entry'}
           {dialogMode === 'view' && 'View Entry Details'}
@@ -498,186 +646,222 @@ export default function SavingsCalculatorPage() {
           </IconButton>
         </DialogTitle>
         
-        <DialogContent sx={{ pt: 1 }}>
-          <Grid container spacing={3.5}>
-            {/* Primary Details Column */}
-            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Primary Info
-              </Typography>
-              
-              <TextField
-                label="Client Name"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                disabled={dialogMode === 'view'}
-                error={!!formErrors.clientName}
-                helperText={formErrors.clientName}
-                fullWidth
-                required
-                variant="outlined"
-                size="small"
-              />
+        <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2.5, maxWidth: '600px', mx: 'auto', width: '100%', pb: 3 }}>
+          {dialogMode !== 'view' && (
+            <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
+              <Box sx={{ 
+                width: `${((activeStep + 1) / 6) * 100}%`, 
+                height: '100%', 
+                background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', 
+                transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
+              }} />
+            </Box>
+          )}
 
-              <TextField
-                label="Industry Name"
-                value={industryName}
-                onChange={(e) => setIndustryName(e.target.value)}
-                disabled={dialogMode === 'view'}
-                error={!!formErrors.industryName}
-                helperText={formErrors.industryName}
-                fullWidth
-                required
-                variant="outlined"
-                size="small"
-              />
+          {/* Render steps */}
+          {/* Step 0: Client details */}
+          {renderStep(0, {
+            icon: <BusinessIcon />,
+            title: "Client & Facility Details",
+            question: "Who is the client for this simulation?",
+            summary: `Client: ${clientName} (${industryName})`,
+            content: (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
+                <TextField
+                  label="Client Name"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  fullWidth
+                  required
+                  variant="outlined"
+                  size="small"
+                />
+                <TextField
+                  label="Industry Name"
+                  value={industryName}
+                  onChange={(e) => setIndustryName(e.target.value)}
+                  fullWidth
+                  required
+                  variant="outlined"
+                  size="small"
+                />
+                <TextField
+                  label="Address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  fullWidth
+                  required
+                  multiline
+                  rows={3}
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+            )
+          })}
 
-              <TextField
-                label="Address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                disabled={dialogMode === 'view'}
-                error={!!formErrors.address}
-                helperText={formErrors.address}
-                fullWidth
-                required
-                multiline
-                rows={3}
-                variant="outlined"
-                size="small"
-              />
-            </Grid>
+          {/* Step 1: Location */}
+          {renderStep(1, {
+            icon: <LocationIcon />,
+            title: "Where is your facility located?",
+            question: "Where is your facility located?",
+            summary: `Location: ${stateCode} - ${uniqueStates.find(s => s.stateCode === stateCode)?.stateName || stateCode}`,
+            content: (
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  select
+                  label="State Code"
+                  value={stateCode}
+                  onChange={(e) => {
+                    setStateCode(e.target.value);
+                    setDiscom('');
+                    setConsumerCategory('');
+                    setVoltageLevel('');
+                  }}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  SelectProps={{ native: true }}
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <option value="" disabled>Select State</option>
+                  {uniqueStates.map((s) => (
+                    <option key={s.stateCode} value={s.stateCode}>
+                      {s.stateCode} - {s.stateName}
+                    </option>
+                  ))}
+                  {stateCode && !uniqueStates.some((s) => s.stateCode === stateCode) && (
+                    <option value={stateCode}>{stateCode}</option>
+                  )}
+                </TextField>
+              </Box>
+            )
+          })}
 
-            {/* Sourcing & Tariff Parameters Column */}
-            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Grid & Load Parameters
-              </Typography>
+          {/* Step 2: Provider */}
+          {renderStep(2, {
+            icon: <ElectricBoltIcon />,
+            title: "Who is your electricity provider?",
+            question: "Who is your electricity provider?",
+            summary: `Provider: ${discom}`,
+            content: (
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  select
+                  label="DISCOM"
+                  value={discom}
+                  onChange={(e) => setDiscom(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  SelectProps={{ native: true }}
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <option value="" disabled>Select DISCOM</option>
+                  {filteredDiscoms.map((d) => (
+                    <option key={d.code} value={d.code}>
+                      {d.code} - {d.legalName}
+                    </option>
+                  ))}
+                  {discom && !filteredDiscoms.some((d) => d.code === discom) && (
+                    <option value={discom}>{discom}</option>
+                  )}
+                </TextField>
+              </Box>
+            )
+          })}
 
-              <TextField
-                label="Sanctioned Load (kW)"
-                value={sanctionedLoadKw}
-                onChange={(e) => setSanctionedLoadKw(e.target.value)}
-                disabled={dialogMode === 'view'}
-                error={!!formErrors.sanctionedLoadKw}
-                helperText={formErrors.sanctionedLoadKw}
-                fullWidth
-                variant="outlined"
-                size="small"
-                type="number"
-              />
+          {/* Step 3: Consumer Category */}
+          {renderStep(3, {
+            icon: <CategoryIcon />,
+            title: "What is your consumer category?",
+            question: "What is your consumer category?",
+            summary: `Category: ${consumerCategory}`,
+            content: (
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  select
+                  label="Consumer Category"
+                  value={consumerCategory}
+                  onChange={(e) => setConsumerCategory(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  SelectProps={{ native: true }}
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <option value="" disabled>Select Category</option>
+                  {uniqueCategories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                  {consumerCategory && !uniqueCategories.includes(consumerCategory) && (
+                    <option value={consumerCategory}>{consumerCategory}</option>
+                  )}
+                </TextField>
+              </Box>
+            )
+          })}
 
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    select
-                    label="State Code"
-                    value={stateCode}
-                    onChange={(e) => {
-                      setStateCode(e.target.value);
-                      setDiscom('');
-                      setConsumerCategory('');
-                      setVoltageLevel('');
-                    }}
-                    disabled={dialogMode === 'view'}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    SelectProps={{ native: true }}
-                    InputLabelProps={{ shrink: true }}
-                  >
-                    <option value="" disabled>Select State</option>
-                    {uniqueStates.map((s) => (
-                      <option key={s.stateCode} value={s.stateCode}>
-                        {s.stateCode} - {s.stateName}
-                      </option>
-                    ))}
-                    {stateCode && !uniqueStates.some((s) => s.stateCode === stateCode) && (
-                      <option value={stateCode}>{stateCode}</option>
-                    )}
-                  </TextField>
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    select
-                    label="DISCOM"
-                    value={discom}
-                    onChange={(e) => setDiscom(e.target.value)}
-                    disabled={dialogMode === 'view'}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    SelectProps={{ native: true }}
-                    InputLabelProps={{ shrink: true }}
-                  >
-                    <option value="" disabled>Select DISCOM</option>
-                    {filteredDiscoms.map((d) => (
-                      <option key={d.code} value={d.code}>
-                        {d.code} - {d.legalName}
-                      </option>
-                    ))}
-                    {discom && !filteredDiscoms.some((d) => d.code === discom) && (
-                      <option value={discom}>{discom}</option>
-                    )}
-                  </TextField>
-                </Grid>
-              </Grid>
+          {/* Step 4: Voltage Level */}
+          {renderStep(4, {
+            icon: <BoltIcon />,
+            title: "What is your voltage level?",
+            question: "What is your voltage level?",
+            summary: `Voltage Level: ${voltageLevel}`,
+            content: (
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  select
+                  label="Voltage Level"
+                  value={voltageLevel}
+                  onChange={(e) => setVoltageLevel(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  SelectProps={{ native: true }}
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <option value="" disabled>Select Voltage</option>
+                  {uniqueVoltageLevels.map((lvl) => (
+                    <option key={lvl} value={lvl}>
+                      {lvl}
+                    </option>
+                  ))}
+                  {voltageLevel && !uniqueVoltageLevels.includes(voltageLevel) && (
+                    <option value={voltageLevel}>{voltageLevel}</option>
+                  )}
+                </TextField>
+              </Box>
+            )
+          })}
 
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    select
-                    label="Consumer Category"
-                    value={consumerCategory}
-                    onChange={(e) => setConsumerCategory(e.target.value)}
-                    disabled={dialogMode === 'view'}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    SelectProps={{ native: true }}
-                    InputLabelProps={{ shrink: true }}
-                  >
-                    <option value="" disabled>Select Category</option>
-                    {uniqueCategories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                    {consumerCategory && !uniqueCategories.includes(consumerCategory) && (
-                      <option value={consumerCategory}>{consumerCategory}</option>
-                    )}
-                  </TextField>
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    select
-                    label="Voltage Level"
-                    value={voltageLevel}
-                    onChange={(e) => setVoltageLevel(e.target.value)}
-                    disabled={dialogMode === 'view'}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    SelectProps={{ native: true }}
-                    InputLabelProps={{ shrink: true }}
-                  >
-                    <option value="" disabled>Select Voltage</option>
-                    {uniqueVoltageLevels.map((lvl) => (
-                      <option key={lvl} value={lvl}>
-                        {lvl}
-                      </option>
-                    ))}
-                    {voltageLevel && !uniqueVoltageLevels.includes(voltageLevel) && (
-                      <option value={voltageLevel}>{voltageLevel}</option>
-                    )}
-                  </TextField>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
+          {/* Step 5: Sanctioned Load */}
+          {renderStep(5, {
+            icon: <SpeedIcon />,
+            title: "What is your sanctioned load?",
+            question: "What is your sanctioned load?",
+            summary: `Sanctioned Load: ${sanctionedLoadKw} kW`,
+            content: (
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  label="Sanctioned Load (kW)"
+                  value={sanctionedLoadKw}
+                  onChange={(e) => setSanctionedLoadKw(e.target.value)}
+                  error={!!formErrors.sanctionedLoadKw}
+                  helperText={formErrors.sanctionedLoadKw}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  type="number"
+                />
+              </Box>
+            )
+          })}
 
           {dialogMode === 'view' && selectedEntry && (
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
                 <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString()}
               </Typography>
@@ -688,31 +872,13 @@ export default function SavingsCalculatorPage() {
           )}
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'flex-start' }}>
           <Button 
             onClick={handleCloseDialog} 
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
           >
             {dialogMode === 'view' ? 'Close' : 'Cancel'}
           </Button>
-          {dialogMode !== 'view' && (
-            <Button 
-              onClick={handleSubmit} 
-              variant="contained"
-              disabled={submitting}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
-                fontWeight: 600, 
-                bgcolor: '#8B5CF6',
-                '&:hover': {
-                  bgcolor: '#7C3AED'
-                }
-              }}
-            >
-              {submitting ? 'Saving...' : 'Save Entry'}
-            </Button>
-          )}
         </DialogActions>
       </Dialog>
 
