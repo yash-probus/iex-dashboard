@@ -191,11 +191,7 @@ export default function SavingsCalculatorPage() {
         (!consumerCategory || row.category === consumerCategory) &&
         (!voltageLevel || row.voltageLevel === voltageLevel)
       ) {
-        let slabName = (row.todName || row.tod || 'normal').toUpperCase();
-        const match = slabName.match(/^(TOD-\d+)/);
-        if (match) {
-          slabName = match[1];
-        }
+        const slabName = (row.todName || row.tod || 'normal').toUpperCase();
         slabsSet.add(slabName);
       }
     });

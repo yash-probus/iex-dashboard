@@ -237,10 +237,8 @@ export class SavingsCalculatorService {
     const todCounts: Record<string, number> = {};
 
     slotsData.forEach(item => {
-      // Clean up the name to extract base TOD (e.g. TOD-1) to group Summer/Winter together
-      let rawKey = item.todSlab.toUpperCase();
-      const match = rawKey.match(/^(TOD-\d+)/);
-      let groupKey = match ? match[1] : rawKey;
+      // Use the exact todSlab string so it differentiates Summer vs Winter slabs
+      let groupKey = item.todSlab.toUpperCase();
       
       if (!groups[groupKey]) {
         groups[groupKey] = [];
@@ -252,9 +250,7 @@ export class SavingsCalculatorService {
     // Second pass to calculate energy and costs
     const todConsumptions = entry.todConsumptions as Record<string, number> | null;
     slotsData.forEach(item => {
-      let rawKey = item.todSlab.toUpperCase();
-      const match = rawKey.match(/^(TOD-\d+)/);
-      let groupKey = match ? match[1] : rawKey;
+      let groupKey = item.todSlab.toUpperCase();
       let slotEnergy = maxEnergyPerSlot; // default fallback (load * 0.25)
       
       if (todConsumptions && todConsumptions[groupKey] !== undefined && todConsumptions[groupKey] !== null) {
