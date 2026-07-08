@@ -22,6 +22,7 @@ export class SavingsCalculatorService {
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
+    todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.create({
       data: {
@@ -32,7 +33,8 @@ export class SavingsCalculatorService {
         stateCode: data.stateCode,
         discom: data.discom,
         consumerCategory: data.consumerCategory,
-        voltageLevel: data.voltageLevel
+        voltageLevel: data.voltageLevel,
+        todConsumptions: data.todConsumptions
       }
     });
   }
@@ -46,6 +48,7 @@ export class SavingsCalculatorService {
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
+    todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.update({
       where: { id },
@@ -57,7 +60,8 @@ export class SavingsCalculatorService {
         stateCode: data.stateCode,
         discom: data.discom,
         consumerCategory: data.consumerCategory,
-        voltageLevel: data.voltageLevel
+        voltageLevel: data.voltageLevel,
+        todConsumptions: data.todConsumptions
       }
     });
   }
@@ -181,7 +185,7 @@ export class SavingsCalculatorService {
 
         if (matched) {
           discomLandingPrice = Number(matched.energyCharges || matched.baseEnergyCharges || 7.5);
-          matchedTariffName = matched.tod || 'normal';
+          matchedTariffName = matched.todName || matched.tod || 'normal';
         }
       } else {
         // Broad default off-peak / peak classification if no tariffs mapped in database
@@ -222,37 +226,49 @@ export class SavingsCalculatorService {
         discomLandingPrice,
         comparedLowestPrice,
         selectedSource,
-        maxEnergyPerSlot,
-        optimizedCost: comparedLowestPrice * maxEnergyPerSlot,
-        baselineCost: discomLandingPrice * maxEnergyPerSlot
+        maxEnergyPerSlot: 0,
+        optimizedCost: 0,
+        baselineCost: 0
       };
     });
 
-    // Group slots by TOD Slab for TOD-sorted blocks
-    const groups: { [key: string]: typeof slotsData } = {
-      offpeak: [],
-      normal: [],
-      peak: []
-    };
+    // Group slots by TOD Slab for TOD-sorted blocks and count them
+    const groups: { [key: string]: typeof slotsData } = {};
+    const todCounts: Record<string, number> = {};
 
     slotsData.forEach(item => {
-      const slabKey = item.todSlab.toLowerCase().replace(/[^a-z]/g, '');
-      let groupKey = 'normal';
-      if (slabKey.includes('offpeak') || slabKey.includes('tod1')) groupKey = 'offpeak';
-      else if (slabKey.includes('peak') || slabKey.includes('tod3')) groupKey = 'peak';
+      // Use the actual todSlab string to dynamically create as many tables as needed
+      let groupKey = item.todSlab.toUpperCase();
       
       if (!groups[groupKey]) {
         groups[groupKey] = [];
       }
       groups[groupKey].push(item);
+      todCounts[groupKey] = (todCounts[groupKey] || 0) + 1;
+    });
+
+    // Second pass to calculate energy and costs
+    const todConsumptions = entry.todConsumptions as Record<string, number> | null;
+    slotsData.forEach(item => {
+      const groupKey = item.todSlab.toUpperCase();
+      let slotEnergy = maxEnergyPerSlot; // default fallback (load * 0.25)
+      
+      if (todConsumptions && todConsumptions[groupKey] !== undefined && todConsumptions[groupKey] !== null) {
+        const totalEnergy = Number(todConsumptions[groupKey]);
+        const count = todCounts[groupKey];
+        slotEnergy = count > 0 ? totalEnergy / count : 0;
+      }
+      
+      item.maxEnergyPerSlot = slotEnergy;
+      item.optimizedCost = item.comparedLowestPrice * slotEnergy;
+      item.baselineCost = item.discomLandingPrice * slotEnergy;
     });
 
     // Sort each TOD group in itself by comparedLowestPrice ascending
-    const sortedGroups = {
-      offpeak: [...groups.offpeak].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice),
-      normal: [...groups.normal].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice),
-      peak: [...groups.peak].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice)
-    };
+    const sortedGroups: { [key: string]: typeof slotsData } = {};
+    Object.keys(groups).forEach(key => {
+      sortedGroups[key] = [...groups[key]].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
+    });
 
     // Create the overall monthly list sorted by price
     const sortedMonthlyList = [...slotsData].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);

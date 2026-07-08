@@ -36,7 +36,8 @@ export class SavingsCalculatorController {
         stateCode,
         discom,
         consumerCategory,
-        voltageLevel
+        voltageLevel,
+        todConsumptions
       } = req.body;
 
       if (!clientName || !industryName || !address) {
@@ -51,7 +52,8 @@ export class SavingsCalculatorController {
         stateCode,
         discom,
         consumerCategory,
-        voltageLevel
+        voltageLevel,
+        todConsumptions
       });
 
       res.status(201).json(entry);
@@ -72,7 +74,8 @@ export class SavingsCalculatorController {
         stateCode,
         discom,
         consumerCategory,
-        voltageLevel
+        voltageLevel,
+        todConsumptions
       } = req.body;
 
       if (!clientName || !industryName || !address) {
@@ -87,7 +90,8 @@ export class SavingsCalculatorController {
         stateCode,
         discom,
         consumerCategory,
-        voltageLevel
+        voltageLevel,
+        todConsumptions
       });
 
       res.json(entry);

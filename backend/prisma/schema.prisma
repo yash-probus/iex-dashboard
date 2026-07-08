@@ -520,6 +520,7 @@ model SavingsCalculatorEntry {
   discom           String?  @map("discom") @db.VarChar(100)
   consumerCategory String?  @map("consumer_category") @db.VarChar(100)
   voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
+  todConsumptions  Json?    @map("tod_consumptions")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 

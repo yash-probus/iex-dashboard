@@ -10,6 +10,7 @@ export interface SavingsCalculatorEntry {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
+  todConsumptions?: Record<string, number | string>;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +24,7 @@ export interface CreateSavingsEntryDto {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
+  todConsumptions?: Record<string, number | string>;
 }
 
 export interface CalculationSlotDetail {
@@ -52,11 +54,7 @@ export interface CalculationResult {
   totalBaselineCost: number;
   totalOptimizedCost: number;
   totalSavings: number;
-  todGroups: {
-    offpeak: CalculationSlotDetail[];
-    normal: CalculationSlotDetail[];
-    peak: CalculationSlotDetail[];
-  };
+  todGroups: Record<string, CalculationSlotDetail[]>;
   sortedMonthlyList: CalculationSlotDetail[];
 }
 

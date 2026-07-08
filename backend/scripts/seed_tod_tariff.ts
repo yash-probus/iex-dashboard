@@ -157,7 +157,7 @@ async function main() {
               }
             },
             update: {
-              state,
+              state: stateName,
               baseEnergyCharges,
               todRate,
               energyCharges,
@@ -167,7 +167,7 @@ async function main() {
             create: {
               stateCode,
               month,
-              state,
+              state: stateName,
               category,
               subCategory,
               voltageLevel,
@@ -185,14 +185,13 @@ async function main() {
         } catch (err: any) {
           console.error(`Failed to upsert StateTariff row: ${stateCode}-${month}-${category}-${subCategory}-${voltageLevel}-${season}-${todName}-${tod}:`, err.message);
         }
+        }
       }
     }
   }
 
   console.log(`Successfully completed seeding state_tariff. Total records upserted: ${insertedCount}`);
 }
-
-const state = 'Uttar Pradesh';
 
 main()
   .catch((e) => {

@@ -62,6 +62,7 @@ export default function SavingsCalculatorPage() {
   const [discom, setDiscom] = useState('');
   const [consumerCategory, setConsumerCategory] = useState('');
   const [voltageLevel, setVoltageLevel] = useState('');
+  const [todConsumptions, setTodConsumptions] = useState<Record<string, string>>({});
   
   // Validation Errors
   const [formErrors, setFormErrors] = useState<{ 
@@ -181,6 +182,22 @@ export default function SavingsCalculatorPage() {
     return Array.from(levelsSet);
   }, [tariffData, stateCode]);
 
+  const uniqueTodSlabs = React.useMemo(() => {
+    const slabsSet = new Set<string>();
+    tariffData.forEach((row: any) => {
+      if (
+        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
+        (!discom || row.subCategory === discom) &&
+        (!consumerCategory || row.category === consumerCategory) &&
+        (!voltageLevel || row.voltageLevel === voltageLevel)
+      ) {
+        const slabName = (row.todName || row.tod || 'normal').toUpperCase();
+        slabsSet.add(slabName);
+      }
+    });
+    return Array.from(slabsSet);
+  }, [tariffData, stateCode, discom, consumerCategory, voltageLevel]);
+
   // Form Reset Helper
   const resetForm = () => {
     setClientName('');
@@ -191,6 +208,7 @@ export default function SavingsCalculatorPage() {
     setDiscom('');
     setConsumerCategory('');
     setVoltageLevel('');
+    setTodConsumptions({});
     setFormErrors({});
   };
 
@@ -208,7 +226,16 @@ export default function SavingsCalculatorPage() {
       setDiscom(entry.discom || '');
       setConsumerCategory(entry.consumerCategory || '');
       setVoltageLevel(entry.voltageLevel || '');
-      setActiveStep(5); // Start at final step for edit mode
+      
+      const tc: Record<string, string> = {};
+      if (entry.todConsumptions) {
+        Object.keys(entry.todConsumptions).forEach(k => {
+          tc[k] = String(entry.todConsumptions![k]);
+        });
+      }
+      setTodConsumptions(tc);
+      
+      setActiveStep(6); // Start at final step for edit mode
     } else {
       setSelectedEntry(null);
       resetForm();
@@ -232,6 +259,16 @@ export default function SavingsCalculatorPage() {
         if (!sanctionedLoadKw.trim()) return false;
         const parsed = parseFloat(sanctionedLoadKw);
         return !isNaN(parsed) && parsed > 0;
+      case 6:
+        // Optional consumptions, but if provided should be valid numbers
+        let isValid = true;
+        Object.values(todConsumptions).forEach(val => {
+          if (val.trim()) {
+            const v = parseFloat(val);
+            if (isNaN(v) || v < 0) isValid = false;
+          }
+        });
+        return isValid;
       default:
         return false;
     }
@@ -278,6 +315,9 @@ export default function SavingsCalculatorPage() {
         discom: discom.trim() || undefined,
         consumerCategory: consumerCategory.trim() || undefined,
         voltageLevel: voltageLevel.trim() || undefined,
+        todConsumptions: Object.keys(todConsumptions).length > 0 ? 
+          Object.fromEntries(Object.entries(todConsumptions).filter(([_, v]) => v.trim() !== '').map(([k, v]) => [k, parseFloat(v)])) 
+          : undefined,
       };
 
       if (dialogMode === 'create') {
@@ -468,7 +508,7 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 5) {
+                  if (stepIndex < 6) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     handleSubmit();
@@ -476,10 +516,12 @@ export default function SavingsCalculatorPage() {
                 } else {
                   if (stepIndex === 5) {
                     setFormErrors({ sanctionedLoadKw: 'Sanctioned load must be a positive number.' });
+                  } else if (stepIndex === 6) {
+                    setSnackbar({ open: true, message: 'Please enter valid numbers for TOD consumption', severity: 'error' });
                   }
                 }
               }}
-              endIcon={stepIndex === 5 ? undefined : <ArrowForwardIcon />}
+              endIcon={stepIndex === 6 ? undefined : <ArrowForwardIcon />}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2.5, 
@@ -490,7 +532,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {stepIndex === 5 ? (dialogMode === 'edit' ? 'Save Entry' : 'Create Entry') : 'Continue'}
+              {stepIndex === 6 ? (dialogMode === 'edit' ? 'Save Entry' : 'Create Entry') : 'Continue'}
             </Button>
           </Box>
         </Card>
@@ -650,7 +692,7 @@ export default function SavingsCalculatorPage() {
           {dialogMode !== 'view' && (
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
-                width: `${((activeStep + 1) / 6) * 100}%`, 
+                width: `${((activeStep + 1) / 7) * 100}%`, 
                 height: '100%', 
                 background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', 
                 transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
@@ -860,6 +902,36 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
+          {/* Step 6: TOD Consumptions */}
+          {renderStep(6, {
+            icon: <CalculateIcon />,
+            title: "Energy Consumption per TOD Slab",
+            question: "Enter monthly consumption (kWh) per TOD slab (optional)",
+            summary: `TOD Consumptions set`,
+            content: (
+              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {uniqueTodSlabs.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Please select a State, DISCOM, and Category to see applicable TOD slabs.
+                  </Typography>
+                )}
+                {uniqueTodSlabs.map(slab => (
+                  <TextField
+                    key={slab}
+                    label={`${slab} Consumption (kWh)`}
+                    value={todConsumptions[slab] || ''}
+                    onChange={(e) => setTodConsumptions(prev => ({ ...prev, [slab]: e.target.value }))}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    type="number"
+                    placeholder="e.g. 50000"
+                  />
+                ))}
+              </Box>
+            )
+          })}
+
           {dialogMode === 'view' && selectedEntry && (
             <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
@@ -1049,8 +1121,11 @@ export default function SavingsCalculatorPage() {
               {/* Tab Content 1: TOD Sorted Group blocks */}
               {calcTab === 0 && (
                 <Grid container spacing={3}>
-                  {Object.entries(calcResult.todGroups).map(([groupName, list]) => (
-                    <Grid item xs={12} lg={4} key={groupName}>
+                  {Object.entries(calcResult.todGroups).map(([groupName, list]) => {
+                    const groupCount = Object.keys(calcResult.todGroups).length;
+                    const lgValue = groupCount === 4 ? 3 : groupCount === 3 ? 4 : groupCount === 2 ? 6 : 12;
+                    return (
+                    <Grid item xs={12} lg={lgValue} key={groupName}>
                       <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 2, height: '100%', bgcolor: 'background.paper' }}>
                         <Typography variant="h4" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
                           <span>{groupName}</span>
@@ -1098,7 +1173,8 @@ export default function SavingsCalculatorPage() {
                         </Box>
                       </Box>
                     </Grid>
-                  ))}
+                  );
+                  })}
                 </Grid>
               )}
 
