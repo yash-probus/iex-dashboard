@@ -190,7 +190,7 @@ export default function SavingsCalculatorPage() {
     tariffData.forEach((row: any) => {
       if (
         (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
-        (!discom || row.subCategory === discom) &&
+        (!discom || row.discom === discom) &&
         (!consumerCategory || row.category === consumerCategory) &&
         (!voltageLevel || row.voltageLevel === voltageLevel)
       ) {
