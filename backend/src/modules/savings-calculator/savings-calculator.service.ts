@@ -82,7 +82,9 @@ export class SavingsCalculatorService {
     const stateCode = entry.stateCode || 'MH';
     const sanctionedLoad = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
     const category = entry.consumerCategory || 'Industrial';
-    const voltage = entry.voltageLevel || '11 kV';
+    const rawVoltage = entry.voltageLevel || '11 kV';
+    const digitsMatch = rawVoltage.match(/^(\d+)/);
+    const voltage = digitsMatch ? `${digitsMatch[1]} kV` : rawVoltage;
 
     // 15-minute slot energy limit in kWh = load (kW) * 0.25 hours
     const maxEnergyPerSlot = sanctionedLoad * 0.25;

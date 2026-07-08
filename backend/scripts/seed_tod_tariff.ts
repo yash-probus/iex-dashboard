@@ -77,7 +77,11 @@ async function main() {
 
   console.log('Successfully seeded RegionState & DiscomList lookup tables.');
 
-  // 3. Read Excel TOD sheet
+  // 3. Clear existing UP tariffs to prevent duplicate badly-formatted voltage strings
+  console.log('Clearing existing UP tariffs before reseeding...');
+  await prisma.stateTariff.deleteMany({ where: { stateCode: 'UP' } });
+
+  // 4. Read Excel TOD sheet
   const filePath = path.join(__dirname, '../../TOD sheet with charges.xlsx');
   console.log('Reading spreadsheet from:', filePath);
   
@@ -133,13 +137,8 @@ async function main() {
 
     if (!digits) continue;
 
-    const voltageFormats = Array.from(new Set([
-      digits,
-      `${digits}kV`,
-      `${digits} kV`,
-      `${digits}kv`,
-      `${digits} kv`
-    ]));
+    const normalizedVoltage = `${digits} kV`;
+    const voltageFormats = [normalizedVoltage];
 
     let subCategoriesToSeed = [subCategoryRaw];
     if (stateCode === 'UP' && subCategoryRaw === 'MVVNL') {
