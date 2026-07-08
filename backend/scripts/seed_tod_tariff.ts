@@ -79,6 +79,12 @@ async function main() {
   // 3. Read Excel TOD sheet
   const filePath = path.join(__dirname, '../../TOD sheet with charges.xlsx');
   console.log('Reading spreadsheet from:', filePath);
+  
+  if (!fs.existsSync(filePath)) {
+    console.warn(`File not found: ${filePath}. Skipping Excel TOD data seeding.`);
+    return;
+  }
+  
   const workbook = XLSX.readFile(filePath);
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
   const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
