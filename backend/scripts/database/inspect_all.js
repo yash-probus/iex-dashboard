@@ -1,13 +1,10 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-
 async function main() {
-  console.log('--- UP Tariffs ---');
-  const upTariffs = await prisma.stateTariff.findMany({
-    where: { stateCode: 'UP' }
+  const tariffs = await prisma.stateTariff.findMany({
+    select: { voltageLevel: true },
+    distinct: ['voltageLevel']
   });
-  console.log('UP Tariffs count:', upTariffs.length);
-  console.log(JSON.stringify(upTariffs.slice(0, 10), null, 2));
+  console.log(tariffs);
 }
-
 main().catch(console.error).finally(() => prisma.$disconnect());
