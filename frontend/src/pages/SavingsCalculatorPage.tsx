@@ -173,13 +173,18 @@ export default function SavingsCalculatorPage() {
 
   const uniqueVoltageLevels = React.useMemo(() => {
     const levelsSet = new Set<string>([
-      '11 kV', '11kV', '22 kV', '22kV', '33 kV', '33kV',
-      '66 kV', '66kV', '110 kV', '110kV', '132 kV', '132kV',
-      '220 kV', '220kV'
+      '11 kV', '22 kV', '33 kV',
+      '66 kV', '110 kV', '132 kV',
+      '220 kV'
     ]);
     tariffData.forEach((row: any) => {
       if (row.voltageLevel && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
-        levelsSet.add(row.voltageLevel);
+        let normalizedVoltage = row.voltageLevel.trim();
+        const digitsMatch = normalizedVoltage.match(/^(\d+)\s*kV$/i);
+        if (digitsMatch) {
+          normalizedVoltage = `${digitsMatch[1]} kV`;
+        }
+        levelsSet.add(normalizedVoltage);
       }
     });
     return Array.from(levelsSet);

@@ -18,8 +18,7 @@
       "*": [
         "node_modules/*"
       ]
-    },
-    "ignoreDeprecations": "6.0"
+    }
   },
   "include": [
     "src/**/*"
