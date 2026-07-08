@@ -1146,7 +1146,7 @@ export default function SavingsCalculatorPage() {
               {/* Tab Content 1: TOD Sorted Group blocks */}
               {calcTab === 0 && (
                 <Grid container spacing={3}>
-                  {Object.entries(calcResult.todGroups).map(([groupName, list]) => {
+                  {Object.entries(calcResult.todGroups).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]) => {
                     const groupCount = Object.keys(calcResult.todGroups).length;
                     const lgValue = groupCount === 4 ? 3 : groupCount === 3 ? 4 : groupCount === 2 ? 6 : 12;
                     return (
