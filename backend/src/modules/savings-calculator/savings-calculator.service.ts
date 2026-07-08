@@ -249,21 +249,73 @@ export class SavingsCalculatorService {
       todCounts[groupKey] = (todCounts[groupKey] || 0) + 1;
     });
 
-    // Second pass to calculate energy and costs
+    // Second pass to calculate energy and costs with chronological banking
     const todConsumptions = entry.todConsumptions as Record<string, number> | null;
-    slotsData.forEach(item => {
+    
+    // 1. Sort slots chronologically to model the flow of time
+    slotsData.sort((a, b) => {
+      if (a.date !== b.date) {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      return a.slot - b.slot;
+    });
+
+    // 2. Initialize requirements and available capacities
+    const requirements: number[] = new Array(slotsData.length).fill(0);
+    const availableCapacities: number[] = new Array(slotsData.length).fill(maxEnergyPerSlot);
+    const optimizedCosts: number[] = new Array(slotsData.length).fill(0);
+
+    slotsData.forEach((item, index) => {
       let groupKey = item.todSlab.toUpperCase();
-      let slotEnergy = maxEnergyPerSlot; // default fallback (load * 0.25)
-      
+      let requiredEnergy = maxEnergyPerSlot; // default fallback
       if (todConsumptions && todConsumptions[groupKey] !== undefined && todConsumptions[groupKey] !== null) {
         const totalEnergy = Number(todConsumptions[groupKey]);
         const count = todCounts[groupKey];
-        slotEnergy = count > 0 ? totalEnergy / count : 0;
+        requiredEnergy = count > 0 ? totalEnergy / count : 0;
       }
-      
-      item.maxEnergyPerSlot = slotEnergy;
-      item.optimizedCost = item.comparedLowestPrice * slotEnergy;
-      item.baselineCost = item.discomLandingPrice * slotEnergy;
+      requirements[index] = requiredEnergy;
+      item.maxEnergyPerSlot = requiredEnergy; // Track required energy for reporting
+      item.baselineCost = item.discomLandingPrice * requiredEnergy;
+    });
+
+    // 3. Sort indices by lowest price to prioritize cheapest buying slots (Greedy allocation)
+    const priceSortedIndices = slotsData
+      .map((_, index) => index)
+      .sort((a, b) => slotsData[a].comparedLowestPrice - slotsData[b].comparedLowestPrice);
+
+    // 4. Allocate energy: Cheapest slots satisfy their current and future requirements within the month
+    for (const pIndex of priceSortedIndices) {
+      let amountToGive = availableCapacities[pIndex];
+      const pSlot = slotsData[pIndex];
+      const pGroup = pSlot.todSlab.toUpperCase();
+
+      for (let sIndex = pIndex; sIndex < slotsData.length; sIndex++) {
+        if (amountToGive <= 0) break;
+        
+        const sSlot = slotsData[sIndex];
+        const sGroup = sSlot.todSlab.toUpperCase();
+        
+        // Ensure banking matches the same TOD slab group (as users bid per TOD structure)
+        if (sGroup !== pGroup) continue;
+
+        if (requirements[sIndex] > 0) {
+          const take = Math.min(requirements[sIndex], amountToGive);
+          requirements[sIndex] -= take;
+          amountToGive -= take;
+          
+          // Cost is assigned to the slot that uses the energy (for reporting correctly)
+          optimizedCosts[sIndex] += take * pSlot.comparedLowestPrice;
+        }
+      }
+      availableCapacities[pIndex] = amountToGive;
+    }
+
+    // 5. Any unfulfilled requirements (due to physical limits) must be bought at DISCOM rate
+    slotsData.forEach((item, index) => {
+      if (requirements[index] > 0) {
+        optimizedCosts[index] += requirements[index] * item.discomLandingPrice;
+      }
+      item.optimizedCost = optimizedCosts[index];
     });
 
     // Sort each TOD group in itself by comparedLowestPrice ascending
