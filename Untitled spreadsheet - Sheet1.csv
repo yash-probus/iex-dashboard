@@ -1,0 +1,161 @@
+FY,State,DISCOM,Consumer Category,Voltage Level,TOD Name,TOD Name,Season,Month Start,Month End,TOD Slab Start,TOD Slab End,Base Energy Rate,TOD Rate,Energy Rate,Demand Rate,
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,7.1,-15%,6.035,300,off peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,11,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,7.1,-15%,6.035,300,off-peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,33,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,66,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,MVVNL,HV-2,132,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,7.1,-15%,6.035,300,off peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,11,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,7.1,-15%,6.035,300,off-peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,33,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,66,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PVVNL,HV-2,132,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,7.1,-15%,6.035,300,off peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,11,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,7.1,-15%,6.035,300,off-peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,33,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,66,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,PUVVNL,HV-2,132,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,7.1,-15%,6.035,300,off peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,11,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,7.1,-15%,6.035,300,off-peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,33,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,66,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,KESCO,HV-2,132,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,7.1,-15%,6.035,300,off peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,7.1,0%,7.1,300,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,7.1,15%,8.165,300,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,11,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,7.1,-15%,6.035,300,off-peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,33,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,66,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-1 (Off Peak-05:00-10:00),TOD-1,Summer,4/1/2025,9/30/2025,5,10,6.8,-15%,5.78,290,off peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-2 (Normal-10:00-19:00),TOD-2,Summer,4/1/2025,9/30/2025,10,19,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-3 (Peak-19:00-3:00),TOD-3,Summer,4/1/2025,9/30/2025,19,3,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-4 (Normal-03:00-05:00),TOD-4,Summer,4/1/2025,9/30/2025,3,5,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-1 (Normal-05:00-11:00),TOD-1,Winter,10/1/2025,3/31/2026,5,11,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-2 (Normal-11:00-17:00),TOD-2,Winter,10/1/2025,3/31/2026,11,17,6.8,0%,6.8,290,normal
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-3 (Peak-17:00-23:00),TOD-3,Winter,10/1/2025,3/31/2026,17,23,6.8,15%,7.82,290,peak
+FY25-26,Uttar Pradesh,DVVNL,HV-2,132,TOD-4 (Off-Peak-23:00-05:00),TOD-4,Winter,10/1/2025,3/31/2026,23,5,6.8,-15%,5.78,290,off-peak
