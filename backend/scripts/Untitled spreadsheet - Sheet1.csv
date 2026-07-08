@@ -1,0 +1,161 @@
+State Code,State,Month,Start Date,End Date,Category,Sub Category,Voltage Level,TOD,TOD Name,Season,TOD Start Hour,TOD End Hour,Base Energy Charges,TOD Rate,Energy Charges
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),11,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),11,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,7.1,100%,7.1
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),11,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,7.1,115%,8.165
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),11,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),11,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),11,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),11,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,7.1,115%,8.165
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),11,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),33,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),33,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),33,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),33,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),33,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),33,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),33,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),33,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),66,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),66,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),66,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),66,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),66,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),66,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),66,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),66,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),132,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),132,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),132,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (MVVNL),132,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),132,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),132,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),132,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (MVVNL),132,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),11,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),11,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,7.1,100%,7.1
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),11,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,7.1,115%,8.165
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),11,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),11,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),11,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),11,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,7.1,115%,8.165
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),11,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),33,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),33,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),33,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),33,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),33,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),33,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),33,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),33,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),66,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),66,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),66,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),66,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),66,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),66,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),66,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),66,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),132,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),132,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),132,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PVVNL),132,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),132,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),132,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),132,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PVVNL),132,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),11,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),11,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,7.1,100%,7.1
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),11,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,7.1,115%,8.165
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),11,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),11,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),11,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),11,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,7.1,115%,8.165
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),11,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),33,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),33,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),33,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),33,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),33,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),33,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),33,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),33,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),66,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),66,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),66,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),66,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),66,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),66,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),66,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),66,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),132,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),132,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),132,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (PUVVNL),132,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),132,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),132,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),132,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (PUVVNL),132,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),11,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),11,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,7.1,100%,7.1
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),11,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,7.1,115%,8.165
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),11,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),11,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),11,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),11,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,7.1,115%,8.165
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),11,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),33,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),33,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),33,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),33,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),33,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),33,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),33,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),33,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),66,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),66,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),66,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),66,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),66,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),66,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),66,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),66,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),132,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),132,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),132,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (KESCO),132,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),132,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),132,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),132,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (KESCO),132,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),11,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),11,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,7.1,100%,7.1
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),11,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,7.1,115%,8.165
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),11,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),11,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),11,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,7.1,100%,7.1
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),11,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,7.1,115%,8.165
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),11,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,7.1,85%,6.035
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),33,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),33,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),33,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),33,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),33,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),33,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),33,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),33,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),66,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),66,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),66,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),66,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),66,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),66,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),66,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),66,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),132,TOD-1,TOD-1 (Off Peak-05:00-10:00),Summer,5,10,6.8,85%,5.78
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),132,TOD-2,TOD-2 (Normal-10:00-19:00),Summer,10,19,6.8,100%,6.8
+UP,Uttar Pradesh,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),132,TOD-3,TOD-3 (Peak-19:00-3:00),Summer,19,3,6.8,115%,7.82
+UP,Uttar Pradesh,4,4/1/2025,9/30/2025,HV-2,Large Power (DVVNL),132,TOD-4,TOD-4 (Normal-03:00-05:00),Summer,3,5,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),132,TOD-1,TOD-1 (Normal-05:00-11:00),Winter,5,11,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),132,TOD-2,TOD-2 (Normal-11:00-17:00),Winter,11,17,6.8,100%,6.8
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),132,TOD-3,TOD-3 (Peak-17:00-23:00),Winter,17,23,6.8,115%,7.82
+UP,Uttar Pradesh,10,10/1/2025,3/31/2026,HV-2,Large Power (DVVNL),132,TOD-4,TOD-4 (Off-Peak-23:00-05:00),Winter,23,5,6.8,85%,5.78

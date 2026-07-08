@@ -82,7 +82,7 @@ async function main() {
   await prisma.stateTariff.deleteMany({ where: { stateCode: 'UP' } });
 
   // 4. Read Excel TOD sheet
-  const filePath = path.join(__dirname, '../Untitled spreadsheet - Sheet1.csv');
+  const filePath = path.join(__dirname, 'Untitled spreadsheet - Sheet1.csv');
   console.log('Reading spreadsheet from:', filePath);
   
   if (!fs.existsSync(filePath)) {
