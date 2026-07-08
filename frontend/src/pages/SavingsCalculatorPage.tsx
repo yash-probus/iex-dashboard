@@ -988,7 +988,22 @@ export default function SavingsCalculatorPage() {
             <TextField
               select
               size="small"
-              label="Analysis Month (2026)"
+              label="Analysis Year"
+              value={calcYear}
+              onChange={(e) => setCalcYear(Number(e.target.value))}
+              sx={{ width: 120 }}
+              SelectProps={{ native: true }}
+            >
+              <option value={2023}>2023</option>
+              <option value={2024}>2024</option>
+              <option value={2025}>2025</option>
+              <option value={2026}>2026</option>
+            </TextField>
+
+            <TextField
+              select
+              size="small"
+              label="Analysis Month"
               value={calcMonth}
               onChange={(e) => setCalcMonth(Number(e.target.value))}
               sx={{ width: 200 }}
