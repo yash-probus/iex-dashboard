@@ -100,7 +100,7 @@ async function main() {
 
   for (const row of jsonData) {
     // Validate required fields
-    if (!row['State'] || !row['Month Start'] || !row['Month End']) {
+    if (!row['State'] || !row['Start Date'] || !row['End Date']) {
       continue;
     }
 
@@ -108,27 +108,47 @@ async function main() {
     const stateCode = stateName === 'Uttar Pradesh' ? 'UP' : 'UNKNOWN';
 
     // Parse date ranges to list of months
-    const monthStartSerial = Number(row['Month Start']);
-    const monthEndSerial = Number(row['Month End']);
-    const startDate = excelDateToJSDate(monthStartSerial);
-    const endDate = excelDateToJSDate(monthEndSerial);
+    const monthStartRaw = row['Start Date'];
+    const monthEndRaw = row['End Date'];
+    
+    let startDate: Date;
+    if (typeof monthStartRaw === 'string') {
+      startDate = new Date(monthStartRaw);
+    } else {
+      startDate = excelDateToJSDate(monthStartRaw);
+    }
+
+    let endDate: Date;
+    if (typeof monthEndRaw === 'string') {
+      endDate = new Date(monthEndRaw);
+    } else {
+      endDate = excelDateToJSDate(monthEndRaw);
+    }
+    
     const months = getMonthsInRange(startDate, endDate);
 
     // Map other fields
-    const category = String(row['Consumer Category'] || '').trim();
-    const subCategoryRaw = String(row['DISCOM'] || '').trim();
+    const category = String(row['Category'] || '').trim();
+    const subCategoryRaw = String(row['Sub Category'] || '').trim();
     const season = String(row['Season'] || '').trim();
 
     // Map TOD fields
     const todName = String(row['TOD Name'] || '').trim();
-    const tod = String(row['__EMPTY'] || 'normal').trim(); // 17th column is empty in header, holds TOD label
+    const tod = String(row['TOD'] || 'normal').trim(); // CSV has a TOD column now
     
-    const todStartHour = String(row['TOD Slab Start'] !== undefined ? row['TOD Slab Start'] : '').padStart(2, '0');
-    const todEndHour = String(row['TOD Slab End'] !== undefined ? row['TOD Slab End'] : '').padStart(2, '0');
+    const todStartHour = String(row['TOD Start Hour'] !== undefined ? row['TOD Start Hour'] : '').padStart(2, '0');
+    const todEndHour = String(row['TOD End Hour'] !== undefined ? row['TOD End Hour'] : '').padStart(2, '0');
 
-    const baseEnergyCharges = row['Base Energy Rate'] !== undefined ? Number(row['Base Energy Rate']) : null;
-    const todRate = row['TOD Rate'] !== undefined ? Number(row['TOD Rate']) : null;
-    const energyCharges = row['Energy Rate'] !== undefined ? Number(row['Energy Rate']) : null;
+    const baseEnergyCharges = row['Base Energy Charges'] !== undefined ? Number(row['Base Energy Charges']) : null;
+    let todRateStr = String(row['TOD Rate'] || '');
+    todRateStr = todRateStr.replace('%', ''); // e.g. '85%' -> '85'
+    let todRate = todRateStr ? Number(todRateStr) : null;
+    
+    // The previous script expected things like 15 or -15, but if the CSV uses 85% or 115%, we should handle it.
+    // If the value is > 50, let's normalize it to +/- percentage offsets, or just save the raw value. 
+    // The DB stores TOD Rate. We'll store exactly what's parsed since it's just a Decimal.
+    
+    const energyCharges = row['Energy Charges'] !== undefined ? Number(row['Energy Charges']) : null;
 
     // Generate voltage level formats to support flexible matches: e.g. "33", "33kV", "33 kV"
     const rawVoltage = String(row['Voltage Level'] || '').trim();
