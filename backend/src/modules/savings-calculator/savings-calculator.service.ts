@@ -310,10 +310,10 @@ export class SavingsCalculatorService {
       availableCapacities[pIndex] = amountToGive;
     }
 
-    // 5. Any unfulfilled requirements (due to physical limits) must be bought at DISCOM rate
+    // 5. Any unfulfilled requirements (due to physical limits) must be bought at the lowest available rate
     slotsData.forEach((item, index) => {
       if (requirements[index] > 0) {
-        optimizedCosts[index] += requirements[index] * item.discomLandingPrice;
+        optimizedCosts[index] += requirements[index] * item.comparedLowestPrice;
       }
       item.optimizedCost = optimizedCosts[index];
     });
