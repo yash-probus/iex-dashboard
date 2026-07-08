@@ -152,11 +152,14 @@ export default function SavingsCalculatorPage() {
   }, [tariffData]);
 
   const filteredDiscoms = React.useMemo(() => {
-    if (!stateCode) return discomList;
-    return discomList.filter(
-      (d) => d.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()
-    );
-  }, [discomList, stateCode]);
+    const discomsSet = new Set<string>();
+    tariffData.forEach((row: any) => {
+      if (row.discom && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
+        discomsSet.add(row.discom);
+      }
+    });
+    return Array.from(discomsSet).map(d => ({ code: d, legalName: d }));
+  }, [tariffData, stateCode]);
 
   const uniqueCategories = React.useMemo(() => {
     const categoriesSet = new Set<string>();

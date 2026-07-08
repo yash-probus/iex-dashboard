@@ -158,45 +158,47 @@ async function main() {
     if (!digits) continue;
 
     const normalizedVoltage = `${digits} kV`;
-    const voltageFormats = [normalizedVoltage];
-
-    let subCategoriesToSeed = [subCategoryRaw];
-    if (stateCode === 'UP' && subCategoryRaw === 'MVVNL') {
-      subCategoriesToSeed = ['MVVNL', 'PVVNL', 'DVVNL', 'PUVVNL', 'KESCO'];
+    
+    // Extract Discom code from Sub Category if present in parentheses (e.g., "Large Power (MVVNL)" -> "MVVNL")
+    let discomCode = subCategoryRaw;
+    const discomMatch = subCategoryRaw.match(/\(([^)]+)\)/);
+    if (discomMatch) {
+      discomCode = discomMatch[1].trim();
     }
 
-    for (const subCategory of subCategoriesToSeed) {
-      for (const month of months) {
-        for (const voltageLevel of voltageFormats) {
-          try {
-            await prisma.stateTariff.upsert({
-            where: {
-              stateCode_month_category_subCategory_voltageLevel_season_todName_tod: {
-                stateCode,
-                month,
-                category,
-                subCategory,
-                voltageLevel,
-                season,
-                todName,
-                tod
-              }
-            },
-            update: {
+    for (const month of months) {
+      try {
+        await prisma.stateTariff.upsert({
+        where: {
+          stateCode_month_category_subCategory_discom_voltageLevel_season_todName_tod: {
+            stateCode,
+            month,
+            category,
+            subCategory: subCategoryRaw,
+            discom: discomCode,
+            voltageLevel: normalizedVoltage,
+            season,
+            todName,
+            tod
+          }
+        },
+        update: {
               state: stateName,
               baseEnergyCharges,
               todRate,
               energyCharges,
               todStartHour,
-              todEndHour
+              todEndHour,
+              discom: discomCode
             },
             create: {
               stateCode,
               month,
               state: stateName,
               category,
-              subCategory,
-              voltageLevel,
+              subCategory: subCategoryRaw,
+              discom: discomCode,
+              voltageLevel: normalizedVoltage,
               season,
               todName,
               tod,
@@ -209,8 +211,7 @@ async function main() {
           });
           insertedCount++;
         } catch (err: any) {
-          console.error(`Failed to upsert StateTariff row: ${stateCode}-${month}-${category}-${subCategory}-${voltageLevel}-${season}-${todName}-${tod}:`, err.message);
-        }
+          console.error(`Failed to upsert StateTariff row: ${stateCode}-${month}-${category}-${subCategoryRaw}-${normalizedVoltage}-${season}-${todName}-${tod}:`, err.message);
         }
       }
     }

@@ -97,7 +97,7 @@ export class SavingsCalculatorService {
     };
 
     if (entry.discom) {
-      whereClause.subCategory = entry.discom;
+      whereClause.discom = entry.discom;
     }
 
     // Fetch matching StateTariff slabs from DB

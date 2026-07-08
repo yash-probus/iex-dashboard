@@ -270,6 +270,7 @@ model StateTariff {
   state             String   @db.VarChar(100)
   category          String?  @db.VarChar(50)
   subCategory       String?  @map("sub_category") @db.VarChar(100)
+  discom            String?  @db.VarChar(100)
   voltageLevel      String?  @map("voltage_level") @db.VarChar(20)
   tod               String   @db.VarChar(50)
   todName           String?  @map("tod_name") @db.VarChar(255)
@@ -281,7 +282,7 @@ model StateTariff {
   energyCharges     Decimal? @map("energy_charges") @db.Decimal(12, 6)
   id                Int      @id @default(autoincrement())
 
-  @@unique([stateCode, month, category, subCategory, voltageLevel, season, todName, tod], map: "uq_state_tariff_composite")
+  @@unique([stateCode, month, category, subCategory, discom, voltageLevel, season, todName, tod], map: "uq_state_tariff_composite")
   @@map("state_tariff")
   @@schema("prolt_energy")
 }
