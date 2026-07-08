@@ -191,11 +191,15 @@ export default function SavingsCalculatorPage() {
         (!consumerCategory || row.category === consumerCategory) &&
         (!voltageLevel || row.voltageLevel === voltageLevel)
       ) {
-        const slabName = (row.todName || row.tod || 'normal').toUpperCase();
+        let slabName = (row.todName || row.tod || 'normal').toUpperCase();
+        const match = slabName.match(/^(TOD-\d+)/);
+        if (match) {
+          slabName = match[1];
+        }
         slabsSet.add(slabName);
       }
     });
-    return Array.from(slabsSet);
+    return Array.from(slabsSet).sort();
   }, [tariffData, stateCode, discom, consumerCategory, voltageLevel]);
 
   // Form Reset Helper
@@ -688,7 +692,8 @@ export default function SavingsCalculatorPage() {
           </IconButton>
         </DialogTitle>
         
-        <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2.5, maxWidth: '600px', mx: 'auto', width: '100%', pb: 3 }}>
+        <DialogContent sx={{ pt: 2, maxWidth: '600px', mx: 'auto', width: '100%', pb: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {dialogMode !== 'view' && (
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
@@ -942,6 +947,7 @@ export default function SavingsCalculatorPage() {
               </Typography>
             </Box>
           )}
+          </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'flex-start' }}>
