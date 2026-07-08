@@ -214,7 +214,6 @@ async function main() {
           console.error(`Failed to upsert StateTariff row: ${stateCode}-${month}-${category}-${subCategoryRaw}-${normalizedVoltage}-${season}-${todName}-${tod}:`, err.message);
         }
       }
-    }
   }
 
   console.log(`Successfully completed seeding state_tariff. Total records upserted: ${insertedCount}`);
