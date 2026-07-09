@@ -1,12 +1,10 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["prolt_energy", "public"]
 }
 
 model Admin {
@@ -19,7 +17,6 @@ model Admin {
 
   @@index([username])
   @@index([email])
-  @@schema("public")
 }
 
 model Dataset {
@@ -41,7 +38,6 @@ model Dataset {
   @@index([deliveryDate])
   @@index([status])
   @@index([market, deliveryDate])
-  @@schema("public")
 }
 
 model UploadHistory {
@@ -58,7 +54,6 @@ model UploadHistory {
   @@index([deliveryDate])
   @@index([action])
   @@index([timestamp])
-  @@schema("public")
 }
 
 model DamRecord {
@@ -77,7 +72,6 @@ model DamRecord {
   @@index([datasetId])
   @@index([intervalNumber])
   @@index([intervalTime])
-  @@schema("public")
 }
 
 model GdamRecord {
@@ -105,7 +99,6 @@ model GdamRecord {
   @@index([datasetId])
   @@index([intervalNumber])
   @@index([intervalTime])
-  @@schema("public")
 }
 
 model RtmRecord {
@@ -125,7 +118,6 @@ model RtmRecord {
   @@index([datasetId])
   @@index([intervalNumber])
   @@index([intervalTime])
-  @@schema("public")
 }
 
 model RecRecord {
@@ -144,7 +136,6 @@ model RecRecord {
   @@index([datasetId])
   @@index([intervalNumber])
   @@index([intervalTime])
-  @@schema("public")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -158,7 +149,6 @@ model RegionState {
   stateOrUt    state_ut_enum? @map("state_or_ut")
 
   @@map("region_state")
-  @@schema("prolt_energy")
 }
 
 model DiscomList {
@@ -169,7 +159,6 @@ model DiscomList {
   id         Int     @id @default(autoincrement())
 
   @@map("discom_list")
-  @@schema("prolt_energy")
 }
 
 model IstsCharges {
@@ -181,7 +170,6 @@ model IstsCharges {
 
   @@unique([state, date], map: "uq_ists_charges_state_date")
   @@map("ists_charges")
-  @@schema("prolt_energy")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -196,7 +184,6 @@ model IexFees {
   otherFixCharges     Decimal? @map("other_fix_charges") @db.Decimal(12, 4)
 
   @@map("iex_fees")
-  @@schema("prolt_energy")
 }
 
 model ProltMargin {
@@ -210,9 +197,7 @@ model ProltMargin {
 
   @@unique([month, customerId], map: "uq_prolt_margin_month_cust")
   @@map("prolt_margin")
-  @@schema("prolt_energy")
 }
-
 
 model CtuCharges {
   id                 Int      @id @default(autoincrement())
@@ -222,7 +207,6 @@ model CtuCharges {
 
   @@unique([state, month], map: "uq_ctu_charges_state_month")
   @@map("ctu_charges")
-  @@schema("prolt_energy")
 }
 
 model IstsChargeDocs {
@@ -236,9 +220,7 @@ model IstsChargeDocs {
 
   @@unique([weekStart, weekEnd, year], map: "uq_ists_charge_docs_week_year")
   @@map("ists_charge_docs")
-  @@schema("prolt_energy")
 }
-
 
 model StuCharges {
   stateCode                           String   @map("state_code") @db.VarChar(10)
@@ -259,7 +241,6 @@ model StuCharges {
 
   @@unique([stateCode, month, category, subCategory, voltageLevel], map: "uq_stu_charges_composite")
   @@map("stu_charges")
-  @@schema("prolt_energy")
 }
 
 model StateTariff {
@@ -282,7 +263,6 @@ model StateTariff {
 
   @@unique([stateCode, month, category, subCategory, discom, voltageLevel, season, todName, tod], map: "uq_state_tariff_composite")
   @@map("state_tariff")
-  @@schema("prolt_energy")
 }
 
 model user_details {
@@ -308,41 +288,30 @@ model user_details {
   supply_voltage          String?  @db.VarChar(10)
   category                String?  @db.VarChar(10)
   sub_category            String?  @db.VarChar(10)
-
-  @@schema("prolt_energy")
 }
-
 
 enum MarketType {
   DAM
   GDAM
   RTM
   REC
-
-  @@schema("public")
 }
 
 enum DatasetStatus {
   ACTIVE
   REPLACED
   DELETED
-
-  @@schema("public")
 }
 
 enum UploadAction {
   UPLOAD
   REPLACE
   DELETE
-
-  @@schema("public")
 }
 
 enum state_ut_enum {
   state
   ut
-
-  @@schema("prolt_energy")
 }
 
 model StateDemandData {
@@ -357,12 +326,11 @@ model StateDemandData {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([stateName, date, timeStr])
-  @@schema("public")
 }
 
 model WeatherForecast {
-  id        String   @id @default(uuid())
-  date      String   @unique @db.VarChar(10) // YYYY-MM-DD
+  id                String   @id @default(uuid())
+  date              String   @unique @db.VarChar(10) // YYYY-MM-DD
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
@@ -373,15 +341,13 @@ model WeatherForecast {
   sunrise           String   @default("") @db.VarChar(10)
   sunset            String   @default("") @db.VarChar(10)
   isActual          Boolean  @default(false)
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@schema("public")
+  updatedAt         DateTime @default(now()) @updatedAt
 }
 
 model WeatherForecastHourly {
   id                String   @id @default(uuid())
   date              String   @db.VarChar(10) // YYYY-MM-DD
-  timeStr           String   @db.VarChar(5)  // HH:MM
+  timeStr           String   @db.VarChar(5) // HH:MM
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
@@ -395,7 +361,6 @@ model WeatherForecastHourly {
   updatedAt         DateTime @default(now()) @updatedAt
 
   @@unique([date, timeStr])
-  @@schema("public")
 }
 
 model WeatherHistorical {
@@ -412,44 +377,39 @@ model WeatherHistorical {
   sunset            String   @default("") @db.VarChar(10)
   isActual          Boolean  @default(false)
   updatedAt         DateTime @default(now()) @updatedAt
-
-  @@schema("public")
 }
-
 
 model NppRawDemandData {
   id            String   @id @default(uuid())
-  date          String   // e.g., '2026-07-01'
-  timeStr       String   // e.g., '00:03'
+  date          String // e.g., '2026-07-01'
+  timeStr       String // e.g., '00:03'
   demandMet     Float
-  dataUpdatedAt String?  // The time at which they updated the data
+  dataUpdatedAt String? // The time at which they updated the data
   fetchedAt     DateTime @default(now()) // The time at which we fetched the data
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
   @@unique([date, timeStr], map: "uq_npp_date_time")
   @@index([date])
-  @@schema("public")
 }
 
 model NppRawGenerationData {
   id            String   @id @default(uuid())
-  date          String   // e.g., '2026-07-01'
-  timeStr       String   // e.g., '00:03'
+  date          String // e.g., '2026-07-01'
+  timeStr       String // e.g., '00:03'
   thermal       Float?
   gas           Float?
   nuclear       Float?
   hydro         Float?
   wind          Float?
   solar         Float?
-  dataUpdatedAt String?  // The time at which they updated the data
+  dataUpdatedAt String? // The time at which they updated the data
   fetchedAt     DateTime @default(now()) // The time at which we fetched the data
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
   @@unique([date, timeStr], map: "uq_npp_gen_date_time")
   @@index([date])
-  @@schema("public")
 }
 
 model HolidayCalendar {
@@ -462,8 +422,6 @@ model HolidayCalendar {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@schema("public")
 }
 
 model ApiLog {
@@ -477,22 +435,20 @@ model ApiLog {
   @@index([apiName])
   @@index([status])
   @@index([createdAt])
-  @@schema("public")
 }
 
 model MarketOperation {
-  id         String   @id @default(uuid())
-  date       DateTime @db.Date
-  timeblock  Int
-  damMcp     Decimal  @map("dam_mcp") @db.Decimal(10, 4)
-  rtmMcp     Decimal  @map("rtm_mcp") @db.Decimal(10, 4)
-  gdamMcp    Decimal  @map("gdam_mcp") @db.Decimal(10, 4)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  timeblock Int
+  damMcp    Decimal  @map("dam_mcp") @db.Decimal(10, 4)
+  rtmMcp    Decimal  @map("rtm_mcp") @db.Decimal(10, 4)
+  gdamMcp   Decimal  @map("gdam_mcp") @db.Decimal(10, 4)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([date, timeblock], map: "uq_market_op_date_timeblock")
   @@map("market_operation")
-  @@schema("public")
 }
 
 model CityStateData {
@@ -506,7 +462,6 @@ model CityStateData {
   updatedAt  DateTime @updatedAt
 
   @@unique([cityName, stateName], map: "uq_city_state_name")
-  @@schema("public")
 }
 
 model SavingsCalculatorEntry {
@@ -524,5 +479,4 @@ model SavingsCalculatorEntry {
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("savings_calculator_entries")
-  @@schema("public")
 }
