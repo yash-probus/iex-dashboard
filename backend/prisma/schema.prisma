@@ -172,9 +172,9 @@ model DiscomList {
   @@schema("prolt_energy")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model IstsCharges {
   id              Int     @id @default(autoincrement())
+  stateCode       String? @map("state_code") @db.VarChar(10)
   state           String  @db.VarChar(50)
   date            Int
   istsLossPercent Decimal @map("ists_loss_percent") @db.Decimal(6, 4)
@@ -215,14 +215,12 @@ model ProltMargin {
 
 
 model CtuCharges {
-  id        Int      @id @default(autoincrement())
-  month     Int      // 1-12
-  year      Int      // e.g. 2026
-  pdfUrl    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 Int      @id @default(autoincrement())
+  state              String   @db.VarChar(50)
+  month              Int
+  ctuChargesRsPerKwh Decimal? @map("ctu_charges_rs_per_kwh") @db.Decimal(12, 6)
 
-  @@unique([month, year], map: "uq_ctu_charges_month_year")
+  @@unique([state, month], map: "uq_ctu_charges_state_month")
   @@map("ctu_charges")
   @@schema("prolt_energy")
 }
