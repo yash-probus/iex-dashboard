@@ -73,7 +73,7 @@ export class SavingsCalculatorService {
   }
 
   // Savings calculation logic
-  static async calculateSavings(id: string) {
+  static async calculateSavings(id: string, targetMonth?: string) {
     const entry = await this.getById(id);
     if (!entry) {
       throw new Error('Entry not found');
@@ -99,11 +99,23 @@ export class SavingsCalculatorService {
     let totalBaselineCost = 0;
     let totalEnergyKwh = 0;
 
+    let monthsToProcess = Object.entries(todConsumptions);
+    if (targetMonth) {
+      monthsToProcess = monthsToProcess.filter(([ym]) => ym === targetMonth);
+      if (monthsToProcess.length === 0) {
+        throw new Error(`No consumption data found for month ${targetMonth}`);
+      }
+    }
+
     // Process each configured month
-    for (const [yearMonth, monthConsumptions] of Object.entries(todConsumptions)) {
+    for (const [yearMonth, monthConsumptions] of monthsToProcess) {
       const [yearStr, monthStr] = yearMonth.split('-');
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
+
+      if (isNaN(year) || isNaN(month)) {
+        throw new Error(`Invalid consumption month format: ${yearMonth}. Expected YYYY-MM.`);
+      }
 
       const whereClause: any = {
         stateCode,

@@ -137,8 +137,11 @@ export default function SavingsCalculatorPage() {
     loadResourceData();
   }, []);
 
-  const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1); // For filtering TODs in the form
   const [entryYear, setEntryYear] = useState<number>(new Date().getFullYear()); // For filtering TODs in the form
+  const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1);
+
+  // New state for simulation month selection
+  const [selectedSimMonth, setSelectedSimMonth] = useState<string>(''); // For filtering TODs in the form
 
   // Fetch unique State Codes
   const uniqueStates = React.useMemo(() => {
@@ -398,6 +401,9 @@ export default function SavingsCalculatorPage() {
     setCalcResult(null);
     setCalcDialogOpen(true);
     setCalcTab(0);
+    
+    const months = Object.keys(entry.todConsumptions || {}).sort();
+    setSelectedSimMonth(months.length > 0 ? months[0] : '');
   };
 
   const handleCloseCalc = () => {
@@ -410,8 +416,9 @@ export default function SavingsCalculatorPage() {
     if (!calcEntry) return;
     try {
       setCalculating(true);
-      const res = await calculateSavings(calcEntry.id);
+      const res = await calculateSavings(calcEntry.id, selectedSimMonth || undefined);
       setCalcResult(res);
+      setCalcTab(0);
     } catch (err: any) {
       console.error('Calculation failed:', err);
       setSnackbar({
@@ -1094,11 +1101,30 @@ export default function SavingsCalculatorPage() {
           {/* Controls */}
           <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
 
+            <TextField
+              select
+              label="Simulation Month"
+              value={selectedSimMonth}
+              onChange={(e) => {
+                setSelectedSimMonth(e.target.value);
+                setCalcResult(null);
+              }}
+              size="small"
+              sx={{ width: 220, bgcolor: 'background.paper' }}
+              SelectProps={{ native: true }}
+            >
+              {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
+                <option key={ym} value={ym}>
+                  {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </option>
+              ))}
+            </TextField>
+
             <Button
               variant="contained"
               startIcon={<PlayIcon />}
               onClick={executeCalculation}
-              disabled={calculating}
+              disabled={calculating || !selectedSimMonth}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2, 
