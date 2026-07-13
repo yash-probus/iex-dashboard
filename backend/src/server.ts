@@ -16,6 +16,10 @@ const server = app.listen(config.port, async () => {
   try {
     await prisma.$connect();
     logger.success('Prisma connected successfully');
+    
+    // Initialize scheduled cron jobs
+    const { initCronJobs } = require('./cron');
+    initCronJobs();
   } catch (error) {
     logger.error('Prisma connection failed', error);
   }
