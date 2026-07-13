@@ -1022,6 +1022,22 @@ export default function SavingsCalculatorPage() {
                           />
                         </Grid>
                       ))}
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Peak Demand (kVA)"
+                          value={todConsumptions[ym]['Peak Demand (kVA)'] || ''}
+                          onChange={(e) => setTodConsumptions(prev => ({
+                            ...prev,
+                            [ym]: { ...prev[ym], 'Peak Demand (kVA)': e.target.value }
+                          }))}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          type="number"
+                          placeholder="0"
+                          sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
                     </Grid>
                   </Card>
                 ))}
