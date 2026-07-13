@@ -147,16 +147,18 @@ model RegionState {
   stateName    String         @map("state_name") @db.VarChar(50)
   stateCode    String?        @unique(map: "uq_region_state_code") @map("state_code") @db.VarChar(10)
   stateOrUt    state_ut_enum? @map("state_or_ut")
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at")
 
   @@map("region_state")
 }
 
 model DiscomList {
-  code       String  @unique(map: "uq_discom_list_code") @db.VarChar(20)
-  legalName  String  @unique(map: "uq_discom_list_name") @map("legal_name") @db.VarChar(255)
-  stateCode  String? @map("state_code") @db.VarChar(10)
-  discomType String? @map("discom_type") @db.VarChar(30)
-  id         Int     @id @default(autoincrement())
+  code       String   @unique(map: "uq_discom_list_code") @db.VarChar(20)
+  legalName  String   @unique(map: "uq_discom_list_name") @map("legal_name") @db.VarChar(255)
+  stateCode  String?  @map("state_code") @db.VarChar(10)
+  discomType String?  @map("discom_type") @db.VarChar(30)
+  id         Int      @id @default(autoincrement())
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("discom_list")
 }
@@ -166,6 +168,7 @@ model IstsCharges {
   startDate       DateTime @map("start_date") @db.Date
   endDate         DateTime @map("end_date") @db.Date
   istsLossPercent Decimal  @map("ists_loss_percent") @db.Decimal(6, 4)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("ists_charges")
 }
@@ -180,6 +183,7 @@ model IexFees {
   nldcSchedulingFees  Decimal? @map("nldc_scheduling_fees") @db.Decimal(12, 4)
   sldcSchedulingFees  Decimal? @map("sldc_scheduling_fees") @db.Decimal(12, 4)
   otherFixCharges     Decimal? @map("other_fix_charges") @db.Decimal(12, 4)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("iex_fees")
 }
@@ -192,6 +196,7 @@ model ProltMargin {
   proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
   proltMarginGst   Decimal? @map("prolt_margin_gst") @db.Decimal(12, 4)
   id               Int      @id @default(autoincrement())
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([month, customerId], map: "uq_prolt_margin_month_cust")
   @@map("prolt_margin")
@@ -202,6 +207,7 @@ model CtuCharges {
   state                  String   @db.VarChar(50)
   month                  Int
   ctu_charges_rs_per_kwh Decimal? @db.Decimal(12, 6)
+  updatedAt              DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([state, month], map: "uq_ctu_charges_state_month")
   @@map("ctu_charges")
@@ -236,6 +242,7 @@ model StuCharges {
   stuLossPercent                      Decimal? @map("stu_loss_percent") @db.Decimal(12, 6)
   distributionWheelingLossPercent     Decimal? @map("distribution_wheeling_loss_percent") @db.Decimal(12, 6)
   id                                  Int      @id @default(autoincrement())
+  updatedAt                           DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([stateCode, month, category, subCategory, voltageLevel], map: "uq_stu_charges_composite")
   @@map("stu_charges")
@@ -258,6 +265,7 @@ model StateTariff {
   todRate           Decimal? @map("tod_rate") @db.Decimal(12, 6)
   energyCharges     Decimal? @map("energy_charges") @db.Decimal(12, 6)
   id                Int      @id @default(autoincrement())
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([stateCode, month, category, subCategory, discom, voltageLevel, season, todName, tod], map: "uq_state_tariff_composite")
   @@map("state_tariff")

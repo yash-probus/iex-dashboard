@@ -38,6 +38,7 @@ export default function CtuChargesPage() {
     { field: 'state', headerName: 'State', align: 'center', width: 200 },
     { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
     { field: 'ctu_charges_rs_per_kwh', headerName: 'CTU Charges (Rs/kWh)', align: 'center', width: 250, valueFormatter: formatNum },
+    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   const handleExport = () => {

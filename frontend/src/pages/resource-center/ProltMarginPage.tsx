@@ -39,6 +39,7 @@ export default function ProltMarginPage() {
     { field: 'tradingMarginGst', headerName: 'Trading Margin GST', align: 'center', width: 200, valueFormatter: formatNum },
     { field: 'proltMargin', headerName: 'ProLT Margin', align: 'center', width: 200, valueFormatter: formatNum },
     { field: 'proltMarginGst', headerName: 'ProLT Margin GST', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   const handleExport = () => {
