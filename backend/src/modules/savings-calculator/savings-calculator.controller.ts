@@ -115,7 +115,7 @@ export class SavingsCalculatorController {
   static async calculate(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const targetMonth = req.query.month as string | undefined;
+      const targetMonth = typeof req.query.month === 'string' ? req.query.month : undefined;
       const result = await SavingsCalculatorService.calculateSavings(id, targetMonth);
       res.status(200).json(result);
     } catch (error: any) {
