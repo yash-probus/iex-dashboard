@@ -19,8 +19,8 @@ export default function IstsChargesPage() {
     const lowerQuery = searchQuery.toLowerCase();
     return (
       String(row.id || '').toLowerCase().includes(lowerQuery) ||
-      String(row.state || '').toLowerCase().includes(lowerQuery) ||
-      String(row.date || '').toLowerCase().includes(lowerQuery) ||
+      String(row.startDate || '').toLowerCase().includes(lowerQuery) ||
+      String(row.endDate || '').toLowerCase().includes(lowerQuery) ||
       String(row.istsLossPercent).includes(lowerQuery)
     );
   });
@@ -29,16 +29,16 @@ export default function IstsChargesPage() {
 
   const columns: ColumnDefinition[] = [
     { field: 'id', headerName: 'ID', align: 'center', width: 150 },
-    { field: 'state', headerName: 'State', align: 'center', width: 250 },
-    { field: 'date', headerName: 'Date', align: 'center', width: 150 },
+    { field: 'startDate', headerName: 'Start Date', align: 'center', width: 200 },
+    { field: 'endDate', headerName: 'End Date', align: 'center', width: 200 },
     { field: 'istsLossPercent', headerName: 'ISTS Loss %', align: 'center', width: 200, valueFormatter: formatNum },
   ];
 
   const handleExport = () => {
     const exportData = filteredData.map((row: any) => ({
       'ID': row.id,
-      'State': row.state,
-      'Date': row.date,
+      'Start Date': row.startDate,
+      'End Date': row.endDate,
       'ISTS Loss %': row.istsLossPercent
     }));
     exportToCSV(exportData, config.exportFilename);

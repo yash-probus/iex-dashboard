@@ -162,10 +162,10 @@ model DiscomList {
 }
 
 model IstsCharges {
-  id              Int     @id @default(autoincrement())
-  stateCode       String? @map("state_code") @db.VarChar(10)
-  date            Int
-  istsLossPercent Decimal @map("ists_loss_percent") @db.Decimal(6, 4)
+  id              Int      @id @default(autoincrement())
+  startDate       DateTime @map("start_date") @db.Date
+  endDate         DateTime @map("end_date") @db.Date
+  istsLossPercent Decimal  @map("ists_loss_percent") @db.Decimal(6, 4)
 
   @@map("ists_charges")
 }

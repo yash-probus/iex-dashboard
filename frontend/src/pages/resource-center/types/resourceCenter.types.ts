@@ -16,8 +16,8 @@ export interface DiscomList {
 
 export interface IstsCharges {
   id: string;
-  state: string;
-  date: string;
+  startDate: string;
+  endDate: string;
   istsLossPercent: number;
 }
 
