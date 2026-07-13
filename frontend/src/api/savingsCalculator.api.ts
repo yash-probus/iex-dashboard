@@ -81,7 +81,8 @@ export const deleteSavingsEntry = async (id: string): Promise<{ message: string 
   return response.data;
 };
 
-export const calculateSavings = async (id: string): Promise<CalculationResult> => {
-  const response = await apiClient.post<CalculationResult>(`/savings-calculator/${id}/calculate`);
+export const calculateSavings = async (id: string, month?: string): Promise<CalculationResult> => {
+  const url = month ? `/savings-calculator/${id}/calculate?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/calculate`;
+  const response = await apiClient.post<CalculationResult>(url);
   return response.data;
 };
