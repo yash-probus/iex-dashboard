@@ -26,11 +26,12 @@ export default function IstsChargesPage() {
   });
 
   const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
+  const formatDate = (v: unknown) => v ? String(v).split('T')[0] : '-';
 
   const columns: ColumnDefinition[] = [
     { field: 'id', headerName: 'ID', align: 'center', width: 150 },
-    { field: 'startDate', headerName: 'Start Date', align: 'center', width: 200 },
-    { field: 'endDate', headerName: 'End Date', align: 'center', width: 200 },
+    { field: 'startDate', headerName: 'Start Date', align: 'center', width: 200, valueFormatter: formatDate },
+    { field: 'endDate', headerName: 'End Date', align: 'center', width: 200, valueFormatter: formatDate },
     { field: 'istsLossPercent', headerName: 'ISTS Loss %', align: 'center', width: 200, valueFormatter: formatNum },
     { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
