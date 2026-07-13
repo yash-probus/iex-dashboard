@@ -34,6 +34,9 @@ export const getResourceData = async (resourceType: ResourceType) => {
       if (Array.isArray(obj)) {
         return obj.map(serializeDecimals);
       }
+      if (obj instanceof Date) {
+        return obj.toISOString();
+      }
       const newObj: any = {};
       for (const key in obj) {
         newObj[key] = serializeDecimals(obj[key]);
@@ -51,10 +54,6 @@ export const createResourceRecord = async (resourceType: ResourceType, payload: 
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
 
   try {
-    if (resourceType === 'ists-charges' && payload.date) {
-      payload.date = parseInt(String(payload.date).replace(/-/g, ''), 10);
-    }
-
     const created = await (delegate as any).create({
       data: payload
     });
@@ -71,14 +70,6 @@ export const createBulkResourceRecords = async (resourceType: ResourceType, payl
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
 
   try {
-    if (resourceType === 'ists-charges') {
-      payloadArray.forEach(payload => {
-        if (payload.date) {
-          payload.date = parseInt(String(payload.date).replace(/-/g, ''), 10);
-        }
-      });
-    }
-
     const created = await prisma.$transaction(async (tx) => {
       const del = tx[tableInfo.modelName as keyof typeof tx] as any;
       await del.deleteMany({});
@@ -109,10 +100,6 @@ export const updateResourceRecord = async (resourceType: ResourceType, id: numbe
 
   // 2. Update
   try {
-    if (resourceType === 'ists-charges' && payload.date) {
-      payload.date = parseInt(String(payload.date).replace(/-/g, ''), 10);
-    }
-
     const updated = await (delegate as any).update({
       where: { id },
       data: payload

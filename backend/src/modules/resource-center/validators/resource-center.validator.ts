@@ -61,7 +61,7 @@ const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
 const VALID_FIELDS: Record<ResourceType, string[]> = {
   'region-state': ['regionalGrid', 'regionCode', 'regionName', 'stateName', 'stateCode', 'stateOrUt'],
   'discom-list': ['code', 'legalName', 'stateCode', 'discomType'],
-  'ists-charges': ['state', 'date', 'istsLossPercent'],
+  'ists-charges': ['startDate', 'endDate', 'istsLossPercent'],
   'iex-fees': ['month', 'exchangeFees', 'exchangeFeesGst', 'nldcApplicationFees', 'nldcSchedulingFees', 'sldcSchedulingFees', 'otherFixCharges'],
   'prolt-margin': ['month', 'customerId', 'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst'],
   'ctu-charges': ['month', 'year', 'pdfUrl'],
