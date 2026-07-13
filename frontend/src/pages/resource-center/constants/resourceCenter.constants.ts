@@ -11,7 +11,7 @@ export const RESOURCE_CENTER_PAGES = {
     subtitle: 'Reference directory of electricity distribution companies.',
     exportFilename: 'discom-list',
     emptyMessage: 'No Discom List data available.',
-    searchPlaceholder: 'Search by code, legal name, state code...',
+    searchPlaceholder: 'Search by code, discom name, state code...',
   },
   ISTS_LOSSES: {
     title: 'ISTS LOSSES',

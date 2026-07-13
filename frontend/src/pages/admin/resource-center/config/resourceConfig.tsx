@@ -60,17 +60,17 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     subtitle: 'Manage Discom List records.',
     exportFilename: 'discom-list',
     emptyMessage: 'No Discom List data available.',
-    searchPlaceholder: 'Search by code, legal name, state code...',
+    searchPlaceholder: 'Search by code, discom name, state code...',
     searchableFields: ['code', 'legalName', 'stateCode', 'discomType'],
     columns: [
       { field: 'code', headerName: 'Code', align: 'center', width: 150 },
-      { field: 'legalName', headerName: 'Legal Name', align: 'center', width: 400 },
+      { field: 'legalName', headerName: 'Discom Name', align: 'center', width: 400 },
       { field: 'stateCode', headerName: 'State Code', align: 'center', width: 150 },
       { field: 'discomType', headerName: 'Discom Type', align: 'center', width: 200 },
     ],
     fields: [
       { name: 'code', label: 'Code', type: 'text' },
-      { name: 'legalName', label: 'Legal Name', type: 'text' },
+      { name: 'legalName', label: 'Discom Name', type: 'text' },
       { name: 'stateCode', label: 'State Code', type: 'text' },
       { name: 'discomType', label: 'Discom Type', type: 'text' },
     ]
