@@ -1140,7 +1140,7 @@ export default function SavingsCalculatorPage() {
           {!calculating && !calcResult && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
               <Typography variant="body1" color="text.secondary">
-                Select a month and click 'Run Simulation' to load landed cost analysis.
+                Click 'Run Simulation' to load the landed cost analysis for your configured months.
               </Typography>
             </Box>
           )}
