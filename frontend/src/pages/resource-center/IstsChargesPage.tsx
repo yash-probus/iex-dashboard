@@ -12,7 +12,7 @@ import { IstsCharges } from './types/resourceCenter.types';
 export default function IstsChargesPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<IstsCharges>('ists-charges');
   const [searchQuery, setSearchQuery] = useState('');
-  const config = RESOURCE_CENTER_PAGES.ISTS_CHARGES;
+  const config = RESOURCE_CENTER_PAGES.ISTS_LOSSES;
 
   const filteredData = data.filter((row: IstsCharges) => {
     if (!searchQuery) return true;
