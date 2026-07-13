@@ -24,36 +24,28 @@ export default function CtuChargesPage() {
     if (!searchQuery) return true;
     const lowerQuery = searchQuery.toLowerCase();
     const monthStr = formatMonth(row.month).toLowerCase();
-    const yearStr = String(row.year);
+    const stateStr = String(row.state).toLowerCase();
     return (
       monthStr.includes(lowerQuery) ||
-      yearStr.includes(lowerQuery)
+      stateStr.includes(lowerQuery)
     );
   });
 
+  const formatNum = (v: any) => v != null ? Number(v).toFixed(2) : '-';
+
   const columns: ColumnDefinition[] = [
     { field: 'id', headerName: 'ID', align: 'center', width: 100 },
+    { field: 'state', headerName: 'State', align: 'center', width: 200 },
     { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-    { field: 'year', headerName: 'Year', align: 'center', width: 150 },
-    { 
-      field: 'pdfUrl', 
-      headerName: 'Document', 
-      align: 'center', 
-      width: 250,
-      renderCell: (row) => (
-        <a href={row.pdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#EC4899', textDecoration: 'none', fontWeight: 'bold' }}>
-          Download PDF
-        </a>
-      )
-    },
+    { field: 'ctu_charges_rs_per_kwh', headerName: 'CTU Charges (Rs/kWh)', align: 'center', width: 250, valueFormatter: formatNum },
   ];
 
   const handleExport = () => {
     const exportData = filteredData.map((row: any) => ({
       'ID': row.id,
+      'State': row.state,
       'Month': formatMonth(row.month),
-      'Year': row.year,
-      'PDF Link': row.pdfUrl
+      'CTU Charges (Rs/kWh)': row.ctu_charges_rs_per_kwh
     }));
     exportToCSV(exportData, config.exportFilename);
   };

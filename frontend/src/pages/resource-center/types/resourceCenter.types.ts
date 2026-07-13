@@ -41,10 +41,10 @@ export interface ProltMargin {
 }
 
 export interface CtuCharges {
-  id: number;
+  id: string;
+  state: string;
   month: number;
-  year: number;
-  pdfUrl: string;
+  ctu_charges_rs_per_kwh: number;
 }
 
 export interface StuCharges {
