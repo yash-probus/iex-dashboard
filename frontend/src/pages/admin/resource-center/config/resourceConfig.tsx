@@ -76,10 +76,10 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     ]
   },
   'ists-charges': {
-    title: 'ISTS CHARGES',
-    subtitle: 'Manage ISTS Charges records.',
+    title: 'ISTS LOSSES',
+    subtitle: 'Manage ISTS Losses records.',
     exportFilename: 'ists-charges',
-    emptyMessage: 'No ISTS Charges data available.',
+    emptyMessage: 'No ISTS Losses data available.',
     searchPlaceholder: 'Search by state, date, ISTS loss...',
     searchableFields: ['id', 'state', 'date', 'istsLossPercent'],
     columns: [
@@ -150,29 +150,18 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     subtitle: 'Manage CTU Charges records.',
     exportFilename: 'ctu-charges',
     emptyMessage: 'No CTU Charges data available.',
-    searchPlaceholder: 'Search by state, month, charges...',
-    searchableFields: ['id', 'month', 'year', 'pdfUrl'],
+    searchPlaceholder: 'Search by state, month...',
+    searchableFields: ['state', 'month'],
     columns: [
       { field: 'id', headerName: 'ID', align: 'center', width: 100 },
+      { field: 'state', headerName: 'State', align: 'center', width: 200 },
       { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-      { field: 'year', headerName: 'Year', align: 'center', width: 150 },
-      { 
-        field: 'pdfUrl', 
-        headerName: 'Document', 
-        align: 'center', 
-        width: 250,
-        renderCell: (row) => (
-          <a href={row.pdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#EC4899', textDecoration: 'none', fontWeight: 'bold' }}>
-            Download PDF
-          </a>
-        )
-      },
+      { field: 'ctu_charges_rs_per_kwh', headerName: 'CTU Charges (Rs/kWh)', align: 'center', width: 250, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'id', label: 'ID', type: 'number' },
+      { name: 'state', label: 'State', type: 'text' },
       { name: 'month', label: 'Month', type: 'number' },
-      { name: 'year', label: 'Year', type: 'number' },
-      { name: 'pdfUrl', label: 'PDF URL', type: 'text' },
+      { name: 'ctu_charges_rs_per_kwh', label: 'CTU Charges (Rs/kWh)', type: 'number' },
     ]
   },
   'stu-charges': {

@@ -13,11 +13,11 @@ export const RESOURCE_CENTER_PAGES = {
     emptyMessage: 'No Discom List data available.',
     searchPlaceholder: 'Search by code, legal name, state code...',
   },
-  ISTS_CHARGES: {
-    title: 'ISTS CHARGES',
+  ISTS_LOSSES: {
+    title: 'ISTS LOSSES',
     subtitle: 'Inter-State Transmission System loss percentage reference data.',
     exportFilename: 'ists-charges',
-    emptyMessage: 'No ISTS Charges data available.',
+    emptyMessage: 'No ISTS Losses data available.',
     searchPlaceholder: 'Search by state, date, ISTS loss...',
   },
   IEX_FEES: {

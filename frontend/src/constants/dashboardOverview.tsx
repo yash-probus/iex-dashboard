@@ -95,7 +95,7 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
     icon: <BoltIcon fontSize="medium" />,
     color: '#E53935',
     subItems: [
-      { key: 'ists-charges', title: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <BoltIcon fontSize="small" /> },
+      { key: 'ists-charges', title: 'ISTS Losses', path: '/resource-center/ists-charges', icon: <BoltIcon fontSize="small" /> },
       { key: 'ctu-charges', title: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <HubIcon fontSize="small" /> }
     ]
   },

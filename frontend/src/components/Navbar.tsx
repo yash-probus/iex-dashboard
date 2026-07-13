@@ -27,7 +27,7 @@ const MARKET_ITEMS = [
 const RESOURCE_ROUTES = [
   { label: 'Region State', path: '/resource-center/region-state', icon: <MapIcon fontSize="small" sx={{ color: '#F29F67' }} /> },
   { label: 'Discom List', path: '/resource-center/discom-list', icon: <BusinessIcon fontSize="small" sx={{ color: '#3B8FF3' }} /> },
-  { label: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <EvStationIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
+  { label: 'ISTS Losses', path: '/resource-center/ists-charges', icon: <EvStationIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
   { label: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
   { label: 'Prolt Margin', path: '/resource-center/prolt-margin', icon: <ShowChartIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
   { label: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <AccountTreeIcon fontSize="small" sx={{ color: '#EC4899' }} /> },
@@ -46,7 +46,7 @@ const RESOURCE_GROUPS = [
   {
     title: 'Transmission Charges',
     items: [
-      { label: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <EvStationIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
+      { label: 'ISTS Losses', path: '/resource-center/ists-charges', icon: <EvStationIcon fontSize="small" sx={{ color: '#34B1AA' }} /> },
       { label: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <AccountTreeIcon fontSize="small" sx={{ color: '#EC4899' }} /> },
     ]
   },
