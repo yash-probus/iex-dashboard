@@ -62,7 +62,7 @@ export default function SavingsCalculatorPage() {
   const [discom, setDiscom] = useState('');
   const [consumerCategory, setConsumerCategory] = useState('');
   const [voltageLevel, setVoltageLevel] = useState('');
-  const [todConsumptions, setTodConsumptions] = useState<Record<string, string>>({});
+  const [todConsumptions, setTodConsumptions] = useState<Record<string, Record<string, string>>>({});
   
   // Validation Errors
   const [formErrors, setFormErrors] = useState<{ 
@@ -138,6 +138,7 @@ export default function SavingsCalculatorPage() {
   }, []);
 
   const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1); // For filtering TODs in the form
+  const [entryYear, setEntryYear] = useState<number>(new Date().getFullYear()); // For filtering TODs in the form
 
   // Fetch unique State Codes
   const uniqueStates = React.useMemo(() => {
@@ -236,10 +237,13 @@ export default function SavingsCalculatorPage() {
       setConsumerCategory(entry.consumerCategory || '');
       setVoltageLevel(entry.voltageLevel || '');
       
-      const tc: Record<string, string> = {};
+      const tc: Record<string, Record<string, string>> = {};
       if (entry.todConsumptions) {
-        Object.keys(entry.todConsumptions).forEach(k => {
-          tc[k] = String(entry.todConsumptions![k]);
+        Object.keys(entry.todConsumptions).forEach(ym => {
+          tc[ym] = {};
+          Object.keys(entry.todConsumptions![ym] as Record<string, any>).forEach(slab => {
+            tc[ym][slab] = String((entry.todConsumptions![ym] as Record<string, any>)[slab]);
+          });
         });
       }
       setTodConsumptions(tc);
@@ -271,11 +275,13 @@ export default function SavingsCalculatorPage() {
       case 6:
         // Optional consumptions, but if provided should be valid numbers
         let isValid = true;
-        Object.values(todConsumptions).forEach(val => {
-          if (val.trim()) {
-            const v = parseFloat(val);
-            if (isNaN(v) || v < 0) isValid = false;
-          }
+        Object.values(todConsumptions).forEach(monthData => {
+          Object.values(monthData).forEach(val => {
+            if (val.trim()) {
+              const v = parseFloat(val);
+              if (isNaN(v) || v < 0) isValid = false;
+            }
+          });
         });
         return isValid;
       default:
@@ -325,7 +331,12 @@ export default function SavingsCalculatorPage() {
         consumerCategory: consumerCategory.trim() || undefined,
         voltageLevel: voltageLevel.trim() || undefined,
         todConsumptions: Object.keys(todConsumptions).length > 0 ? 
-          Object.fromEntries(Object.entries(todConsumptions).filter(([_, v]) => v.trim() !== '').map(([k, v]) => [k, parseFloat(v)])) 
+          Object.fromEntries(
+            Object.entries(todConsumptions).map(([ym, data]) => [
+              ym,
+              Object.fromEntries(Object.entries(data).filter(([_, v]) => v.trim() !== '').map(([k, v]) => [k, parseFloat(v)]))
+            ])
+          )
           : undefined,
       };
 
@@ -399,7 +410,7 @@ export default function SavingsCalculatorPage() {
     if (!calcEntry) return;
     try {
       setCalculating(true);
-      const res = await calculateSavings(calcEntry.id, calcMonth, calcYear);
+      const res = await calculateSavings(calcEntry.id);
       setCalcResult(res);
     } catch (err: any) {
       console.error('Calculation failed:', err);
@@ -429,7 +440,7 @@ export default function SavingsCalculatorPage() {
       'Savings (Rs)': (row.baselineCost - row.optimizedCost).toFixed(2),
     }));
     
-    const filename = `${calcResult.clientName}_savings_report_month_${calcResult.month}_${calcResult.year}.csv`;
+    const filename = `${calcResult.clientName}_savings_report.csv`;
     exportToCSV(exportData, filename);
   };
 
@@ -919,16 +930,30 @@ export default function SavingsCalculatorPage() {
             question: "Select a month and enter your consumption (kWh) per TOD slab",
             summary: `TOD Consumptions set`,
             content: (
-              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box sx={{ minWidth: 120 }}>
+              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                   <TextField
                     select
-                    label="Data Entry Month"
-                    value={entryMonth}
-                    onChange={(e) => setEntryMonth(Number(e.target.value))}
-                    fullWidth
+                    label="Year"
+                    value={entryYear}
+                    onChange={(e) => setEntryYear(Number(e.target.value))}
                     size="small"
                     SelectProps={{ native: true }}
+                    sx={{ width: 120 }}
+                  >
+                    <option value={2023}>2023</option>
+                    <option value={2024}>2024</option>
+                    <option value={2025}>2025</option>
+                    <option value={2026}>2026</option>
+                  </TextField>
+                  <TextField
+                    select
+                    label="Month"
+                    value={entryMonth}
+                    onChange={(e) => setEntryMonth(Number(e.target.value))}
+                    size="small"
+                    SelectProps={{ native: true }}
+                    sx={{ width: 150 }}
                   >
                     <option value={1}>January</option>
                     <option value={2}>February</option>
@@ -943,24 +968,62 @@ export default function SavingsCalculatorPage() {
                     <option value={11}>November</option>
                     <option value={12}>December</option>
                   </TextField>
+                  <Button 
+                    variant="outlined" 
+                    startIcon={<AddIcon />}
+                    onClick={() => {
+                      const key = `${entryYear}-${String(entryMonth).padStart(2, '0')}`;
+                      if (!todConsumptions[key]) {
+                        setTodConsumptions(prev => ({ ...prev, [key]: {} }));
+                      }
+                    }}
+                    sx={{ height: 40, textTransform: 'none', borderRadius: 2 }}
+                  >
+                    Add Month
+                  </Button>
                 </Box>
+                
                 {uniqueTodSlabs.length === 0 && (
                   <Typography variant="body2" color="text.secondary">
                     Please select a State, DISCOM, and Category to see applicable TOD slabs.
                   </Typography>
                 )}
-                {uniqueTodSlabs.map(slab => (
-                  <TextField
-                    key={slab}
-                    label={`${slab} Consumption (kWh)`}
-                    value={todConsumptions[slab] || ''}
-                    onChange={(e) => setTodConsumptions(prev => ({ ...prev, [slab]: e.target.value }))}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    type="number"
-                    placeholder="e.g. 50000"
-                  />
+
+                {Object.keys(todConsumptions).sort().map(ym => (
+                  <Card key={ym} variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: '#F8FAFC' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                      </Typography>
+                      <IconButton size="small" color="error" onClick={() => {
+                        const newTc = { ...todConsumptions };
+                        delete newTc[ym];
+                        setTodConsumptions(newTc);
+                      }}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                    <Grid container spacing={2}>
+                      {uniqueTodSlabs.map(slab => (
+                        <Grid item xs={12} sm={6} key={slab}>
+                          <TextField
+                            label={`${slab} (kWh)`}
+                            value={todConsumptions[ym][slab] || ''}
+                            onChange={(e) => setTodConsumptions(prev => ({
+                              ...prev,
+                              [ym]: { ...prev[ym], [slab]: e.target.value }
+                            }))}
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                            type="number"
+                            placeholder="0"
+                            sx={{ bgcolor: '#FFF' }}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Card>
                 ))}
               </Box>
             )
@@ -1014,43 +1077,6 @@ export default function SavingsCalculatorPage() {
         <DialogContent sx={{ minHeight: '500px' }}>
           {/* Controls */}
           <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
-            <TextField
-              select
-              size="small"
-              label="Analysis Year"
-              value={calcYear}
-              onChange={(e) => setCalcYear(Number(e.target.value))}
-              sx={{ width: 120 }}
-              SelectProps={{ native: true }}
-            >
-              <option value={2023}>2023</option>
-              <option value={2024}>2024</option>
-              <option value={2025}>2025</option>
-              <option value={2026}>2026</option>
-            </TextField>
-
-            <TextField
-              select
-              size="small"
-              label="Analysis Month"
-              value={calcMonth}
-              onChange={(e) => setCalcMonth(Number(e.target.value))}
-              sx={{ width: 200 }}
-              SelectProps={{ native: true }}
-            >
-              <option value={1}>January</option>
-              <option value={2}>February</option>
-              <option value={3}>March</option>
-              <option value={4}>April</option>
-              <option value={5}>May</option>
-              <option value={6}>June</option>
-              <option value={7}>July</option>
-              <option value={8}>August</option>
-              <option value={9}>September</option>
-              <option value={10}>October</option>
-              <option value={11}>November</option>
-              <option value={12}>December</option>
-            </TextField>
 
             <Button
               variant="contained"

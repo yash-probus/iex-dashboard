@@ -10,7 +10,7 @@ export interface SavingsCalculatorEntry {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
-  todConsumptions?: Record<string, number | string>;
+  todConsumptions?: Record<string, Record<string, number | string>>;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,7 +24,7 @@ export interface CreateSavingsEntryDto {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
-  todConsumptions?: Record<string, number | string>;
+  todConsumptions?: Record<string, Record<string, number | string>>;
 }
 
 export interface CalculationSlotDetail {
@@ -46,8 +46,6 @@ export interface CalculationSlotDetail {
 export interface CalculationResult {
   clientId: string;
   clientName: string;
-  month: number;
-  year: number;
   sanctionedLoad: number;
   maxEnergyPerSlot: number;
   totalEnergyKwh: number;
@@ -83,7 +81,7 @@ export const deleteSavingsEntry = async (id: string): Promise<{ message: string 
   return response.data;
 };
 
-export const calculateSavings = async (id: string, month: number, year: number): Promise<CalculationResult> => {
-  const response = await apiClient.post<CalculationResult>(`/savings-calculator/${id}/calculate`, { month, year });
+export const calculateSavings = async (id: string): Promise<CalculationResult> => {
+  const response = await apiClient.post<CalculationResult>(`/savings-calculator/${id}/calculate`);
   return response.data;
 };

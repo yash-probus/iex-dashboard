@@ -115,14 +115,7 @@ export class SavingsCalculatorController {
   static async calculate(req: Request, res: Response) {
     try {
       const id = req.params.id as string;
-      const month = req.body.month ? parseInt(req.body.month as string, 10) : new Date().getMonth() + 1;
-      const year = req.body.year ? parseInt(req.body.year as string, 10) : new Date().getFullYear();
-
-      if (isNaN(month) || month < 1 || month > 12) {
-        return res.status(400).json({ message: 'Invalid month value. Must be between 1 and 12.' });
-      }
-
-      const result = await SavingsCalculatorService.calculateSavings(id, month, year);
+      const result = await SavingsCalculatorService.calculateSavings(id);
       res.json(result);
     } catch (error: any) {
       console.error('[SavingsCalculatorController] Calculation failed:', error);

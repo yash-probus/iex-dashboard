@@ -1,78 +1,22 @@
-import prisma from '../../config/prisma';
+import re
+import os
 
-export class SavingsCalculatorService {
-  static async getAll() {
-    return prisma.savingsCalculatorEntry.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
-  }
+filepath = "/Users/yashgupta/IEX-Dashboard/backend/src/modules/savings-calculator/savings-calculator.service.ts"
 
-  static async getById(id: string) {
-    return prisma.savingsCalculatorEntry.findUnique({
-      where: { id }
-    });
-  }
+with open(filepath, 'r') as f:
+    content = f.read()
 
-  static async create(data: { 
-    clientName: string; 
-    industryName: string; 
-    address: string;
-    sanctionedLoadKw?: number;
-    stateCode?: string;
-    discom?: string;
-    consumerCategory?: string;
-    voltageLevel?: string;
-    todConsumptions?: any;
-  }) {
-    return prisma.savingsCalculatorEntry.create({
-      data: {
-        clientName: data.clientName,
-        industryName: data.industryName,
-        address: data.address,
-        sanctionedLoadKw: data.sanctionedLoadKw,
-        stateCode: data.stateCode,
-        discom: data.discom,
-        consumerCategory: data.consumerCategory,
-        voltageLevel: data.voltageLevel,
-        todConsumptions: data.todConsumptions
-      }
-    });
-  }
+# We need to replace the entire `static async calculateSavings(id: string, month: number, year: number) { ... }` function
+# up to the end of the class.
 
-  static async update(id: string, data: { 
-    clientName: string; 
-    industryName: string; 
-    address: string;
-    sanctionedLoadKw?: number;
-    stateCode?: string;
-    discom?: string;
-    consumerCategory?: string;
-    voltageLevel?: string;
-    todConsumptions?: any;
-  }) {
-    return prisma.savingsCalculatorEntry.update({
-      where: { id },
-      data: {
-        clientName: data.clientName,
-        industryName: data.industryName,
-        address: data.address,
-        sanctionedLoadKw: data.sanctionedLoadKw,
-        stateCode: data.stateCode,
-        discom: data.discom,
-        consumerCategory: data.consumerCategory,
-        voltageLevel: data.voltageLevel,
-        todConsumptions: data.todConsumptions
-      }
-    });
-  }
+start_marker = "  // Savings calculation logic"
+end_marker = "}\n"
 
-  static async delete(id: string) {
-    return prisma.savingsCalculatorEntry.delete({
-      where: { id }
-    });
-  }
+start_idx = content.find(start_marker)
+# Find the last closing brace which is the end of the class
+end_idx = content.rfind("}")
 
-  // Savings calculation logic
+new_method = """  // Savings calculation logic
   static async calculateSavings(id: string) {
     const entry = await this.getById(id);
     if (!entry) {
@@ -355,4 +299,11 @@ export class SavingsCalculatorService {
       sortedMonthlyList
     };
   }
-}
+"""
+
+new_content = content[:start_idx] + new_method + "}\n"
+
+with open(filepath, 'w') as f:
+    f.write(new_content)
+
+print("Successfully replaced calculateSavings!")
