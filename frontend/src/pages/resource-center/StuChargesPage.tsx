@@ -74,7 +74,7 @@ export default function StuChargesPage() {
   };
 
   return (
-    <ResourcePageLayout resourceType="stu-charges"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="stu-charges"
       title={config.title}
       subtitle={config.subtitle}
       icon={<DeviceHubIcon fontSize="large" />}

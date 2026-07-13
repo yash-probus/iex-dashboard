@@ -47,7 +47,7 @@ export default function IstsChargesPage() {
   };
 
   return (
-    <ResourcePageLayout resourceType="ists-charges"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="ists-charges"
       title={config.title}
       subtitle={config.subtitle}
       icon={<BoltIcon fontSize="large" />}

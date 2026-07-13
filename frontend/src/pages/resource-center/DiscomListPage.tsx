@@ -44,7 +44,7 @@ export default function DiscomListPage() {
   };
 
   return (
-    <ResourcePageLayout resourceType="discom-list"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="discom-list"
       title={config.title}
       subtitle={config.subtitle}
       icon={<DomainIcon fontSize="large" />}

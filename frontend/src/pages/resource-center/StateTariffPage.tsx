@@ -77,7 +77,7 @@ export default function StateTariffPage() {
   };
 
   return (
-    <ResourcePageLayout resourceType="state-tariff"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="state-tariff"
       title={config.title}
       subtitle={config.subtitle}
       icon={<PriceCheckIcon fontSize="large" />}

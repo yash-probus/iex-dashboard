@@ -58,7 +58,7 @@ export default function IexFeesPage() {
   };
 
   return (
-    <ResourcePageLayout resourceType="iex-fees"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="iex-fees"
       title={config.title}
       subtitle={config.subtitle}
       icon={<ReceiptIcon fontSize="large" />}
