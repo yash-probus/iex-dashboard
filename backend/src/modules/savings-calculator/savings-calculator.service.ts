@@ -250,8 +250,17 @@ export class SavingsCalculatorService {
     });
 
     // Second pass to calculate energy and costs with chronological banking
-    const todConsumptions = entry.todConsumptions as Record<string, number> | null;
+    const todConsumptions = entry.todConsumptions as Record<string, number | string> | null;
     
+    const hasAnyDataForMonth = Object.keys(todCounts).some(groupKey => {
+      return todConsumptions && todConsumptions[groupKey] !== undefined && todConsumptions[groupKey] !== null && todConsumptions[groupKey] !== '';
+    });
+
+    if (!hasAnyDataForMonth) {
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      throw new Error(`No consumption data found for ${monthNames[month - 1]}. Please edit the entry, select ${monthNames[month - 1]}, and provide your consumption data.`);
+    }
+
     // 1. Sort slots chronologically to model the flow of time
     slotsData.sort((a, b) => {
       if (a.date !== b.date) {
@@ -267,8 +276,8 @@ export class SavingsCalculatorService {
 
     slotsData.forEach((item, index) => {
       let groupKey = item.todSlab.toUpperCase();
-      let requiredEnergy = maxEnergyPerSlot; // default fallback
-      if (todConsumptions && todConsumptions[groupKey] !== undefined && todConsumptions[groupKey] !== null) {
+      let requiredEnergy = 0; // Default to 0 instead of maxEnergyPerSlot
+      if (todConsumptions && todConsumptions[groupKey] !== undefined && todConsumptions[groupKey] !== null && todConsumptions[groupKey] !== '') {
         const totalEnergy = Number(todConsumptions[groupKey]);
         const count = todCounts[groupKey];
         requiredEnergy = count > 0 ? totalEnergy / count : 0;

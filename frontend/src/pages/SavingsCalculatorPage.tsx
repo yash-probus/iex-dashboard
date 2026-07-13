@@ -137,20 +137,22 @@ export default function SavingsCalculatorPage() {
     loadResourceData();
   }, []);
 
-  // Memoized derived states
+  const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1); // For filtering TODs in the form
+
+  // Fetch unique State Codes
   const uniqueStates = React.useMemo(() => {
     const statesMap = new Map<string, string>();
     tariffData.forEach((row: any) => {
-      if (row.stateCode) {
-        statesMap.set(row.stateCode, row.state || row.stateCode);
+      if (row.stateCode && row.state) {
+        statesMap.set(row.stateCode, row.state);
       }
     });
-    return Array.from(statesMap.entries()).map(([code, name]) => ({
-      stateCode: code,
-      stateName: name
-    }));
+    return Array.from(statesMap.entries())
+      .map(([code, name]) => ({ stateCode: code, stateName: name }))
+      .sort((a, b) => a.stateName.localeCompare(b.stateName));
   }, [tariffData]);
 
+  // Dependent Selectors Logic
   const filteredDiscoms = React.useMemo(() => {
     const discomsSet = new Set<string>();
     tariffData.forEach((row: any) => {
@@ -164,31 +166,29 @@ export default function SavingsCalculatorPage() {
   const uniqueCategories = React.useMemo(() => {
     const categoriesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (row.category && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
-        categoriesSet.add(row.category);
+      if (
+        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
+        (!discom || row.discom === discom)
+      ) {
+        if (row.category) categoriesSet.add(row.category);
       }
     });
-    return Array.from(categoriesSet);
-  }, [tariffData, stateCode]);
+    return Array.from(categoriesSet).sort();
+  }, [tariffData, stateCode, discom]);
 
   const uniqueVoltageLevels = React.useMemo(() => {
-    const levelsSet = new Set<string>([
-      '11 kV', '22 kV', '33 kV',
-      '66 kV', '110 kV', '132 kV',
-      '220 kV'
-    ]);
+    const levelsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (row.voltageLevel && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
-        let normalizedVoltage = row.voltageLevel.trim();
-        const digitsMatch = normalizedVoltage.match(/^(\d+)\s*kV$/i);
-        if (digitsMatch) {
-          normalizedVoltage = `${digitsMatch[1]} kV`;
-        }
-        levelsSet.add(normalizedVoltage);
+      if (
+        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
+        (!discom || row.discom === discom) &&
+        (!consumerCategory || row.category === consumerCategory)
+      ) {
+        if (row.voltageLevel) levelsSet.add(row.voltageLevel);
       }
     });
     return Array.from(levelsSet);
-  }, [tariffData, stateCode]);
+  }, [tariffData, stateCode, discom, consumerCategory]);
 
   const uniqueTodSlabs = React.useMemo(() => {
     const slabsSet = new Set<string>();
@@ -197,14 +197,15 @@ export default function SavingsCalculatorPage() {
         (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
         (!discom || row.discom === discom) &&
         (!consumerCategory || row.category === consumerCategory) &&
-        (!voltageLevel || row.voltageLevel === voltageLevel)
+        (!voltageLevel || row.voltageLevel === voltageLevel) &&
+        (!entryMonth || row.month === entryMonth)
       ) {
         const slabName = (row.todName || row.tod || 'normal').toUpperCase();
         slabsSet.add(slabName);
       }
     });
     return Array.from(slabsSet).sort();
-  }, [tariffData, stateCode, discom, consumerCategory, voltageLevel]);
+  }, [tariffData, stateCode, discom, consumerCategory, voltageLevel, entryMonth]);
 
   // Form Reset Helper
   const resetForm = () => {
@@ -915,10 +916,34 @@ export default function SavingsCalculatorPage() {
           {renderStep(6, {
             icon: <CalculateIcon />,
             title: "Energy Consumption per TOD Slab",
-            question: "Enter monthly consumption (kWh) per TOD slab (optional)",
+            question: "Select a month and enter your consumption (kWh) per TOD slab",
             summary: `TOD Consumptions set`,
             content: (
               <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ minWidth: 120 }}>
+                  <TextField
+                    select
+                    label="Data Entry Month"
+                    value={entryMonth}
+                    onChange={(e) => setEntryMonth(Number(e.target.value))}
+                    fullWidth
+                    size="small"
+                    SelectProps={{ native: true }}
+                  >
+                    <option value={1}>January</option>
+                    <option value={2}>February</option>
+                    <option value={3}>March</option>
+                    <option value={4}>April</option>
+                    <option value={5}>May</option>
+                    <option value={6}>June</option>
+                    <option value={7}>July</option>
+                    <option value={8}>August</option>
+                    <option value={9}>September</option>
+                    <option value={10}>October</option>
+                    <option value={11}>November</option>
+                    <option value={12}>December</option>
+                  </TextField>
+                </Box>
                 {uniqueTodSlabs.length === 0 && (
                   <Typography variant="body2" color="text.secondary">
                     Please select a State, DISCOM, and Category to see applicable TOD slabs.

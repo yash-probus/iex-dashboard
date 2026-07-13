@@ -330,7 +330,9 @@ model StateDemandData {
 
 model WeatherForecast {
   id                String   @id @default(uuid())
-  date              String   @unique @db.VarChar(10) // YYYY-MM-DD
+  date              String   @db.VarChar(10) // YYYY-MM-DD
+  cityId            String
+  city              CityStateData @relation(fields: [cityId], references: [id])
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
@@ -342,12 +344,16 @@ model WeatherForecast {
   sunset            String   @default("") @db.VarChar(10)
   isActual          Boolean  @default(false)
   updatedAt         DateTime @default(now()) @updatedAt
+
+  @@unique([date, cityId])
 }
 
 model WeatherForecastHourly {
   id                String   @id @default(uuid())
   date              String   @db.VarChar(10) // YYYY-MM-DD
   timeStr           String   @db.VarChar(5) // HH:MM
+  cityId            String
+  city              CityStateData @relation(fields: [cityId], references: [id])
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
@@ -360,12 +366,14 @@ model WeatherForecastHourly {
   isActual          Boolean  @default(false)
   updatedAt         DateTime @default(now()) @updatedAt
 
-  @@unique([date, timeStr])
+  @@unique([date, timeStr, cityId])
 }
 
 model WeatherHistorical {
   id                String   @id @default(uuid())
-  date              String   @unique @db.VarChar(10) // YYYY-MM-DD
+  date              String   @db.VarChar(10) // YYYY-MM-DD
+  cityId            String
+  city              CityStateData @relation(fields: [cityId], references: [id])
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
@@ -377,6 +385,8 @@ model WeatherHistorical {
   sunset            String   @default("") @db.VarChar(10)
   isActual          Boolean  @default(false)
   updatedAt         DateTime @default(now()) @updatedAt
+
+  @@unique([date, cityId])
 }
 
 model NppRawDemandData {
@@ -452,14 +462,17 @@ model MarketOperation {
 }
 
 model CityStateData {
-  id         String   @id @default(uuid())
-  cityName   String   @db.VarChar(100)
-  stateName  String   @db.VarChar(100)
-  population Int
-  latitude   Float
-  longitude  Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                     String                  @id @default(uuid())
+  cityName               String                  @db.VarChar(100)
+  stateName              String                  @db.VarChar(100)
+  population             Int
+  latitude               Float
+  longitude              Float
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  weatherForecasts       WeatherForecast[]
+  weatherForecastsHourly WeatherForecastHourly[]
+  weatherHistorical      WeatherHistorical[]
 
   @@unique([cityName, stateName], map: "uq_city_state_name")
 }

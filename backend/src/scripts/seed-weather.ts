@@ -13,7 +13,14 @@ async function main() {
   const startStr = startDate.toISOString().split('T')[0];
   const endStr = endDate.toISOString().split('T')[0];
 
-  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=28.6139&longitude=77.2090&start_date=${startStr}&end_date=${endStr}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max,precipitation_probability_max,sunrise,sunset&timezone=auto`;
+  const cities = await prisma.cityStateData.findMany();
+  if (cities.length === 0) {
+    console.error('No cities found in CityStateData. Run seedCities.ts first.');
+    return;
+  }
+  const city = cities[0];
+
+  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${city.latitude}&longitude=${city.longitude}&start_date=${startStr}&end_date=${endStr}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max,precipitation_probability_max,sunrise,sunset&timezone=auto`;
 
   console.log(`URL: ${url}`);
   
@@ -54,7 +61,7 @@ async function main() {
       const sunset = sunsets[i] ? sunsets[i].split('T')[1] : "19:00";
 
       await prisma.weatherForecast.upsert({
-        where: { date },
+        where: { date_cityId: { date, cityId: city.id } },
         update: {
           maxTemp,
           minTemp,
@@ -69,6 +76,7 @@ async function main() {
         },
         create: {
           date,
+          cityId: city.id,
           maxTemp,
           minTemp,
           windSpeed,

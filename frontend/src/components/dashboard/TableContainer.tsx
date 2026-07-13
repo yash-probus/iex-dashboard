@@ -65,7 +65,7 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
               {columnsWithOffsets.map(col => (
                 <TableCell 
                   key={col.field}
-                  align="center"
+                  align={col.align || "center"}
                   sx={{ 
                     fontWeight: 600, 
                     color: '#1E293B',

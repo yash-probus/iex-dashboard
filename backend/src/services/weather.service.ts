@@ -22,9 +22,16 @@ export class WeatherEngine {
   public static async updateHourlyForecast(): Promise<void> {
     console.log('[WeatherEngine] Starting 30-day hourly weather forecast sync...');
     try {
-      // Fetch 16-day hourly forecast from Open-Meteo for New Delhi
-      const url = "https://api.open-meteo.com/v1/forecast?latitude=28.61&longitude=77.20&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation_probability,precipitation&daily=sunrise,sunset,sunshine_duration&forecast_days=16&past_days=1&timezone=Asia/Kolkata";
-      const response = await axiosClient.get(url);
+      const cities = await prisma.cityStateData.findMany();
+      if (cities.length === 0) {
+        console.warn('[WeatherEngine] No cities found in CityStateData. Skipping forecast sync.');
+        return;
+      }
+
+      for (const city of cities) {
+        // Fetch 16-day hourly forecast from Open-Meteo for the city
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation_probability,precipitation&daily=sunrise,sunset,sunshine_duration&forecast_days=16&past_days=1&timezone=Asia/Kolkata`;
+        const response = await axiosClient.get(url);
       
       const hourly = response.data.hourly;
       const daily = response.data.daily;
@@ -86,9 +93,10 @@ export class WeatherEngine {
           const timeStrSlot = `${timeStr.split(':')[0]}:${minute}`;
           await prisma.weatherForecastHourly.upsert({
             where: {
-              date_timeStr: {
+              date_timeStr_cityId: {
                 date,
-                timeStr: timeStrSlot
+                timeStr: timeStrSlot,
+                cityId: city.id
               }
             },
             update: {
@@ -106,6 +114,7 @@ export class WeatherEngine {
             create: {
               date,
               timeStr: timeStrSlot,
+              cityId: city.id,
               maxTemp: temps[i],
               minTemp: temps[i],
               windSpeed: windSpeeds[i] || 10,
@@ -156,9 +165,10 @@ export class WeatherEngine {
             const timeStrSlot = `${String(hour).padStart(2, '0')}:${minute}`;
             await prisma.weatherForecastHourly.upsert({
               where: {
-                date_timeStr: {
+                date_timeStr_cityId: {
                   date: extrapolatedDate,
-                  timeStr: timeStrSlot
+                  timeStr: timeStrSlot,
+                  cityId: city.id
                 }
               },
               update: {
@@ -176,6 +186,7 @@ export class WeatherEngine {
               create: {
                 date: extrapolatedDate,
                 timeStr: timeStrSlot,
+                cityId: city.id,
                 maxTemp: extraTemp,
                 minTemp: extraTemp,
                 windSpeed: extraWind,
@@ -191,9 +202,10 @@ export class WeatherEngine {
           }
         }
       }
+      } // End of city loop
 
       console.log('[WeatherEngine] Hourly weather forecast sync complete.');
-      await ApiLogService.createLog('Weather Hourly API', url, 'SUCCESS', 'Fetched and stored 30-day hourly forecast');
+      await ApiLogService.createLog('Weather Hourly API', "Dynamic City API", 'SUCCESS', 'Fetched and stored 30-day hourly forecast for all cities');
     } catch (error: any) {
       console.error('[WeatherEngine] Failed to sync hourly weather forecast:', error);
       await ApiLogService.createLog('Weather Hourly API', "https://api.open-meteo.com/v1/forecast", 'ERROR', error.message);
@@ -213,25 +225,32 @@ export class WeatherEngine {
       startD.setDate(today.getDate() - 30);
       const start = startD.toISOString().split('T')[0];
 
-      const url = 'https://archive-api.open-meteo.com/v1/archive';
-      const params = {
-        latitude: 28.61,
-        longitude: 77.20,
-        start_date: start,
-        end_date: end,
-        daily: [
-          'temperature_2m_max',
-          'temperature_2m_min',
-          'windspeed_10m_max',
-          'precipitation_sum',
-          'precipitation_probability_max',
-          'sunshine_duration',
-          'relative_humidity_2m_max',
-          'sunrise',
-          'sunset',
-        ].join(','),
-        timezone: 'Asia/Kolkata',
-      };
+      const cities = await prisma.cityStateData.findMany();
+      if (cities.length === 0) {
+        console.warn('[WeatherEngine] No cities found. Skipping daily historical sync.');
+        return;
+      }
+
+      for (const city of cities) {
+        const url = 'https://archive-api.open-meteo.com/v1/archive';
+        const params = {
+          latitude: city.latitude,
+          longitude: city.longitude,
+          start_date: start,
+          end_date: end,
+          daily: [
+            'temperature_2m_max',
+            'temperature_2m_min',
+            'windspeed_10m_max',
+            'precipitation_sum',
+            'precipitation_probability_max',
+            'sunshine_duration',
+            'relative_humidity_2m_max',
+            'sunrise',
+            'sunset',
+          ].join(','),
+          timezone: 'Asia/Kolkata',
+        };
 
       const res = await axiosClient.get(url, { params });
       const daily = res.data?.daily;
@@ -246,7 +265,9 @@ export class WeatherEngine {
         const sunshineSec: number = daily.sunshine_duration?.[i] ?? 0;
 
         await prisma.weatherHistorical.upsert({
-          where: { date },
+          where: { 
+            date_cityId: { date, cityId: city.id }
+          },
           update: {
             maxTemp:           Number((daily.temperature_2m_max?.[i]           ?? 30).toFixed(1)),
             minTemp:           Number((daily.temperature_2m_min?.[i]           ?? 18).toFixed(1)),
@@ -261,6 +282,7 @@ export class WeatherEngine {
           },
           create: {
             date,
+            cityId:            city.id,
             maxTemp:           Number((daily.temperature_2m_max?.[i]           ?? 30).toFixed(1)),
             minTemp:           Number((daily.temperature_2m_min?.[i]           ?? 18).toFixed(1)),
             windSpeed:         Number((daily.windspeed_10m_max?.[i]            ?? 10).toFixed(1)),
@@ -274,9 +296,10 @@ export class WeatherEngine {
           }
         });
       }
+      } // End city loop
 
       console.log(`[WeatherEngine] Daily historical weather updated for range ${start} to ${end}`);
-      await ApiLogService.createLog('Weather Historical API', url, 'SUCCESS', `Updated historical weather actuals for past 30 days (${start} to ${end})`);
+      await ApiLogService.createLog('Weather Historical API', 'Dynamic City API', 'SUCCESS', `Updated historical weather actuals for past 30 days (${start} to ${end}) for all cities`);
     } catch (error: any) {
       console.error('[WeatherEngine] Failed to update historical weather data:', error);
       await ApiLogService.createLog('Weather Historical API', 'https://archive-api.open-meteo.com/v1/archive', 'ERROR', error.message);
