@@ -34,7 +34,7 @@ services:
       - PRISMA_HIDE_UPDATE_MESSAGE=true
       - TZ=Asia/Kolkata
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres:5432/${POSTGRES_DB:-iex_dashboard}?schema=public
-    command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed && npx ts-node scripts/seed_tod_tariff.ts"
+    command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
 
   iex-backend:
     build:
