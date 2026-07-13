@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  const filePath = path.join(__dirname, '../../rtm_blocks.csv'); // The user's file is at the workspace root
+  const filePath = path.join(__dirname, '../rtm_blocks.csv'); // The user's file is at the workspace root
   
   if (!fs.existsSync(filePath)) {
     console.error(`File not found: ${filePath}`);
