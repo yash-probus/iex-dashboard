@@ -428,6 +428,35 @@ model NppRawGenerationData {
   @@index([date])
 }
 
+model NppAdjustedDemandData {
+  id            String   @id @default(uuid())
+  date          String
+  timeStr       String
+  demandMet     Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@unique([date, timeStr], map: "uq_npp_adj_demand")
+  @@index([date])
+}
+
+model NppAdjustedGenerationData {
+  id            String   @id @default(uuid())
+  date          String
+  timeStr       String
+  thermal       Float?
+  gas           Float?
+  nuclear       Float?
+  hydro         Float?
+  wind          Float?
+  solar         Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@unique([date, timeStr], map: "uq_npp_adj_gen")
+  @@index([date])
+}
+
 model HolidayCalendar {
   id          String   @id @default(uuid())
   month       String   @db.VarChar(20)

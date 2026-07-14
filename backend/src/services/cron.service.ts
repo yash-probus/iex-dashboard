@@ -5,6 +5,7 @@ import { WeatherEngine } from './weather.service';
 import { seedCtuCharges } from '../scripts/seed-ctu';
 import { seedIstsCharges } from '../scripts/seed-ists';
 import { ApiLogService } from '../modules/api-log/api-log.service';
+import { NppAdjustmentService } from '../modules/dataset/npp-adjustment.service';
 
 const prisma = new PrismaClient();
 
@@ -184,6 +185,7 @@ export class CronService {
             }
           });
           console.log(`[CronService] Polled NPP Demand for ${data.timeStr} -> ${data.demandMet} MW`);
+          await NppAdjustmentService.updateAdjustedDemandForDate(dateStr);
         }
         
         // Real time NPP generation
@@ -204,6 +206,7 @@ export class CronService {
             }
           });
           console.log(`[CronService] Polled NPP Generation for ${genData.timeStr} -> Thermal: ${genData.thermal} MW`);
+          await NppAdjustmentService.updateAdjustedGenerationForDate(dateStr);
         }
       } catch (error) {
         console.error('[Cron] Error in 4-minute schedule:', error);
