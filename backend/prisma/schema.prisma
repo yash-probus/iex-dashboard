@@ -155,7 +155,7 @@ model RegionState {
 model DiscomList {
   code       String   @unique(map: "uq_discom_list_code") @db.VarChar(20)
   legalName  String   @unique(map: "uq_discom_list_name") @map("legal_name") @db.VarChar(255)
-  stateCode  String?  @map("state_code") @db.VarChar(10)
+  stateCode  String?  @map("state_code") @db.VarChar(100)
   discomType String?  @map("discom_type") @db.VarChar(30)
   id         Int      @id @default(autoincrement())
   updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
@@ -517,7 +517,7 @@ model SavingsCalculatorEntry {
   proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
   traderMargin     Decimal? @map("trader_margin") @db.Decimal(12, 4)
 
-  stateCode        String?  @map("state_code") @db.VarChar(10)
+  stateCode        String?  @map("state_code") @db.VarChar(100)
   discom           String?  @map("discom") @db.VarChar(100)
   consumerCategory String?  @map("consumer_category") @db.VarChar(100)
   voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
