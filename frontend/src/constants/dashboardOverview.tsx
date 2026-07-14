@@ -103,11 +103,11 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
     key: 'utility-charges',
     title: 'Utility Charges',
     description: 'Utility charges and configurations.',
-    path: '/resource-center/stu-charges',
+    path: '/resource-center/state-charges',
     icon: <SettingsIcon fontSize="medium" />,
     color: '#546E7A',
     subItems: [
-      { key: 'stu-charges', title: 'STU Charges', path: '/resource-center/stu-charges', icon: <SettingsIcon fontSize="small" /> },
+      { key: 'state-charges', title: 'State Charges', path: '/resource-center/state-charges', icon: <SettingsIcon fontSize="small" /> },
       { key: 'state-tariff', title: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" /> }
     ]
   },

@@ -31,7 +31,7 @@ const RESOURCE_ROUTES = [
   { label: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" sx={{ color: '#E0B50F' }} /> },
   { label: 'Prolt Margin', path: '/resource-center/prolt-margin', icon: <ShowChartIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
   { label: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <AccountTreeIcon fontSize="small" sx={{ color: '#EC4899' }} /> },
-  { label: 'STU Charges', path: '/resource-center/stu-charges', icon: <DeviceHubIcon fontSize="small" sx={{ color: '#10B981' }} /> },
+  { label: 'State Charges', path: '/resource-center/state-charges', icon: <DeviceHubIcon fontSize="small" sx={{ color: '#10B981' }} /> },
   { label: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" sx={{ color: '#EF4444' }} /> },
 ];
 
@@ -53,7 +53,7 @@ const RESOURCE_GROUPS = [
   {
     title: 'Utility Charges',
     items: [
-      { label: 'STU Charges', path: '/resource-center/stu-charges', icon: <DeviceHubIcon fontSize="small" sx={{ color: '#10B981' }} /> },
+      { label: 'State Charges', path: '/resource-center/state-charges', icon: <DeviceHubIcon fontSize="small" sx={{ color: '#10B981' }} /> },
       { label: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" sx={{ color: '#EF4444' }} /> },
     ]
   },

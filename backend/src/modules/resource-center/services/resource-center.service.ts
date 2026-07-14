@@ -70,14 +70,22 @@ export const createBulkResourceRecords = async (resourceType: ResourceType, payl
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
 
   try {
-    const created = await prisma.$transaction(async (tx) => {
-      const del = tx[tableInfo.modelName as keyof typeof tx] as any;
-      await del.deleteMany({});
-      return await del.createMany({
-        data: payloadArray
-      });
+    const operations = payloadArray.map((payload) => {
+      if (payload.id) {
+        const { id, ...dataToUpdate } = payload;
+        return (delegate as any).upsert({
+          where: { id: Number(id) },
+          update: dataToUpdate,
+          create: payload,
+        });
+      } else {
+        return (delegate as any).create({
+          data: payload,
+        });
+      }
     });
 
+    const created = await prisma.$transaction(operations);
     return created;
   } catch (error: any) {
     if (error.code === 'P2002') {
