@@ -183,7 +183,9 @@ export default function SavingsCalculatorPage() {
   const uniqueCategories = React.useMemo(() => {
     const categoriesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      const matchState = !stateCode || row.state?.toLowerCase() === stateCode.trim().toLowerCase();
+      const matchState = !stateCode || 
+        row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+        (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       if (matchState && row.consumerCategory) categoriesSet.add(row.consumerCategory);
     });
 
@@ -202,7 +204,9 @@ export default function SavingsCalculatorPage() {
 
     const levelsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      const matchState = !stateCode || row.state?.toLowerCase() === stateCode.trim().toLowerCase();
+      const matchState = !stateCode || 
+        row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+        (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
       if (matchState && matchCategory && row.supplyVoltageCategory) {
         levelsSet.add(row.supplyVoltageCategory);
@@ -214,9 +218,15 @@ export default function SavingsCalculatorPage() {
   const getTodSlabsForMonth = React.useCallback((targetMonth: number) => {
     const slabsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      const matchState = !stateCode || row.state?.toLowerCase() === stateCode.trim().toLowerCase();
+      const matchState = !stateCode || 
+        row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+        (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
-      const matchVoltage = !voltageLevel || row.supplyVoltageCategory === voltageLevel;
+      let parsedVoltageLevel = voltageLevel;
+      if (parsedVoltageLevel && parsedVoltageLevel.includes(' - ')) {
+        parsedVoltageLevel = parsedVoltageLevel.split(' - ')[0];
+      }
+      const matchVoltage = !voltageLevel || row.supplyVoltageCategory === parsedVoltageLevel;
       // month in new schema is YYYYMM int; targetMonth from todConsumptions is 1-12
       // Match by the last two digits of the stored month
       const storedMonthNum = row.month % 100;
