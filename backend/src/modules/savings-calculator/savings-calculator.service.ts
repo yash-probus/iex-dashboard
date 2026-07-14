@@ -141,8 +141,9 @@ export class SavingsCalculatorService {
       const [yearStr, monthStr] = yearMonth.split('-');
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
+      const yyyymmMonth = parseInt(`${yearStr}${monthStr.padStart(2, '0')}`, 10);
 
-      if (isNaN(year) || isNaN(month)) {
+      if (isNaN(year) || isNaN(month) || isNaN(yyyymmMonth)) {
         throw new Error(`Invalid consumption month format: ${yearMonth}. Expected YYYY-MM.`);
       }
 
@@ -162,7 +163,8 @@ export class SavingsCalculatorService {
       const whereClause: any = {
         state: stateName,
         consumerCategory: category,
-        supplyVoltageCategory: parsedSupplyVoltageCategory
+        supplyVoltageCategory: parsedSupplyVoltageCategory,
+        month: yyyymmMonth
       };
 
       // Fetch matching StateTariff slabs from DB
@@ -405,8 +407,16 @@ export class SavingsCalculatorService {
       throw new Error('Savings calculator entry not found');
     }
 
-    const year = 2026;
-    const month = targetMonthStr ? parseInt(targetMonthStr.split('-')[1], 10) : 7;
+    let year = new Date().getFullYear();
+    let month = new Date().getMonth() + 1;
+    if (targetMonthStr) {
+      const parts = targetMonthStr.split('-');
+      if (parts.length === 2) {
+        year = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10);
+      }
+    }
+    const yyyymmMonth = parseInt(`${year}${String(month).padStart(2, '0')}`, 10);
     const stateCode = entry.stateCode || '';
     const category = entry.consumerCategory || '';
     const voltageLevel = entry.voltageLevel || '';
@@ -440,20 +450,20 @@ export class SavingsCalculatorService {
       }
     });
 
-    const ctuCharges = await prisma.ctuCharges.findFirst({
-      where: { month }
-    });
+      const ctuCharges = await prisma.ctuCharges.findFirst({
+        where: { month: yyyymmMonth }
+      });
 
-    const istsCharges = await prisma.istsCharges.findMany({
-      where: {
-        OR: [
-          { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
-        ]
-      }
-    });
+      const istsCharges = await prisma.istsCharges.findMany({
+        where: {
+          OR: [
+            { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
+          ]
+        }
+      });
 
-    let whereClause: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory };
-    const tariffs = await prisma.stateTariff.findMany({ where: whereClause });
+      let whereClauseTariff: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
+      const tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
 
     const EXCHANGE_FEES = 0.02;
     const GST_EXCHANGE = 0.0036;
