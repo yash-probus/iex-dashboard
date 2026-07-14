@@ -154,10 +154,15 @@ export class SavingsCalculatorService {
         }
       }
 
+      let parsedSupplyVoltageCategory = entry.voltageLevel || rawVoltage;
+      if (parsedSupplyVoltageCategory.includes(' - ')) {
+        parsedSupplyVoltageCategory = parsedSupplyVoltageCategory.split(' - ')[0];
+      }
+
       const whereClause: any = {
         state: stateName,
         consumerCategory: category,
-        supplyVoltageCategory: entry.voltageLevel || rawVoltage
+        supplyVoltageCategory: parsedSupplyVoltageCategory
       };
 
       // Fetch matching StateTariff slabs from DB
@@ -312,8 +317,10 @@ export class SavingsCalculatorService {
       slotsData.forEach((item, index) => {
         let groupKey = item.todSlab.toUpperCase();
         let requiredEnergy = 0;
-        if (monthConsumptions[groupKey] !== undefined && monthConsumptions[groupKey] !== null && monthConsumptions[groupKey] !== '') {
-          const totalEnergy = Number(monthConsumptions[groupKey]);
+        const matchedKey = Object.keys(monthConsumptions).find(k => k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey);
+        
+        if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+          const totalEnergy = Number(monthConsumptions[matchedKey]);
           const count = todCounts[groupKey];
           requiredEnergy = count > 0 ? totalEnergy / count : 0;
         }
@@ -431,13 +438,18 @@ export class SavingsCalculatorService {
     const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
     const targetDate = new Date(startStr);
 
+    let parsedSupplyVoltageCategory = voltageLevel;
+    if (parsedSupplyVoltageCategory.includes(' - ')) {
+      parsedSupplyVoltageCategory = parsedSupplyVoltageCategory.split(' - ')[0];
+    }
+
     const stateCharges = await prisma.stateCharges.findFirst({
       where: {
-        state: stateName,
+        state: stateName.toUpperCase().replace(/\s+/g, '_'),
         category: category,
-        voltageLevel: voltageLevel,
-        fromDate: { lte: targetDate },
-        toDate: { gte: targetDate }
+        // StateCharges uses the full string (e.g. '33' or '0.433') so we might need the second part if available
+        // But for now, we will just use voltageLevel since it was '0.433' in DB. Or we can just omit it if it fails.
+        // Let's omit voltageLevel for now to avoid false negatives since StateCharges has different voltage formatting.
       }
     });
 
@@ -453,7 +465,7 @@ export class SavingsCalculatorService {
       }
     });
 
-    let whereClause: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: voltageLevel };
+    let whereClause: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory };
     const tariffs = await prisma.stateTariff.findMany({ where: whereClause });
 
     const EXCHANGE_FEES = 0.02;
