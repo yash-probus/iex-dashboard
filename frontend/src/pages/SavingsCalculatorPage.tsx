@@ -115,6 +115,7 @@ export default function SavingsCalculatorPage() {
   // Fetch entries
   const [tariffData, setTariffData] = useState<any[]>([]);
   const [discomList, setDiscomList] = useState<any[]>([]);
+  const [regionStates, setRegionStates] = useState<any[]>([]);
 
   const loadEntries = async () => {
     try {
@@ -132,9 +133,10 @@ export default function SavingsCalculatorPage() {
 
   const loadResourceData = async () => {
     try {
-      const [tariffRes, discomRes] = await Promise.all([
+      const [tariffRes, discomRes, regionRes] = await Promise.all([
         getResourceData('state-tariff'),
-        getResourceData('discom-list')
+        getResourceData('discom-list'),
+        getResourceData('region-state')
       ]);
       if (tariffRes.success && tariffRes.data.length > 0) {
         setTariffData(tariffRes.data);
@@ -145,6 +147,9 @@ export default function SavingsCalculatorPage() {
         setDiscomList(discomRes.data);
       } else {
         setDiscomList(DISCOM_LIST_MOCK_DATA);
+      }
+      if (regionRes.success && regionRes.data.length > 0) {
+        setRegionStates(regionRes.data);
       }
     } catch (err) {
       console.error('Failed to load resource data, falling back to mock data:', err);
@@ -174,11 +179,18 @@ export default function SavingsCalculatorPage() {
   }, [tariffData]);
 
   const filteredDiscoms = React.useMemo(() => {
-    // No discom field in new StateTariff schema; derive from DiscomList
+    // We need to match the selected stateCode (which could be "Uttar Pradesh" or "UP")
+    // against the discom's stateCode (which is "UP").
+    let normalizedCode = stateCode;
+    const region = regionStates.find(r => r.stateName.toLowerCase() === stateCode?.toLowerCase() || r.stateCode.toLowerCase() === stateCode?.toLowerCase());
+    if (region) {
+      normalizedCode = region.stateCode;
+    }
+
     return discomList
-      .filter((d: any) => !stateCode || d.stateCode === stateCode || d.state === stateCode)
+      .filter((d: any) => !stateCode || d.stateCode === normalizedCode || d.state === stateCode || d.stateCode === stateCode)
       .map((d: any) => ({ code: d.code, legalName: d.legalName }));
-  }, [discomList, stateCode]);
+  }, [discomList, stateCode, regionStates]);
 
   const uniqueCategories = React.useMemo(() => {
     const categoriesSet = new Set<string>();
@@ -238,7 +250,7 @@ export default function SavingsCalculatorPage() {
         const end = row.todEndTime || '—';
         const slabName = (start === '—' && end === '—')
           ? 'FLAT'
-          : `${start.replace(':', '')}-${end.replace(':', '')}`;
+          : `${start}-${end}`;
         slabsSet.add(slabName.toUpperCase());
       }
     });
