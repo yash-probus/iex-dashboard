@@ -10,6 +10,8 @@ export interface SavingsCalculatorEntry {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +26,8 @@ export interface CreateSavingsEntryDto {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
 }
 

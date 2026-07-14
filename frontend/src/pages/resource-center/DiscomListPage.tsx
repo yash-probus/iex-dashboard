@@ -30,7 +30,6 @@ export default function DiscomListPage() {
     { field: 'legalName', headerName: 'Discom Name', align: 'center', width: 400 },
     { field: 'stateCode', headerName: 'State Code', align: 'center', width: 150 },
     { field: 'discomType', headerName: 'Discom Type', align: 'center', width: 200 },
-    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   const handleExport = () => {

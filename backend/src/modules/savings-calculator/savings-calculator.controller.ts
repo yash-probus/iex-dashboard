@@ -37,6 +37,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin,
+        traderMargin,
         todConsumptions
       } = req.body;
 
@@ -53,6 +55,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin: proltMargin ? parseFloat(proltMargin) : undefined,
+        traderMargin: traderMargin ? parseFloat(traderMargin) : undefined,
         todConsumptions
       });
 
@@ -75,6 +79,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin,
+        traderMargin,
         todConsumptions
       } = req.body;
 
@@ -91,6 +97,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin: proltMargin ? parseFloat(proltMargin) : undefined,
+        traderMargin: traderMargin ? parseFloat(traderMargin) : undefined,
         todConsumptions
       });
 

@@ -33,7 +33,6 @@ export default function IstsChargesPage() {
     { field: 'startDate', headerName: 'Start Date', align: 'center', width: 200, valueFormatter: formatDate },
     { field: 'endDate', headerName: 'End Date', align: 'center', width: 200, valueFormatter: formatDate },
     { field: 'istsLossPercent', headerName: 'ISTS Loss %', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   const handleExport = () => {

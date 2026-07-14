@@ -41,7 +41,6 @@ export default function RegionStatePage() {
     { field: 'stateName', headerName: 'State Name', align: 'center', width: 250 },
     { field: 'stateCode', headerName: 'State Code', align: 'center', width: 150 },
     { field: 'stateOrUt', headerName: 'State / UT', align: 'center', width: 150 },
-    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   // 3. Export Logic

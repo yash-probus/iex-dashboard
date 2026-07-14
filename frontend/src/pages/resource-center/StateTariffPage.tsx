@@ -53,7 +53,6 @@ export default function StateTariffPage() {
     { field: 'baseEnergyCharges', headerName: 'Base Energy Charges', align: 'center', width: 200, valueFormatter: formatNum },
     { field: 'todRate', headerName: 'TOD Rate', align: 'center', width: 150, valueFormatter: formatNum },
     { field: 'energyCharges', headerName: 'Energy Charges', align: 'center', width: 180, valueFormatter: formatNum },
-    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   const handleExport = () => {

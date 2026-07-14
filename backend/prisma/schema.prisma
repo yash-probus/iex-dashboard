@@ -489,6 +489,9 @@ model SavingsCalculatorEntry {
   industryName     String   @map("industry_name") @db.VarChar(255)
   address          String   @db.Text
   sanctionedLoadKw Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
+  proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
+  traderMargin     Decimal? @map("trader_margin") @db.Decimal(12, 4)
+
   stateCode        String?  @map("state_code") @db.VarChar(10)
   discom           String?  @map("discom") @db.VarChar(100)
   consumerCategory String?  @map("consumer_category") @db.VarChar(100)

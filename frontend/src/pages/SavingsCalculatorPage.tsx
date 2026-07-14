@@ -62,6 +62,8 @@ export default function SavingsCalculatorPage() {
   const [discom, setDiscom] = useState('');
   const [consumerCategory, setConsumerCategory] = useState('');
   const [voltageLevel, setVoltageLevel] = useState('');
+  const [proltMargin, setProltMargin] = useState<string>('');
+  const [traderMargin, setTraderMargin] = useState<string>('');
   const [todConsumptions, setTodConsumptions] = useState<Record<string, Record<string, string>>>({});
   
   // Validation Errors
@@ -221,6 +223,8 @@ export default function SavingsCalculatorPage() {
     setDiscom('');
     setConsumerCategory('');
     setVoltageLevel('');
+    setProltMargin('');
+    setTraderMargin('');
     setTodConsumptions({});
     setFormErrors({});
   };
@@ -239,6 +243,8 @@ export default function SavingsCalculatorPage() {
       setDiscom(entry.discom || '');
       setConsumerCategory(entry.consumerCategory || '');
       setVoltageLevel(entry.voltageLevel || '');
+      setProltMargin(entry.proltMargin ? String(entry.proltMargin) : '');
+      setTraderMargin(entry.traderMargin ? String(entry.traderMargin) : '');
       
       const tc: Record<string, Record<string, string>> = {};
       if (entry.todConsumptions) {
@@ -333,6 +339,8 @@ export default function SavingsCalculatorPage() {
         discom: discom.trim() || undefined,
         consumerCategory: consumerCategory.trim() || undefined,
         voltageLevel: voltageLevel.trim() || undefined,
+        proltMargin: proltMargin ? Number(proltMargin) : undefined,
+        traderMargin: traderMargin ? Number(traderMargin) : undefined,
         todConsumptions: Object.keys(todConsumptions).length > 0 ? 
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => [
@@ -535,20 +543,20 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 6) {
+                  if (stepIndex < 7) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     handleSubmit();
                   }
                 } else {
-                  if (stepIndex === 5) {
+                  if (stepIndex === 6) {
                     setFormErrors({ sanctionedLoadKw: 'Sanctioned load must be a positive number.' });
-                  } else if (stepIndex === 6) {
+                  } else if (stepIndex === 7) {
                     setSnackbar({ open: true, message: 'Please enter valid numbers for TOD consumption', severity: 'error' });
                   }
                 }
               }}
-              endIcon={stepIndex === 6 ? undefined : <ArrowForwardIcon />}
+              endIcon={stepIndex === 7 ? undefined : <ArrowForwardIcon />}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2.5, 
@@ -559,7 +567,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {stepIndex === 6 ? (dialogMode === 'edit' ? 'Save Entry' : 'Create Entry') : 'Continue'}
+              {stepIndex === 7 ? (dialogMode === 'edit' ? 'Save Entry' : 'Create Entry') : 'Continue'}
             </Button>
           </Box>
         </Card>
@@ -720,7 +728,7 @@ export default function SavingsCalculatorPage() {
           {dialogMode !== 'view' && (
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
-                width: `${((activeStep + 1) / 7) * 100}%`, 
+                width: `${((activeStep + 1) / 8) * 100}%`, 
                 height: '100%', 
                 background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', 
                 transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
@@ -770,8 +778,38 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 1: Location */}
+          {/* Step 1: Margins */}
           {renderStep(1, {
+            icon: <CalculateIcon />,
+            title: "Margin Details",
+            question: "What are the margin rates for this client?",
+            summary: `Prolt: ${proltMargin || 0} Rs, Trader: ${traderMargin || 0} Rs`,
+            content: (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
+                <TextField
+                  label="PROLT Margin (Rs/kWh)"
+                  value={proltMargin}
+                  onChange={(e) => setProltMargin(e.target.value)}
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  size="small"
+                />
+                <TextField
+                  label="Trader Margin (Rs/kWh)"
+                  value={traderMargin}
+                  onChange={(e) => setTraderMargin(e.target.value)}
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+            )
+          })}
+
+          {/* Step 2: Location */}
+          {renderStep(2, {
             icon: <LocationIcon />,
             title: "Where is your facility located?",
             question: "Where is your facility located?",
@@ -808,8 +846,8 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 2: Provider */}
-          {renderStep(2, {
+          {/* Step 3: Provider */}
+          {renderStep(3, {
             icon: <ElectricBoltIcon />,
             title: "Who is your electricity provider?",
             question: "Who is your electricity provider?",
@@ -841,8 +879,8 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 3: Consumer Category */}
-          {renderStep(3, {
+          {/* Step 4: Consumer Category */}
+          {renderStep(4, {
             icon: <CategoryIcon />,
             title: "What is your consumer category?",
             question: "What is your consumer category?",
@@ -874,8 +912,8 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 4: Voltage Level */}
-          {renderStep(4, {
+          {/* Step 5: Voltage Level */}
+          {renderStep(5, {
             icon: <BoltIcon />,
             title: "What is your voltage level?",
             question: "What is your voltage level?",
@@ -907,8 +945,8 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 5: Sanctioned Load */}
-          {renderStep(5, {
+          {/* Step 6: Sanctioned Load */}
+          {renderStep(6, {
             icon: <SpeedIcon />,
             title: "What is your sanctioned load?",
             question: "What is your sanctioned load?",
@@ -930,8 +968,8 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 6: TOD Consumptions */}
-          {renderStep(6, {
+          {/* Step 7: TOD Consumptions */}
+          {renderStep(7, {
             icon: <CalculateIcon />,
             title: "Energy Consumption per TOD Slab",
             question: "Select a month and enter your consumption (kWh) per TOD slab",

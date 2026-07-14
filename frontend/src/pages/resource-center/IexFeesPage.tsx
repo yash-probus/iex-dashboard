@@ -41,7 +41,6 @@ export default function IexFeesPage() {
     { field: 'nldcSchedulingFees', headerName: 'NLDC Scheduling Fees', align: 'center', width: 200, valueFormatter: formatNum },
     { field: 'sldcSchedulingFees', headerName: 'SLDC Scheduling Fees', align: 'center', width: 200, valueFormatter: formatNum },
     { field: 'otherFixCharges', headerName: 'Other Fixed Charges', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   const handleExport = () => {

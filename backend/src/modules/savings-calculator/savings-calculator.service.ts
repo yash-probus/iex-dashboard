@@ -22,6 +22,8 @@ export class SavingsCalculatorService {
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
     todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.create({
@@ -34,6 +36,8 @@ export class SavingsCalculatorService {
         discom: data.discom,
         consumerCategory: data.consumerCategory,
         voltageLevel: data.voltageLevel,
+        proltMargin: data.proltMargin,
+        traderMargin: data.traderMargin,
         todConsumptions: data.todConsumptions
       }
     });
@@ -48,6 +52,8 @@ export class SavingsCalculatorService {
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
     todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.update({
@@ -61,6 +67,8 @@ export class SavingsCalculatorService {
         discom: data.discom,
         consumerCategory: data.consumerCategory,
         voltageLevel: data.voltageLevel,
+        proltMargin: data.proltMargin,
+        traderMargin: data.traderMargin,
         todConsumptions: data.todConsumptions
       }
     });

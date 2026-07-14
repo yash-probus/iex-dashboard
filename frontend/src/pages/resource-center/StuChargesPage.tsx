@@ -50,7 +50,6 @@ export default function StuChargesPage() {
     { field: 'distributionWheelingChargesRsPerKwh', headerName: 'Distribution Wheeling Charges (₹/kWh)', align: 'center', width: 300, valueFormatter: formatNum },
     { field: 'stuLossPercent', headerName: 'STU Loss (%)', align: 'center', width: 150, valueFormatter: formatNum },
     { field: 'distributionWheelingLossPercent', headerName: 'Distribution Wheeling Loss (%)', align: 'center', width: 250, valueFormatter: formatNum },
-    { field: 'updatedAt', headerName: 'Last Updated', align: 'center', width: 200, valueFormatter: (v: any) => v ? new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
   ];
 
   const handleExport = () => {
