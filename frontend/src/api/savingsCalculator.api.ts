@@ -90,3 +90,9 @@ export const calculateSavings = async (id: string, month?: string): Promise<Calc
   const response = await apiClient.post<CalculationResult>(url);
   return response.data;
 };
+
+export const calculateMarketDecision = async (id: string, month?: string): Promise<any> => {
+  const url = month ? `/savings-calculator/${id}/calculate-market-decision?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/calculate-market-decision`;
+  const response = await apiClient.post<any>(url);
+  return response.data;
+};

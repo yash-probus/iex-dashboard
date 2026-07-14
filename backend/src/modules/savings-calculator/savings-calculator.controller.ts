@@ -131,4 +131,16 @@ export class SavingsCalculatorController {
       res.status(500).json({ message: error.message || 'Savings calculation failed.' });
     }
   }
+
+  static async calculateMarketDecision(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const targetMonth = req.query.month;
+      const result = await SavingsCalculatorService.calculateMarketDecision(id as string, targetMonth as string | undefined);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error('[SavingsCalculatorController] Market Decision Calculation failed:', error);
+      res.status(500).json({ message: error.message || 'Market decision calculation failed.' });
+    }
+  }
 }

@@ -87,6 +87,27 @@ export class SavingsCalculatorService {
       throw new Error('Entry not found');
     }
 
+    const category = entry.consumerCategory || 'Industrial';
+    if (category.startsWith('LMV-11')) {
+      return this.calculateSavingsLMV11(entry, targetMonth);
+    } else if (category.startsWith('HV-1')) {
+      return this.calculateSavingsHV1(entry, targetMonth);
+    } else {
+      // Default to HV-2 logic for now
+      return this.calculateSavingsHV2(entry, targetMonth);
+    }
+  }
+
+  static async calculateSavingsLMV11(entry: any, targetMonth?: string) {
+    throw new Error('Calculation logic for LMV-11 is not yet implemented.');
+  }
+
+  static async calculateSavingsHV1(entry: any, targetMonth?: string) {
+    throw new Error('Calculation logic for HV-1 is not yet implemented.');
+  }
+
+  static async calculateSavingsHV2(entry: any, targetMonth?: string) {
+    const id = entry.id;
     const stateCode = entry.stateCode || 'MH';
     const sanctionedLoad = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
     const category = entry.consumerCategory || 'Industrial';
@@ -373,6 +394,190 @@ export class SavingsCalculatorService {
       totalSavings,
       todGroups: sortedGroups,
       sortedMonthlyList
+    };
+  }
+
+  static async calculateMarketDecision(id: string, targetMonthStr?: string) {
+    const entry = await prisma.savingsCalculatorEntry.findUnique({
+      where: { id }
+    });
+
+    if (!entry) {
+      throw new Error('Savings calculator entry not found');
+    }
+
+    const year = 2026;
+    const month = targetMonthStr ? parseInt(targetMonthStr.split('-')[1], 10) : 7;
+    const stateCode = entry.stateCode || '';
+    const category = entry.consumerCategory || '';
+    const voltageLevel = entry.voltageLevel || '';
+    const traderMargin = Number(entry.traderMargin || 0);
+
+    const stuCharges = await prisma.stuCharges.findFirst({
+      where: { stateCode, month, category, voltageLevel }
+    });
+
+    const ctuCharges = await prisma.ctuCharges.findFirst({
+      where: { month }
+    });
+
+    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+    
+    const istsCharges = await prisma.istsCharges.findMany({
+      where: {
+        OR: [
+          { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
+        ]
+      }
+    });
+
+    let whereClause: any = { stateCode, month, category, voltageLevel };
+    if (entry.discom) {
+      whereClause.discom = entry.discom;
+    }
+    const tariffs = await prisma.stateTariff.findMany({ where: whereClause });
+
+    const EXCHANGE_FEES = 0.02;
+    const GST_EXCHANGE = 0.0036;
+    const OTHER_CHARGES = 0.1;
+    const TRADER_MARGIN = traderMargin;
+    const GST_TRADER_MARGIN = TRADER_MARGIN * 0.18;
+
+    if (!ctuCharges) {
+      throw new Error(`CTU Charges not found for month ${month}`);
+    }
+    if (!stuCharges) {
+      throw new Error(`STU Charges not found for state ${stateCode}, category ${category}, voltage ${voltageLevel}, month ${month}`);
+    }
+
+    if (ctuCharges.ctu_charges_rs_per_kwh == null) throw new Error('CTU Charges value is missing.');
+    if (stuCharges.stuChargesRsPerKwh == null) throw new Error('STU Charges value is missing.');
+    if (stuCharges.distributionWheelingChargesRsPerKwh == null) throw new Error('Distribution/Wheeling Charges value is missing.');
+    if (stuCharges.crossSubsidy == null) throw new Error('Cross Subsidy value is missing.');
+    if (stuCharges.additionalCharges == null) throw new Error('Additional Surcharge value is missing.');
+    if (stuCharges.stuLossPercent == null) throw new Error('STU Loss Percent value is missing.');
+    if (stuCharges.distributionWheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
+    if (stuCharges.percentFppaCharges == null) throw new Error('FPPA Percent value is missing.');
+
+    const ctuCharge = Number(ctuCharges.ctu_charges_rs_per_kwh);
+    const stuCharge = Number(stuCharges.stuChargesRsPerKwh);
+    const wheelingCharge = Number(stuCharges.distributionWheelingChargesRsPerKwh);
+    const crossSubsidy = Number(stuCharges.crossSubsidy);
+    const additionalSurcharge = Number(stuCharges.additionalCharges);
+    const stuLoss = Number(stuCharges.stuLossPercent);
+    const wheelingLoss = Number(stuCharges.distributionWheelingLossPercent);
+    const fppaPercent = Number(stuCharges.percentFppaCharges);
+
+    const query = `
+      SELECT
+          COALESCE(dam.date, rtm.date, gdam.date) AS date,
+          COALESCE(dam.timeblock, rtm.timeblock, gdam.timeblock) AS timeblock,
+          dam.mcp AS "damMcp",
+          rtm.mcp AS "rtmMcp",
+          gdam.mcp AS "gdamMcp"
+      FROM
+          (SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+           FROM "DamRecord" dr 
+           JOIN "Dataset" d ON dr."datasetId" = d.id 
+           WHERE d.market = 'DAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) dam
+      FULL OUTER JOIN
+          (SELECT d."deliveryDate" as date, rr."intervalNumber" as timeblock, rr.mcp 
+           FROM "RtmRecord" rr 
+           JOIN "Dataset" d ON rr."datasetId" = d.id 
+           WHERE d.market = 'RTM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) rtm
+          ON dam.date = rtm.date AND dam.timeblock = rtm.timeblock
+      FULL OUTER JOIN
+          (SELECT d."deliveryDate" as date, gr."intervalNumber" as timeblock, gr.mcp 
+           FROM "GdamRecord" gr 
+           JOIN "Dataset" d ON gr."datasetId" = d.id 
+           WHERE d.market = 'GDAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) gdam
+          ON COALESCE(dam.date, rtm.date) = gdam.date AND COALESCE(dam.timeblock, rtm.timeblock) = gdam.timeblock
+      ORDER BY date ASC, timeblock ASC;
+    `;
+    const records: any[] = await prisma.$queryRawUnsafe(query);
+
+    const parseHour = (val: string | null | undefined): number => {
+      if (!val) return 0;
+      if (val.includes(':')) {
+        return parseInt(val.split(':')[0], 10);
+      }
+      return parseInt(val, 10);
+    };
+
+    const slotsData = records.map(rec => {
+      const deliveryDate = rec.date ? new Date(rec.date) : new Date(startStr);
+      const slot = rec.timeblock || rec.timeblock === 0 ? Number(rec.timeblock) : 1;
+      const startMinutes = (slot - 1) * 15;
+      const hour = Math.floor(startMinutes / 60);
+
+      let istsLoss = 0;
+      const matchingIsts = istsCharges.find(i => deliveryDate >= i.startDate && deliveryDate <= i.endDate);
+      if (matchingIsts) {
+        istsLoss = Number(matchingIsts.istsLossPercent || 0);
+      }
+
+      const damMcp = rec.damMcp !== undefined ? (Number(rec.damMcp) / 1000) : null;
+      const rtmMcp = rec.rtmMcp !== undefined ? (Number(rec.rtmMcp) / 1000) : null;
+      const gdamMcp = rec.gdamMcp !== undefined ? (Number(rec.gdamMcp) / 1000) : null;
+
+      const calcExchangeLanding = (mcp: number | null) => {
+        if (mcp === null) return null;
+        const base = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
+        const lossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
+        return base * lossMultiplier;
+      };
+
+      const damLanding = calcExchangeLanding(damMcp);
+      const rtmLanding = calcExchangeLanding(rtmMcp);
+      const gdamLanding = calcExchangeLanding(gdamMcp);
+
+      const marketPrices = [damLanding, rtmLanding, gdamLanding].filter(p => p !== null) as number[];
+      const bestMarketLanding = marketPrices.length > 0 ? Math.min(...marketPrices) : 0;
+      
+      let marketSource = 'DAM';
+      if (bestMarketLanding === rtmLanding) marketSource = 'RTM';
+      if (bestMarketLanding === gdamLanding) marketSource = 'GDAM';
+
+      let discomBase = 7.5;
+      let matchedTariffName = 'normal';
+      if (tariffs.length > 0) {
+        const matched = tariffs.find(t => {
+          const start = parseHour(t.todStartHour);
+          const end = parseHour(t.todEndHour);
+          if (start <= end) return hour >= start && hour < end;
+          return hour >= start || hour < end;
+        });
+        if (matched) {
+          discomBase = Number(matched.energyCharges || matched.baseEnergyCharges || 7.5);
+          matchedTariffName = matched.todName || matched.tod || 'normal';
+        }
+      }
+      
+      const discomLanding = discomBase * (1 + (fppaPercent / 100));
+
+      const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
+
+      return {
+        date: deliveryDate.toISOString().split('T')[0],
+        timeblock: slot,
+        hour,
+        tod: matchedTariffName,
+        damMcp, rtmMcp, gdamMcp,
+        damLanding, rtmLanding, gdamLanding,
+        bestMarketLanding,
+        marketSource,
+        discomLanding,
+        shouldBuyFromMarket,
+        savingsPerKwh: discomLanding - bestMarketLanding
+      };
+    });
+
+    return {
+      clientId: id,
+      clientName: entry.clientName,
+      slotsData
     };
   }
 }
