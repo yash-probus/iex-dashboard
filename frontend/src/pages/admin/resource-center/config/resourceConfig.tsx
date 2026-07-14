@@ -24,8 +24,14 @@ const formatDate = (v: any) => v ? new Date(v).toLocaleDateString() : '-';
 
 const formatMonth = (v: any) => {
   if (typeof v === 'number') {
-    const date = new Date(2026, v - 1);
-    return date.toLocaleString('default', { month: 'short' }) + ' 2026';
+    if (v > 100000) {
+      const year = Math.floor(v / 100);
+      const month = v % 100;
+      const date = new Date(year, month - 1);
+      return date.toLocaleString('default', { month: 'short' }) + ' ' + year;
+    }
+    const date = new Date(new Date().getFullYear(), v - 1);
+    return date.toLocaleString('default', { month: 'short' }) + ' ' + new Date().getFullYear();
   }
   return v;
 };
