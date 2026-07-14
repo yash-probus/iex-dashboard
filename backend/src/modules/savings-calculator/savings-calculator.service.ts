@@ -173,13 +173,16 @@ export class SavingsCalculatorService {
       });
 
       if (tariffs.length === 0) {
-        const latestTariff = await prisma.stateTariff.findFirst({
+        const allTariffs = await prisma.stateTariff.findMany({
           where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
           orderBy: { month: 'desc' }
         });
+        const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
+        const latestTariff = sameMonthTariff || allTariffs[0];
+        
         if (latestTariff) {
           whereClause.month = latestTariff.month;
-          tariffs = await prisma.stateTariff.findMany({ where: whereClause });
+          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
         }
       }
 
@@ -327,7 +330,10 @@ export class SavingsCalculatorService {
       Object.keys(slotsByTod).forEach(groupKey => {
         // Find the total energy requirement for this TOD slab from the input
         let remainingEnergy = 0;
-        const matchedKey = Object.keys(monthConsumptions).find(k => k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey);
+        const matchedKey = Object.keys(monthConsumptions).find(k => {
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+        });
         
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           remainingEnergy = Number(monthConsumptions[matchedKey]);
@@ -477,13 +483,16 @@ export class SavingsCalculatorService {
       let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
 
       if (tariffs.length === 0) {
-        const latestTariff = await prisma.stateTariff.findFirst({
+        const allTariffs = await prisma.stateTariff.findMany({
           where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
           orderBy: { month: 'desc' }
         });
+        const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
+        const latestTariff = sameMonthTariff || allTariffs[0];
+
         if (latestTariff) {
           whereClauseTariff.month = latestTariff.month;
-          tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
+          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
         }
       }
 
