@@ -50,9 +50,9 @@ export const RESOURCE_CENTER_PAGES = {
   },
   STATE_TARIFF: {
     title: 'STATE TARIFF',
-    subtitle: 'State-wise tariff schedules and TOD configurations.',
+    subtitle: 'State-wise tariff schedules with consumer category, voltage, and TOD configurations.',
     exportFilename: 'state-tariff',
     emptyMessage: 'No State Tariff data available.',
-    searchPlaceholder: 'Search by state, TOD, voltage level...',
+    searchPlaceholder: 'Search by state, category, voltage, month...',
   }
 };

@@ -147,15 +147,10 @@ export class SavingsCalculatorService {
       }
 
       const whereClause: any = {
-        stateCode,
-        month,
-        category,
-        voltageLevel: voltage
+        state: entry.stateCode || stateCode,
+        consumerCategory: category,
+        supplyVoltageCategory: entry.voltageLevel || rawVoltage
       };
-
-      if (entry.discom) {
-        whereClause.discom = entry.discom;
-      }
 
       // Fetch matching StateTariff slabs from DB
       const tariffs = await prisma.stateTariff.findMany({
@@ -229,8 +224,8 @@ export class SavingsCalculatorService {
 
         if (tariffs.length > 0) {
           const matched = tariffs.find(t => {
-            const start = parseHour(t.todStartHour);
-            const end = parseHour(t.todEndHour);
+            const start = parseHour(t.todStartTime);
+            const end = parseHour(t.todEndTime);
             if (start <= end) {
               return hour >= start && hour < end;
             } else {
@@ -239,8 +234,10 @@ export class SavingsCalculatorService {
           });
 
           if (matched) {
-            discomLandingPrice = Number(matched.energyCharges || matched.baseEnergyCharges || 7.5);
-            matchedTariffName = matched.todName || matched.tod || 'normal';
+            discomLandingPrice = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
+            matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
+              ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
+              : 'FLAT';
           }
         } else {
           if (hour >= 22 || hour < 6) {
@@ -433,10 +430,7 @@ export class SavingsCalculatorService {
       }
     });
 
-    let whereClause: any = { stateCode, month, category, voltageLevel };
-    if (entry.discom) {
-      whereClause.discom = entry.discom;
-    }
+    let whereClause: any = { state: entry.stateCode || '', consumerCategory: category, supplyVoltageCategory: voltageLevel };
     const tariffs = await prisma.stateTariff.findMany({ where: whereClause });
 
     const EXCHANGE_FEES = 0.02;
@@ -544,14 +538,16 @@ export class SavingsCalculatorService {
       let matchedTariffName = 'normal';
       if (tariffs.length > 0) {
         const matched = tariffs.find(t => {
-          const start = parseHour(t.todStartHour);
-          const end = parseHour(t.todEndHour);
+          const start = parseHour(t.todStartTime);
+          const end = parseHour(t.todEndTime);
           if (start <= end) return hour >= start && hour < end;
           return hour >= start || hour < end;
         });
         if (matched) {
-          discomBase = Number(matched.energyCharges || matched.baseEnergyCharges || 7.5);
-          matchedTariffName = matched.todName || matched.tod || 'normal';
+          discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
+          matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
+            ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
+            : 'FLAT';
         }
       }
       

@@ -78,19 +78,18 @@ export interface StuCharges {
 
 export interface StateTariff {
   id?: number;
-  stateCode: string;
-  month: number;
   state: string;
-  category: string;
+  consumerCategory: string;
   subCategory: string;
-  voltageLevel: string;
-  tod: string;
-  todName: string;
-  season: string;
-  todStartHour: string;
-  todEndHour: string;
-  baseEnergyCharges: number;
-  todRate: number;
-  energyCharges: number;
+  supplyVoltageCategory: string;
+  supplyVoltage: string;
+  month: number;
+  todStartTime: string;
+  todEndTime: string;
+  baseEnergyRate: number;
+  baseEnergyUnit: string;
+  todChargePercent: number;
+  energyRate: number;
   updatedAt?: string;
 }
+

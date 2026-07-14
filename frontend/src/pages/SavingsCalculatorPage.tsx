@@ -164,44 +164,36 @@ export default function SavingsCalculatorPage() {
   const [selectedSimMonth, setSelectedSimMonth] = useState<string>('');
 
   const uniqueStates = React.useMemo(() => {
-    const statesMap = new Map<string, string>();
+    const statesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (row.stateCode && row.state) {
-        statesMap.set(row.stateCode, row.state);
-      }
+      if (row.state) statesSet.add(row.state);
     });
-    return Array.from(statesMap.entries())
-      .map(([code, name]) => ({ stateCode: code, stateName: name }))
-      .sort((a, b) => a.stateName.localeCompare(b.stateName));
+    return Array.from(statesSet)
+      .sort()
+      .map((name) => ({ stateCode: name, stateName: name }));
   }, [tariffData]);
 
   const filteredDiscoms = React.useMemo(() => {
-    const discomsSet = new Set<string>();
-    tariffData.forEach((row: any) => {
-      if (row.discom && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
-        discomsSet.add(row.discom);
-      }
-    });
-    return Array.from(discomsSet).map(d => ({ code: d, legalName: d }));
-  }, [tariffData, stateCode]);
+    // No discom field in new StateTariff schema; derive from DiscomList
+    return discomList
+      .filter((d: any) => !stateCode || d.stateCode === stateCode || d.state === stateCode)
+      .map((d: any) => ({ code: d.code, legalName: d.legalName }));
+  }, [discomList, stateCode]);
 
   const uniqueCategories = React.useMemo(() => {
     const categoriesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (
-        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
-        (!discom || row.discom === discom)
-      ) {
-        if (row.category) categoriesSet.add(row.category);
-      }
+      const matchState = !stateCode || row.state?.toLowerCase() === stateCode.trim().toLowerCase();
+      if (matchState && row.consumerCategory) categoriesSet.add(row.consumerCategory);
     });
-    
+
+    // Always ensure the known UP categories are present
     categoriesSet.add('LMV-11');
     categoriesSet.add('HV-1');
     categoriesSet.add('HV-2');
-    
+
     return Array.from(categoriesSet).sort();
-  }, [tariffData, stateCode, discom]);
+  }, [tariffData, stateCode]);
 
   const uniqueVoltageLevels = React.useMemo(() => {
     if (consumerCategory.startsWith('LMV-11')) return ['Low Tension (LT)', 'High Tension (HT)'];
@@ -210,37 +202,40 @@ export default function SavingsCalculatorPage() {
 
     const levelsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (
-        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
-        (!discom || row.discom === discom) &&
-        (!consumerCategory || row.category === consumerCategory)
-      ) {
-        if (row.voltageLevel) levelsSet.add(row.voltageLevel);
+      const matchState = !stateCode || row.state?.toLowerCase() === stateCode.trim().toLowerCase();
+      const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
+      if (matchState && matchCategory && row.supplyVoltageCategory) {
+        levelsSet.add(row.supplyVoltageCategory);
       }
     });
     return Array.from(levelsSet);
-  }, [tariffData, stateCode, discom, consumerCategory]);
+  }, [tariffData, stateCode, consumerCategory]);
 
   const getTodSlabsForMonth = React.useCallback((targetMonth: number) => {
     const slabsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      const matchState = !stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase();
-      const matchDiscom = !discom || row.discom === discom;
-      const matchCategory = !consumerCategory || row.category === consumerCategory;
-      const matchMonth = row.month === targetMonth;
-      
-      let matchVoltage = !voltageLevel || row.voltageLevel === voltageLevel;
-      if (supplyVoltageValue && row.voltageLevel === `${supplyVoltageValue} kV`) {
-        matchVoltage = true;
-      }
-      
-      if (matchState && matchDiscom && matchCategory && matchVoltage && matchMonth) {
-        const slabName = (row.todName || row.tod || 'normal').toUpperCase();
-        slabsSet.add(slabName);
+      const matchState = !stateCode || row.state?.toLowerCase() === stateCode.trim().toLowerCase();
+      const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
+      const matchVoltage = !voltageLevel || row.supplyVoltageCategory === voltageLevel;
+      // month in new schema is YYYYMM int; targetMonth from todConsumptions is 1-12
+      // Match by the last two digits of the stored month
+      const storedMonthNum = row.month % 100;
+      const matchMonth = storedMonthNum === targetMonth;
+
+      if (matchState && matchCategory && matchVoltage && matchMonth) {
+        // Derive a slab name from tod times: use start-end or 'FLAT' when no TOD
+        const start = row.todStartTime || '—';
+        const end = row.todEndTime || '—';
+        const slabName = (start === '—' && end === '—')
+          ? 'FLAT'
+          : `${start.replace(':', '')}-${end.replace(':', '')}`;
+        slabsSet.add(slabName.toUpperCase());
       }
     });
+    // If no slabs found, always include a FLAT slab
+    if (slabsSet.size === 0) slabsSet.add('FLAT');
     return Array.from(slabsSet).sort();
-  }, [tariffData, stateCode, discom, consumerCategory, voltageLevel, supplyVoltageValue]);
+  }, [tariffData, stateCode, consumerCategory, voltageLevel]);
 
   const availableSupplyVoltageValues = React.useMemo(() => {
     switch (voltageLevel) {
