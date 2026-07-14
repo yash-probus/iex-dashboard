@@ -301,70 +301,57 @@ export class SavingsCalculatorService {
         todCounts[groupKey] = (todCounts[groupKey] || 0) + 1;
       });
 
-      // 1. Sort slots chronologically
-      slotsData.sort((a, b) => {
-        if (a.date !== b.date) {
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
-        }
-        return a.slot - b.slot;
+      // Pass 2: Greedy Optimization per TOD Slab
+      // 1. Group slots by TOD slab
+      const slotsByTod: Record<string, any[]> = {};
+      slotsData.forEach(item => {
+        let groupKey = item.todSlab.toUpperCase();
+        if (!slotsByTod[groupKey]) slotsByTod[groupKey] = [];
+        slotsByTod[groupKey].push(item);
       });
 
-      // 2. Initialize requirements and available capacities
-      const requirements: number[] = new Array(slotsData.length).fill(0);
-      const availableCapacities: number[] = new Array(slotsData.length).fill(maxEnergyPerSlot);
-      const optimizedCosts: number[] = new Array(slotsData.length).fill(0);
-
-      slotsData.forEach((item, index) => {
-        let groupKey = item.todSlab.toUpperCase();
-        let requiredEnergy = 0;
+      // 2. Iterate through each TOD slab and allocate energy
+      Object.keys(slotsByTod).forEach(groupKey => {
+        // Find the total energy requirement for this TOD slab from the input
+        let remainingEnergy = 0;
         const matchedKey = Object.keys(monthConsumptions).find(k => k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey);
         
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
-          const totalEnergy = Number(monthConsumptions[matchedKey]);
-          const count = todCounts[groupKey];
-          requiredEnergy = count > 0 ? totalEnergy / count : 0;
+          remainingEnergy = Number(monthConsumptions[matchedKey]);
         }
-        requirements[index] = requiredEnergy;
-        item.maxEnergyPerSlot = requiredEnergy;
-        item.baselineCost = item.discomLandingPrice * requiredEnergy;
-      });
 
-      // 3. Sort indices by lowest price
-      const priceSortedIndices = slotsData
-        .map((_, index) => index)
-        .sort((a, b) => slotsData[a].comparedLowestPrice - slotsData[b].comparedLowestPrice);
+        // Add the baseline cost for this TOD slab (if they bought it all from DISCOM)
+        // Note: we can just add this up per slot, but since DISCOM price is constant per TOD slab,
+        // we can assign it to the slots or just keep track globally.
+        // To keep the UI reporting happy, we will distribute baselineCost across slots.
 
-      // 4. Allocate energy
-      for (const pIndex of priceSortedIndices) {
-        let amountToGive = availableCapacities[pIndex];
-        const pSlot = slotsData[pIndex];
-        const pGroup = pSlot.todSlab.toUpperCase();
+        // Sort all 15-minute slots in this TOD slab in ascending order of lowestLandingPrice
+        const sortedSlots = slotsByTod[groupKey].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
 
-        for (let sIndex = pIndex; sIndex < slotsData.length; sIndex++) {
-          if (amountToGive <= 0) break;
-          
-          const sSlot = slotsData[sIndex];
-          const sGroup = sSlot.todSlab.toUpperCase();
-          
-          if (sGroup !== pGroup) continue;
-
-          if (requirements[sIndex] > 0) {
-            const take = Math.min(requirements[sIndex], amountToGive);
-            requirements[sIndex] -= take;
-            amountToGive -= take;
+        sortedSlots.forEach(slot => {
+          if (remainingEnergy > 0) {
+            const clearedEnergy = Math.min(maxEnergyPerSlot, remainingEnergy);
+            remainingEnergy -= clearedEnergy;
             
-            optimizedCosts[sIndex] += take * pSlot.comparedLowestPrice;
+            slot.maxEnergyPerSlot = clearedEnergy; // the UI uses this as 'sourced energy'
+            slot.optimizedCost = clearedEnergy * slot.comparedLowestPrice;
+            slot.baselineCost = clearedEnergy * slot.discomLandingPrice;
+          } else {
+            slot.maxEnergyPerSlot = 0;
+            slot.optimizedCost = 0;
+            slot.baselineCost = 0;
           }
-        }
-        availableCapacities[pIndex] = amountToGive;
-      }
+        });
 
-      // 5. Unfulfilled requirements
-      slotsData.forEach((item, index) => {
-        if (requirements[index] > 0) {
-          optimizedCosts[index] += requirements[index] * item.comparedLowestPrice;
+        // If there is still remaining energy that couldn't be sourced from the market,
+        // it must be bought from the DISCOM at the DISCOM price.
+        // We can add this unfulfilled cost to the first slot of the group just for reporting purposes,
+        // or spread it. Adding to the first slot is easiest to ensure totals match.
+        if (remainingEnergy > 0 && sortedSlots.length > 0) {
+           sortedSlots[0].optimizedCost += remainingEnergy * sortedSlots[0].discomLandingPrice;
+           sortedSlots[0].baselineCost += remainingEnergy * sortedSlots[0].discomLandingPrice;
+           // We do NOT add to maxEnergyPerSlot because that represents market-sourced energy.
         }
-        item.optimizedCost = optimizedCosts[index];
       });
 
       slotsData.forEach(item => {
