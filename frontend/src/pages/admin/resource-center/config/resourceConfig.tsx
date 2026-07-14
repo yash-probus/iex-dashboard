@@ -22,20 +22,6 @@ export interface ResourceConfig {
 
 const formatDate = (v: any) => v ? new Date(v).toLocaleDateString() : '-';
 
-const formatMonth = (v: any) => {
-  if (typeof v === 'number') {
-    if (v > 100000) {
-      const year = Math.floor(v / 100);
-      const month = v % 100;
-      const date = new Date(year, month - 1);
-      return date.toLocaleString('default', { month: 'short' }) + ' ' + year;
-    }
-    const date = new Date(new Date().getFullYear(), v - 1);
-    return date.toLocaleString('default', { month: 'short' }) + ' ' + new Date().getFullYear();
-  }
-  return v;
-};
-
 const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
 
 export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
@@ -111,7 +97,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     searchPlaceholder: 'Search by month, fees, charges...',
     searchableFields: ['month', 'exchangeFees', 'nldcApplicationFees'],
     columns: [
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
       { field: 'exchangeFees', headerName: 'Exchange Fees', align: 'center', width: 200, valueFormatter: formatNum },
       { field: 'exchangeFeesGst', headerName: 'Exchange Fees GST', align: 'center', width: 200, valueFormatter: formatNum },
       { field: 'nldcApplicationFees', headerName: 'NLDC Application Fees', align: 'center', width: 200, valueFormatter: formatNum },
@@ -137,7 +123,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     searchPlaceholder: 'Search by customer ID, month, margin...',
     searchableFields: ['month', 'customerId', 'tradingMargin'],
     columns: [
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
       { field: 'customerId', headerName: 'Customer ID', align: 'center', width: 200 },
       { field: 'tradingMargin', headerName: 'Trading Margin', align: 'center', width: 200, valueFormatter: formatNum },
       { field: 'tradingMarginGst', headerName: 'Trading Margin GST', align: 'center', width: 200, valueFormatter: formatNum },
@@ -163,7 +149,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     columns: [
       { field: 'id', headerName: 'ID', align: 'center', width: 100 },
       { field: 'state', headerName: 'State', align: 'center', width: 200 },
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
       { field: 'ctu_charges_rs_per_kwh', headerName: 'CTU Charges (Rs/kWh)', align: 'center', width: 250, valueFormatter: formatNum },
     ],
     fields: [
@@ -225,7 +211,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 260 },
       { field: 'supplyVoltageCategory', headerName: 'Supply Voltage Category', align: 'center', width: 220 },
       { field: 'supplyVoltage', headerName: 'Supply Voltage', align: 'center', width: 150 },
-      { field: 'month', headerName: 'Month', align: 'center', width: 120, valueFormatter: formatMonth },
+      { field: 'month', headerName: 'Month', align: 'center', width: 120 },
       { field: 'todStartTime', headerName: 'TOD Start Time', align: 'center', width: 150 },
       { field: 'todEndTime', headerName: 'TOD End Time', align: 'center', width: 150 },
       { field: 'baseEnergyRate', headerName: 'Base Energy Rate', align: 'center', width: 180, valueFormatter: formatNum },
