@@ -146,8 +146,16 @@ export class SavingsCalculatorService {
         throw new Error(`Invalid consumption month format: ${yearMonth}. Expected YYYY-MM.`);
       }
 
+      let stateName = entry.stateCode || stateCode;
+      if (stateName) {
+        const rs = await prisma.regionState.findFirst({ where: { stateCode: stateName } });
+        if (rs && rs.stateName) {
+          stateName = rs.stateName;
+        }
+      }
+
       const whereClause: any = {
-        state: entry.stateCode || stateCode,
+        state: stateName,
         consumerCategory: category,
         supplyVoltageCategory: entry.voltageLevel || rawVoltage
       };
@@ -408,6 +416,14 @@ export class SavingsCalculatorService {
     const stateCode = entry.stateCode || '';
     const category = entry.consumerCategory || '';
     const voltageLevel = entry.voltageLevel || '';
+    let stateName = stateCode;
+    if (stateCode) {
+      const rs = await prisma.regionState.findFirst({ where: { stateCode } });
+      if (rs && rs.stateName) {
+        stateName = rs.stateName;
+      }
+    }
+
     const traderMargin = Number(entry.traderMargin || 0);
 
     const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -417,7 +433,7 @@ export class SavingsCalculatorService {
 
     const stateCharges = await prisma.stateCharges.findFirst({
       where: {
-        state: stateCode,
+        state: stateName,
         category: category,
         voltageLevel: voltageLevel,
         fromDate: { lte: targetDate },
@@ -437,7 +453,7 @@ export class SavingsCalculatorService {
       }
     });
 
-    let whereClause: any = { state: entry.stateCode || '', consumerCategory: category, supplyVoltageCategory: voltageLevel };
+    let whereClause: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: voltageLevel };
     const tariffs = await prisma.stateTariff.findMany({ where: whereClause });
 
     const EXCHANGE_FEES = 0.02;
