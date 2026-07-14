@@ -41,11 +41,11 @@ export const RESOURCE_CENTER_PAGES = {
     emptyMessage: 'No CTU Charges documents available.',
     searchPlaceholder: 'Search by month, year...',
   },
-  STU_CHARGES: {
-    title: 'STU CHARGES',
-    subtitle: 'State Transmission Utility and wheeling charges reference data.',
-    exportFilename: 'stu-charges',
-    emptyMessage: 'No STU Charges data available.',
+  STATE_CHARGES: {
+    title: 'STATE CHARGES',
+    subtitle: 'State charges and wheeling charges reference data.',
+    exportFilename: 'state-charges',
+    emptyMessage: 'No State Charges data available.',
     searchPlaceholder: 'Search by state, category, sub category...',
   },
   STATE_TARIFF: {

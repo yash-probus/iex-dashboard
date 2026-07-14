@@ -57,22 +57,22 @@ export interface CtuCharges {
   updatedAt?: string;
 }
 
-export interface StuCharges {
+export interface StateCharges {
   id?: number;
-  stateCode: string;
   state: string;
   category: string;
   subCategory: string;
+  supplyVoltageCategory: string;
   voltageLevel: string;
-  month: number;
-  stuChargesRsPerKwh: number;
-  demandCharges: number;
-  percentFppaCharges: number;
-  additionalCharges: number;
+  fromDate: string;
+  toDate: string;
+  demandFixedChargeKvaPerMonthRs: number;
   crossSubsidy: number;
-  distributionWheelingChargesRsPerKwh: number;
+  distributionWheelingCharges: number;
+  stuCharges: number;
   stuLossPercent: number;
-  distributionWheelingLossPercent: number;
+  wheelingLossPercent: number;
+  additionalCharge: number;
   updatedAt?: string;
 }
 

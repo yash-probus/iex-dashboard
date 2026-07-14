@@ -410,18 +410,25 @@ export class SavingsCalculatorService {
     const voltageLevel = entry.voltageLevel || '';
     const traderMargin = Number(entry.traderMargin || 0);
 
-    const stuCharges = await prisma.stuCharges.findFirst({
-      where: { stateCode, month, category, voltageLevel }
+    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+    const targetDate = new Date(startStr);
+
+    const stateCharges = await prisma.stateCharges.findFirst({
+      where: {
+        state: stateCode,
+        category: category,
+        voltageLevel: voltageLevel,
+        fromDate: { lte: targetDate },
+        toDate: { gte: targetDate }
+      }
     });
 
     const ctuCharges = await prisma.ctuCharges.findFirst({
       where: { month }
     });
 
-    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
-    
     const istsCharges = await prisma.istsCharges.findMany({
       where: {
         OR: [
@@ -442,27 +449,28 @@ export class SavingsCalculatorService {
     if (!ctuCharges) {
       throw new Error(`CTU Charges not found for month ${month}`);
     }
-    if (!stuCharges) {
-      throw new Error(`STU Charges not found for state ${stateCode}, category ${category}, voltage ${voltageLevel}, month ${month}`);
+    if (!stateCharges) {
+      throw new Error(`State Charges not found for state ${stateCode}, category ${category}, voltage ${voltageLevel}, date ${startStr}`);
     }
 
     if (ctuCharges.ctu_charges_rs_per_kwh == null) throw new Error('CTU Charges value is missing.');
-    if (stuCharges.stuChargesRsPerKwh == null) throw new Error('STU Charges value is missing.');
-    if (stuCharges.distributionWheelingChargesRsPerKwh == null) throw new Error('Distribution/Wheeling Charges value is missing.');
-    if (stuCharges.crossSubsidy == null) throw new Error('Cross Subsidy value is missing.');
-    if (stuCharges.additionalCharges == null) throw new Error('Additional Surcharge value is missing.');
-    if (stuCharges.stuLossPercent == null) throw new Error('STU Loss Percent value is missing.');
-    if (stuCharges.distributionWheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
-    if (stuCharges.percentFppaCharges == null) throw new Error('FPPA Percent value is missing.');
+    if (stateCharges.stuCharges == null) throw new Error('STU Charges value is missing.');
+    if (stateCharges.distributionWheelingCharges == null) throw new Error('Distribution/Wheeling Charges value is missing.');
+    if (stateCharges.crossSubsidy == null) throw new Error('Cross Subsidy value is missing.');
+    if (stateCharges.additionalCharge == null) throw new Error('Additional Surcharge value is missing.');
+    if (stateCharges.stuLossPercent == null) throw new Error('STU Loss Percent value is missing.');
+    if (stateCharges.wheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
+    
+    // Fallback FPPA percent since it is not in state_charges yet.
+    const fppaPercent = 0; 
 
     const ctuCharge = Number(ctuCharges.ctu_charges_rs_per_kwh);
-    const stuCharge = Number(stuCharges.stuChargesRsPerKwh);
-    const wheelingCharge = Number(stuCharges.distributionWheelingChargesRsPerKwh);
-    const crossSubsidy = Number(stuCharges.crossSubsidy);
-    const additionalSurcharge = Number(stuCharges.additionalCharges);
-    const stuLoss = Number(stuCharges.stuLossPercent);
-    const wheelingLoss = Number(stuCharges.distributionWheelingLossPercent);
-    const fppaPercent = Number(stuCharges.percentFppaCharges);
+    const stuCharge = Number(stateCharges.stuCharges);
+    const wheelingCharge = Number(stateCharges.distributionWheelingCharges);
+    const crossSubsidy = Number(stateCharges.crossSubsidy);
+    const additionalSurcharge = Number(stateCharges.additionalCharge);
+    const stuLoss = Number(stateCharges.stuLossPercent);
+    const wheelingLoss = Number(stateCharges.wheelingLossPercent);
 
     const query = `
       SELECT

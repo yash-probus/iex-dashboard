@@ -20,6 +20,8 @@ export interface ResourceConfig {
   fields: FormField[];
 }
 
+const formatDate = (v: any) => v ? new Date(v).toLocaleDateString() : '-';
+
 const formatMonth = (v: any) => {
   if (typeof v === 'number') {
     const date = new Date(2026, v - 1);
@@ -164,44 +166,44 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { name: 'ctu_charges_rs_per_kwh', label: 'CTU Charges (Rs/kWh)', type: 'number' },
     ]
   },
-  'stu-charges': {
-    title: 'STU CHARGES',
-    subtitle: 'Manage STU Charges records.',
-    exportFilename: 'stu-charges',
-    emptyMessage: 'No STU Charges data available.',
+  'state-charges': {
+    title: 'STATE CHARGES',
+    subtitle: 'Manage State Charges records.',
+    exportFilename: 'state-charges',
+    emptyMessage: 'No State Charges data available.',
     searchPlaceholder: 'Search by state, category, sub category...',
-    searchableFields: ['stateCode', 'state', 'category', 'subCategory', 'month', 'stuChargesRsPerKwh'],
+    searchableFields: ['state', 'category', 'subCategory', 'supplyVoltageCategory', 'voltageLevel'],
     columns: [
-      { field: 'stateCode', headerName: 'State Code', align: 'center', width: 120, sticky: true },
       { field: 'state', headerName: 'State', align: 'center', width: 180, sticky: true },
       { field: 'category', headerName: 'Category', align: 'center', width: 180 },
       { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 180 },
+      { field: 'supplyVoltageCategory', headerName: 'Supply Voltage Category', align: 'center', width: 200 },
       { field: 'voltageLevel', headerName: 'Voltage Level', align: 'center', width: 150 },
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-      { field: 'stuChargesRsPerKwh', headerName: 'STU Charges (₹/kWh)', align: 'center', width: 200, valueFormatter: formatNum },
-      { field: 'demandCharges', headerName: 'Demand Charges', align: 'center', width: 180, valueFormatter: formatNum },
-      { field: 'percentFppaCharges', headerName: 'FPPA Charges (%)', align: 'center', width: 180, valueFormatter: formatNum },
-      { field: 'additionalCharges', headerName: 'Additional Charges', align: 'center', width: 180, valueFormatter: formatNum },
+      { field: 'fromDate', headerName: 'From Date', align: 'center', width: 120, valueFormatter: formatDate },
+      { field: 'toDate', headerName: 'To Date', align: 'center', width: 120, valueFormatter: formatDate },
+      { field: 'demandFixedChargeKvaPerMonthRs', headerName: 'Demand Fixed Charge', align: 'center', width: 180, valueFormatter: formatNum },
       { field: 'crossSubsidy', headerName: 'Cross Subsidy', align: 'center', width: 180, valueFormatter: formatNum },
-      { field: 'distributionWheelingChargesRsPerKwh', headerName: 'Distribution Wheeling Charges (₹/kWh)', align: 'center', width: 300, valueFormatter: formatNum },
+      { field: 'distributionWheelingCharges', headerName: 'Dist Wheeling Charges', align: 'center', width: 180, valueFormatter: formatNum },
+      { field: 'stuCharges', headerName: 'STU Charges', align: 'center', width: 180, valueFormatter: formatNum },
       { field: 'stuLossPercent', headerName: 'STU Loss (%)', align: 'center', width: 150, valueFormatter: formatNum },
-      { field: 'distributionWheelingLossPercent', headerName: 'Distribution Wheeling Loss (%)', align: 'center', width: 250, valueFormatter: formatNum },
+      { field: 'wheelingLossPercent', headerName: 'Wheeling Loss (%)', align: 'center', width: 150, valueFormatter: formatNum },
+      { field: 'additionalCharge', headerName: 'Additional Charge', align: 'center', width: 180, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'stateCode', label: 'State Code', type: 'text' },
       { name: 'state', label: 'State', type: 'text' },
       { name: 'category', label: 'Category', type: 'text' },
       { name: 'subCategory', label: 'Sub Category', type: 'text' },
+      { name: 'supplyVoltageCategory', label: 'Supply Voltage Category', type: 'text' },
       { name: 'voltageLevel', label: 'Voltage Level', type: 'text' },
-      { name: 'month', label: 'Month', type: 'number' },
-      { name: 'stuChargesRsPerKwh', label: 'STU Charges (₹/kWh)', type: 'number' },
-      { name: 'demandCharges', label: 'Demand Charges', type: 'number' },
-      { name: 'percentFppaCharges', label: 'FPPA Charges (%)', type: 'number' },
-      { name: 'additionalCharges', label: 'Additional Charges', type: 'number' },
+      { name: 'fromDate', label: 'From Date', type: 'text' },
+      { name: 'toDate', label: 'To Date', type: 'text' },
+      { name: 'demandFixedChargeKvaPerMonthRs', label: 'Demand Fixed Charge', type: 'number' },
       { name: 'crossSubsidy', label: 'Cross Subsidy', type: 'number' },
-      { name: 'distributionWheelingChargesRsPerKwh', label: 'Distribution Wheeling Charges (₹/kWh)', type: 'number' },
+      { name: 'distributionWheelingCharges', label: 'Dist Wheeling Charges', type: 'number' },
+      { name: 'stuCharges', label: 'STU Charges', type: 'number' },
       { name: 'stuLossPercent', label: 'STU Loss (%)', type: 'number' },
-      { name: 'distributionWheelingLossPercent', label: 'Distribution Wheeling Loss (%)', type: 'number' },
+      { name: 'wheelingLossPercent', label: 'Wheeling Loss (%)', type: 'number' },
+      { name: 'additionalCharge', label: 'Additional Charge', type: 'number' },
     ]
   },
   'state-tariff': {

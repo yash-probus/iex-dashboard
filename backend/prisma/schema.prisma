@@ -226,26 +226,25 @@ model IstsChargeDocs {
   @@map("ists_charge_docs")
 }
 
-model StuCharges {
-  stateCode                           String   @map("state_code") @db.VarChar(10)
-  state                               String   @db.VarChar(100)
-  category                            String?  @db.VarChar(50)
-  subCategory                         String?  @map("sub_category") @db.VarChar(100)
-  voltageLevel                        String?  @map("voltage_level") @db.VarChar(20)
-  month                               Int
-  stuChargesRsPerKwh                  Decimal? @map("stu_charges_rs_per_kwh") @db.Decimal(12, 6)
-  demandCharges                       Decimal? @map("demand_charges") @db.Decimal(12, 6)
-  percentFppaCharges                  Decimal? @map("percent_fppa_charges") @db.Decimal(12, 6)
-  additionalCharges                   Decimal? @map("additional_charges") @db.Decimal(12, 6)
-  crossSubsidy                        Decimal? @map("cross_subsidy") @db.Decimal(12, 6)
-  distributionWheelingChargesRsPerKwh Decimal? @map("distribution_wheeling_charges_rs_per_kwh") @db.Decimal(12, 6)
-  stuLossPercent                      Decimal? @map("stu_loss_percent") @db.Decimal(12, 6)
-  distributionWheelingLossPercent     Decimal? @map("distribution_wheeling_loss_percent") @db.Decimal(12, 6)
-  id                                  Int      @id @default(autoincrement())
-  updatedAt                           DateTime @default(now()) @updatedAt @map("updated_at")
+model StateCharges {
+  id                             Int      @id @default(autoincrement())
+  state                          String   @db.VarChar(100)
+  category                       String?  @db.VarChar(100)
+  subCategory                    String?  @map("sub_category") @db.VarChar(255)
+  supplyVoltageCategory          String?  @map("supply_voltage_category") @db.VarChar(100)
+  voltageLevel                   String?  @map("voltage_level") @db.VarChar(100)
+  fromDate                       DateTime @map("from_date") @db.Date
+  toDate                         DateTime @map("to_date") @db.Date
+  demandFixedChargeKvaPerMonthRs Decimal? @map("demand_fixed_charge_kva_per_month_rs") @db.Decimal(12, 6)
+  crossSubsidy                   Decimal? @map("cross_subsidy") @db.Decimal(12, 6)
+  distributionWheelingCharges    Decimal? @map("distribution_wheeling_charges") @db.Decimal(12, 6)
+  stuCharges                     Decimal? @map("stu_charges") @db.Decimal(12, 6)
+  stuLossPercent                 Decimal? @map("stu_loss_percent") @db.Decimal(12, 6)
+  wheelingLossPercent            Decimal? @map("wheeling_loss_percent") @db.Decimal(12, 6)
+  additionalCharge               Decimal? @map("additional_charge") @db.Decimal(12, 6)
+  updatedAt                      DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@unique([stateCode, month, category, subCategory, voltageLevel], map: "uq_stu_charges_composite")
-  @@map("stu_charges")
+  @@map("state_charges")
 }
 
 model StateTariff {

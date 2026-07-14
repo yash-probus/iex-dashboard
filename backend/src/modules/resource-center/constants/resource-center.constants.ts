@@ -41,12 +41,12 @@ export const RESOURCE_REGISTRY = {
     displayName: 'CTU Charges',
     modelName: 'ctuCharges'
   },
-  'stu-charges': {
-    id: 'stu-charges',
-    table: 'stu_charges',
+  'state-charges': {
+    id: 'state-charges',
+    table: 'state_charges',
     schema: 'prolt_energy',
-    displayName: 'STU Charges',
-    modelName: 'stuCharges'
+    displayName: 'State Charges',
+    modelName: 'stateCharges'
   },
   'state-tariff': {
     id: 'state-tariff',

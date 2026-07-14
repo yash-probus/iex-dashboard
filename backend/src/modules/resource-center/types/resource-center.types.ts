@@ -5,7 +5,7 @@ export type ResourceType =
   | 'iex-fees'
   | 'prolt-margin'
   | 'ctu-charges'
-  | 'stu-charges'
+  | 'state-charges'
   | 'state-tariff';
 
 export const isValidResourceType = (type: any): type is ResourceType => {
@@ -16,7 +16,7 @@ export const isValidResourceType = (type: any): type is ResourceType => {
     'iex-fees',
     'prolt-margin',
     'ctu-charges',
-    'stu-charges',
+    'state-charges',
     'state-tariff'
   ];
   return validTypes.includes(type as ResourceType);
