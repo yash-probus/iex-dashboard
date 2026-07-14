@@ -168,9 +168,20 @@ export class SavingsCalculatorService {
       };
 
       // Fetch matching StateTariff slabs from DB
-      const tariffs = await prisma.stateTariff.findMany({
+      let tariffs = await prisma.stateTariff.findMany({
         where: whereClause
       });
+
+      if (tariffs.length === 0) {
+        const latestTariff = await prisma.stateTariff.findFirst({
+          where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
+          orderBy: { month: 'desc' }
+        });
+        if (latestTariff) {
+          whereClause.month = latestTariff.month;
+          tariffs = await prisma.stateTariff.findMany({ where: whereClause });
+        }
+      }
 
       // Query combined DAM, GDAM, and RTM records for the selected month using FULL OUTER JOIN
       const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -463,7 +474,18 @@ export class SavingsCalculatorService {
       });
 
       let whereClauseTariff: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
-      const tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
+      let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
+
+      if (tariffs.length === 0) {
+        const latestTariff = await prisma.stateTariff.findFirst({
+          where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
+          orderBy: { month: 'desc' }
+        });
+        if (latestTariff) {
+          whereClauseTariff.month = latestTariff.month;
+          tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
+        }
+      }
 
     const EXCHANGE_FEES = 0.02;
     const GST_EXCHANGE = 0.0036;
