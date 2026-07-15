@@ -59,6 +59,7 @@ model UploadHistory {
 model DamRecord {
   id             String  @id @default(uuid())
   datasetId      String
+  date           String? @db.VarChar(10)
   intervalNumber Int     @db.SmallInt
   intervalTime   String  @db.VarChar(15)
   purchaseBid    Decimal @db.Decimal(18, 4)
@@ -77,6 +78,7 @@ model DamRecord {
 model GdamRecord {
   id              String  @id @default(uuid())
   datasetId       String
+  date            String? @db.VarChar(10)
   intervalNumber  Int     @db.SmallInt
   intervalTime    String  @db.VarChar(15)
   purchaseBid     Decimal @db.Decimal(18, 4)
@@ -104,6 +106,7 @@ model GdamRecord {
 model RtmRecord {
   id             String  @id @default(uuid())
   datasetId      String
+  date           String? @db.VarChar(10)
   intervalNumber Int     @db.SmallInt
   intervalTime   String  @db.VarChar(15)
   sessionId      String  @db.VarChar(50)

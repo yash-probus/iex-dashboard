@@ -91,8 +91,10 @@ export class PersistenceService {
         let insertedCount = 0;
 
         if (market === 'DAM') {
+          const formattedDate = dataset.deliveryDate.toISOString().split('T')[0];
           const dbRecords: DamDbPayload[] = (records as DamIntervalRecord[]).map((r) => ({
             datasetId: dataset.id,
+            date: formattedDate,
             intervalNumber: r.intervalNumber,
             intervalTime: r.intervalTime,
             purchaseBid: toDecimal(r.purchaseBid),
@@ -106,8 +108,10 @@ export class PersistenceService {
           insertedCount = result.count;
         } 
         else if (market === 'GDAM') {
+          const formattedDate = dataset.deliveryDate.toISOString().split('T')[0];
           const dbRecords: GdamDbPayload[] = (records as GdamIntervalRecord[]).map((r) => ({
             datasetId: dataset.id,
+            date: formattedDate,
             intervalNumber: r.intervalNumber,
             intervalTime: r.intervalTime,
             purchaseBid: toDecimal(r.purchaseBid),
@@ -130,8 +134,10 @@ export class PersistenceService {
           insertedCount = result.count;
         }
         else if (market === 'RTM') {
+          const formattedDate = dataset.deliveryDate.toISOString().split('T')[0];
           const dbRecords: RtmDbPayload[] = (records as RtmIntervalRecord[]).map((r) => ({
             datasetId: dataset.id,
+            date: formattedDate,
             intervalNumber: r.intervalNumber,
             intervalTime: r.intervalTime,
             sessionId: r.sessionId,
