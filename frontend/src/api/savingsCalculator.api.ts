@@ -83,6 +83,7 @@ export interface MarketDecisionTodSummary {
   slabName: string;
   totalEnergyKwh: number;
   marketEnergyKwh: number;
+  marketCostBase?: number;
 }
 
 export interface MarketDecisionResult {

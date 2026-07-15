@@ -1424,7 +1424,10 @@ export default function SavingsCalculatorPage() {
                           {marketDecisionResult.todSummaries.map((summary, idx) => (
                             <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName}</Typography>
-                              <Typography variant="caption" fontWeight={700} color="#16A34A">{summary.marketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
+                              <Typography variant="caption" fontWeight={700} color="#16A34A">
+                                {summary.marketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                                {summary.marketCostBase !== undefined && ` • ₹${summary.marketCostBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                              </Typography>
                             </Box>
                           ))}
                         </Box>
