@@ -522,8 +522,14 @@ export class SavingsCalculatorService {
     if (stateCharges.stuLossPercent == null) throw new Error('STU Loss Percent value is missing.');
     if (stateCharges.wheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
     
-    // Fallback FPPA percent since it is not in state_charges yet.
-    const fppaPercent = 0; 
+    // Fetch FPPA percent
+    const fppaData = await prisma.fppaCharges.findFirst({
+      where: {
+        state: stateName.toUpperCase().replace(/\s+/g, '_'),
+        month: yyyymmMonth
+      }
+    });
+    const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0; 
 
     const ctuCharge = Number(ctuCharges.ctu_charges_rs_per_kwh);
     const stuCharge = Number(stateCharges.stuCharges);

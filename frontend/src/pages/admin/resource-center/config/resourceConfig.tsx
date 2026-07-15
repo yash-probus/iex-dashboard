@@ -233,5 +233,24 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { name: 'todChargePercent', label: 'TOD Charge %', type: 'number' },
       { name: 'energyRate', label: 'Energy Rate', type: 'number' },
     ]
+  },
+  'fppa-charges': {
+    title: 'FPPA CHARGES',
+    subtitle: 'Manage FPPA Charges records.',
+    exportFilename: 'fppa-charges',
+    emptyMessage: 'No FPPA Charges data available.',
+    searchPlaceholder: 'Search by state, month...',
+    searchableFields: ['state', 'month'],
+    columns: [
+      { field: 'id', headerName: 'ID', align: 'center', width: 100 },
+      { field: 'state', headerName: 'State', align: 'center', width: 250 },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
+      { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
+    ],
+    fields: [
+      { name: 'state', label: 'State', type: 'text' },
+      { name: 'month', label: 'Month', type: 'number' },
+      { name: 'fppaChargePercent', label: 'FPPA Charge %', type: 'number' },
+    ]
   }
 };
