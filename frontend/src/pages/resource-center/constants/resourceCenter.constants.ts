@@ -54,5 +54,12 @@ export const RESOURCE_CENTER_PAGES = {
     exportFilename: 'state-tariff',
     emptyMessage: 'No State Tariff data available.',
     searchPlaceholder: 'Search by state, category, voltage, month...',
+  },
+  FPPA_CHARGES: {
+    title: 'FPPA CHARGES',
+    subtitle: 'Manage FPPA Charges records.',
+    exportFilename: 'fppa-charges',
+    emptyMessage: 'No FPPA Charges data available.',
+    searchPlaceholder: 'Search by state, month...',
   }
 };
