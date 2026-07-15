@@ -628,7 +628,8 @@ export class SavingsCalculatorService {
 
       const discomLanding = discomBase * (1 + (fppaPercent / 100));
 
-      const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
+      // Source 100% from market if available, regardless of DISCOM rate comparison
+      const shouldBuyFromMarket = bestMarketLanding > 0;
 
       return {
         date: deliveryDate.toISOString().split('T')[0],
@@ -752,6 +753,8 @@ export class SavingsCalculatorService {
       });
 
       // --- OA Detailed Simulation Breakdowns ---
+      // slabConsumption is the target units at the consumer meter.
+      // marketEnergy represents the units we want to deliver to the consumer meter via OA.
       const discomBill = slabConsumption * slabDiscomRate;
       const proltDiscomBill = (slabConsumption - marketEnergy) * slabDiscomRate;
 
@@ -762,23 +765,28 @@ export class SavingsCalculatorService {
       const istsLossMultiplier = (1 - (avgIstsLoss / 100));
       const stuLossMultiplier = (1 - (stuLoss / 100));
       const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
-      const consumerBusUnits = marketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
+      
+      const consumerBusUnits = marketEnergy;
+      // To deliver 'consumerBusUnits', we must buy 'generatorBusUnits' at the exchange
+      const generatorBusUnits = consumerBusUnits / (istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier);
 
       const nonGdamMarketSlots = marketSlots.filter(s => s.marketSource !== 'GDAM').length;
       const nonGdamFraction = marketSlots.length > 0 ? nonGdamMarketSlots / marketSlots.length : 0;
       const nonGdamConsumerBusUnits = consumerBusUnits * nonGdamFraction;
       
+      // RPO and CSS are typically charged on Consumer Bus Units
       const rpoCharge = nonGdamConsumerBusUnits * RPO_FLAT_RATE;
       const cssCharge = consumerBusUnits * crossSubsidy;
       
-      const pocCharge = marketEnergy * ctuCharge;
-      const stuChargeVal = marketEnergy * stuCharge;
-      const dcCharge = marketEnergy * wheelingCharge;
+      // POC, STU, DC, IEX, and Trader Margin are charged on the units bought at the exchange (Generator Bus Units)
+      const pocCharge = generatorBusUnits * ctuCharge;
+      const stuChargeVal = generatorBusUnits * stuCharge;
+      const dcCharge = generatorBusUnits * wheelingCharge;
 
-      const iexFeesTotal = marketEnergy * EXCHANGE_FEES;
-      const traderMarginTotal = marketEnergy * TRADER_MARGIN;
+      const iexFeesTotal = generatorBusUnits * EXCHANGE_FEES;
+      const traderMarginTotal = generatorBusUnits * TRADER_MARGIN;
       
-      const marketEnergyCost = marketEnergy * avgMarketPrice;
+      const marketEnergyCost = generatorBusUnits * avgMarketPrice;
       const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + marketEnergyCost;
 
       oaDetailedBreakdown.push({
