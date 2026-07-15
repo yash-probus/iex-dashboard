@@ -93,3 +93,10 @@ export interface StateTariff {
   updatedAt?: string;
 }
 
+export interface FppaCharges {
+  id?: string;
+  state: string;
+  month: number;
+  fppaChargePercent: number;
+  updatedAt?: string;
+}
