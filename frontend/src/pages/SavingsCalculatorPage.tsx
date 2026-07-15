@@ -1759,6 +1759,18 @@ export default function SavingsCalculatorPage() {
                       <Typography variant="caption" color="text.secondary" display="block">Bid Application Fees</Typography>
                       <Typography variant="body2" fontWeight={600}>₹{marketDecisionResult.oaDetailed.bidApplicationFees.toLocaleString()}</Typography>
                     </Box>
+                    {(marketDecisionResult.demandCharge ?? 0) > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Demand Charge (Fixed)</Typography>
+                        <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.demandCharge ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                      </Box>
+                    )}
+                    {(marketDecisionResult.electricityDuty ?? 0) > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Electricity Duty (7.5%)</Typography>
+                        <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.electricityDuty ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                      </Box>
+                    )}
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
                       <Typography variant="body2" fontWeight={700} color="#7C3AED">
@@ -1766,6 +1778,18 @@ export default function SavingsCalculatorPage() {
                           marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0) + 
                           marketDecisionResult.oaDetailed.dailyFixedOverhead + 
                           marketDecisionResult.oaDetailed.bidApplicationFees
+                        ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block">Total Gross Bill (Inc. Demand + ED)</Typography>
+                      <Typography variant="body2" fontWeight={700} color="#E11D48">
+                        ₹{(
+                          marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0) + 
+                          marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                          marketDecisionResult.oaDetailed.bidApplicationFees +
+                          (marketDecisionResult.demandCharge ?? 0) +
+                          (marketDecisionResult.electricityDuty ?? 0)
                         ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     </Box>

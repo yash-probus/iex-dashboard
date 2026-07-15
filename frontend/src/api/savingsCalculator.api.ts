@@ -105,6 +105,8 @@ export interface MarketDecisionResult {
   totalBaselineCost: number;
   totalLandedExchangeCost: number;
   totalSavings: number;
+  demandCharge?: number;
+  electricityDuty?: number;
   todSummaries?: MarketDecisionTodSummary[];
   oaDetailed?: {
     breakdown: OADetailedBreakdown[];

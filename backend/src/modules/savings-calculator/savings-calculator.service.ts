@@ -656,6 +656,16 @@ export class SavingsCalculatorService {
     const monthKey = targetMonthStr || `${year}-${String(month).padStart(2, '0')}`;
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
 
+    let peakDemand = 0;
+    Object.keys(monthConsumptions).forEach(k => {
+      if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) {
+        peakDemand = Math.max(peakDemand, Number(monthConsumptions[k]) || 0);
+      }
+    });
+
+    const demandChargeRate = stateCharges ? Number(stateCharges.demandFixedChargeKvaPerMonthRs || 0) : 0;
+    const demandCharge = peakDemand * demandChargeRate;
+
     // Group slots by TOD slab
     const slotsByTod: Record<string, typeof slotsData> = {};
     const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
@@ -795,6 +805,7 @@ export class SavingsCalculatorService {
     });
 
     const totalSavings = totalBaselineCost - totalLandedExchangeCost;
+    const electricityDuty = totalBaselineCost * 0.075;
 
     return {
       clientId: id,
@@ -805,6 +816,8 @@ export class SavingsCalculatorService {
       totalBaselineCost,
       totalLandedExchangeCost,
       totalSavings,
+      demandCharge,
+      electricityDuty,
       todSummaries,
       oaDetailed: {
         breakdown: oaDetailedBreakdown,
