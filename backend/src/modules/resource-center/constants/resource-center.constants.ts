@@ -54,5 +54,12 @@ export const RESOURCE_REGISTRY = {
     schema: 'prolt_energy',
     displayName: 'State Tariff',
     modelName: 'stateTariff'
+  },
+  'fppa-charges': {
+    id: 'fppa-charges',
+    table: 'fppa_charges',
+    schema: 'prolt_energy',
+    displayName: 'FPPA Charges',
+    modelName: 'fppaCharges'
   }
 } as const;
