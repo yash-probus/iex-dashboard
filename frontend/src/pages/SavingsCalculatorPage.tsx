@@ -1687,6 +1687,7 @@ export default function SavingsCalculatorPage() {
                     </TableBody>
                   </Table>
                 </Box>
+                </Box>
               )}
             </Box>
           )}
