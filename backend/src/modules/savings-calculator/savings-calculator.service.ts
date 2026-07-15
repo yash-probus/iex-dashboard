@@ -718,7 +718,8 @@ export class SavingsCalculatorService {
       todSummaries.push({
         slabName: groupKey,
         totalEnergyKwh: slabConsumption,
-        marketEnergyKwh: marketEnergy
+        marketEnergyKwh: marketEnergy,
+        marketCostBase: marketEnergy * avgMarketPrice
       });
 
       console.log(`[MarketDecision] Slab ${groupKey}: consumption=${slabConsumption}kWh, discomRate=${slabDiscomRate.toFixed(4)}, marketSlots=${marketSlots.length}/${totalSlots} (${(marketFraction * 100).toFixed(1)}%), avgMarketPrice=${avgMarketPrice.toFixed(4)}, baselineCost=${(slabConsumption * slabDiscomRate).toFixed(0)}`);
