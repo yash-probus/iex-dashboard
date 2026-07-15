@@ -293,17 +293,16 @@ export class SavingsCalculatorService {
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
 
-        if (damLandingPrice > 0 && damLandingPrice < comparedLowestPrice) {
-          comparedLowestPrice = damLandingPrice;
-          selectedSource = 'DAM';
-        }
-        if (rtmLandingPrice > 0 && rtmLandingPrice < comparedLowestPrice) {
-          comparedLowestPrice = rtmLandingPrice;
-          selectedSource = 'RTM';
-        }
-        if (gdamLandingPrice > 0 && gdamLandingPrice < comparedLowestPrice) {
-          comparedLowestPrice = gdamLandingPrice;
-          selectedSource = 'GDAM';
+        // Source 100% from Open Access if available, regardless of whether it's cheaper than DISCOM
+        const availableMarkets = [];
+        if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
+        if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
+        if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
+
+        if (availableMarkets.length > 0) {
+          availableMarkets.sort((a, b) => a.price - b.price);
+          comparedLowestPrice = availableMarkets[0].price;
+          selectedSource = availableMarkets[0].source;
         }
 
         return {
