@@ -13,17 +13,17 @@ export class SavingsCalculatorService {
     });
   }
 
-  static async create(data: { 
-    clientName: string; 
-    industryName: string; 
+  static async create(data: {
+    clientName: string;
+    industryName: string;
     address: string;
     sanctionedLoadKw?: number;
     stateCode?: string;
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
-  proltMargin?: number;
-  traderMargin?: number;
+    proltMargin?: number;
+    traderMargin?: number;
     todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.create({
@@ -43,17 +43,17 @@ export class SavingsCalculatorService {
     });
   }
 
-  static async update(id: string, data: { 
-    clientName: string; 
-    industryName: string; 
+  static async update(id: string, data: {
+    clientName: string;
+    industryName: string;
     address: string;
     sanctionedLoadKw?: number;
     stateCode?: string;
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
-  proltMargin?: number;
-  traderMargin?: number;
+    proltMargin?: number;
+    traderMargin?: number;
     todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.update({
@@ -189,7 +189,7 @@ export class SavingsCalculatorService {
         });
         const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
         const latestTariff = sameMonthTariff || allTariffs[0];
-        
+
         if (latestTariff) {
           whereClause.month = latestTariff.month;
           tariffs = allTariffs.filter(t => t.month === latestTariff.month);
@@ -345,7 +345,7 @@ export class SavingsCalculatorService {
           if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
         });
-        
+
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           remainingEnergy = Number(monthConsumptions[matchedKey]);
         }
@@ -463,34 +463,34 @@ export class SavingsCalculatorService {
       }
     });
 
-      const ctuCharges = await prisma.ctuCharges.findFirst({
-        where: { month: yyyymmMonth }
-      });
+    const ctuCharges = await prisma.ctuCharges.findFirst({
+      where: { month: yyyymmMonth }
+    });
 
-      const istsCharges = await prisma.istsCharges.findMany({
-        where: {
-          OR: [
-            { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
-          ]
-        }
-      });
-
-      let whereClauseTariff: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
-      let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
-
-      if (tariffs.length === 0) {
-        const allTariffs = await prisma.stateTariff.findMany({
-          where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
-          orderBy: { month: 'desc' }
-        });
-        const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
-        const latestTariff = sameMonthTariff || allTariffs[0];
-
-        if (latestTariff) {
-          whereClauseTariff.month = latestTariff.month;
-          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
-        }
+    const istsCharges = await prisma.istsCharges.findMany({
+      where: {
+        OR: [
+          { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
+        ]
       }
+    });
+
+    let whereClauseTariff: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
+    let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
+
+    if (tariffs.length === 0) {
+      const allTariffs = await prisma.stateTariff.findMany({
+        where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
+        orderBy: { month: 'desc' }
+      });
+      const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
+      const latestTariff = sameMonthTariff || allTariffs[0];
+
+      if (latestTariff) {
+        whereClauseTariff.month = latestTariff.month;
+        tariffs = allTariffs.filter(t => t.month === latestTariff.month);
+      }
+    }
 
     const EXCHANGE_FEES = 0.02;
     const GST_EXCHANGE = 0.0036;
@@ -512,7 +512,7 @@ export class SavingsCalculatorService {
     if (stateCharges.additionalCharge == null) throw new Error('Additional Surcharge value is missing.');
     if (stateCharges.stuLossPercent == null) throw new Error('STU Loss Percent value is missing.');
     if (stateCharges.wheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
-    
+
     // Fetch FPPA percent
     const fppaData = await prisma.fppaCharges.findFirst({
       where: {
@@ -520,7 +520,7 @@ export class SavingsCalculatorService {
         month: yyyymmMonth
       }
     });
-    const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0; 
+    const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
 
     const ctuCharge = Number(ctuCharges.ctu_charges_rs_per_kwh);
     const stuCharge = Number(stateCharges.stuCharges);
@@ -595,7 +595,7 @@ export class SavingsCalculatorService {
 
       const marketPrices = [damLanding, rtmLanding, gdamLanding].filter(p => p !== null) as number[];
       const bestMarketLanding = marketPrices.length > 0 ? Math.min(...marketPrices) : 0;
-      
+
       let marketSource = 'DAM';
       if (bestMarketLanding === rtmLanding) marketSource = 'RTM';
       if (bestMarketLanding === gdamLanding) marketSource = 'GDAM';
@@ -616,7 +616,7 @@ export class SavingsCalculatorService {
             : 'FLAT';
         }
       }
-      
+
       const discomLanding = discomBase * (1 + (fppaPercent / 100));
 
       const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
@@ -658,7 +658,7 @@ export class SavingsCalculatorService {
     let totalLandedExchangeCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
-    const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number }[] = [];
+    const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
 
     console.log(`[MarketDecision] monthKey=${monthKey}, consumptionKeys=${JSON.stringify(Object.keys(monthConsumptions))}, todGroups=${JSON.stringify(Object.keys(slotsByTod))}`);
 
@@ -698,12 +698,12 @@ export class SavingsCalculatorService {
       // Average base market price for market-cheaper slots (before all charges)
       const avgMarketPrice = marketSlots.length > 0
         ? marketSlots.reduce((sum, s) => {
-            let basePrice = 0;
-            if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
-            else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
-            else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
-            return sum + basePrice;
-          }, 0) / marketSlots.length
+          let basePrice = 0;
+          if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
+          else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
+          else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
+          return sum + basePrice;
+        }, 0) / marketSlots.length
         : 0;
 
       // Baseline: all consumption at DISCOM rate
@@ -718,11 +718,10 @@ export class SavingsCalculatorService {
       todSummaries.push({
         slabName: groupKey,
         totalEnergyKwh: slabConsumption,
-        marketEnergyKwh: marketEnergy,
-        marketCostBase: marketEnergy * avgMarketPrice
+        marketEnergyKwh: marketEnergy
       });
 
-      console.log(`[MarketDecision] Slab ${groupKey}: consumption=${slabConsumption}kWh, discomRate=${slabDiscomRate.toFixed(4)}, marketSlots=${marketSlots.length}/${totalSlots} (${(marketFraction*100).toFixed(1)}%), avgMarketPrice=${avgMarketPrice.toFixed(4)}, baselineCost=${(slabConsumption*slabDiscomRate).toFixed(0)}`);
+      console.log(`[MarketDecision] Slab ${groupKey}: consumption=${slabConsumption}kWh, discomRate=${slabDiscomRate.toFixed(4)}, marketSlots=${marketSlots.length}/${totalSlots} (${(marketFraction * 100).toFixed(1)}%), avgMarketPrice=${avgMarketPrice.toFixed(4)}, baselineCost=${(slabConsumption * slabDiscomRate).toFixed(0)}`);
     });
 
     const totalSavings = totalBaselineCost - totalLandedExchangeCost;
