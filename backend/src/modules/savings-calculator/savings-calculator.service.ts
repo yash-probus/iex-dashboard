@@ -339,17 +339,6 @@ export class SavingsCalculatorService {
 
       // 2. Iterate through each TOD slab and allocate energy
   
-    let preTotalEnergyKwh = 0;
-    Object.keys(slotsByTod).forEach(groupKey => {
-      const matchedKey = Object.keys(monthConsumptions).find(k => {
-        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
-        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
-      });
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
-        preTotalEnergyKwh += Number(monthConsumptions[matchedKey]);
-      }
-    });
-
     Object.keys(slotsByTod).forEach(groupKey => {
         // Find the total energy requirement for this TOD slab from the input
         let remainingEnergy = 0;
@@ -712,6 +701,17 @@ export class SavingsCalculatorService {
     const oaDetailedBreakdown: any[] = [];
 
     console.log(`[MarketDecision] monthKey=${monthKey}, consumptionKeys=${JSON.stringify(Object.keys(monthConsumptions))}, todGroups=${JSON.stringify(Object.keys(slotsByTod))}`);
+
+    let preTotalEnergyKwh = 0;
+    Object.keys(slotsByTod).forEach(groupKey => {
+      const matchedKey = Object.keys(monthConsumptions).find(k => {
+        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+      });
+      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
+        preTotalEnergyKwh += Number(monthConsumptions[matchedKey]);
+      }
+    });
 
     Object.keys(slotsByTod).forEach(groupKey => {
       const slotsInGroup = slotsByTod[groupKey];
