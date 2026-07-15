@@ -5,6 +5,7 @@ import {
   Storage as StorageIcon,
   SettingsSuggest as SettingsIcon,
   Calculate as CalculateIcon,
+  Timeline as TimelineIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -48,6 +49,14 @@ const MODULES = [
     description: 'Calculate landed cost of open access power (IEX) and compare savings against state utility tariffs.',
     path: '/savings-calculator',
     icon: <CalculateIcon sx={{ fontSize: 24 }} />,
+    color: '#8B5CF6'
+  },
+  {
+    key: 'forecast',
+    title: 'Forecast Analytics',
+    description: 'Forecast clearing prices for DAM, RTM, GDAM, and load curves for consumers and national grids.',
+    path: '/forecast',
+    icon: <TimelineIcon sx={{ fontSize: 24 }} />,
     color: '#8B5CF6'
   },
   {

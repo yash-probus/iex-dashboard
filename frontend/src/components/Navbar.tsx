@@ -74,6 +74,15 @@ const DATABASE_ROUTES = [
   { label: 'Holiday Calendar', path: '/database/holiday-calendar', icon: <CalendarIcon fontSize="small" sx={{ color: '#E91E63' }} /> },
 ];
 
+const FORECAST_ROUTES = [
+  { label: 'DAM Forecast', path: '/forecast/price/dam', icon: <TimelineIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
+  { label: 'RTM Forecast', path: '/forecast/price/rtm', icon: <TimelineIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
+  { label: 'GDAM Forecast', path: '/forecast/price/gdam', icon: <TimelineIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
+  { label: 'Consumer Demand', path: '/forecast/demand/consumer', icon: <TimelineIcon fontSize="small" sx={{ color: '#00BFA5' }} /> },
+  { label: 'All India Demand', path: '/forecast/demand/all-india', icon: <TimelineIcon fontSize="small" sx={{ color: '#00BFA5' }} /> },
+];
+
+
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -98,6 +107,9 @@ export default function Navbar() {
   const [desktopDatabaseOpen, setDesktopDatabaseOpen] = useState(false);
   const [mobileDatabaseOpen, setMobileDatabaseOpen] = useState(false);
   const databaseDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [mobileForecastOpen, setMobileForecastOpen] = useState(false);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -142,6 +154,8 @@ export default function Navbar() {
   const isMarketsActive = MARKET_ITEMS.some(item => location.pathname.startsWith(item.path));
   const isResourceActive = RESOURCE_ROUTES.some(item => location.pathname.startsWith(item.path));
   const isDatabaseActive = DATABASE_ROUTES.some(item => location.pathname.startsWith(item.path));
+  const isForecastActive = location.pathname.startsWith('/forecast');
+
 
   const isAdminActive = location.pathname.startsWith('/admin');
 
@@ -340,6 +354,66 @@ export default function Navbar() {
         <Collapse in={mobileResourceOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {RESOURCE_ROUTES.map((item) => (
+              <ListItemButton 
+                key={item.path}
+                onClick={() => { navigate(item.path); setMobileOpen(false); }}
+                sx={{ 
+                  pl: 4, 
+                  mx: 1,
+                  mb: 0.5,
+                  borderRadius: 1,
+                  bgcolor: isActive(item.path) ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                  {item.icon}
+                </Box>
+                <ListItemText 
+                  primary={item.label} 
+                  primaryTypographyProps={{ 
+                    fontWeight: isActive(item.path) ? 600 : 400,
+                    color: isActive(item.path) ? 'primary.dark' : 'text.primary'
+                  }} 
+                />
+              </ListItemButton>
+            ))}
+          </List>
+        </Collapse>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setMobileForecastOpen(!mobileForecastOpen)}
+            sx={{
+              mx: 1,
+              mb: 1,
+              ...(isForecastActive && {
+                bgcolor: 'transparent',
+                '& .MuiListItemText-primary': {
+                  color: 'primary.dark',
+                  fontWeight: 600,
+                }
+              })
+            }}
+          >
+            <ListItemText
+              primary="Forecast"
+              primaryTypographyProps={{
+                fontWeight: isForecastActive ? 600 : 400,
+                sx: {
+                  textDecoration: isForecastActive ? 'underline' : 'none',
+                  textDecorationColor: isForecastActive ? 'primary.dark' : 'transparent',
+                  textDecorationThickness: '2px',
+                  textUnderlineOffset: '6px'
+                }
+              }}
+            />
+            {mobileForecastOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+        
+        <Collapse in={mobileForecastOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {FORECAST_ROUTES.map((item) => (
               <ListItemButton 
                 key={item.path}
                 onClick={() => { navigate(item.path); setMobileOpen(false); }}

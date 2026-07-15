@@ -13,8 +13,8 @@
       "node"
     ],
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "*": [
         "node_modules/*"

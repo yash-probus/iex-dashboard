@@ -26,6 +26,8 @@ import ProtectedRoute from '../components/ProtectedRoute';
 
 import MarketOperationsPage from '../pages/market-operations/MarketOperationsPage';
 import SavingsCalculatorPage from '../pages/SavingsCalculatorPage';
+import ForecastPage from '../pages/ForecastPage';
+
 
 export default function AppRoutes() {
   return (
@@ -57,6 +59,14 @@ export default function AppRoutes() {
             <Route path="rec" element={<RECPage />} />
             <Route path="market-operations" element={<MarketOperationsPage />} />
             <Route path="markets" element={<Navigate to="/dam" replace />} />
+            
+            {/* Forecast Sub-pages */}
+            <Route path="forecast/price/dam" element={<ForecastPage />} />
+            <Route path="forecast/price/rtm" element={<ForecastPage />} />
+            <Route path="forecast/price/gdam" element={<ForecastPage />} />
+            <Route path="forecast/demand/consumer" element={<ForecastPage />} />
+            <Route path="forecast/demand/all-india" element={<ForecastPage />} />
+            <Route path="forecast" element={<Navigate to="/forecast/price/dam" replace />} />
             
             {/* Resource Center Sub-pages */}
             <Route path="resource-center/region-state" element={<RegionStatePage />} />
