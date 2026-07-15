@@ -1391,7 +1391,7 @@ export default function SavingsCalculatorPage() {
                         Total Sourced Energy
                       </Typography>
                       <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                        {calcResult.totalEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                        {(marketDecisionResult ? marketDecisionResult.totalEnergyKwh : calcResult.totalEnergyKwh).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
                       </Typography>
                     </CardContent>
                   </Card>
@@ -1404,7 +1404,10 @@ export default function SavingsCalculatorPage() {
                         Market Sourced Energy
                       </Typography>
                       <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                        {calcResult.totalMarketEnergyKwh ? calcResult.totalMarketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 0} kWh
+                        {(marketDecisionResult
+                          ? marketDecisionResult.totalMarketEnergyKwh
+                          : (calcResult.totalMarketEnergyKwh || 0)
+                        ).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
                       </Typography>
                     </CardContent>
                   </Card>
