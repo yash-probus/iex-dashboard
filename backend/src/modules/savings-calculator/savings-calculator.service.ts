@@ -696,9 +696,15 @@ export class SavingsCalculatorService {
       // Average DISCOM rate for this slab (should be same for all slots, take first valid)
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
 
-      // Average market landing price for market-cheaper slots
+      // Average base market price for market-cheaper slots (before all charges)
       const avgMarketPrice = marketSlots.length > 0
-        ? marketSlots.reduce((sum, s) => sum + s.bestMarketLanding, 0) / marketSlots.length
+        ? marketSlots.reduce((sum, s) => {
+            let basePrice = 0;
+            if (s.marketSource === 'DAM') basePrice = s.damMcp;
+            else if (s.marketSource === 'RTM') basePrice = s.rtmMcp;
+            else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp;
+            return sum + basePrice;
+          }, 0) / marketSlots.length
         : 0;
 
       // Baseline: all consumption at DISCOM rate
