@@ -1648,6 +1648,83 @@ export default function SavingsCalculatorPage() {
                       ))}
                     </Grid>
                   )}
+
+                  {marketDecisionResult.oaDetailed && marketDecisionResult.oaDetailed.breakdown && (
+                    <Box sx={{ mb: 4 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
+                        Detailed OA Savings Breakdown
+                      </Typography>
+                      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2.5, overflow: 'hidden' }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>TOD Slab</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Total Sourced (DISCOM Units)</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Sourced (OA Units)</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DISCOM Bill (Total)</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Prolt DISCOM Bill (Net)</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>OA Consumer Bus Units</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>OA Bill</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {marketDecisionResult.oaDetailed.breakdown.map((row, idx) => (
+                              <TableRow key={idx} hover>
+                                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>{row.slabName}</TableCell>
+                                <TableCell align="right">{row.discomUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</TableCell>
+                                <TableCell align="right">{row.oaUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</TableCell>
+                                <TableCell align="right">₹{row.discomBill.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                                <TableCell align="right">₹{row.proltDiscomBill.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                                <TableCell align="right">{row.consumerBusUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</TableCell>
+                                <TableCell align="right">₹{row.oaBill.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow sx={{ backgroundColor: '#F8FAFC' }}>
+                              <TableCell sx={{ fontWeight: 700 }}>Total</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.discomUnits, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaUnits, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.discomBill, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.proltDiscomBill, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.consumerBusUnits, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 4, mt: 2, p: 2, backgroundColor: '#F1F5F9', borderRadius: 2 }}>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" display="block">Daily Fixed Overhead (NLDC/SLDC)</Typography>
+                          <Typography variant="body2" fontWeight={600}>₹{marketDecisionResult.oaDetailed.dailyFixedOverhead.toLocaleString()} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" display="block">Bid Application Fees</Typography>
+                          <Typography variant="body2" fontWeight={600}>₹{marketDecisionResult.oaDetailed.bidApplicationFees.toLocaleString()}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
+                          <Typography variant="body2" fontWeight={700} color="#7C3AED">
+                            ₹{(
+                              marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0) + 
+                              marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                              marketDecisionResult.oaDetailed.bidApplicationFees
+                            ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  )}
                   <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
                     <Table size="small" stickyHeader>
                     <TableHead>

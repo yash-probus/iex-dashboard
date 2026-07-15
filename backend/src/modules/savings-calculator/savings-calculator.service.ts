@@ -475,6 +475,10 @@ export class SavingsCalculatorService {
       }
     });
 
+    const iexFees = await prisma.iexFees.findFirst({
+      where: { month: yyyymmMonth }
+    });
+
     let whereClauseTariff: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
     let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
 
@@ -497,6 +501,11 @@ export class SavingsCalculatorService {
     const OTHER_CHARGES = 0.1;
     const TRADER_MARGIN = traderMargin;
     const GST_TRADER_MARGIN = TRADER_MARGIN * 0.18;
+    const RPO_FLAT_RATE = 0.25;
+    const NLDC_APPLICATION_FEE_PER_BID = 5;
+
+    const nldcSchedulingFees = Number(iexFees?.nldcSchedulingFees || 0);
+    const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 0);
 
     if (!ctuCharges) {
       throw new Error(`CTU Charges not found for month ${month}`);
@@ -632,7 +641,8 @@ export class SavingsCalculatorService {
         marketSource,
         discomLanding,
         shouldBuyFromMarket,
-        savingsPerKwh: discomLanding - bestMarketLanding
+        savingsPerKwh: discomLanding - bestMarketLanding,
+        istsLoss
       };
     });
 
@@ -648,17 +658,36 @@ export class SavingsCalculatorService {
 
     // Group slots by TOD slab
     const slotsByTod: Record<string, typeof slotsData> = {};
+    const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
+
     slotsData.forEach(s => {
       const key = s.tod.toUpperCase();
       if (!slotsByTod[key]) slotsByTod[key] = [];
       slotsByTod[key].push(s);
+
+      if (s.shouldBuyFromMarket && s.marketSource) {
+        // Safe check since RTM/DAM/GDAM are the sources
+        if (s.marketSource === 'DAM') tradedDays.DAM.add(s.date);
+        else if (s.marketSource === 'GDAM') tradedDays.GDAM.add(s.date);
+        else if (s.marketSource === 'RTM') tradedDays.RTM.add(s.date);
+      }
     });
+
+    const totalDamDays = tradedDays.DAM.size;
+    const totalGdamDays = tradedDays.GDAM.size;
+    const totalRtmDays = tradedDays.RTM.size;
+
+    const allTradedDates = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]);
+    const totalDaysTraded = allTradedDates.size;
+    const dailyFixedOverhead = (nldcSchedulingFees + sldcSchedulingFees) * totalDaysTraded;
+    const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
 
     let totalBaselineCost = 0;
     let totalLandedExchangeCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
+    const oaDetailedBreakdown: any[] = [];
 
     console.log(`[MarketDecision] monthKey=${monthKey}, consumptionKeys=${JSON.stringify(Object.keys(monthConsumptions))}, todGroups=${JSON.stringify(Object.keys(slotsByTod))}`);
 
@@ -722,6 +751,46 @@ export class SavingsCalculatorService {
         marketCostBase: marketEnergy * avgMarketPrice
       });
 
+      // --- OA Detailed Simulation Breakdowns ---
+      const discomBill = slabConsumption * slabDiscomRate;
+      const proltDiscomBill = (slabConsumption - marketEnergy) * slabDiscomRate;
+
+      const avgIstsLoss = marketSlots.length > 0
+        ? marketSlots.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / marketSlots.length
+        : 0;
+
+      const istsLossMultiplier = (1 - (avgIstsLoss / 100));
+      const stuLossMultiplier = (1 - (stuLoss / 100));
+      const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
+      const consumerBusUnits = marketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
+
+      const nonGdamMarketSlots = marketSlots.filter(s => s.marketSource !== 'GDAM').length;
+      const nonGdamFraction = marketSlots.length > 0 ? nonGdamMarketSlots / marketSlots.length : 0;
+      const nonGdamConsumerBusUnits = consumerBusUnits * nonGdamFraction;
+      
+      const rpoCharge = nonGdamConsumerBusUnits * RPO_FLAT_RATE;
+      const cssCharge = consumerBusUnits * crossSubsidy;
+      
+      const pocCharge = marketEnergy * ctuCharge;
+      const stuChargeVal = marketEnergy * stuCharge;
+      const dcCharge = marketEnergy * wheelingCharge;
+
+      const iexFeesTotal = marketEnergy * EXCHANGE_FEES;
+      const traderMarginTotal = marketEnergy * TRADER_MARGIN;
+      
+      const marketEnergyCost = marketEnergy * avgMarketPrice;
+      const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + marketEnergyCost;
+
+      oaDetailedBreakdown.push({
+        slabName: groupKey,
+        discomUnits: slabConsumption,
+        oaUnits: marketEnergy,
+        discomBill,
+        proltDiscomBill,
+        consumerBusUnits,
+        oaBill: slabOaBill
+      });
+
       console.log(`[MarketDecision] Slab ${groupKey}: consumption=${slabConsumption}kWh, discomRate=${slabDiscomRate.toFixed(4)}, marketSlots=${marketSlots.length}/${totalSlots} (${(marketFraction * 100).toFixed(1)}%), avgMarketPrice=${avgMarketPrice.toFixed(4)}, baselineCost=${(slabConsumption * slabDiscomRate).toFixed(0)}`);
     });
 
@@ -736,7 +805,13 @@ export class SavingsCalculatorService {
       totalBaselineCost,
       totalLandedExchangeCost,
       totalSavings,
-      todSummaries
+      todSummaries,
+      oaDetailed: {
+        breakdown: oaDetailedBreakdown,
+        dailyFixedOverhead,
+        bidApplicationFees,
+        totalDaysTraded
+      }
     };
   }
 }

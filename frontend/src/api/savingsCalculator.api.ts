@@ -86,6 +86,16 @@ export interface MarketDecisionTodSummary {
   marketCostBase?: number;
 }
 
+export interface OADetailedBreakdown {
+  slabName: string;
+  discomUnits: number;
+  oaUnits: number;
+  discomBill: number;
+  proltDiscomBill: number;
+  consumerBusUnits: number;
+  oaBill: number;
+}
+
 export interface MarketDecisionResult {
   clientId: string;
   clientName: string;
@@ -96,6 +106,12 @@ export interface MarketDecisionResult {
   totalLandedExchangeCost: number;
   totalSavings: number;
   todSummaries?: MarketDecisionTodSummary[];
+  oaDetailed?: {
+    breakdown: OADetailedBreakdown[];
+    dailyFixedOverhead: number;
+    bidApplicationFees: number;
+    totalDaysTraded: number;
+  };
 }
 
 export const fetchSavingsEntries = async (): Promise<SavingsCalculatorEntry[]> => {
