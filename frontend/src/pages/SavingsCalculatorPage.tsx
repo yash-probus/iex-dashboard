@@ -1632,10 +1632,16 @@ export default function SavingsCalculatorPage() {
                                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>Total Sourced:</Typography>
                                 <Typography variant="body2" fontWeight={600}>{summary.totalEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
                               </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: summary.marketCostBase !== undefined ? 0.5 : 0 }}>
                                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>Market Sourced:</Typography>
                                 <Typography variant="body2" fontWeight={600} color="#16A34A">{summary.marketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
                               </Box>
+                              {summary.marketCostBase !== undefined && (
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Market Cost (MCP):</Typography>
+                                  <Typography variant="body2" fontWeight={600} color="#16A34A">₹{summary.marketCostBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                                </Box>
+                              )}
                             </CardContent>
                           </Card>
                         </Grid>
