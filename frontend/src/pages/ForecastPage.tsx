@@ -62,7 +62,7 @@ export default function ForecastPage() {
 
   const [filters, setFilters] = useState({
     startDate: getTodayStr(),
-    endDate: getDaysAheadStr(1),
+    endDate: getTodayStr(),
     interval: '15min' as '15min' | 'hourly' | 'daily',
     model: 'Model1' as 'Model1' | 'Model2'
   });
