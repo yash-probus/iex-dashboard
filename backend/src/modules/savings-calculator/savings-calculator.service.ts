@@ -700,9 +700,9 @@ export class SavingsCalculatorService {
       const avgMarketPrice = marketSlots.length > 0
         ? marketSlots.reduce((sum, s) => {
             let basePrice = 0;
-            if (s.marketSource === 'DAM') basePrice = s.damMcp;
-            else if (s.marketSource === 'RTM') basePrice = s.rtmMcp;
-            else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp;
+            if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
+            else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
+            else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
             return sum + basePrice;
           }, 0) / marketSlots.length
         : 0;
