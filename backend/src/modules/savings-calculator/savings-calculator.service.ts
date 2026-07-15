@@ -168,6 +168,15 @@ export class SavingsCalculatorService {
         month: yyyymmMonth
       };
 
+      // Fetch FPPA percent
+      const fppaData = await prisma.fppaCharges.findFirst({
+        where: {
+          state: stateName.toUpperCase().replace(/\s+/g, '_'),
+          month: yyyymmMonth
+        }
+      });
+      const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
+
       // Fetch matching StateTariff slabs from DB
       let tariffs = await prisma.stateTariff.findMany({
         where: whereClause
@@ -278,6 +287,8 @@ export class SavingsCalculatorService {
             matchedTariffName = 'peak';
           }
         }
+
+        discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
