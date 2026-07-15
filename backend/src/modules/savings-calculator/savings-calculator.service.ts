@@ -659,6 +659,7 @@ export class SavingsCalculatorService {
     let totalLandedExchangeCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number }[] = [];
 
     console.log(`[MarketDecision] monthKey=${monthKey}, consumptionKeys=${JSON.stringify(Object.keys(monthConsumptions))}, todGroups=${JSON.stringify(Object.keys(slotsByTod))}`);
 
@@ -709,6 +710,12 @@ export class SavingsCalculatorService {
       totalEnergyKwh += slabConsumption;
       totalMarketEnergyKwh += marketEnergy;
 
+      todSummaries.push({
+        slabName: groupKey,
+        totalEnergyKwh: slabConsumption,
+        marketEnergyKwh: marketEnergy
+      });
+
       console.log(`[MarketDecision] Slab ${groupKey}: consumption=${slabConsumption}kWh, discomRate=${slabDiscomRate.toFixed(4)}, marketSlots=${marketSlots.length}/${totalSlots} (${(marketFraction*100).toFixed(1)}%), avgMarketPrice=${avgMarketPrice.toFixed(4)}, baselineCost=${(slabConsumption*slabDiscomRate).toFixed(0)}`);
     });
 
@@ -722,7 +729,8 @@ export class SavingsCalculatorService {
       totalMarketEnergyKwh,
       totalBaselineCost,
       totalLandedExchangeCost,
-      totalSavings
+      totalSavings,
+      todSummaries
     };
   }
 }

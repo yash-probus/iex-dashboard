@@ -1595,8 +1595,32 @@ export default function SavingsCalculatorPage() {
               )}
               
               {calcTab === 2 && marketDecisionResult && (
-                <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
-                  <Table size="small" stickyHeader>
+                <Box>
+                  {marketDecisionResult.todSummaries && marketDecisionResult.todSummaries.length > 0 && (
+                    <Grid container spacing={2} sx={{ mb: 3 }}>
+                      {marketDecisionResult.todSummaries.map((summary, idx) => (
+                        <Grid item xs={12} sm={6} md={4} key={idx}>
+                          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                              <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, mb: 1 }}>
+                                TOD: {summary.slabName}
+                              </Typography>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Total Sourced:</Typography>
+                                <Typography variant="body2" fontWeight={600}>{summary.totalEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Market Sourced:</Typography>
+                                <Typography variant="body2" fontWeight={600} color="#16A34A">{summary.marketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
+                              </Box>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                  <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
+                    <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Date</TableCell>

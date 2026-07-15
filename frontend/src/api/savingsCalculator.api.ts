@@ -79,6 +79,12 @@ export interface MarketDecisionSlot {
   savingsPerKwh: number;
 }
 
+export interface MarketDecisionTodSummary {
+  slabName: string;
+  totalEnergyKwh: number;
+  marketEnergyKwh: number;
+}
+
 export interface MarketDecisionResult {
   clientId: string;
   clientName: string;
@@ -88,6 +94,7 @@ export interface MarketDecisionResult {
   totalBaselineCost: number;
   totalLandedExchangeCost: number;
   totalSavings: number;
+  todSummaries?: MarketDecisionTodSummary[];
 }
 
 export const fetchSavingsEntries = async (): Promise<SavingsCalculatorEntry[]> => {
