@@ -54,7 +54,8 @@ const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
   'prolt-margin': ['month', 'customerId'],
   'ctu-charges': ['month', 'year', 'pdfUrl'],
   'state-charges': ['state', 'fromDate', 'toDate'],
-  'state-tariff': ['stateCode', 'month', 'state', 'tod']
+  'state-tariff': ['stateCode', 'month', 'state', 'tod'],
+  'fppa-charges': ['state', 'month']
 };
 
 // Map of allowed fields for each resource type to filter out unknown keys from raw payloads
@@ -66,7 +67,8 @@ const VALID_FIELDS: Record<ResourceType, string[]> = {
   'prolt-margin': ['month', 'customerId', 'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst'],
   'ctu-charges': ['month', 'year', 'pdfUrl'],
   'state-charges': ['state', 'category', 'subCategory', 'supplyVoltageCategory', 'voltageLevel', 'fromDate', 'toDate', 'demandFixedChargeKvaPerMonthRs', 'crossSubsidy', 'distributionWheelingCharges', 'stuCharges', 'stuLossPercent', 'wheelingLossPercent', 'additionalCharge'],
-  'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges']
+  'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges'],
+  'fppa-charges': ['state', 'month', 'fppaChargePercent']
 };
 
 /**
@@ -151,7 +153,8 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
     'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst',
     'ctuChargesRsPerKwh', 'dsmChargesRsPerKwh', 'demandFixedChargeKvaPerMonthRs',
     'additionalCharge', 'crossSubsidy', 'distributionWheelingCharges', 'stuCharges',
-    'stuLossPercent', 'wheelingLossPercent', 'baseEnergyCharges', 'todRate', 'energyCharges'
+    'stuLossPercent', 'wheelingLossPercent', 'baseEnergyCharges', 'todRate', 'energyCharges',
+    'fppaChargePercent'
   ];
 
   const percentageFields = ['istsLossPercent', 'stuLossPercent', 'wheelingLossPercent'];
