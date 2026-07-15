@@ -171,7 +171,7 @@ export class SavingsCalculatorService {
       // Fetch FPPA percent
       const fppaData = await prisma.fppaCharges.findFirst({
         where: {
-          state: stateName.toUpperCase().replace(/\s+/g, '_'),
+          state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
           month: yyyymmMonth
         }
       });
@@ -356,33 +356,14 @@ export class SavingsCalculatorService {
         // we can assign it to the slots or just keep track globally.
         // To keep the UI reporting happy, we will distribute baselineCost across slots.
 
-        // Sort all 15-minute slots in this TOD slab in ascending order of lowestLandingPrice
-        const sortedSlots = slotsByTod[groupKey].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
+        const totalSlotsInTod = slotsByTod[groupKey].length;
+        const energyPerSlot = totalSlotsInTod > 0 ? remainingEnergy / totalSlotsInTod : 0;
 
-        sortedSlots.forEach(slot => {
-          if (remainingEnergy > 0) {
-            const clearedEnergy = Math.min(maxEnergyPerSlot, remainingEnergy);
-            remainingEnergy -= clearedEnergy;
-            
-            slot.maxEnergyPerSlot = clearedEnergy; // the UI uses this as 'sourced energy'
-            slot.optimizedCost = clearedEnergy * slot.comparedLowestPrice;
-            slot.baselineCost = clearedEnergy * slot.discomLandingPrice;
-          } else {
-            slot.maxEnergyPerSlot = 0;
-            slot.optimizedCost = 0;
-            slot.baselineCost = 0;
-          }
+        slotsByTod[groupKey].forEach(slot => {
+          slot.maxEnergyPerSlot = energyPerSlot;
+          slot.optimizedCost = energyPerSlot * slot.comparedLowestPrice;
+          slot.baselineCost = energyPerSlot * slot.discomLandingPrice;
         });
-
-        // If there is still remaining energy that couldn't be sourced from the market,
-        // it must be bought from the DISCOM at the DISCOM price.
-        // We can add this unfulfilled cost to the first slot of the group just for reporting purposes,
-        // or spread it. Adding to the first slot is easiest to ensure totals match.
-        if (remainingEnergy > 0 && sortedSlots.length > 0) {
-           sortedSlots[0].optimizedCost += remainingEnergy * sortedSlots[0].discomLandingPrice;
-           sortedSlots[0].baselineCost += remainingEnergy * sortedSlots[0].discomLandingPrice;
-           // We do NOT add to maxEnergyPerSlot because that represents market-sourced energy.
-        }
       });
 
       slotsData.forEach(item => {
@@ -536,7 +517,7 @@ export class SavingsCalculatorService {
     // Fetch FPPA percent
     const fppaData = await prisma.fppaCharges.findFirst({
       where: {
-        state: stateName.toUpperCase().replace(/\s+/g, '_'),
+        state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
         month: yyyymmMonth
       }
     });
