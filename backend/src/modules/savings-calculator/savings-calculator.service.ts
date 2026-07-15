@@ -338,7 +338,19 @@ export class SavingsCalculatorService {
       });
 
       // 2. Iterate through each TOD slab and allocate energy
-      Object.keys(slotsByTod).forEach(groupKey => {
+  
+    let preTotalEnergyKwh = 0;
+    Object.keys(slotsByTod).forEach(groupKey => {
+      const matchedKey = Object.keys(monthConsumptions).find(k => {
+        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+      });
+      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
+        preTotalEnergyKwh += Number(monthConsumptions[matchedKey]);
+      }
+    });
+
+    Object.keys(slotsByTod).forEach(groupKey => {
         // Find the total energy requirement for this TOD slab from the input
         let remainingEnergy = 0;
         const matchedKey = Object.keys(monthConsumptions).find(k => {
@@ -745,11 +757,23 @@ export class SavingsCalculatorService {
         }, 0) / marketSlots.length
         : 0;
 
-      // Baseline: all consumption at DISCOM rate
-      totalBaselineCost += slabConsumption * slabDiscomRate;
+      // Calculate ED and Prorated Demand Charge for this slab
+      const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
+      const slabDemandCharge = demandCharge * slabFraction;
+      const slabEnergyBill = slabConsumption * slabDiscomRate;
+      const slabED = slabEnergyBill * 0.075;
 
-      // Exchange cost: market portion at market price + DISCOM portion at DISCOM price
-      totalLandedExchangeCost += (marketEnergy * avgMarketPrice) + (discomEnergy * slabDiscomRate);
+      // Baseline: all consumption at DISCOM rate (inclusive of fixed/taxes)
+      const slabTotalDiscomBill = slabEnergyBill + slabDemandCharge + slabED;
+      totalBaselineCost += slabTotalDiscomBill;
+
+      // Prolt Discom Bill is the DISCOM bill for the un-switched units + 100% of the fixed/taxes
+      const proltEnergyBill = discomEnergy * slabDiscomRate;
+      // ED applies to total consumption physical units (same as baseline), demand charge is also fixed.
+      const proltDiscomBillTotal = proltEnergyBill + slabDemandCharge + slabED;
+
+      // Exchange cost: market portion at market price + Prolt DISCOM Bill
+      totalLandedExchangeCost += (marketEnergy * avgMarketPrice) + proltDiscomBillTotal;
 
       totalEnergyKwh += slabConsumption;
       totalMarketEnergyKwh += marketEnergy;
@@ -762,8 +786,8 @@ export class SavingsCalculatorService {
       });
 
       // --- OA Detailed Simulation Breakdowns ---
-      const discomBill = slabConsumption * slabDiscomRate;
-      const proltDiscomBill = (slabConsumption - marketEnergy) * slabDiscomRate;
+      const discomBill = slabTotalDiscomBill;
+      const proltDiscomBill = proltDiscomBillTotal;
 
       const avgIstsLoss = marketSlots.length > 0
         ? marketSlots.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / marketSlots.length
