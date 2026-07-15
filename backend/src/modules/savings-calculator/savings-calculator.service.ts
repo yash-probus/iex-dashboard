@@ -587,12 +587,12 @@ export class SavingsCalculatorService {
         istsLoss = Number(matchingIsts.istsLossPercent || 0);
       }
 
-      const damMcp = rec.damMcp !== undefined ? (Number(rec.damMcp) / 1000) : null;
-      const rtmMcp = rec.rtmMcp !== undefined ? (Number(rec.rtmMcp) / 1000) : null;
-      const gdamMcp = rec.gdamMcp !== undefined ? (Number(rec.gdamMcp) / 1000) : null;
+      const damMcp = (rec.damMcp != null) ? (Number(rec.damMcp) / 1000) : null;
+      const rtmMcp = (rec.rtmMcp != null) ? (Number(rec.rtmMcp) / 1000) : null;
+      const gdamMcp = (rec.gdamMcp != null) ? (Number(rec.gdamMcp) / 1000) : null;
 
       const calcExchangeLanding = (mcp: number | null) => {
-        if (mcp === null) return null;
+        if (mcp == null) return null;
         const base = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
         const lossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
         return base * lossMultiplier;
