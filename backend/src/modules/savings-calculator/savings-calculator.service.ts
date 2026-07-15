@@ -638,10 +638,16 @@ export class SavingsCalculatorService {
     });
 
     // ── Aggregate financials using TOD consumption from the entry ──────────────
-    // Group slots by their matched TOD slab name so we can distribute the
-    // user-entered kWh consumption per slab evenly across the market slots.
-    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[targetMonthStr || `${year}-${String(month).padStart(2, '0')}`] || {};
+    // Correct approach:
+    // 1. Baseline = Σ slab: consumption × DISCOM_rate (no market slot distribution needed)
+    // 2. Exchange cost = Σ slab: (market-cheaper-fraction × consumption × avg_market_price)
+    //                           + (DISCOM-fraction × consumption × DISCOM_rate)
+    // This avoids dilution errors from uneven market slot counts.
 
+    const monthKey = targetMonthStr || `${year}-${String(month).padStart(2, '0')}`;
+    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+
+    // Group slots by TOD slab
     const slotsByTod: Record<string, typeof slotsData> = {};
     slotsData.forEach(s => {
       const key = s.tod.toUpperCase();
@@ -649,45 +655,61 @@ export class SavingsCalculatorService {
       slotsByTod[key].push(s);
     });
 
-    // Assign energy per slot per TOD slab
-    const enriched = slotsData.map(s => ({ ...s, energyPerSlot: 0 }));
-    const enrichedByTod: Record<string, (typeof enriched)> = {};
-    enriched.forEach(s => {
-      const key = s.tod.toUpperCase();
-      if (!enrichedByTod[key]) enrichedByTod[key] = [];
-      enrichedByTod[key].push(s);
-    });
-
-    Object.keys(enrichedByTod).forEach(groupKey => {
-      const slotsInGroup = enrichedByTod[groupKey];
-      let remainingEnergy = 0;
-      const matchedKey = Object.keys(monthConsumptions).find(k => {
-        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
-        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
-      });
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
-        remainingEnergy = Number(monthConsumptions[matchedKey]);
-      }
-      const energyPerSlot = slotsInGroup.length > 0 ? remainingEnergy / slotsInGroup.length : 0;
-      slotsInGroup.forEach(s => { s.energyPerSlot = energyPerSlot; });
-    });
-
     let totalBaselineCost = 0;
     let totalLandedExchangeCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
 
-    enriched.forEach(s => {
-      const e = s.energyPerSlot;
-      totalEnergyKwh += e;
-      totalBaselineCost += e * s.discomLanding;
-      if (s.shouldBuyFromMarket && s.bestMarketLanding > 0) {
-        totalLandedExchangeCost += e * s.bestMarketLanding;
-        totalMarketEnergyKwh += e;
-      } else {
-        // Slot not bought from market — use DISCOM cost for that portion
-        totalLandedExchangeCost += e * s.discomLanding;
+    console.log(`[MarketDecision] monthKey=${monthKey}, consumptionKeys=${JSON.stringify(Object.keys(monthConsumptions))}, todGroups=${JSON.stringify(Object.keys(slotsByTod))}`);
+
+    Object.keys(slotsByTod).forEach(groupKey => {
+      const slotsInGroup = slotsByTod[groupKey];
+
+      // Match user-entered consumption for this TOD slab
+      let slabConsumption = 0;
+      const matchedKey = Object.keys(monthConsumptions).find(k => {
+        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+      });
+      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
+        slabConsumption = Number(monthConsumptions[matchedKey]);
       }
+
+      if (slabConsumption <= 0) {
+        console.log(`[MarketDecision] Slab ${groupKey}: no consumption matched (matchedKey=${matchedKey})`);
+        return;
+      }
+
+      const totalSlots = slotsInGroup.length;
+
+      // Slots where market landing is cheaper than DISCOM (and valid)
+      const marketSlots = slotsInGroup.filter(s => s.shouldBuyFromMarket && s.bestMarketLanding > 0);
+      const discomSlots = slotsInGroup.filter(s => !s.shouldBuyFromMarket || s.bestMarketLanding <= 0);
+
+      const marketFraction = totalSlots > 0 ? marketSlots.length / totalSlots : 0;
+      const discomFraction = 1 - marketFraction;
+
+      const marketEnergy = slabConsumption * marketFraction;
+      const discomEnergy = slabConsumption * discomFraction;
+
+      // Average DISCOM rate for this slab (should be same for all slots, take first valid)
+      const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
+
+      // Average market landing price for market-cheaper slots
+      const avgMarketPrice = marketSlots.length > 0
+        ? marketSlots.reduce((sum, s) => sum + s.bestMarketLanding, 0) / marketSlots.length
+        : 0;
+
+      // Baseline: all consumption at DISCOM rate
+      totalBaselineCost += slabConsumption * slabDiscomRate;
+
+      // Exchange cost: market portion at market price + DISCOM portion at DISCOM price
+      totalLandedExchangeCost += (marketEnergy * avgMarketPrice) + (discomEnergy * slabDiscomRate);
+
+      totalEnergyKwh += slabConsumption;
+      totalMarketEnergyKwh += marketEnergy;
+
+      console.log(`[MarketDecision] Slab ${groupKey}: consumption=${slabConsumption}kWh, discomRate=${slabDiscomRate.toFixed(4)}, marketSlots=${marketSlots.length}/${totalSlots} (${(marketFraction*100).toFixed(1)}%), avgMarketPrice=${avgMarketPrice.toFixed(4)}, baselineCost=${(slabConsumption*slabDiscomRate).toFixed(0)}`);
     });
 
     const totalSavings = totalBaselineCost - totalLandedExchangeCost;
