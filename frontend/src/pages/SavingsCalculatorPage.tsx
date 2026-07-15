@@ -1682,6 +1682,8 @@ export default function SavingsCalculatorPage() {
                             </CardContent>
                           </Card>
                         </Grid>
+                      ))}
+                    </Grid>
                   )}
                   <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
                     <Table size="small" stickyHeader>
