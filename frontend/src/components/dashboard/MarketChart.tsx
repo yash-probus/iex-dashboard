@@ -16,7 +16,7 @@ export interface ChartMetric {
 
 // Custom Cursor Component for Hover Band
 const CustomCursor = (props: any) => {
-  const { x, y, width, height } = props;
+  const { x, y, width, height, activeLabel } = props;
   if (x === undefined || y === undefined) return null;
 
   const cursorWidth = 50;
@@ -44,18 +44,50 @@ const CustomCursor = (props: any) => {
         strokeOpacity={0.4}
         strokeDasharray="3 3"
       />
+      
+      {/* Active Slot Label Pill at the Top of the Cursor */}
+      {activeLabel && (
+        <g transform={`translate(${x}, ${y - 14})`}>
+          {/* Pill background (dark slate/blue matching tooltips) */}
+          <rect
+            x={-42}
+            y={-10}
+            width={84}
+            height={20}
+            rx={10}
+            fill="#1E293B"
+            filter="url(#pill-shadow)"
+          />
+          {/* Pill text */}
+          <text
+            x={0}
+            y={1}
+            fill="#FFFFFF"
+            fontSize={9.5}
+            fontWeight={700}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            {activeLabel}
+          </text>
+        </g>
+      )}
     </g>
   );
 };
 
 // Custom Active Dot Component with Floating Pill Tooltip
 const CustomActiveDot = (props: any) => {
-  const { cx, cy, stroke, value } = props;
+  const { cx, cy, stroke, payload, dataKey, value } = props;
   if (cx === undefined || cy === undefined) return null;
 
-  const formattedValue = typeof value === 'number' 
-    ? `₹${value.toFixed(2)}` 
-    : value;
+  // Safeguard value extraction (extract from payload if value is not direct)
+  const rawValue = value !== undefined ? value : (payload && dataKey ? payload[dataKey] : undefined);
+  if (rawValue === undefined || rawValue === null) return null;
+
+  const formattedValue = typeof rawValue === 'number' 
+    ? `₹${rawValue.toFixed(2)}` 
+    : rawValue;
 
   const textStr = String(formattedValue);
   const pillWidth = Math.max(65, textStr.length * 7.5 + 16);
@@ -109,6 +141,21 @@ interface MarketChartProps {
 export default function MarketChart({ title, data, metrics, dateRangeLabel, interval = '15min', height = 540 }: MarketChartProps) {
   // State to handle toggling metric visibility
   const [hiddenMetrics, setHiddenMetrics] = useState<Record<string, boolean>>({});
+
+  // State to track currently hovered/active payload for cursor info
+  const [activePayload, setActivePayload] = useState<any>(null);
+
+  const handleMouseMove = (state: any) => {
+    if (state && state.activePayload && state.activePayload.length > 0) {
+      setActivePayload(state.activePayload[0].payload);
+    } else {
+      setActivePayload(null);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setActivePayload(null);
+  };
 
   const handleLegendClick = (e: any) => {
     const key = e.dataKey;
@@ -208,7 +255,12 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
 
       <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+          <ComposedChart 
+            data={chartData} 
+            margin={{ top: 30, right: 30, left: 10, bottom: 20 }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
             <defs>
               {metrics.map(metric => (
                 <linearGradient key={`grad-${metric.key}`} id={`grad-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
@@ -271,8 +323,8 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
             )}
             
             <Tooltip 
-              content={<></>}
-              cursor={<CustomCursor />}
+              content={() => null}
+              cursor={<CustomCursor activeLabel={activePayload?.label} />}
             />
             
             <Legend 
