@@ -124,9 +124,10 @@ export class SavingsCalculatorService {
     }
 
     let allSlotsData: any[] = [];
-    let totalOptimizedCost = 0;
     let totalBaselineCost = 0;
+    let totalOptimizedCost = 0;
     let totalEnergyKwh = 0;
+    let totalMarketEnergyKwh = 0;
 
     let monthsToProcess = Object.entries(todConsumptions);
     if (targetMonth) {
@@ -377,6 +378,9 @@ export class SavingsCalculatorService {
         totalOptimizedCost += item.optimizedCost;
         totalBaselineCost += item.baselineCost;
         totalEnergyKwh += item.maxEnergyPerSlot;
+        if (item.selectedSource !== 'DISCOM') {
+          totalMarketEnergyKwh += item.maxEnergyPerSlot;
+        }
       });
 
       allSlotsData.push(...slotsData);
@@ -407,6 +411,7 @@ export class SavingsCalculatorService {
       sanctionedLoad,
       maxEnergyPerSlot,
       totalEnergyKwh,
+      totalMarketEnergyKwh,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,

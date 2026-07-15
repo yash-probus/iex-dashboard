@@ -53,6 +53,7 @@ export interface CalculationResult {
   sanctionedLoad: number;
   maxEnergyPerSlot: number;
   totalEnergyKwh: number;
+  totalMarketEnergyKwh: number;
   totalBaselineCost: number;
   totalOptimizedCost: number;
   totalSavings: number;

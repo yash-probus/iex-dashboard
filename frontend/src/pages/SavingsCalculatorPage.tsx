@@ -1383,7 +1383,7 @@ export default function SavingsCalculatorPage() {
           {calcResult && !calculating && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
               <Grid container spacing={3}>
-                <Grid item xs={6} md={3}>
+                <Grid item xs={12} md={4}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1396,7 +1396,20 @@ export default function SavingsCalculatorPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={6} md={3}>
+                <Grid item xs={12} md={4}>
+                  <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
+                    <CardContent sx={{ p: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                        Market Sourced Energy
+                      </Typography>
+                      <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                        {calcResult.totalMarketEnergyKwh ? calcResult.totalMarketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 0} kWh
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1409,7 +1422,7 @@ export default function SavingsCalculatorPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} md={6}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1422,7 +1435,7 @@ export default function SavingsCalculatorPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} md={6}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: '#C084FC', bgcolor: `${alpha('#8B5CF6', 0.04)}`, borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="#8B5CF6" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
