@@ -1385,30 +1385,50 @@ export default function SavingsCalculatorPage() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
-                  <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
+                  <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5, height: '100%' }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
                         Total Sourced Energy
                       </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: marketDecisionResult?.todSummaries ? 1.5 : 0 }}>
                         {(marketDecisionResult ? marketDecisionResult.totalEnergyKwh : calcResult.totalEnergyKwh).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
                       </Typography>
+                      {marketDecisionResult?.todSummaries && (
+                        <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          {marketDecisionResult.todSummaries.map((summary, idx) => (
+                            <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName}</Typography>
+                              <Typography variant="caption" fontWeight={700}>{summary.totalEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
+                  <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5, height: '100%' }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
                         Market Sourced Energy
                       </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, color: '#16A34A', mb: marketDecisionResult?.todSummaries ? 1.5 : 0 }}>
                         {(marketDecisionResult
                           ? marketDecisionResult.totalMarketEnergyKwh
                           : (calcResult.totalMarketEnergyKwh || 0)
                         ).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
                       </Typography>
+                      {marketDecisionResult?.todSummaries && (
+                        <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          {marketDecisionResult.todSummaries.map((summary, idx) => (
+                            <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName}</Typography>
+                              <Typography variant="caption" fontWeight={700} color="#16A34A">{summary.marketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
