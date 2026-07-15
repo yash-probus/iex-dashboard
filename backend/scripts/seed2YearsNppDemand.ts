@@ -61,9 +61,9 @@ function toISTTimeStr(epochMs: number): string {
   const d = new Date(epochMs);
   return new Intl.DateTimeFormat('en-IN', {
     timeZone: 'Asia/Kolkata',
+    hourCycle: 'h23',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
   }).format(d);
 }
 
