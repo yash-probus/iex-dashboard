@@ -61,6 +61,35 @@ export interface CalculationResult {
   sortedMonthlyList: CalculationSlotDetail[];
 }
 
+export interface MarketDecisionSlot {
+  date: string;
+  timeblock: number;
+  hour: number;
+  tod: string;
+  damMcp: number | null;
+  rtmMcp: number | null;
+  gdamMcp: number | null;
+  damLanding: number | null;
+  rtmLanding: number | null;
+  gdamLanding: number | null;
+  bestMarketLanding: number;
+  marketSource: string;
+  discomLanding: number;
+  shouldBuyFromMarket: boolean;
+  savingsPerKwh: number;
+}
+
+export interface MarketDecisionResult {
+  clientId: string;
+  clientName: string;
+  slotsData: MarketDecisionSlot[];
+  totalEnergyKwh: number;
+  totalMarketEnergyKwh: number;
+  totalBaselineCost: number;
+  totalLandedExchangeCost: number;
+  totalSavings: number;
+}
+
 export const fetchSavingsEntries = async (): Promise<SavingsCalculatorEntry[]> => {
   const response = await apiClient.get<SavingsCalculatorEntry[]>('/savings-calculator');
   return response.data;
@@ -92,8 +121,8 @@ export const calculateSavings = async (id: string, month?: string): Promise<Calc
   return response.data;
 };
 
-export const calculateMarketDecision = async (id: string, month?: string): Promise<any> => {
+export const calculateMarketDecision = async (id: string, month?: string): Promise<MarketDecisionResult> => {
   const url = month ? `/savings-calculator/${id}/calculate-market-decision?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/calculate-market-decision`;
-  const response = await apiClient.post<any>(url);
+  const response = await apiClient.post<MarketDecisionResult>(url);
   return response.data;
 };

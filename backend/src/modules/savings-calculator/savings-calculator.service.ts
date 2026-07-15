@@ -637,10 +637,70 @@ export class SavingsCalculatorService {
       };
     });
 
+    // ── Aggregate financials using TOD consumption from the entry ──────────────
+    // Group slots by their matched TOD slab name so we can distribute the
+    // user-entered kWh consumption per slab evenly across the market slots.
+    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[targetMonthStr || `${year}-${String(month).padStart(2, '0')}`] || {};
+
+    const slotsByTod: Record<string, typeof slotsData> = {};
+    slotsData.forEach(s => {
+      const key = s.tod.toUpperCase();
+      if (!slotsByTod[key]) slotsByTod[key] = [];
+      slotsByTod[key].push(s);
+    });
+
+    // Assign energy per slot per TOD slab
+    const enriched = slotsData.map(s => ({ ...s, energyPerSlot: 0 }));
+    const enrichedByTod: Record<string, (typeof enriched)> = {};
+    enriched.forEach(s => {
+      const key = s.tod.toUpperCase();
+      if (!enrichedByTod[key]) enrichedByTod[key] = [];
+      enrichedByTod[key].push(s);
+    });
+
+    Object.keys(enrichedByTod).forEach(groupKey => {
+      const slotsInGroup = enrichedByTod[groupKey];
+      let remainingEnergy = 0;
+      const matchedKey = Object.keys(monthConsumptions).find(k => {
+        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+      });
+      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
+        remainingEnergy = Number(monthConsumptions[matchedKey]);
+      }
+      const energyPerSlot = slotsInGroup.length > 0 ? remainingEnergy / slotsInGroup.length : 0;
+      slotsInGroup.forEach(s => { s.energyPerSlot = energyPerSlot; });
+    });
+
+    let totalBaselineCost = 0;
+    let totalLandedExchangeCost = 0;
+    let totalEnergyKwh = 0;
+    let totalMarketEnergyKwh = 0;
+
+    enriched.forEach(s => {
+      const e = s.energyPerSlot;
+      totalEnergyKwh += e;
+      totalBaselineCost += e * s.discomLanding;
+      if (s.shouldBuyFromMarket && s.bestMarketLanding > 0) {
+        totalLandedExchangeCost += e * s.bestMarketLanding;
+        totalMarketEnergyKwh += e;
+      } else {
+        // Slot not bought from market — use DISCOM cost for that portion
+        totalLandedExchangeCost += e * s.discomLanding;
+      }
+    });
+
+    const totalSavings = totalBaselineCost - totalLandedExchangeCost;
+
     return {
       clientId: id,
       clientName: entry.clientName,
-      slotsData
+      slotsData,
+      totalEnergyKwh,
+      totalMarketEnergyKwh,
+      totalBaselineCost,
+      totalLandedExchangeCost,
+      totalSavings
     };
   }
 }

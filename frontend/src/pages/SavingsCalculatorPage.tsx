@@ -34,7 +34,8 @@ import {
   calculateMarketDecision,
   SavingsCalculatorEntry, 
   CalculationResult,
-  CalculationSlotDetail
+  CalculationSlotDetail,
+  MarketDecisionResult
 } from '../api/savingsCalculator.api';
 import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
@@ -89,7 +90,7 @@ export default function SavingsCalculatorPage() {
   const [calcEntry, setCalcEntry] = useState<SavingsCalculatorEntry | null>(null);
   const [calcResult, setCalcResult] = useState<CalculationResult | null>(null);
   const [calculating, setCalculating] = useState(false);
-  const [marketDecisionResult, setMarketDecisionResult] = useState<any | null>(null);
+  const [marketDecisionResult, setMarketDecisionResult] = useState<MarketDecisionResult | null>(null);
   const [calculatingMarket, setCalculatingMarket] = useState(false);
   const [calcTab, setCalcTab] = useState(0);
 
@@ -1412,11 +1413,18 @@ export default function SavingsCalculatorPage() {
                 <Grid item xs={12} md={4}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                        Baseline DISCOM Cost
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          Baseline DISCOM Cost
+                        </Typography>
+                        {marketDecisionResult && (
+                          <Typography variant="caption" sx={{ fontSize: '9px', fontWeight: 700, color: '#059669', bgcolor: '#D1FAE5', px: 0.75, py: 0.25, borderRadius: 1 }}>
+                            MARKET DECISION
+                          </Typography>
+                        )}
+                      </Box>
                       <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                        ₹{calcResult.totalBaselineCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        ₹{(marketDecisionResult ? marketDecisionResult.totalBaselineCost : calcResult.totalBaselineCost).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -1425,11 +1433,18 @@ export default function SavingsCalculatorPage() {
                 <Grid item xs={6} md={6}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                        Landed Exchange Cost
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          Landed Exchange Cost
+                        </Typography>
+                        {marketDecisionResult && (
+                          <Typography variant="caption" sx={{ fontSize: '9px', fontWeight: 700, color: '#059669', bgcolor: '#D1FAE5', px: 0.75, py: 0.25, borderRadius: 1 }}>
+                            MARKET DECISION
+                          </Typography>
+                        )}
+                      </Box>
                       <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                        ₹{calcResult.totalOptimizedCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        ₹{(marketDecisionResult ? marketDecisionResult.totalLandedExchangeCost : calcResult.totalOptimizedCost).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -1438,11 +1453,18 @@ export default function SavingsCalculatorPage() {
                 <Grid item xs={6} md={6}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: '#C084FC', bgcolor: `${alpha('#8B5CF6', 0.04)}`, borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
-                      <Typography variant="caption" color="#8B5CF6" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
-                        Estimated Net Savings
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" color="#8B5CF6" sx={{ fontWeight: 700 }}>
+                          Estimated Net Savings
+                        </Typography>
+                        {marketDecisionResult && (
+                          <Typography variant="caption" sx={{ fontSize: '9px', fontWeight: 700, color: '#059669', bgcolor: '#D1FAE5', px: 0.75, py: 0.25, borderRadius: 1 }}>
+                            MARKET DECISION
+                          </Typography>
+                        )}
+                      </Box>
                       <Typography variant="h3" sx={{ fontWeight: 800, color: '#7C3AED' }}>
-                        ₹{calcResult.totalSavings.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        ₹{(marketDecisionResult ? marketDecisionResult.totalSavings : calcResult.totalSavings).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     </CardContent>
                   </Card>
