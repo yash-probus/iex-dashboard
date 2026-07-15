@@ -168,3 +168,31 @@ export const DATABASE_ITEMS: OverviewItemConfig[] = [
     color: '#E91E63'
   }
 ];
+
+export const FORECAST_ITEMS: OverviewItemConfig[] = [
+  {
+    key: 'price-forecast',
+    title: 'Price Forecast',
+    description: 'Forecasted clearing prices for DAM, RTM, and GDAM markets.',
+    path: '/forecast/price/dam',
+    icon: <TimelineIcon fontSize="medium" />,
+    color: '#8B5CF6',
+    subItems: [
+      { key: 'price-dam', title: 'DAM', path: '/forecast/price/dam', icon: <ChartIcon fontSize="small" /> },
+      { key: 'price-rtm', title: 'RTM', path: '/forecast/price/rtm', icon: <TimerIcon fontSize="small" /> },
+      { key: 'price-gdam', title: 'GDAM', path: '/forecast/price/gdam', icon: <BoltIcon fontSize="small" /> },
+    ]
+  },
+  {
+    key: 'demand-forecast',
+    title: 'Demand Forecast',
+    description: 'Forecasted load curves for consumers and national grids.',
+    path: '/forecast/demand/consumer',
+    icon: <TimelineIcon fontSize="medium" />,
+    color: '#00BFA5',
+    subItems: [
+      { key: 'demand-consumer', title: 'Consumer', path: '/forecast/demand/consumer', icon: <BusinessIcon fontSize="small" /> },
+      { key: 'demand-all-india', title: 'All India', path: '/forecast/demand/all-india', icon: <TimelineIcon fontSize="small" /> },
+    ]
+  }
+];

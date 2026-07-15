@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Paper, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, alpha, useTheme, Collapse } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, OverviewItemConfig } from '../constants/dashboardOverview';
+import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, OverviewItemConfig, FORECAST_ITEMS } from '../constants/dashboardOverview';
+
 
 export default function ModuleLayout() {
   const location = useLocation();
@@ -20,6 +21,10 @@ export default function ModuleLayout() {
     activeItems = DATABASE_ITEMS;
     activeModuleTitle = 'Demand & Generation Data';
     activeModuleColor = theme.palette.primary.main;
+  } else if (location.pathname.startsWith('/forecast')) {
+    activeItems = FORECAST_ITEMS;
+    activeModuleTitle = 'Forecast Analytics';
+    activeModuleColor = '#8B5CF6';
   } else if (location.pathname.startsWith('/dam') || location.pathname.startsWith('/gdam') || location.pathname.startsWith('/rtm') || location.pathname.startsWith('/rec') || location.pathname.startsWith('/markets')) {
     activeItems = MARKET_ITEMS;
     activeModuleTitle = 'IEX Market';

@@ -20,9 +20,10 @@ interface MarketChartProps {
   metrics: ChartMetric[];
   dateRangeLabel: string;
   interval?: string;
+  height?: number;
 }
 
-export default function MarketChart({ title, data, metrics, dateRangeLabel, interval = '15min' }: MarketChartProps) {
+export default function MarketChart({ title, data, metrics, dateRangeLabel, interval = '15min', height = 540 }: MarketChartProps) {
   // State to handle toggling metric visibility
   const [hiddenMetrics, setHiddenMetrics] = useState<Record<string, boolean>>({});
 
@@ -91,6 +92,8 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
   }
 
   const xAxisKey = getXAxisKey();
+  const hasLeftAxis = metrics.some(m => m.yAxisId === 'left' && !hiddenMetrics[m.key]);
+  const hasRightAxis = metrics.some(m => m.yAxisId === 'right' && !hiddenMetrics[m.key]);
 
   return (
     <Paper
@@ -101,7 +104,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
         borderColor: 'divider',
         backgroundColor: 'background.paper',
         borderRadius: 2,
-        height: 540,
+        height: height,
         display: 'flex',
         flexDirection: 'column'
       }}
@@ -123,6 +126,14 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
       <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+            <defs>
+              {metrics.map(metric => (
+                <linearGradient key={`grad-${metric.key}`} id={`grad-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={metric.color} stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor={metric.color} stopOpacity={0.0}/>
+                </linearGradient>
+              ))}
+            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
             <XAxis 
               dataKey={xAxisKey} 
@@ -133,22 +144,36 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
               dy={10}
             />
             {/* Left Y Axis for Volume */}
-            <YAxis 
-              yAxisId="left" 
-              tick={{ fontSize: 11, fill: '#6B7280' }} 
-              axisLine={false}
-              tickLine={false}
-              width={60}
-            />
+            {hasLeftAxis && (
+              <YAxis 
+                yAxisId="left" 
+                tick={{ fontSize: 11, fill: '#6B7280' }} 
+                axisLine={false}
+                tickLine={false}
+                width={60}
+                domain={
+                  metrics.some(m => m.yAxisId === 'left' && (m.key.toLowerCase().includes('mcp') || m.key.toLowerCase().includes('price') || m.name.toLowerCase().includes('price')))
+                    ? [(dataMin: number) => Math.max(0, Number((dataMin - 0.5).toFixed(2))), (dataMax: number) => Number((dataMax + 0.5).toFixed(2))]
+                    : [0, 'auto']
+                }
+              />
+            )}
             {/* Right Y Axis for Price */}
-            <YAxis 
-              yAxisId="right" 
-              orientation="right" 
-              tick={{ fontSize: 11, fill: '#6B7280' }} 
-              axisLine={false}
-              tickLine={false}
-              width={55}
-            />
+            {hasRightAxis && (
+              <YAxis 
+                yAxisId="right" 
+                orientation={hasLeftAxis ? "right" : "left"}
+                tick={{ fontSize: 11, fill: '#6B7280' }} 
+                axisLine={false}
+                tickLine={false}
+                width={55}
+                domain={
+                  metrics.some(m => m.yAxisId === 'right' && (m.key.toLowerCase().includes('mcp') || m.key.toLowerCase().includes('price') || m.name.toLowerCase().includes('price')))
+                    ? [(dataMin: number) => Math.max(0, Number((dataMin - 0.5).toFixed(2))), (dataMax: number) => Number((dataMax + 0.5).toFixed(2))]
+                    : [0, 'auto']
+                }
+              />
+            )}
             
             <Tooltip 
               contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '13px', padding: '12px' }}
@@ -175,9 +200,9 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                     type="monotone" 
                     dataKey={metric.key} 
                     name={metric.name}
-                    fill={metric.color} 
+                    fill={`url(#grad-${metric.key})`} 
                     stroke={metric.color} 
-                    fillOpacity={0.1}
+                    fillOpacity={1}
                     activeDot={{ r: 4, strokeWidth: 0 }}
                   />
                 );

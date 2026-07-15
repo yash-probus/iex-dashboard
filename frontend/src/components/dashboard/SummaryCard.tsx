@@ -9,9 +9,10 @@ interface SummaryCardProps {
   isPositive?: boolean;
   accentColor?: string;
   icon?: React.ReactNode;
+  sx?: any;
 }
 
-export default function SummaryCard({ title, value, change, isPositive = true, accentColor = 'primary.main', icon }: SummaryCardProps) {
+export default function SummaryCard({ title, value, change, isPositive = true, accentColor = 'primary.main', icon, sx }: SummaryCardProps) {
   // Try to use accentColor if it's a valid hex, or fallback to it directly. We assume accentColor is passed as hex.
   const isHex = accentColor.startsWith('#');
   const safeColor = isHex ? accentColor : '#3B8FF3';
@@ -35,7 +36,8 @@ export default function SummaryCard({ title, value, change, isPositive = true, a
           borderColor: alpha(safeColor, 0.3),
           boxShadow: (theme: any) => `0 12px 24px -10px ${alpha(theme.palette.primary.main, 0.15)}`,
           transform: 'translateY(-2px)'
-        }
+        },
+        ...sx
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>

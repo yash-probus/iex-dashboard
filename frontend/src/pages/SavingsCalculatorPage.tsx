@@ -531,7 +531,7 @@ export default function SavingsCalculatorPage() {
       'Timeblock': row.slot,
       'Time': row.timeStr,
       'TOD Slab': row.todSlab,
-      'DAM Price (Rs/kWh)': row.damLandingPrice.toFixed(4),
+      'DAM (Rs/kWh)': row.damLandingPrice.toFixed(4),
       'DISCOM Landing Rate (Rs/kWh)': row.discomLandingPrice.toFixed(4),
       'Compared Lowest Price (Rs/kWh)': row.comparedLowestPrice.toFixed(4),
       'Sourced Energy (kWh)': row.maxEnergyPerSlot.toFixed(2),
@@ -1524,9 +1524,9 @@ export default function SavingsCalculatorPage() {
                         <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Date</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Time</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>TOD Slab</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DAM Price</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>GDAM Price</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>RTM Price</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DAM</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>GDAM</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>RTM</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DISCOM Rate</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Compared Lowest</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Cheapest Source</TableCell>
