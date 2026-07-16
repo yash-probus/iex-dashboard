@@ -103,10 +103,26 @@ export class SavingsCalculatorExportService {
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
 
     sheet.addRow([]);
-    sheet.addRow(['Daily Fixed Overhead (NLDC/SLDC)', Math.round(oaDetailed.dailyFixedOverhead)]);
-    sheet.addRow(['Bid Application Fees', Math.round(oaDetailed.bidApplicationFees)]);
+    const t = oaDetailed.totals;
+    sheet.addRow(['Cross Subsidy', Math.round(t.cssCharge)]);
+    sheet.addRow(['RPPO', Math.round(t.rpoCharge)]);
+    sheet.addRow(['POC charges', Math.round(t.pocCharge)]);
+    sheet.addRow(['STU charges', Math.round(t.stuCharge)]);
+    sheet.addRow(['Discom charges', Math.round(t.dcCharge)]);
+    sheet.addRow(['IEX fee (including GST)', Math.round(t.iexFee)]);
+    sheet.addRow(['SLDC Operating charges', Math.round(oaDetailed.dailyFixedOverhead)]);
+    sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees)]);
+    
+    sheet.addRow([]);
     sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
-    sheet.addRow(['Total Gross Bill (Net Landed OA Cost)', Math.round(result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
+    const totalGrossBill = result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees;
+    sheet.addRow(['Total Gross Bill (Net Landed OA Cost)', Math.round(totalGrossBill)]);
+    
+    sheet.addRow([]);
+    sheet.addRow(['Net Savings', Math.round(totalDiscomB - totalGrossBill)]);
+    if (sheet.lastRow) {
+      sheet.lastRow.font = { bold: true, color: { argb: 'FF008000' } };
+    }
     
     // Auto-fit column A
     sheet.getColumn(1).width = 40;

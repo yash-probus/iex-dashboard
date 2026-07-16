@@ -765,6 +765,14 @@ export class SavingsCalculatorService {
     let totalLandedExchangeCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+
+    let globalCssCharge = 0;
+    let globalRpoCharge = 0;
+    let globalPocCharge = 0;
+    let globalStuCharge = 0;
+    let globalDcCharge = 0;
+    let globalIexFee = 0;
+
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
     const oaDetailedBreakdown: any[] = [];
 
@@ -864,6 +872,13 @@ export class SavingsCalculatorService {
       const iexFeesTotal = marketEnergy * EXCHANGE_FEES;
       const traderMarginTotal = marketEnergy * TRADER_MARGIN;
       
+      globalCssCharge += cssCharge;
+      globalRpoCharge += rpoCharge;
+      globalPocCharge += pocCharge;
+      globalStuCharge += stuChargeVal;
+      globalDcCharge += dcCharge;
+      globalIexFee += iexFeesTotal + traderMarginTotal; // Combining IEX Fee + Trader Margin into one as requested
+
       const marketEnergyCost = marketEnergy * avgMarketPrice;
       const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + marketEnergyCost;
 
@@ -915,7 +930,15 @@ export class SavingsCalculatorService {
         breakdown: oaDetailedBreakdown,
         dailyFixedOverhead,
         bidApplicationFees,
-        totalDaysTraded
+        totalDaysTraded,
+        totals: {
+          cssCharge: globalCssCharge,
+          rpoCharge: globalRpoCharge,
+          pocCharge: globalPocCharge,
+          stuCharge: globalStuCharge,
+          dcCharge: globalDcCharge,
+          iexFee: globalIexFee
+        }
       }
     };
   }
