@@ -443,6 +443,8 @@ export class SavingsCalculatorService {
     }
 
     const traderMargin = Number(entry.traderMargin || 0);
+    const sanctionedLoad = Number(entry.sanctionedLoadKw) || 0;
+    const maxEnergyPerSlot = (sanctionedLoad * 0.9 * 0.25);
 
     const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
     const lastDay = new Date(year, month, 0).getDate();
@@ -812,6 +814,8 @@ export class SavingsCalculatorService {
       // Slots where market landing is cheaper than DISCOM (and valid)
       const marketSlots = slotsInGroup.filter(s => s.shouldBuyFromMarket && s.bestMarketLanding > 0);
       const discomSlots = slotsInGroup.filter(s => !s.shouldBuyFromMarket || s.bestMarketLanding <= 0);
+
+      const marketFraction = totalSlots > 0 ? marketSlots.length / totalSlots : 0;
 
       // Maximum volume we can physically source from the market in these cheap slots
       const maxMarketVolumeForCheapSlots = marketSlots.length * maxEnergyPerSlot;
