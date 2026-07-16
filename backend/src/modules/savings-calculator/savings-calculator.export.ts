@@ -17,17 +17,32 @@ export class SavingsCalculatorExportService {
     const days = Array.from(daysSet).sort();
 
     // Headers
-    const headers = ['Blockwise DAM Rates on IEX'];
+    const headerRow1 = ['Blockwise DAM Rates on IEX'];
+    const headerRow2 = [''];
     days.forEach(d => {
       // Format day like '1-May'
       const dateObj = new Date(d);
       const dayStr = `${dateObj.getDate()}-${dateObj.toLocaleString('default', { month: 'short' })}`;
-      headers.push(dayStr);
+      headerRow1.push(dayStr, '');
+      headerRow2.push('Price (₹)', 'Qty (kWh)');
     });
 
-    sheet.addRow(headers);
-    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+    const hr1 = sheet.addRow(headerRow1);
+    const hr2 = sheet.addRow(headerRow2);
+    
+    // Merge cells for headerRow1
+    let colIndex = 2;
+    days.forEach(() => {
+      sheet.mergeCells(1, colIndex, 1, colIndex + 1);
+      sheet.getCell(1, colIndex).alignment = { horizontal: 'center' };
+      colIndex += 2;
+    });
+
+    hr1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    hr1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+    
+    hr2.font = { bold: true };
+    hr2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } };
 
     // Create 96 blocks
     // Helper to format block time (e.g., '00:00 - 00:15')
@@ -45,7 +60,7 @@ export class SavingsCalculatorExportService {
     for (let b = 1; b <= 96; b++) {
       const row = [formatBlock(b)];
       days.forEach(day => {
-        const slot = slotsData.find(s => s.date === day && s.timeblock === b);
+        const slot = slotsData.find(s => s.date === day && s.timeblock === b) as any;
         if (slot && slot.shouldBuyFromMarket) {
           // If won, show the MCP (base price) of the selected market
           let mcp = 0;
@@ -53,8 +68,9 @@ export class SavingsCalculatorExportService {
           else if (slot.marketSource === 'RTM') mcp = slot.rtmMcp || 0;
           else if (slot.marketSource === 'GDAM') mcp = slot.gdamMcp || 0;
           row.push(mcp.toFixed(2));
+          row.push(Math.round(slot.marketEnergy || 0).toString());
         } else {
-          row.push('-');
+          row.push('-', '-');
         }
       });
       sheet.addRow(row);
