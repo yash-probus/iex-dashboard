@@ -594,9 +594,9 @@ export class SavingsCalculatorService {
 
       const calcExchangeLanding = (mcp: number | null) => {
         if (mcp == null) return null;
-        const base = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
-        const lossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
-        return base * lossMultiplier;
+        const lossCoefficient = (1 - (istsLoss / 100)) * (1 - (stuLoss / 100)) * (1 - (wheelingLoss / 100));
+        const lossAdjustedMcp = mcp / lossCoefficient;
+        return lossAdjustedMcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
       };
 
       const damLanding = calcExchangeLanding(damMcp);
@@ -694,6 +694,7 @@ export class SavingsCalculatorService {
     const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
 
     let totalBaselineCost = 0;
+    let totalElectricityDuty = 0;
     let totalLandedExchangeCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
@@ -762,6 +763,7 @@ export class SavingsCalculatorService {
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
       const slabED = slabEnergyBill * 0.075;
+      totalElectricityDuty += slabED;
 
       // Baseline: all consumption at DISCOM rate (inclusive of fixed/taxes)
       const slabTotalDiscomBill = slabEnergyBill + slabDemandCharge + slabED;
@@ -829,7 +831,6 @@ export class SavingsCalculatorService {
     });
 
     const totalSavings = totalBaselineCost - totalLandedExchangeCost;
-    const electricityDuty = totalBaselineCost * 0.075;
 
     return {
       clientId: id,
@@ -841,7 +842,7 @@ export class SavingsCalculatorService {
       totalLandedExchangeCost,
       totalSavings,
       demandCharge,
-      electricityDuty,
+      electricityDuty: totalElectricityDuty,
       todSummaries,
       oaDetailed: {
         breakdown: oaDetailedBreakdown,
