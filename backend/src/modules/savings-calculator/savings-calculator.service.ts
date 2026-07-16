@@ -813,11 +813,12 @@ export class SavingsCalculatorService {
       const marketSlots = slotsInGroup.filter(s => s.shouldBuyFromMarket && s.bestMarketLanding > 0);
       const discomSlots = slotsInGroup.filter(s => !s.shouldBuyFromMarket || s.bestMarketLanding <= 0);
 
-      const marketFraction = totalSlots > 0 ? marketSlots.length / totalSlots : 0;
-      const discomFraction = 1 - marketFraction;
-
-      const marketEnergy = slabConsumption * marketFraction;
-      const discomEnergy = slabConsumption * discomFraction;
+      // Maximum volume we can physically source from the market in these cheap slots
+      const maxMarketVolumeForCheapSlots = marketSlots.length * maxEnergyPerSlot;
+      
+      // We buy as much as possible from the cheap slots up to our total slab requirement
+      const marketEnergy = Math.min(slabConsumption, maxMarketVolumeForCheapSlots);
+      const discomEnergy = slabConsumption - marketEnergy;
 
       // Average DISCOM rate for this slab (should be same for all slots, take first valid)
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
