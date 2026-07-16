@@ -647,6 +647,73 @@ export class SavingsCalculatorService {
       };
     });
 
+    // ── RTM Contiguity Optimization ──────────────
+    for (let i = 0; i < slotsData.length; i++) {
+      const slot = slotsData[i];
+      if (slot.marketSource === 'RTM' && slot.shouldBuyFromMarket) {
+        const prevSlot = i > 0 ? slotsData[i - 1] : null;
+        const nextSlot = i < slotsData.length - 1 ? slotsData[i + 1] : null;
+
+        const prevIsRTM = prevSlot?.marketSource === 'RTM' && prevSlot?.shouldBuyFromMarket;
+        const nextIsRTM = nextSlot?.marketSource === 'RTM' && nextSlot?.shouldBuyFromMarket;
+
+        if (!prevIsRTM && !nextIsRTM) {
+          // Isolated RTM slot
+          
+          // Option 1: Downgrade this slot
+          const altPrices = [slot.damLanding, slot.gdamLanding].filter(p => p !== null && p > 0) as number[];
+          const bestAltLanding = altPrices.length > 0 ? Math.min(...altPrices) : slot.discomLanding;
+          
+          let downgradePenalty = Infinity;
+          let newDowngradeSource = 'DAM';
+          let newDowngradeShouldBuy = false;
+          
+          if (bestAltLanding < slot.discomLanding) {
+            downgradePenalty = bestAltLanding - (slot.rtmLanding as number);
+            newDowngradeSource = bestAltLanding === slot.damLanding ? 'DAM' : 'GDAM';
+            newDowngradeShouldBuy = true;
+          } else {
+            downgradePenalty = slot.discomLanding - (slot.rtmLanding as number);
+            newDowngradeSource = 'DAM';
+            newDowngradeShouldBuy = false;
+          }
+
+          // Option 2: Upgrade prev slot
+          let upgradePrevPenalty = Infinity;
+          if (prevSlot && prevSlot.rtmLanding && prevSlot.rtmLanding > 0) {
+            const currentCost = prevSlot.shouldBuyFromMarket ? prevSlot.bestMarketLanding : prevSlot.discomLanding;
+            upgradePrevPenalty = prevSlot.rtmLanding - currentCost;
+          }
+
+          // Option 3: Upgrade next slot
+          let upgradeNextPenalty = Infinity;
+          if (nextSlot && nextSlot.rtmLanding && nextSlot.rtmLanding > 0) {
+            const currentCost = nextSlot.shouldBuyFromMarket ? nextSlot.bestMarketLanding : nextSlot.discomLanding;
+            upgradeNextPenalty = nextSlot.rtmLanding - currentCost;
+          }
+
+          const minPenalty = Math.min(downgradePenalty, upgradePrevPenalty, upgradeNextPenalty);
+
+          if (minPenalty === downgradePenalty) {
+            slot.marketSource = newDowngradeSource;
+            slot.bestMarketLanding = newDowngradeShouldBuy ? bestAltLanding : 0;
+            slot.shouldBuyFromMarket = newDowngradeShouldBuy;
+            slot.savingsPerKwh = newDowngradeShouldBuy ? slot.discomLanding - bestAltLanding : 0;
+          } else if (minPenalty === upgradePrevPenalty && prevSlot) {
+            prevSlot.marketSource = 'RTM';
+            prevSlot.bestMarketLanding = (prevSlot.rtmLanding as number);
+            prevSlot.shouldBuyFromMarket = true;
+            prevSlot.savingsPerKwh = prevSlot.discomLanding - (prevSlot.rtmLanding as number);
+          } else if (minPenalty === upgradeNextPenalty && nextSlot) {
+            nextSlot.marketSource = 'RTM';
+            nextSlot.bestMarketLanding = (nextSlot.rtmLanding as number);
+            nextSlot.shouldBuyFromMarket = true;
+            nextSlot.savingsPerKwh = nextSlot.discomLanding - (nextSlot.rtmLanding as number);
+          }
+        }
+      }
+    }
+
     // ── Aggregate financials using TOD consumption from the entry ──────────────
     // Correct approach:
     // 1. Baseline = Σ slab: consumption × DISCOM_rate (no market slot distribution needed)
