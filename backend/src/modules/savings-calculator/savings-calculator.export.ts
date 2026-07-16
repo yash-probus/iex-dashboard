@@ -143,12 +143,14 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['Discom charges', Math.round(t.dcCharge)]);
     sheet.addRow(['IEX fee', Math.round(t.iexFee)]);
     sheet.addRow(['Trader Margin', Math.round((t as any).traderMargin || 0)]);
+    sheet.addRow(['PROLT Margin', Math.round((t as any).proltMarginCost || 0)]);
     sheet.addRow(['SLDC Operating charges', Math.round(oaDetailed.dailyFixedOverhead)]);
     sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees)]);
     
     sheet.addRow([]);
-    sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
-    const totalGrossBill = result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees;
+    const proltMarginVal = (t as any).proltMarginCost || 0;
+    sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees + proltMarginVal)]);
+    const totalGrossBill = result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees + proltMarginVal;
     sheet.addRow(['Total Gross Bill (Net Landed OA Cost)', Math.round(totalGrossBill)]);
     
     sheet.addRow([]);

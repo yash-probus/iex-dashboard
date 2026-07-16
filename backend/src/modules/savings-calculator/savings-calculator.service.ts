@@ -940,7 +940,9 @@ export class SavingsCalculatorService {
       console.log(`[MarketDecision] Slab ${groupKey}: consumption=${slabConsumption}kWh, discomRate=${slabDiscomRate.toFixed(4)}, marketSlots=${marketSlots.length}/${totalSlots} (${(marketFraction * 100).toFixed(1)}%), avgMarketPrice=${avgMarketPrice.toFixed(4)}, baselineCost=${(slabConsumption * slabDiscomRate).toFixed(0)}`);
     });
 
-    const totalSavings = totalBaselineCost - totalLandedExchangeCost;
+    const proltMarginInput = Number(entry.proltMargin || 0);
+    const totalProltMarginCost = totalMarketEnergyKwh * proltMarginInput;
+    const totalSavings = (totalBaselineCost - totalLandedExchangeCost) - totalProltMarginCost;
 
     return {
       clientId: id,
@@ -967,6 +969,7 @@ export class SavingsCalculatorService {
           dcCharge: globalDcCharge,
           iexFee: globalIexFee,
           traderMargin: globalTraderMargin,
+          proltMarginCost: totalProltMarginCost,
         }
       }
     };
