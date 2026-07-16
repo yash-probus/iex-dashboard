@@ -841,23 +841,6 @@ export class SavingsCalculatorService {
       // ED applies to total consumption physical units (same as baseline), demand charge is also fixed.
       const proltDiscomBillTotal = proltEnergyBill + slabDemandCharge + slabED;
 
-      // Exchange cost: market portion at market price + Prolt DISCOM Bill
-      totalLandedExchangeCost += (marketEnergy * avgMarketPrice) + proltDiscomBillTotal;
-
-      totalEnergyKwh += slabConsumption;
-      totalMarketEnergyKwh += marketEnergy;
-
-      todSummaries.push({
-        slabName: groupKey,
-        totalEnergyKwh: slabConsumption,
-        marketEnergyKwh: marketEnergy,
-        marketCostBase: marketEnergy * avgMarketPrice
-      });
-
-      // --- OA Detailed Simulation Breakdowns ---
-      const discomBill = slabTotalDiscomBill;
-      const proltDiscomBill = proltDiscomBillTotal;
-
       const avgIstsLoss = marketSlots.length > 0
         ? marketSlots.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / marketSlots.length
         : 0;
@@ -883,6 +866,23 @@ export class SavingsCalculatorService {
       
       const marketEnergyCost = marketEnergy * avgMarketPrice;
       const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + marketEnergyCost;
+
+      // Exchange cost: market portion with all surcharges + Prolt DISCOM Bill
+      totalLandedExchangeCost += slabOaBill + proltDiscomBillTotal;
+
+      totalEnergyKwh += slabConsumption;
+      totalMarketEnergyKwh += marketEnergy;
+
+      todSummaries.push({
+        slabName: groupKey,
+        totalEnergyKwh: slabConsumption,
+        marketEnergyKwh: marketEnergy,
+        marketCostBase: marketEnergyCost
+      });
+
+      // --- OA Detailed Simulation Breakdowns ---
+      const discomBill = slabTotalDiscomBill;
+      const proltDiscomBill = proltDiscomBillTotal;
 
       oaDetailedBreakdown.push({
         slabName: groupKey,
