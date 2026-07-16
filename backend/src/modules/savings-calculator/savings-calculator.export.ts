@@ -23,8 +23,8 @@ export class SavingsCalculatorExportService {
       // Format day like '1-May'
       const dateObj = new Date(d);
       const dayStr = `${dateObj.getDate()}-${dateObj.toLocaleString('default', { month: 'short' })}`;
-      headerRow1.push(dayStr, '');
-      headerRow2.push('Price (₹)', 'Qty (kWh)');
+      headerRow1.push(dayStr, '', '');
+      headerRow2.push('Price (₹)', 'Qty (kWh)', 'Market');
     });
 
     const hr1 = sheet.addRow(headerRow1);
@@ -33,9 +33,9 @@ export class SavingsCalculatorExportService {
     // Merge cells for headerRow1
     let colIndex = 2;
     days.forEach(() => {
-      sheet.mergeCells(1, colIndex, 1, colIndex + 1);
+      sheet.mergeCells(1, colIndex, 1, colIndex + 2);
       sheet.getCell(1, colIndex).alignment = { horizontal: 'center' };
-      colIndex += 2;
+      colIndex += 3;
     });
 
     hr1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -69,8 +69,9 @@ export class SavingsCalculatorExportService {
           else if (slot.marketSource === 'GDAM') mcp = slot.gdamMcp || 0;
           row.push(mcp.toFixed(2));
           row.push(Math.round(slot.marketEnergy || 0).toString());
+          row.push(slot.marketSource || '-');
         } else {
-          row.push('-', '-');
+          row.push('-', '-', '-');
         }
       });
       sheet.addRow(row);
