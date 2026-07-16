@@ -14,6 +14,121 @@ export interface ChartMetric {
   yAxisId: 'left' | 'right';
 }
 
+// Custom Cursor Component for Hover Band
+const CustomCursor = (props: any) => {
+  const { x, y, width, height, activeLabel } = props;
+  if (x === undefined || y === undefined) return null;
+
+  const cursorWidth = 50;
+  const cursorX = x - cursorWidth / 2;
+
+  return (
+    <g>
+      {/* Semi-transparent vertical background column with gradient */}
+      <rect
+        x={cursorX}
+        y={y}
+        width={cursorWidth}
+        height={height}
+        fill="url(#cursor-grad)"
+        rx={6}
+      />
+      {/* Solid vertical line down the center */}
+      <line
+        x1={x}
+        y1={y}
+        x2={x}
+        y2={y + height}
+        stroke="#8B5CF6"
+        strokeWidth={1.5}
+        strokeOpacity={0.4}
+        strokeDasharray="3 3"
+      />
+      
+      {/* Active Slot Label Pill at the Top of the Cursor */}
+      {activeLabel && (
+        <g transform={`translate(${x}, ${y - 14})`}>
+          {/* Pill background (dark slate/blue matching tooltips) */}
+          <rect
+            x={-42}
+            y={-10}
+            width={84}
+            height={20}
+            rx={10}
+            fill="#1E293B"
+            filter="url(#pill-shadow)"
+          />
+          {/* Pill text */}
+          <text
+            x={0}
+            y={1}
+            fill="#FFFFFF"
+            fontSize={9.5}
+            fontWeight={700}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            {activeLabel}
+          </text>
+        </g>
+      )}
+    </g>
+  );
+};
+
+// Custom Active Dot Component with Floating Pill Tooltip
+const CustomActiveDot = (props: any) => {
+  const { cx, cy, stroke, payload, dataKey, value } = props;
+  if (cx === undefined || cy === undefined) return null;
+
+  // Safeguard value extraction (extract from payload if value is not direct)
+  const rawValue = value !== undefined ? value : (payload && dataKey ? payload[dataKey] : undefined);
+  if (rawValue === undefined || rawValue === null) return null;
+
+  const formattedValue = typeof rawValue === 'number' 
+    ? `₹${rawValue.toFixed(2)}` 
+    : rawValue;
+
+  const textStr = String(formattedValue);
+  const pillWidth = Math.max(65, textStr.length * 7.5 + 16);
+
+  return (
+    <g>
+      {/* Outer pulsing glow */}
+      <circle cx={cx} cy={cy} r={12} fill={stroke} fillOpacity={0.25} />
+      <circle cx={cx} cy={cy} r={8} fill={stroke} fillOpacity={0.4} />
+      {/* Inner white dot with colored stroke */}
+      <circle cx={cx} cy={cy} r={4.5} fill="#FFFFFF" stroke={stroke} strokeWidth={3} />
+      
+      {/* Floating Tooltip Pill */}
+      <g transform={`translate(${cx}, ${cy - 26})`}>
+        {/* Pill background */}
+        <rect
+          x={-pillWidth / 2}
+          y={-12}
+          width={pillWidth}
+          height={22}
+          rx={11}
+          fill={stroke}
+          filter="url(#pill-shadow)"
+        />
+        {/* Pill text */}
+        <text
+          x={0}
+          y={1}
+          fill="#FFFFFF"
+          fontSize={10.5}
+          fontWeight={700}
+          textAnchor="middle"
+          dominantBaseline="middle"
+        >
+          {formattedValue}
+        </text>
+      </g>
+    </g>
+  );
+};
+
 interface MarketChartProps {
   title: string;
   data: any[];
@@ -26,6 +141,21 @@ interface MarketChartProps {
 export default function MarketChart({ title, data, metrics, dateRangeLabel, interval = '15min', height = 540 }: MarketChartProps) {
   // State to handle toggling metric visibility
   const [hiddenMetrics, setHiddenMetrics] = useState<Record<string, boolean>>({});
+
+  // State to track currently hovered/active payload for cursor info
+  const [activePayload, setActivePayload] = useState<any>(null);
+
+  const handleMouseMove = (state: any) => {
+    if (state && state.activePayload && state.activePayload.length > 0) {
+      setActivePayload(state.activePayload[0].payload);
+    } else {
+      setActivePayload(null);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setActivePayload(null);
+  };
 
   const handleLegendClick = (e: any) => {
     const key = e.dataKey;
@@ -125,7 +255,12 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
 
       <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+          <ComposedChart 
+            data={chartData} 
+            margin={{ top: 30, right: 30, left: 10, bottom: 20 }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
             <defs>
               {metrics.map(metric => (
                 <linearGradient key={`grad-${metric.key}`} id={`grad-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
@@ -133,6 +268,18 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                   <stop offset="95%" stopColor={metric.color} stopOpacity={0.0}/>
                 </linearGradient>
               ))}
+              
+              {/* Drop Shadow for Tooltip Pills */}
+              <filter id="pill-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.2" floodColor="#000000" />
+              </filter>
+
+              {/* Gradient for Vertical Cursor Band */}
+              <linearGradient id="cursor-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.03} />
+                <stop offset="50%" stopColor="#8B5CF6" stopOpacity={0.12} />
+                <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.01} />
+              </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
             <XAxis 
@@ -176,10 +323,8 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
             )}
             
             <Tooltip 
-              contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '13px', padding: '12px' }}
-              labelStyle={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px', borderBottom: '1px solid #F0F0F0', paddingBottom: '4px' }}
-              itemStyle={{ padding: '3px 0', fontWeight: 600 }}
-              formatter={(value: any) => typeof value === 'number' ? Number(value.toFixed(2)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : value}
+              content={() => null}
+              cursor={<CustomCursor activeLabel={activePayload?.label} />}
             />
             
             <Legend 
@@ -203,7 +348,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                     fill={`url(#grad-${metric.key})`} 
                     stroke={metric.color} 
                     fillOpacity={1}
-                    activeDot={{ r: 4, strokeWidth: 0 }}
+                    activeDot={<CustomActiveDot />}
                   />
                 );
               }
@@ -217,7 +362,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                   stroke={metric.color} 
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0 }}
+                  activeDot={<CustomActiveDot />}
                 />
               );
             })}

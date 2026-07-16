@@ -114,12 +114,17 @@ export class ForecastService {
 
     if (market.toUpperCase() === 'DAM') {
       try {
+        let modelNum = 1;
+        if (model === 'Model2') modelNum = 2;
+
         const rows: any[] = await prisma.$queryRawUnsafe(
-          `SELECT * FROM "forecasting"."dam_forecasting"
-           WHERE timestamp::date >= $1::date AND timestamp::date <= $2::date
-           ORDER BY timestamp ASC;`,
+          `SELECT DISTINCT ON (forecasting_for::date, time_block) * FROM "forecasting"."dam_forecasting"
+           WHERE forecasting_for::date >= $1::date AND forecasting_for::date <= $2::date
+           AND model_number = $3
+           ORDER BY forecasting_for::date ASC, time_block ASC, forecast_date DESC;`,
           startDateStr,
-          endDateStr
+          endDateStr,
+          modelNum
         );
 
         if (rows && rows.length > 0) {
@@ -131,9 +136,9 @@ export class ForecastService {
             // predicted_mcp is stored in Rs/MWh. Convert to Rs/kWh by dividing by 1000.0
             const mcp = parseFloat((Number(r.predicted_mcp) / 1000.0).toFixed(2));
             
-            const dateStr = r.timestamp instanceof Date 
-              ? r.timestamp.toISOString().split('T')[0] 
-              : new Date(r.timestamp).toISOString().split('T')[0];
+            const dateStr = r.forecasting_for instanceof Date 
+              ? r.forecasting_for.toISOString().split('T')[0] 
+              : new Date(r.forecasting_for).toISOString().split('T')[0];
 
             return {
               date: dateStr,
@@ -321,7 +326,7 @@ export class ForecastService {
     if (market.toUpperCase() === 'DAM') {
       try {
         const rows: any[] = await prisma.$queryRawUnsafe(
-          `SELECT DISTINCT timestamp::date AS date 
+          `SELECT DISTINCT forecasting_for::date AS date 
            FROM "forecasting"."dam_forecasting" 
            ORDER BY date DESC;`
         );
