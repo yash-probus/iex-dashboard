@@ -5,6 +5,7 @@ import { WeatherEngine } from './weather.service';
 import { seedCtuCharges } from '../scripts/seed-ctu';
 import { seedIstsCharges } from '../scripts/seed-ists';
 import { ApiLogService } from '../modules/api-log/api-log.service';
+import { NppAdjustmentService } from '../modules/dataset/npp-adjustment.service';
 
 const prisma = new PrismaClient();
 
@@ -173,37 +174,41 @@ export class CronService {
         const dateStr = new Date().toISOString().split('T')[0];
         const data = await VidyutPravahScraper.getNppDemandData(dateStr);
         
-        if (data) {
-          await prisma.nppRawDemandData.create({
-            data: {
-              date: data.date,
-              timeStr: data.timeStr,
-              demandMet: data.demandMet,
-              dataUpdatedAt: data.dataUpdatedAt,
+        if (data && data.length > 0) {
+          await prisma.nppRawDemandData.createMany({
+            data: data.map(d => ({
+              date: d.date,
+              timeStr: d.timeStr,
+              demandMet: d.demandMet,
+              dataUpdatedAt: d.dataUpdatedAt,
               fetchedAt: new Date(),
-            }
+            })),
+            skipDuplicates: true
           });
-          console.log(`[CronService] Polled NPP Demand for ${data.timeStr} -> ${data.demandMet} MW`);
+          console.log(`[CronService] Polled NPP Demand for ${dateStr} -> ${data.length} records`);
+          await NppAdjustmentService.updateAdjustedDemandForDate(dateStr);
         }
         
         // Real time NPP generation
         const genData = await VidyutPravahScraper.getNppGenerationData(dateStr);
-        if (genData) {
-          await prisma.nppRawGenerationData.create({
-            data: {
-              date: genData.date,
-              timeStr: genData.timeStr,
-              thermal: genData.thermal,
-              gas: genData.gas,
-              nuclear: genData.nuclear,
-              hydro: genData.hydro,
-              wind: genData.wind,
-              solar: genData.solar,
-              dataUpdatedAt: genData.dataUpdatedAt,
+        if (genData && genData.length > 0) {
+          await prisma.nppRawGenerationData.createMany({
+            data: genData.map(g => ({
+              date: g.date,
+              timeStr: g.timeStr,
+              thermal: g.thermal,
+              gas: g.gas,
+              nuclear: g.nuclear,
+              hydro: g.hydro,
+              wind: g.wind,
+              solar: g.solar,
+              dataUpdatedAt: g.dataUpdatedAt,
               fetchedAt: new Date(),
-            }
+            })),
+            skipDuplicates: true
           });
-          console.log(`[CronService] Polled NPP Generation for ${genData.timeStr} -> Thermal: ${genData.thermal} MW`);
+          console.log(`[CronService] Polled NPP Generation for ${dateStr} -> ${genData.length} records`);
+          await NppAdjustmentService.updateAdjustedGenerationForDate(dateStr);
         }
       } catch (error) {
         console.error('[Cron] Error in 4-minute schedule:', error);

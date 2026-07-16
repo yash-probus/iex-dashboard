@@ -95,7 +95,7 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
     icon: <BoltIcon fontSize="medium" />,
     color: '#E53935',
     subItems: [
-      { key: 'ists-charges', title: 'ISTS Charges', path: '/resource-center/ists-charges', icon: <BoltIcon fontSize="small" /> },
+      { key: 'ists-charges', title: 'ISTS Losses', path: '/resource-center/ists-charges', icon: <BoltIcon fontSize="small" /> },
       { key: 'ctu-charges', title: 'CTU Charges', path: '/resource-center/ctu-charges', icon: <HubIcon fontSize="small" /> }
     ]
   },
@@ -103,11 +103,11 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
     key: 'utility-charges',
     title: 'Utility Charges',
     description: 'Utility charges and configurations.',
-    path: '/resource-center/stu-charges',
+    path: '/resource-center/state-charges',
     icon: <SettingsIcon fontSize="medium" />,
     color: '#546E7A',
     subItems: [
-      { key: 'stu-charges', title: 'STU Charges', path: '/resource-center/stu-charges', icon: <SettingsIcon fontSize="small" /> },
+      { key: 'state-charges', title: 'State Charges', path: '/resource-center/state-charges', icon: <SettingsIcon fontSize="small" /> },
       { key: 'state-tariff', title: 'State Tariff', path: '/resource-center/state-tariff', icon: <PriceCheckIcon fontSize="small" /> }
     ]
   },
@@ -120,7 +120,8 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
     color: '#FB8C00',
     subItems: [
       { key: 'iex-fees', title: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" /> },
-      { key: 'prolt-margin', title: 'ProLT Margin', path: '/resource-center/prolt-margin', icon: <WalletIcon fontSize="small" /> }
+      { key: 'prolt-margin', title: 'ProLT Margin', path: '/resource-center/prolt-margin', icon: <WalletIcon fontSize="small" /> },
+      { key: 'fppa-charges', title: 'FPPA Charges', path: '/resource-center/fppa-charges', icon: <ReceiptIcon fontSize="small" /> }
     ]
   }
 ];

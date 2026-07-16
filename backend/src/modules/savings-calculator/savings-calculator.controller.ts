@@ -37,6 +37,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin,
+        traderMargin,
         todConsumptions
       } = req.body;
 
@@ -53,6 +55,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin: proltMargin ? parseFloat(proltMargin) : undefined,
+        traderMargin: traderMargin ? parseFloat(traderMargin) : undefined,
         todConsumptions
       });
 
@@ -75,6 +79,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin,
+        traderMargin,
         todConsumptions
       } = req.body;
 
@@ -91,6 +97,8 @@ export class SavingsCalculatorController {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin: proltMargin ? parseFloat(proltMargin) : undefined,
+        traderMargin: traderMargin ? parseFloat(traderMargin) : undefined,
         todConsumptions
       });
 
@@ -114,12 +122,25 @@ export class SavingsCalculatorController {
 
   static async calculate(req: Request, res: Response) {
     try {
-      const id = req.params.id as string;
-      const result = await SavingsCalculatorService.calculateSavings(id);
-      res.json(result);
+      const { id } = req.params;
+      const targetMonth = req.query.month;
+      const result = await SavingsCalculatorService.calculateSavings(id as string, targetMonth as string | undefined);
+      res.status(200).json(result);
     } catch (error: any) {
       console.error('[SavingsCalculatorController] Calculation failed:', error);
       res.status(500).json({ message: error.message || 'Savings calculation failed.' });
+    }
+  }
+
+  static async calculateMarketDecision(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const targetMonth = req.query.month;
+      const result = await SavingsCalculatorService.calculateMarketDecision(id as string, targetMonth as string | undefined);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error('[SavingsCalculatorController] Market Decision Calculation failed:', error);
+      res.status(500).json({ message: error.message || 'Market decision calculation failed.' });
     }
   }
 }

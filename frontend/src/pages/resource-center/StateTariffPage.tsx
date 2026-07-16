@@ -9,9 +9,16 @@ import { useResourceData } from '../../hooks/useResourceData';
 import { RESOURCE_CENTER_PAGES } from './constants/resourceCenter.constants';
 import { StateTariff } from './types/resourceCenter.types';
 
+// month is stored as YYYYMM integer (e.g. 202604)
 const formatMonth = (m: any) => {
-  const date = new Date(2026, m - 1);
-  return date.toLocaleString('default', { month: 'short' }) + ' 2026';
+  const s = String(m);
+  if (s.length === 6) {
+    const year = s.slice(0, 4);
+    const mon = parseInt(s.slice(4), 10);
+    const date = new Date(parseInt(year), mon - 1);
+    return date.toLocaleString('default', { month: 'short' }) + ' ' + year;
+  }
+  return String(m);
 };
 
 export default function StateTariffPage() {
@@ -25,58 +32,53 @@ export default function StateTariffPage() {
     const monthStr = formatMonth(row.month).toLowerCase();
     return (
       monthStr.includes(lowerQuery) ||
-      String(row.stateCode || '').toLowerCase().includes(lowerQuery) ||
       String(row.state || '').toLowerCase().includes(lowerQuery) ||
-      String(row.tod || '').toLowerCase().includes(lowerQuery) ||
-      String(row.voltageLevel || '').toLowerCase().includes(lowerQuery) ||
-      String(row.category || '').toLowerCase().includes(lowerQuery) ||
+      String(row.consumerCategory || '').toLowerCase().includes(lowerQuery) ||
       String(row.subCategory || '').toLowerCase().includes(lowerQuery) ||
-      String(row.todName || '').toLowerCase().includes(lowerQuery) ||
-      String(row.energyCharges).includes(lowerQuery)
+      String(row.supplyVoltageCategory || '').toLowerCase().includes(lowerQuery) ||
+      String(row.supplyVoltage || '').toLowerCase().includes(lowerQuery) ||
+      String(row.baseEnergyUnit || '').toLowerCase().includes(lowerQuery) ||
+      String(row.energyRate).includes(lowerQuery)
     );
   });
 
-  const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
+  const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : v;
 
   const columns: ColumnDefinition[] = [
-    { field: 'stateCode', headerName: 'State Code', align: 'center', width: 120, sticky: true },
     { field: 'state', headerName: 'State', align: 'center', width: 180, sticky: true },
-    { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-    { field: 'category', headerName: 'Category', align: 'center', width: 180 },
-    { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 180 },
-    { field: 'voltageLevel', headerName: 'Voltage Level', align: 'center', width: 150 },
-    { field: 'tod', headerName: 'TOD', align: 'center', width: 120 },
-    { field: 'todName', headerName: 'TOD Name', align: 'center', width: 200 },
-    { field: 'season', headerName: 'Season', align: 'center', width: 150 },
-    { field: 'todStartHour', headerName: 'TOD Start Hour', align: 'center', width: 150 },
-    { field: 'todEndHour', headerName: 'TOD End Hour', align: 'center', width: 150 },
-    { field: 'baseEnergyCharges', headerName: 'Base Energy Charges', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'todRate', headerName: 'TOD Rate', align: 'center', width: 150, valueFormatter: formatNum },
-    { field: 'energyCharges', headerName: 'Energy Charges', align: 'center', width: 180, valueFormatter: formatNum },
+    { field: 'consumerCategory', headerName: 'Consumer Category', align: 'center', width: 160 },
+    { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 260 },
+    { field: 'supplyVoltageCategory', headerName: 'Supply Voltage Category', align: 'center', width: 220 },
+    { field: 'supplyVoltage', headerName: 'Supply Voltage', align: 'center', width: 150 },
+    { field: 'month', headerName: 'Month', align: 'center', width: 120, valueFormatter: formatMonth },
+    { field: 'todStartTime', headerName: 'TOD Start Time', align: 'center', width: 150 },
+    { field: 'todEndTime', headerName: 'TOD End Time', align: 'center', width: 150 },
+    { field: 'baseEnergyRate', headerName: 'Base Energy Rate', align: 'center', width: 180, valueFormatter: formatNum },
+    { field: 'baseEnergyUnit', headerName: 'Unit', align: 'center', width: 100 },
+    { field: 'todChargePercent', headerName: 'TOD Charge %', align: 'center', width: 150 },
+    { field: 'energyRate', headerName: 'Energy Rate', align: 'center', width: 150, valueFormatter: formatNum },
   ];
 
   const handleExport = () => {
     const exportData = filteredData.map((row: any) => ({
-      'State Code': row.stateCode,
       'State': row.state,
-      'Month': formatMonth(row.month),
-      'Category': row.category,
+      'Consumer Category': row.consumerCategory,
       'Sub Category': row.subCategory,
-      'Voltage Level': row.voltageLevel,
-      'TOD': row.tod,
-      'TOD Name': row.todName,
-      'Season': row.season,
-      'TOD Start Hour': row.todStartHour,
-      'TOD End Hour': row.todEndHour,
-      'Base Energy Charges': row.baseEnergyCharges,
-      'TOD Rate': row.todRate,
-      'Energy Charges': row.energyCharges
+      'Supply Voltage Category': row.supplyVoltageCategory,
+      'Supply Voltage': row.supplyVoltage,
+      'Month': formatMonth(row.month),
+      'TOD Start Time': row.todStartTime,
+      'TOD End Time': row.todEndTime,
+      'Base Energy Rate': row.baseEnergyRate,
+      'Base Energy Unit': row.baseEnergyUnit,
+      'TOD Charge %': row.todChargePercent,
+      'Energy Rate': row.energyRate,
     }));
     exportToCSV(exportData, config.exportFilename);
   };
 
   return (
-    <ResourcePageLayout resourceType="state-tariff"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="state-tariff"
       title={config.title}
       subtitle={config.subtitle}
       icon={<PriceCheckIcon fontSize="large" />}
@@ -112,3 +114,4 @@ export default function StateTariffPage() {
     </ResourcePageLayout>
   );
 }
+

@@ -189,37 +189,33 @@ export class VidyutPravahScraper {
         return null;
       }
       
-      // Get the latest reading (last element in the array)
-      const latestReading = data[data.length - 1];
-      
-      if (!latestReading || !latestReading.value_of_data) {
-        return null;
-      }
-      
-      const demandMet = Number(latestReading.value_of_data);
-      const d = new Date(latestReading.updated_on);
-      
+      const results = [];
       const formatter = new Intl.DateTimeFormat('en-IN', {
         timeZone: 'Asia/Kolkata',
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
       });
-      const timeStr = formatter.format(d);
 
-      const result = {
-        date: dateStr,
-        timeStr: timeStr,
-        demandMet,
-        dataUpdatedAt: d.toISOString(),
-      };
+      for (const reading of data) {
+        if (!reading || !reading.value_of_data) continue;
+        const demandMet = Number(reading.value_of_data);
+        const d = new Date(reading.updated_on);
+        const timeStr = formatter.format(d);
+        results.push({
+          date: dateStr,
+          timeStr: timeStr,
+          demandMet,
+          dataUpdatedAt: d.toISOString(),
+        });
+      }
       
       await ApiLogService.createLog('NPP Demand API', `https://npp.gov.in/dashBoard/demandmet1chartdata?date=${dateStr}`, 'SUCCESS', `Fetched demand data for ${dateStr}`);
-      return result;
+      return results;
     } catch (error: any) {
       console.error(`Error scraping NPP demand for ${dateStr}:`, error.message);
       await ApiLogService.createLog('NPP Demand API', `https://npp.gov.in/dashBoard/demandmet1chartdata?date=${dateStr}`, 'ERROR', error.message);
-      return null;
+      return [];
     }
   }
 
@@ -253,38 +249,38 @@ export class VidyutPravahScraper {
         else if (name.includes('SOLAR')) generationByTime[item.updated_on].solar = value;
       });
       
-      // Get the latest reading
-      const timestamps = Object.keys(generationByTime).map(Number).sort((a, b) => a - b);
-      const latestTimestamp = timestamps[timestamps.length - 1];
-      const latestData = generationByTime[latestTimestamp];
-      
-      const d = new Date(latestTimestamp);
+      const results = [];
       const formatter = new Intl.DateTimeFormat('en-IN', {
         timeZone: 'Asia/Kolkata',
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
       });
-      const timeStr = formatter.format(d);
 
-      const result = {
-        date: dateStr,
-        timeStr: timeStr,
-        thermal: latestData.thermal,
-        gas: latestData.gas,
-        nuclear: latestData.nuclear,
-        hydro: latestData.hydro,
-        wind: latestData.wind,
-        solar: latestData.solar,
-        dataUpdatedAt: d.toISOString(),
-      };
+      const timestamps = Object.keys(generationByTime).map(Number).sort((a, b) => a - b);
+      for (const ts of timestamps) {
+        const item = generationByTime[ts];
+        const d = new Date(ts);
+        const timeStr = formatter.format(d);
+        results.push({
+          date: dateStr,
+          timeStr: timeStr,
+          thermal: item.thermal,
+          gas: item.gas,
+          nuclear: item.nuclear,
+          hydro: item.hydro,
+          wind: item.wind,
+          solar: item.solar,
+          dataUpdatedAt: d.toISOString(),
+        });
+      }
 
       await ApiLogService.createLog('NPP Generation API', `https://npp.gov.in/dashBoard/demandmet2chartdata?date=${dateStr}`, 'SUCCESS', `Fetched generation data for ${dateStr}`);
-      return result;
+      return results;
     } catch (error: any) {
       console.error(`Error scraping NPP generation for ${dateStr}:`, error.message);
       await ApiLogService.createLog('NPP Generation API', `https://npp.gov.in/dashBoard/demandmet2chartdata?date=${dateStr}`, 'ERROR', error.message);
-      return null;
+      return [];
     }
   }
 

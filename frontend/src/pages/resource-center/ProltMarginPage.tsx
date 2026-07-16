@@ -54,7 +54,7 @@ export default function ProltMarginPage() {
   };
 
   return (
-    <ResourcePageLayout resourceType="prolt-margin"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="prolt-margin"
       title={config.title}
       subtitle={config.subtitle}
       icon={<ShowChartIcon fontSize="large" />}

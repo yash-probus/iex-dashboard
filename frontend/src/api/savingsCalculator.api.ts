@@ -10,6 +10,8 @@ export interface SavingsCalculatorEntry {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +26,8 @@ export interface CreateSavingsEntryDto {
   discom?: string;
   consumerCategory?: string;
   voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
 }
 
@@ -49,6 +53,7 @@ export interface CalculationResult {
   sanctionedLoad: number;
   maxEnergyPerSlot: number;
   totalEnergyKwh: number;
+  totalMarketEnergyKwh: number;
   totalBaselineCost: number;
   totalOptimizedCost: number;
   totalSavings: number;
@@ -81,7 +86,14 @@ export const deleteSavingsEntry = async (id: string): Promise<{ message: string 
   return response.data;
 };
 
-export const calculateSavings = async (id: string): Promise<CalculationResult> => {
-  const response = await apiClient.post<CalculationResult>(`/savings-calculator/${id}/calculate`);
+export const calculateSavings = async (id: string, month?: string): Promise<CalculationResult> => {
+  const url = month ? `/savings-calculator/${id}/calculate?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/calculate`;
+  const response = await apiClient.post<CalculationResult>(url);
+  return response.data;
+};
+
+export const calculateMarketDecision = async (id: string, month?: string): Promise<any> => {
+  const url = month ? `/savings-calculator/${id}/calculate-market-decision?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/calculate-market-decision`;
+  const response = await apiClient.post<any>(url);
   return response.data;
 };

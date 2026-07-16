@@ -22,6 +22,8 @@ export class SavingsCalculatorService {
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
     todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.create({
@@ -34,6 +36,8 @@ export class SavingsCalculatorService {
         discom: data.discom,
         consumerCategory: data.consumerCategory,
         voltageLevel: data.voltageLevel,
+        proltMargin: data.proltMargin,
+        traderMargin: data.traderMargin,
         todConsumptions: data.todConsumptions
       }
     });
@@ -48,6 +52,8 @@ export class SavingsCalculatorService {
     discom?: string;
     consumerCategory?: string;
     voltageLevel?: string;
+  proltMargin?: number;
+  traderMargin?: number;
     todConsumptions?: any;
   }) {
     return prisma.savingsCalculatorEntry.update({
@@ -61,6 +67,8 @@ export class SavingsCalculatorService {
         discom: data.discom,
         consumerCategory: data.consumerCategory,
         voltageLevel: data.voltageLevel,
+        proltMargin: data.proltMargin,
+        traderMargin: data.traderMargin,
         todConsumptions: data.todConsumptions
       }
     });
@@ -73,12 +81,33 @@ export class SavingsCalculatorService {
   }
 
   // Savings calculation logic
-  static async calculateSavings(id: string) {
+  static async calculateSavings(id: string, targetMonth?: string) {
     const entry = await this.getById(id);
     if (!entry) {
       throw new Error('Entry not found');
     }
 
+    const category = entry.consumerCategory || 'Industrial';
+    if (category.startsWith('LMV-11')) {
+      return this.calculateSavingsLMV11(entry, targetMonth);
+    } else if (category.startsWith('HV-1')) {
+      return this.calculateSavingsHV1(entry, targetMonth);
+    } else {
+      // Default to HV-2 logic for now
+      return this.calculateSavingsHV2(entry, targetMonth);
+    }
+  }
+
+  static async calculateSavingsLMV11(entry: any, targetMonth?: string) {
+    throw new Error('Calculation logic for LMV-11 is not yet implemented.');
+  }
+
+  static async calculateSavingsHV1(entry: any, targetMonth?: string) {
+    throw new Error('Calculation logic for HV-1 is not yet implemented.');
+  }
+
+  static async calculateSavingsHV2(entry: any, targetMonth?: string) {
+    const id = entry.id;
     const stateCode = entry.stateCode || 'MH';
     const sanctionedLoad = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
     const category = entry.consumerCategory || 'Industrial';
@@ -95,31 +124,77 @@ export class SavingsCalculatorService {
     }
 
     let allSlotsData: any[] = [];
-    let totalOptimizedCost = 0;
     let totalBaselineCost = 0;
+    let totalOptimizedCost = 0;
     let totalEnergyKwh = 0;
+    let totalMarketEnergyKwh = 0;
+
+    let monthsToProcess = Object.entries(todConsumptions);
+    if (targetMonth) {
+      monthsToProcess = monthsToProcess.filter(([ym]) => ym === targetMonth);
+      if (monthsToProcess.length === 0) {
+        throw new Error(`No consumption data found for month ${targetMonth}`);
+      }
+    }
 
     // Process each configured month
-    for (const [yearMonth, monthConsumptions] of Object.entries(todConsumptions)) {
+    for (const [yearMonth, monthConsumptions] of monthsToProcess) {
       const [yearStr, monthStr] = yearMonth.split('-');
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
+      const yyyymmMonth = parseInt(`${yearStr}${monthStr.padStart(2, '0')}`, 10);
 
-      const whereClause: any = {
-        stateCode,
-        month,
-        category,
-        voltageLevel: voltage
-      };
-
-      if (entry.discom) {
-        whereClause.discom = entry.discom;
+      if (isNaN(year) || isNaN(month) || isNaN(yyyymmMonth)) {
+        throw new Error(`Invalid consumption month format: ${yearMonth}. Expected YYYY-MM.`);
       }
 
+      let stateName = entry.stateCode || stateCode;
+      if (stateName) {
+        const rs = await prisma.regionState.findFirst({ where: { stateCode: stateName } });
+        if (rs && rs.stateName) {
+          stateName = rs.stateName;
+        }
+      }
+
+      let parsedSupplyVoltageCategory = entry.voltageLevel || rawVoltage;
+      if (parsedSupplyVoltageCategory.includes(' - ')) {
+        parsedSupplyVoltageCategory = parsedSupplyVoltageCategory.split(' - ')[0];
+      }
+
+      const whereClause: any = {
+        state: stateName,
+        consumerCategory: category,
+        supplyVoltageCategory: parsedSupplyVoltageCategory,
+        month: yyyymmMonth
+      };
+
+      // Fetch FPPA percent
+      const fppaData = await prisma.fppaCharges.findFirst({
+        where: {
+          state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
+          month: yyyymmMonth
+        }
+      });
+      const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
+
       // Fetch matching StateTariff slabs from DB
-      const tariffs = await prisma.stateTariff.findMany({
+      let tariffs = await prisma.stateTariff.findMany({
         where: whereClause
       });
+
+      if (tariffs.length === 0) {
+        const allTariffs = await prisma.stateTariff.findMany({
+          where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
+          orderBy: { month: 'desc' }
+        });
+        const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
+        const latestTariff = sameMonthTariff || allTariffs[0];
+        
+        if (latestTariff) {
+          whereClause.month = latestTariff.month;
+          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
+        }
+      }
 
       // Query combined DAM, GDAM, and RTM records for the selected month using FULL OUTER JOIN
       const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -188,8 +263,8 @@ export class SavingsCalculatorService {
 
         if (tariffs.length > 0) {
           const matched = tariffs.find(t => {
-            const start = parseHour(t.todStartHour);
-            const end = parseHour(t.todEndHour);
+            const start = parseHour(t.todStartTime);
+            const end = parseHour(t.todEndTime);
             if (start <= end) {
               return hour >= start && hour < end;
             } else {
@@ -198,8 +273,10 @@ export class SavingsCalculatorService {
           });
 
           if (matched) {
-            discomLandingPrice = Number(matched.energyCharges || matched.baseEnergyCharges || 7.5);
-            matchedTariffName = matched.todName || matched.tod || 'normal';
+            discomLandingPrice = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
+            matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
+              ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
+              : 'FLAT';
           }
         } else {
           if (hour >= 22 || hour < 6) {
@@ -210,6 +287,8 @@ export class SavingsCalculatorService {
             matchedTariffName = 'peak';
           }
         }
+
+        discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -250,74 +329,50 @@ export class SavingsCalculatorService {
         todCounts[groupKey] = (todCounts[groupKey] || 0) + 1;
       });
 
-      // 1. Sort slots chronologically
-      slotsData.sort((a, b) => {
-        if (a.date !== b.date) {
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
-        }
-        return a.slot - b.slot;
-      });
-
-      // 2. Initialize requirements and available capacities
-      const requirements: number[] = new Array(slotsData.length).fill(0);
-      const availableCapacities: number[] = new Array(slotsData.length).fill(maxEnergyPerSlot);
-      const optimizedCosts: number[] = new Array(slotsData.length).fill(0);
-
-      slotsData.forEach((item, index) => {
+      // Pass 2: Greedy Optimization per TOD Slab
+      // 1. Group slots by TOD slab
+      const slotsByTod: Record<string, any[]> = {};
+      slotsData.forEach(item => {
         let groupKey = item.todSlab.toUpperCase();
-        let requiredEnergy = 0;
-        if (monthConsumptions[groupKey] !== undefined && monthConsumptions[groupKey] !== null && monthConsumptions[groupKey] !== '') {
-          const totalEnergy = Number(monthConsumptions[groupKey]);
-          const count = todCounts[groupKey];
-          requiredEnergy = count > 0 ? totalEnergy / count : 0;
-        }
-        requirements[index] = requiredEnergy;
-        item.maxEnergyPerSlot = requiredEnergy;
-        item.baselineCost = item.discomLandingPrice * requiredEnergy;
+        if (!slotsByTod[groupKey]) slotsByTod[groupKey] = [];
+        slotsByTod[groupKey].push(item);
       });
 
-      // 3. Sort indices by lowest price
-      const priceSortedIndices = slotsData
-        .map((_, index) => index)
-        .sort((a, b) => slotsData[a].comparedLowestPrice - slotsData[b].comparedLowestPrice);
-
-      // 4. Allocate energy
-      for (const pIndex of priceSortedIndices) {
-        let amountToGive = availableCapacities[pIndex];
-        const pSlot = slotsData[pIndex];
-        const pGroup = pSlot.todSlab.toUpperCase();
-
-        for (let sIndex = pIndex; sIndex < slotsData.length; sIndex++) {
-          if (amountToGive <= 0) break;
-          
-          const sSlot = slotsData[sIndex];
-          const sGroup = sSlot.todSlab.toUpperCase();
-          
-          if (sGroup !== pGroup) continue;
-
-          if (requirements[sIndex] > 0) {
-            const take = Math.min(requirements[sIndex], amountToGive);
-            requirements[sIndex] -= take;
-            amountToGive -= take;
-            
-            optimizedCosts[sIndex] += take * pSlot.comparedLowestPrice;
-          }
+      // 2. Iterate through each TOD slab and allocate energy
+      Object.keys(slotsByTod).forEach(groupKey => {
+        // Find the total energy requirement for this TOD slab from the input
+        let remainingEnergy = 0;
+        const matchedKey = Object.keys(monthConsumptions).find(k => {
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+        });
+        
+        if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+          remainingEnergy = Number(monthConsumptions[matchedKey]);
         }
-        availableCapacities[pIndex] = amountToGive;
-      }
 
-      // 5. Unfulfilled requirements
-      slotsData.forEach((item, index) => {
-        if (requirements[index] > 0) {
-          optimizedCosts[index] += requirements[index] * item.comparedLowestPrice;
-        }
-        item.optimizedCost = optimizedCosts[index];
+        // Add the baseline cost for this TOD slab (if they bought it all from DISCOM)
+        // Note: we can just add this up per slot, but since DISCOM price is constant per TOD slab,
+        // we can assign it to the slots or just keep track globally.
+        // To keep the UI reporting happy, we will distribute baselineCost across slots.
+
+        const totalSlotsInTod = slotsByTod[groupKey].length;
+        const energyPerSlot = totalSlotsInTod > 0 ? remainingEnergy / totalSlotsInTod : 0;
+
+        slotsByTod[groupKey].forEach(slot => {
+          slot.maxEnergyPerSlot = energyPerSlot;
+          slot.optimizedCost = energyPerSlot * slot.comparedLowestPrice;
+          slot.baselineCost = energyPerSlot * slot.discomLandingPrice;
+        });
       });
 
       slotsData.forEach(item => {
         totalOptimizedCost += item.optimizedCost;
         totalBaselineCost += item.baselineCost;
         totalEnergyKwh += item.maxEnergyPerSlot;
+        if (item.selectedSource !== 'DISCOM') {
+          totalMarketEnergyKwh += item.maxEnergyPerSlot;
+        }
       });
 
       allSlotsData.push(...slotsData);
@@ -348,11 +403,244 @@ export class SavingsCalculatorService {
       sanctionedLoad,
       maxEnergyPerSlot,
       totalEnergyKwh,
+      totalMarketEnergyKwh,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,
       todGroups: sortedGroups,
       sortedMonthlyList
+    };
+  }
+
+  static async calculateMarketDecision(id: string, targetMonthStr?: string) {
+    const entry = await prisma.savingsCalculatorEntry.findUnique({
+      where: { id }
+    });
+
+    if (!entry) {
+      throw new Error('Savings calculator entry not found');
+    }
+
+    let year = new Date().getFullYear();
+    let month = new Date().getMonth() + 1;
+    if (targetMonthStr) {
+      const parts = targetMonthStr.split('-');
+      if (parts.length === 2) {
+        year = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10);
+      }
+    }
+    const yyyymmMonth = parseInt(`${year}${String(month).padStart(2, '0')}`, 10);
+    const stateCode = entry.stateCode || '';
+    const category = entry.consumerCategory || '';
+    const voltageLevel = entry.voltageLevel || '';
+    let stateName = stateCode;
+    if (stateCode) {
+      const rs = await prisma.regionState.findFirst({ where: { stateCode } });
+      if (rs && rs.stateName) {
+        stateName = rs.stateName;
+      }
+    }
+
+    const traderMargin = Number(entry.traderMargin || 0);
+
+    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+    const targetDate = new Date(startStr);
+
+    let parsedSupplyVoltageCategory = voltageLevel;
+    if (parsedSupplyVoltageCategory.includes(' - ')) {
+      parsedSupplyVoltageCategory = parsedSupplyVoltageCategory.split(' - ')[0];
+    }
+
+    const stateCharges = await prisma.stateCharges.findFirst({
+      where: {
+        state: stateName.toUpperCase().replace(/\s+/g, '_'),
+        category: category,
+        // StateCharges uses the full string (e.g. '33' or '0.433') so we might need the second part if available
+        // But for now, we will just use voltageLevel since it was '0.433' in DB. Or we can just omit it if it fails.
+        // Let's omit voltageLevel for now to avoid false negatives since StateCharges has different voltage formatting.
+      }
+    });
+
+      const ctuCharges = await prisma.ctuCharges.findFirst({
+        where: { month: yyyymmMonth }
+      });
+
+      const istsCharges = await prisma.istsCharges.findMany({
+        where: {
+          OR: [
+            { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
+          ]
+        }
+      });
+
+      let whereClauseTariff: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
+      let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
+
+      if (tariffs.length === 0) {
+        const allTariffs = await prisma.stateTariff.findMany({
+          where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
+          orderBy: { month: 'desc' }
+        });
+        const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
+        const latestTariff = sameMonthTariff || allTariffs[0];
+
+        if (latestTariff) {
+          whereClauseTariff.month = latestTariff.month;
+          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
+        }
+      }
+
+    const EXCHANGE_FEES = 0.02;
+    const GST_EXCHANGE = 0.0036;
+    const OTHER_CHARGES = 0.1;
+    const TRADER_MARGIN = traderMargin;
+    const GST_TRADER_MARGIN = TRADER_MARGIN * 0.18;
+
+    if (!ctuCharges) {
+      throw new Error(`CTU Charges not found for month ${month}`);
+    }
+    if (!stateCharges) {
+      throw new Error(`State Charges not found for state ${stateCode}, category ${category}, voltage ${voltageLevel}, date ${startStr}`);
+    }
+
+    if (ctuCharges.ctu_charges_rs_per_kwh == null) throw new Error('CTU Charges value is missing.');
+    if (stateCharges.stuCharges == null) throw new Error('STU Charges value is missing.');
+    if (stateCharges.distributionWheelingCharges == null) throw new Error('Distribution/Wheeling Charges value is missing.');
+    if (stateCharges.crossSubsidy == null) throw new Error('Cross Subsidy value is missing.');
+    if (stateCharges.additionalCharge == null) throw new Error('Additional Surcharge value is missing.');
+    if (stateCharges.stuLossPercent == null) throw new Error('STU Loss Percent value is missing.');
+    if (stateCharges.wheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
+    
+    // Fetch FPPA percent
+    const fppaData = await prisma.fppaCharges.findFirst({
+      where: {
+        state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
+        month: yyyymmMonth
+      }
+    });
+    const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0; 
+
+    const ctuCharge = Number(ctuCharges.ctu_charges_rs_per_kwh);
+    const stuCharge = Number(stateCharges.stuCharges);
+    const wheelingCharge = Number(stateCharges.distributionWheelingCharges);
+    const crossSubsidy = Number(stateCharges.crossSubsidy);
+    const additionalSurcharge = Number(stateCharges.additionalCharge);
+    const stuLoss = Number(stateCharges.stuLossPercent);
+    const wheelingLoss = Number(stateCharges.wheelingLossPercent);
+
+    const query = `
+      SELECT
+          COALESCE(dam.date, rtm.date, gdam.date) AS date,
+          COALESCE(dam.timeblock, rtm.timeblock, gdam.timeblock) AS timeblock,
+          dam.mcp AS "damMcp",
+          rtm.mcp AS "rtmMcp",
+          gdam.mcp AS "gdamMcp"
+      FROM
+          (SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+           FROM "DamRecord" dr 
+           JOIN "Dataset" d ON dr."datasetId" = d.id 
+           WHERE d.market = 'DAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) dam
+      FULL OUTER JOIN
+          (SELECT d."deliveryDate" as date, rr."intervalNumber" as timeblock, rr.mcp 
+           FROM "RtmRecord" rr 
+           JOIN "Dataset" d ON rr."datasetId" = d.id 
+           WHERE d.market = 'RTM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) rtm
+          ON dam.date = rtm.date AND dam.timeblock = rtm.timeblock
+      FULL OUTER JOIN
+          (SELECT d."deliveryDate" as date, gr."intervalNumber" as timeblock, gr.mcp 
+           FROM "GdamRecord" gr 
+           JOIN "Dataset" d ON gr."datasetId" = d.id 
+           WHERE d.market = 'GDAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) gdam
+          ON COALESCE(dam.date, rtm.date) = gdam.date AND COALESCE(dam.timeblock, rtm.timeblock) = gdam.timeblock
+      ORDER BY date ASC, timeblock ASC;
+    `;
+    const records: any[] = await prisma.$queryRawUnsafe(query);
+
+    const parseHour = (val: string | null | undefined): number => {
+      if (!val) return 0;
+      if (val.includes(':')) {
+        return parseInt(val.split(':')[0], 10);
+      }
+      return parseInt(val, 10);
+    };
+
+    const slotsData = records.map(rec => {
+      const deliveryDate = rec.date ? new Date(rec.date) : new Date(startStr);
+      const slot = rec.timeblock || rec.timeblock === 0 ? Number(rec.timeblock) : 1;
+      const startMinutes = (slot - 1) * 15;
+      const hour = Math.floor(startMinutes / 60);
+
+      let istsLoss = 0;
+      const matchingIsts = istsCharges.find(i => deliveryDate >= i.startDate && deliveryDate <= i.endDate);
+      if (matchingIsts) {
+        istsLoss = Number(matchingIsts.istsLossPercent || 0);
+      }
+
+      const damMcp = rec.damMcp !== undefined ? (Number(rec.damMcp) / 1000) : null;
+      const rtmMcp = rec.rtmMcp !== undefined ? (Number(rec.rtmMcp) / 1000) : null;
+      const gdamMcp = rec.gdamMcp !== undefined ? (Number(rec.gdamMcp) / 1000) : null;
+
+      const calcExchangeLanding = (mcp: number | null) => {
+        if (mcp === null) return null;
+        const base = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
+        const lossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
+        return base * lossMultiplier;
+      };
+
+      const damLanding = calcExchangeLanding(damMcp);
+      const rtmLanding = calcExchangeLanding(rtmMcp);
+      const gdamLanding = calcExchangeLanding(gdamMcp);
+
+      const marketPrices = [damLanding, rtmLanding, gdamLanding].filter(p => p !== null) as number[];
+      const bestMarketLanding = marketPrices.length > 0 ? Math.min(...marketPrices) : 0;
+      
+      let marketSource = 'DAM';
+      if (bestMarketLanding === rtmLanding) marketSource = 'RTM';
+      if (bestMarketLanding === gdamLanding) marketSource = 'GDAM';
+
+      let discomBase = 7.5;
+      let matchedTariffName = 'normal';
+      if (tariffs.length > 0) {
+        const matched = tariffs.find(t => {
+          const start = parseHour(t.todStartTime);
+          const end = parseHour(t.todEndTime);
+          if (start <= end) return hour >= start && hour < end;
+          return hour >= start || hour < end;
+        });
+        if (matched) {
+          discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
+          matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
+            ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
+            : 'FLAT';
+        }
+      }
+      
+      const discomLanding = discomBase * (1 + (fppaPercent / 100));
+
+      const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
+
+      return {
+        date: deliveryDate.toISOString().split('T')[0],
+        timeblock: slot,
+        hour,
+        tod: matchedTariffName,
+        damMcp, rtmMcp, gdamMcp,
+        damLanding, rtmLanding, gdamLanding,
+        bestMarketLanding,
+        marketSource,
+        discomLanding,
+        shouldBuyFromMarket,
+        savingsPerKwh: discomLanding - bestMarketLanding
+      };
+    });
+
+    return {
+      clientId: id,
+      clientName: entry.clientName,
+      slotsData
     };
   }
 }

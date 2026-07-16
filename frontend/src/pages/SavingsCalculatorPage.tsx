@@ -31,6 +31,7 @@ import {
   updateSavingsEntry, 
   deleteSavingsEntry, 
   calculateSavings,
+  calculateMarketDecision,
   SavingsCalculatorEntry, 
   CalculationResult,
   CalculationSlotDetail
@@ -62,6 +63,10 @@ export default function SavingsCalculatorPage() {
   const [discom, setDiscom] = useState('');
   const [consumerCategory, setConsumerCategory] = useState('');
   const [voltageLevel, setVoltageLevel] = useState('');
+  const [supplyVoltageValue, setSupplyVoltageValue] = useState('');
+  const [proltMargin, setProltMargin] = useState<string>('');
+  const [traderMargin, setTraderMargin] = useState('');
+  
   const [todConsumptions, setTodConsumptions] = useState<Record<string, Record<string, string>>>({});
   
   // Validation Errors
@@ -70,19 +75,35 @@ export default function SavingsCalculatorPage() {
     industryName?: string; 
     address?: string;
     sanctionedLoadKw?: string;
+    clientDetails?: string;
   }>({});
 
   // Submitting States
   const [submitting, setSubmitting] = useState(false);
+  
+  // PROLT Dialog State
+  const [proltDialogOpen, setProltDialogOpen] = useState(false);
 
   // Calculation Dialog States
   const [calcDialogOpen, setCalcDialogOpen] = useState(false);
   const [calcEntry, setCalcEntry] = useState<SavingsCalculatorEntry | null>(null);
-  const [calcMonth, setCalcMonth] = useState<number>(7); // Default July
-  const [calcYear, setCalcYear] = useState<number>(2026); // Default 2026
   const [calcResult, setCalcResult] = useState<CalculationResult | null>(null);
   const [calculating, setCalculating] = useState(false);
+  const [marketDecisionResult, setMarketDecisionResult] = useState<any | null>(null);
+  const [calculatingMarket, setCalculatingMarket] = useState(false);
   const [calcTab, setCalcTab] = useState(0);
+
+  // Market Decision States
+  const [marketDecisionOpen, setMarketDecisionOpen] = useState(false);
+  const [marketDecisionEntry, setMarketDecisionEntry] = useState<SavingsCalculatorEntry | null>(null);
+  const [marketDecisionLoading, setMarketDecisionLoading] = useState(false);
+  const [marketVolumeKwh, setMarketVolumeKwh] = useState<string>('15000');
+  const [nldcFee, setNldcFee] = useState<string>('5000');
+  const [sldcFee, setSldcFee] = useState<string>('1500');
+  const [marketMonthStr, setMarketMonthStr] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   // Snackbar Notification State
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -94,6 +115,7 @@ export default function SavingsCalculatorPage() {
   // Fetch entries
   const [tariffData, setTariffData] = useState<any[]>([]);
   const [discomList, setDiscomList] = useState<any[]>([]);
+  const [regionStates, setRegionStates] = useState<any[]>([]);
 
   const loadEntries = async () => {
     try {
@@ -111,9 +133,10 @@ export default function SavingsCalculatorPage() {
 
   const loadResourceData = async () => {
     try {
-      const [tariffRes, discomRes] = await Promise.all([
+      const [tariffRes, discomRes, regionRes] = await Promise.all([
         getResourceData('state-tariff'),
-        getResourceData('discom-list')
+        getResourceData('discom-list'),
+        getResourceData('region-state')
       ]);
       if (tariffRes.success && tariffRes.data.length > 0) {
         setTariffData(tariffRes.data);
@@ -124,6 +147,9 @@ export default function SavingsCalculatorPage() {
         setDiscomList(discomRes.data);
       } else {
         setDiscomList(DISCOM_LIST_MOCK_DATA);
+      }
+      if (regionRes.success && regionRes.data.length > 0) {
+        setRegionStates(regionRes.data);
       }
     } catch (err) {
       console.error('Failed to load resource data, falling back to mock data:', err);
@@ -137,78 +163,113 @@ export default function SavingsCalculatorPage() {
     loadResourceData();
   }, []);
 
-  const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1); // For filtering TODs in the form
-  const [entryYear, setEntryYear] = useState<number>(new Date().getFullYear()); // For filtering TODs in the form
+  const [entryYear, setEntryYear] = useState<number>(new Date().getFullYear());
+  const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1);
 
-  // Fetch unique State Codes
+  const [selectedSimMonth, setSelectedSimMonth] = useState<string>('');
+
   const uniqueStates = React.useMemo(() => {
-    const statesMap = new Map<string, string>();
+    const statesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (row.stateCode && row.state) {
-        statesMap.set(row.stateCode, row.state);
-      }
+      if (row.state) statesSet.add(row.state);
     });
-    return Array.from(statesMap.entries())
-      .map(([code, name]) => ({ stateCode: code, stateName: name }))
-      .sort((a, b) => a.stateName.localeCompare(b.stateName));
+    return Array.from(statesSet)
+      .sort()
+      .map((name) => ({ stateCode: name, stateName: name }));
   }, [tariffData]);
 
-  // Dependent Selectors Logic
   const filteredDiscoms = React.useMemo(() => {
-    const discomsSet = new Set<string>();
-    tariffData.forEach((row: any) => {
-      if (row.discom && (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase())) {
-        discomsSet.add(row.discom);
-      }
-    });
-    return Array.from(discomsSet).map(d => ({ code: d, legalName: d }));
-  }, [tariffData, stateCode]);
+    // We need to match the selected stateCode (which could be "Uttar Pradesh" or "UP")
+    // against the discom's stateCode (which is "UP").
+    let normalizedCode = stateCode;
+    const region = regionStates.find(r => r.stateName.toLowerCase() === stateCode?.toLowerCase() || r.stateCode.toLowerCase() === stateCode?.toLowerCase());
+    if (region) {
+      normalizedCode = region.stateCode;
+    }
+
+    return discomList
+      .filter((d: any) => !stateCode || d.stateCode === normalizedCode || d.state === stateCode || d.stateCode === stateCode)
+      .map((d: any) => ({ code: d.code, legalName: d.legalName }));
+  }, [discomList, stateCode, regionStates]);
 
   const uniqueCategories = React.useMemo(() => {
     const categoriesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (
-        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
-        (!discom || row.discom === discom)
-      ) {
-        if (row.category) categoriesSet.add(row.category);
-      }
+      const matchState = !stateCode || 
+        row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+        (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
+      if (matchState && row.consumerCategory) categoriesSet.add(row.consumerCategory);
     });
+
+    // Always ensure the known UP categories are present
+    categoriesSet.add('LMV-11');
+    categoriesSet.add('HV-1');
+    categoriesSet.add('HV-2');
+
     return Array.from(categoriesSet).sort();
-  }, [tariffData, stateCode, discom]);
+  }, [tariffData, stateCode]);
 
   const uniqueVoltageLevels = React.useMemo(() => {
+    if (consumerCategory.startsWith('LMV-11')) return ['Low Tension (LT)', 'High Tension (HT)'];
+    if (consumerCategory.startsWith('HV-1')) return ['At 11 kV', 'Above 11 kV'];
+    if (consumerCategory.startsWith('HV-2')) return ['Up to 11 kV', 'Above 11 kV to 66 kV', 'Above 66 kV to 132 kV', 'Above 132 kV'];
+
     const levelsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (
-        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
-        (!discom || row.discom === discom) &&
-        (!consumerCategory || row.category === consumerCategory)
-      ) {
-        if (row.voltageLevel) levelsSet.add(row.voltageLevel);
+      const matchState = !stateCode || 
+        row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+        (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
+      const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
+      if (matchState && matchCategory && row.supplyVoltageCategory) {
+        levelsSet.add(row.supplyVoltageCategory);
       }
     });
     return Array.from(levelsSet);
-  }, [tariffData, stateCode, discom, consumerCategory]);
+  }, [tariffData, stateCode, consumerCategory]);
 
-  const uniqueTodSlabs = React.useMemo(() => {
+  const getTodSlabsForMonth = React.useCallback((targetMonth: number) => {
     const slabsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (
-        (!stateCode || row.stateCode?.toLowerCase() === stateCode.trim().toLowerCase()) &&
-        (!discom || row.discom === discom) &&
-        (!consumerCategory || row.category === consumerCategory) &&
-        (!voltageLevel || row.voltageLevel === voltageLevel) &&
-        (!entryMonth || row.month === entryMonth)
-      ) {
-        const slabName = (row.todName || row.tod || 'normal').toUpperCase();
-        slabsSet.add(slabName);
+      const matchState = !stateCode || 
+        row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+        (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
+      const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
+      let parsedVoltageLevel = voltageLevel;
+      if (parsedVoltageLevel && parsedVoltageLevel.includes(' - ')) {
+        parsedVoltageLevel = parsedVoltageLevel.split(' - ')[0];
+      }
+      const matchVoltage = !voltageLevel || row.supplyVoltageCategory === parsedVoltageLevel;
+      // month in new schema is YYYYMM int; targetMonth from todConsumptions is 1-12
+      // Match by the last two digits of the stored month
+      const storedMonthNum = row.month % 100;
+      const matchMonth = storedMonthNum === targetMonth;
+
+      if (matchState && matchCategory && matchVoltage && matchMonth) {
+        // Derive a slab name from tod times: use start-end or 'FLAT' when no TOD
+        const start = row.todStartTime || '—';
+        const end = row.todEndTime || '—';
+        const slabName = (start === '—' && end === '—')
+          ? 'FLAT'
+          : `${start}-${end}`;
+        slabsSet.add(slabName.toUpperCase());
       }
     });
+    // If no slabs found, always include a FLAT slab
+    if (slabsSet.size === 0) slabsSet.add('FLAT');
     return Array.from(slabsSet).sort();
-  }, [tariffData, stateCode, discom, consumerCategory, voltageLevel, entryMonth]);
+  }, [tariffData, stateCode, consumerCategory, voltageLevel]);
 
-  // Form Reset Helper
+  const availableSupplyVoltageValues = React.useMemo(() => {
+    switch (voltageLevel) {
+      case 'At 11 kV': return ['11'];
+      case 'Above 11 kV': return ['33', '66', '132'];
+      case 'Up to 11 kV': return ['11'];
+      case 'Above 11 kV to 66 kV': return ['33', '66'];
+      case 'Above 66 kV to 132 kV': return ['132'];
+      default: return [];
+    }
+  }, [voltageLevel]);
+
   const resetForm = () => {
     setClientName('');
     setIndustryName('');
@@ -218,11 +279,13 @@ export default function SavingsCalculatorPage() {
     setDiscom('');
     setConsumerCategory('');
     setVoltageLevel('');
+    setSupplyVoltageValue('');
+    setProltMargin('');
+    setTraderMargin('');
     setTodConsumptions({});
     setFormErrors({});
   };
 
-  // Open Dialog
   const handleOpenDialog = (mode: DialogMode, entry?: SavingsCalculatorEntry) => {
     setDialogMode(mode);
     setFormErrors({});
@@ -235,7 +298,19 @@ export default function SavingsCalculatorPage() {
       setStateCode(entry.stateCode || '');
       setDiscom(entry.discom || '');
       setConsumerCategory(entry.consumerCategory || '');
-      setVoltageLevel(entry.voltageLevel || '');
+      
+      let parsedVoltageLevel = entry.voltageLevel || '';
+      let parsedSupplyVoltageValue = '';
+      if (parsedVoltageLevel.includes(' - ')) {
+        const parts = parsedVoltageLevel.split(' - ');
+        parsedVoltageLevel = parts[0];
+        parsedSupplyVoltageValue = parts.slice(1).join(' - ');
+      }
+      setVoltageLevel(parsedVoltageLevel);
+      setSupplyVoltageValue(parsedSupplyVoltageValue);
+      
+      setProltMargin(entry.proltMargin ? String(entry.proltMargin) : '');
+      setTraderMargin(entry.traderMargin ? String(entry.traderMargin) : '');
       
       const tc: Record<string, Record<string, string>> = {};
       if (entry.todConsumptions) {
@@ -248,11 +323,11 @@ export default function SavingsCalculatorPage() {
       }
       setTodConsumptions(tc);
       
-      setActiveStep(6); // Start at final step for edit mode
+      setActiveStep(6); 
     } else {
       setSelectedEntry(null);
       resetForm();
-      setActiveStep(0); // Start at step 0 for create mode
+      setActiveStep(0); 
     }
   };
 
@@ -267,13 +342,14 @@ export default function SavingsCalculatorPage() {
       case 3:
         return consumerCategory.trim() !== '';
       case 4:
-        return voltageLevel.trim() !== '';
+        if (!voltageLevel.trim()) return false;
+        if (availableSupplyVoltageValues.length > 0 && !supplyVoltageValue.trim()) return false;
+        return true;
       case 5:
         if (!sanctionedLoadKw.trim()) return false;
         const parsed = parseFloat(sanctionedLoadKw);
         return !isNaN(parsed) && parsed > 0;
       case 6:
-        // Optional consumptions, but if provided should be valid numbers
         let isValid = true;
         Object.values(todConsumptions).forEach(monthData => {
           Object.values(monthData).forEach(val => {
@@ -289,14 +365,14 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  // Close Dialog
   const handleCloseDialog = () => {
     setDialogMode(null);
     setSelectedEntry(null);
+    setFormErrors({});
+    setProltDialogOpen(false);
     resetForm();
   };
 
-  // Validation
   const validateForm = () => {
     const errors: typeof formErrors = {};
     if (!clientName.trim()) errors.clientName = 'Client Name is required.';
@@ -314,7 +390,6 @@ export default function SavingsCalculatorPage() {
     return Object.keys(errors).length === 0;
   };
 
-  // Handle Form Submit (Create or Edit)
   const handleSubmit = async () => {
     if (dialogMode === 'view') return;
     if (!validateForm()) return;
@@ -329,7 +404,9 @@ export default function SavingsCalculatorPage() {
         stateCode: stateCode.trim() || undefined,
         discom: discom.trim() || undefined,
         consumerCategory: consumerCategory.trim() || undefined,
-        voltageLevel: voltageLevel.trim() || undefined,
+        voltageLevel: (voltageLevel.trim() ? (supplyVoltageValue.trim() ? `${voltageLevel.trim()} - ${supplyVoltageValue.trim()}` : voltageLevel.trim()) : undefined),
+        proltMargin: proltMargin ? Number(proltMargin) : undefined,
+        traderMargin: traderMargin ? Number(traderMargin) : undefined,
         todConsumptions: Object.keys(todConsumptions).length > 0 ? 
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => [
@@ -370,7 +447,6 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  // Handle Delete Entry
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this entry?')) return;
 
@@ -392,26 +468,31 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  // Run Calculation Flow
   const handleOpenCalc = (entry: SavingsCalculatorEntry) => {
     setCalcEntry(entry);
     setCalcResult(null);
+    setMarketDecisionResult(null);
     setCalcDialogOpen(true);
     setCalcTab(0);
+    
+    const months = Object.keys(entry.todConsumptions || {}).sort();
+    setSelectedSimMonth(months.length > 0 ? months[0] : '');
   };
 
   const handleCloseCalc = () => {
     setCalcDialogOpen(false);
     setCalcEntry(null);
     setCalcResult(null);
+    setMarketDecisionResult(null);
   };
 
   const executeCalculation = async () => {
     if (!calcEntry) return;
     try {
       setCalculating(true);
-      const res = await calculateSavings(calcEntry.id);
+      const res = await calculateSavings(calcEntry.id, selectedSimMonth || undefined);
       setCalcResult(res);
+      setCalcTab(0);
     } catch (err: any) {
       console.error('Calculation failed:', err);
       setSnackbar({
@@ -421,6 +502,25 @@ export default function SavingsCalculatorPage() {
       });
     } finally {
       setCalculating(false);
+    }
+  };
+
+  const executeMarketDecision = async () => {
+    if (!calcEntry) return;
+    try {
+      setCalculatingMarket(true);
+      const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined);
+      setMarketDecisionResult(res);
+      setCalcTab(2);
+    } catch (err: any) {
+      console.error('Market Decision failed:', err);
+      setSnackbar({
+        open: true,
+        message: err.message || 'Market decision calculation failed.',
+        severity: 'error'
+      });
+    } finally {
+      setCalculatingMarket(false);
     }
   };
 
@@ -531,10 +631,12 @@ export default function SavingsCalculatorPage() {
                   if (stepIndex < 6) {
                     setActiveStep(stepIndex + 1);
                   } else {
-                    handleSubmit();
+                    setProltDialogOpen(true);
                   }
                 } else {
-                  if (stepIndex === 5) {
+                  if (stepIndex === 0) {
+                    setFormErrors({ clientDetails: 'Please fill in all required client details.' });
+                  } else if (stepIndex === 5) {
                     setFormErrors({ sanctionedLoadKw: 'Sanctioned load must be a positive number.' });
                   } else if (stepIndex === 6) {
                     setSnackbar({ open: true, message: 'Please enter valid numbers for TOD consumption', severity: 'error' });
@@ -552,7 +654,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {stepIndex === 6 ? (dialogMode === 'edit' ? 'Save Entry' : 'Create Entry') : 'Continue'}
+              {stepIndex === 6 ? 'Next' : 'Continue'}
             </Button>
           </Box>
         </Card>
@@ -562,7 +664,6 @@ export default function SavingsCalculatorPage() {
     return null;
   };
 
-  // Define main table columns
   const columns: ColumnDefinition[] = [
     { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150 },
     { field: 'industryName', headerName: 'Industry Name', align: 'left', minWidth: 150 },
@@ -614,7 +715,6 @@ export default function SavingsCalculatorPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pt: 3 }}>
-      {/* Header section */}
       <Box sx={{
         display: 'flex',
         alignItems: 'center',
@@ -667,14 +767,12 @@ export default function SavingsCalculatorPage() {
         </Button>
       </Box>
 
-      {/* Error message */}
       {error && (
         <Alert severity="error" sx={{ borderRadius: 2 }}>
           {error}
         </Alert>
       )}
 
-      {/* Main Table view */}
       <TableContainer
         title="Savings Calculator Entries"
         data={entries}
@@ -689,9 +787,8 @@ export default function SavingsCalculatorPage() {
         }
       />
 
-      {/* Dialog for Create / Edit / View */}
       <Dialog 
-        open={dialogMode !== null} 
+        open={dialogMode !== null && !proltDialogOpen} 
         onClose={handleCloseDialog}
         maxWidth="sm"
         fullWidth
@@ -713,7 +810,7 @@ export default function SavingsCalculatorPage() {
           {dialogMode !== 'view' && (
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
-                width: `${((activeStep + 1) / 7) * 100}%`, 
+                width: `${((activeStep + 1) / 8) * 100}%`, 
                 height: '100%', 
                 background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', 
                 transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
@@ -721,8 +818,6 @@ export default function SavingsCalculatorPage() {
             </Box>
           )}
 
-          {/* Render steps */}
-          {/* Step 0: Client details */}
           {renderStep(0, {
             icon: <BusinessIcon />,
             title: "Client & Facility Details",
@@ -763,7 +858,6 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 1: Location */}
           {renderStep(1, {
             icon: <LocationIcon />,
             title: "Where is your facility located?",
@@ -780,6 +874,7 @@ export default function SavingsCalculatorPage() {
                     setDiscom('');
                     setConsumerCategory('');
                     setVoltageLevel('');
+                    setSupplyVoltageValue('');
                   }}
                   fullWidth
                   variant="outlined"
@@ -801,7 +896,6 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 2: Provider */}
           {renderStep(2, {
             icon: <ElectricBoltIcon />,
             title: "Who is your electricity provider?",
@@ -834,7 +928,6 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 3: Consumer Category */}
           {renderStep(3, {
             icon: <CategoryIcon />,
             title: "What is your consumer category?",
@@ -867,19 +960,21 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 4: Voltage Level */}
           {renderStep(4, {
             icon: <BoltIcon />,
             title: "What is your voltage level?",
             question: "What is your voltage level?",
-            summary: `Voltage Level: ${voltageLevel}`,
+            summary: `Voltage Level: ${voltageLevel}${supplyVoltageValue ? ` - ${supplyVoltageValue}` : ''}`,
             content: (
-              <Box sx={{ mt: 1 }}>
+              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 <TextField
                   select
-                  label="Voltage Level"
+                  label="Voltage Category"
                   value={voltageLevel}
-                  onChange={(e) => setVoltageLevel(e.target.value)}
+                  onChange={(e) => {
+                    setVoltageLevel(e.target.value);
+                    setSupplyVoltageValue('');
+                  }}
                   fullWidth
                   variant="outlined"
                   size="small"
@@ -896,11 +991,29 @@ export default function SavingsCalculatorPage() {
                     <option value={voltageLevel}>{voltageLevel}</option>
                   )}
                 </TextField>
+
+                {availableSupplyVoltageValues.length > 0 && (
+                  <TextField
+                    select
+                    label="Supply Voltage Value (kV)"
+                    value={supplyVoltageValue}
+                    onChange={(e) => setSupplyVoltageValue(e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    SelectProps={{ native: true }}
+                    InputLabelProps={{ shrink: true }}
+                  >
+                    <option value="" disabled>Select Value</option>
+                    {availableSupplyVoltageValues.map((val) => (
+                      <option key={val} value={val}>{val}</option>
+                    ))}
+                  </TextField>
+                )}
               </Box>
             )
           })}
 
-          {/* Step 5: Sanctioned Load */}
           {renderStep(5, {
             icon: <SpeedIcon />,
             title: "What is your sanctioned load?",
@@ -923,7 +1036,6 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {/* Step 6: TOD Consumptions */}
           {renderStep(6, {
             icon: <CalculateIcon />,
             title: "Energy Consumption per TOD Slab",
@@ -983,13 +1095,17 @@ export default function SavingsCalculatorPage() {
                   </Button>
                 </Box>
                 
-                {uniqueTodSlabs.length === 0 && (
+                {getTodSlabsForMonth(entryMonth).length === 0 && (
                   <Typography variant="body2" color="text.secondary">
                     Please select a State, DISCOM, and Category to see applicable TOD slabs.
                   </Typography>
                 )}
 
-                {Object.keys(todConsumptions).sort().map(ym => (
+                {Object.keys(todConsumptions).sort().map(ym => {
+                  const targetMonth = parseInt(ym.split('-')[1], 10);
+                  const monthSlabs = getTodSlabsForMonth(targetMonth);
+                  
+                  return (
                   <Card key={ym} variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: '#F8FAFC' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -1004,7 +1120,7 @@ export default function SavingsCalculatorPage() {
                       </IconButton>
                     </Box>
                     <Grid container spacing={2}>
-                      {uniqueTodSlabs.map(slab => (
+                      {monthSlabs.map(slab => (
                         <Grid item xs={12} sm={6} key={slab}>
                           <TextField
                             label={`${slab} (kWh)`}
@@ -1040,11 +1156,23 @@ export default function SavingsCalculatorPage() {
                       </Grid>
                     </Grid>
                   </Card>
-                ))}
+
+                  );
+                })}
               </Box>
             )
           })}
 
+          {dialogMode === 'view' && selectedEntry && (
+            <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString()}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                <strong>Last Updated At:</strong> {new Date(selectedEntry.updatedAt).toLocaleString()}
+              </Typography>
+            </Box>
+          )}
           {dialogMode === 'view' && selectedEntry && (
             <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
@@ -1068,7 +1196,78 @@ export default function SavingsCalculatorPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Savings Calculation View Dialog */}
+      {/* PROLT Config Dialog */}
+      <Dialog 
+        open={proltDialogOpen} 
+        onClose={() => setProltDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 4, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ bgcolor: '#F3E8FF', color: '#8B5CF6', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CalculateIcon fontSize="small" />
+            </Box>
+            Margin Details
+          </Box>
+          <IconButton onClick={() => setProltDialogOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 3 }}>
+          <Typography variant="body1" sx={{ fontWeight: 600, mb: 2 }}>
+            What are the margin rates for this client?
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <TextField
+              label="PROLT Margin (Rs/kWh)"
+              value={proltMargin}
+              onChange={(e) => setProltMargin(e.target.value)}
+              fullWidth
+              type="number"
+              variant="outlined"
+              size="small"
+            />
+            <TextField
+              label="Trader Margin (Rs/kWh)"
+              value={traderMargin}
+              onChange={(e) => setTraderMargin(e.target.value)}
+              fullWidth
+              type="number"
+              variant="outlined"
+              size="small"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
+          <Button 
+            onClick={() => setProltDialogOpen(false)} 
+            sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setProltDialogOpen(false);
+              handleSubmit();
+            }}
+            sx={{
+              bgcolor: '#8B5CF6',
+              '&:hover': { bgcolor: '#7C3AED' },
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3
+            }}
+          >
+            {dialogMode === 'edit' ? 'Save Entry' : 'Create Entry'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog
         open={calcDialogOpen}
         onClose={handleCloseCalc}
@@ -1091,14 +1290,33 @@ export default function SavingsCalculatorPage() {
         </DialogTitle>
 
         <DialogContent sx={{ minHeight: '500px' }}>
-          {/* Controls */}
           <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
+
+            <TextField
+              select
+              label="Simulation Month"
+              value={selectedSimMonth}
+              onChange={(e) => {
+                setSelectedSimMonth(e.target.value);
+                setCalcResult(null);
+                setMarketDecisionResult(null);
+              }}
+              size="small"
+              sx={{ width: 220, bgcolor: 'background.paper' }}
+              SelectProps={{ native: true }}
+            >
+              {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
+                <option key={ym} value={ym}>
+                  {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </option>
+              ))}
+            </TextField>
 
             <Button
               variant="contained"
               startIcon={<PlayIcon />}
               onClick={executeCalculation}
-              disabled={calculating}
+              disabled={calculating || !selectedSimMonth}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2, 
@@ -1109,6 +1327,23 @@ export default function SavingsCalculatorPage() {
               }}
             >
               {calculating ? 'Analyzing...' : 'Run Simulation'}
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<PlayIcon />}
+              onClick={executeMarketDecision}
+              disabled={calculatingMarket || !selectedSimMonth}
+              sx={{ 
+                textTransform: 'none', 
+                borderRadius: 2, 
+                bgcolor: '#10B981',
+                '&:hover': {
+                  bgcolor: '#059669'
+                }
+              }}
+            >
+              {calculatingMarket ? 'Analyzing...' : 'Market Buy Decision'}
             </Button>
 
             {calcResult && (
@@ -1128,28 +1363,27 @@ export default function SavingsCalculatorPage() {
             )}
           </Box>
 
-          {calculating && (
+          {(calculating || calculatingMarket) && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 2 }}>
               <CircularProgress sx={{ color: '#8B5CF6' }} />
               <Typography variant="body2" color="text.secondary">
-                Running cost simulations and sorting 15-minute slot metrics...
+                {calculating ? 'Running cost simulations and sorting 15-minute slot metrics...' : 'Calculating market landing prices and comparing against grid tariffs...'}
               </Typography>
             </Box>
           )}
 
-          {!calculating && !calcResult && (
+          {!calculating && !calculatingMarket && !calcResult && !marketDecisionResult && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
               <Typography variant="body1" color="text.secondary">
-                Select a month and click 'Run Simulation' to load landed cost analysis.
+                Click 'Run Simulation' to load the landed cost analysis for your configured months.
               </Typography>
             </Box>
           )}
 
           {calcResult && !calculating && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
-              {/* Summary KPIs */}
               <Grid container spacing={3}>
-                <Grid item xs={6} md={3}>
+                <Grid item xs={12} md={4}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1162,7 +1396,20 @@ export default function SavingsCalculatorPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={6} md={3}>
+                <Grid item xs={12} md={4}>
+                  <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
+                    <CardContent sx={{ p: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                        Market Sourced Energy
+                      </Typography>
+                      <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                        {calcResult.totalMarketEnergyKwh ? calcResult.totalMarketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 0} kWh
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1175,7 +1422,7 @@ export default function SavingsCalculatorPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} md={6}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1188,7 +1435,7 @@ export default function SavingsCalculatorPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} md={6}>
                   <Card elevation={0} sx={{ border: '1px solid', borderColor: '#C084FC', bgcolor: `${alpha('#8B5CF6', 0.04)}`, borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography variant="caption" color="#8B5CF6" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
@@ -1202,16 +1449,15 @@ export default function SavingsCalculatorPage() {
                 </Grid>
               </Grid>
 
-              {/* Tabs for Details */}
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={calcTab} onChange={(e, v) => setCalcTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 } }}>
-                  <Tab label="Slabs Group Summary (TOD Sorted)" />
-                  <Tab label="Cheapest Month-wide Slots" />
+                  <Tab label="Slabs Group Summary (TOD Sorted)" disabled={!calcResult} />
+                  <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} />
+                  <Tab label="Market Buy Decision" disabled={!marketDecisionResult} />
                 </Tabs>
               </Box>
 
-              {/* Tab Content 1: TOD Sorted Group blocks */}
-              {calcTab === 0 && (
+              {calcTab === 0 && calcResult && (
                 <Grid container spacing={3}>
                   {Object.entries(calcResult.todGroups).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]) => {
                     const groupCount = Object.keys(calcResult.todGroups).length;
@@ -1270,8 +1516,7 @@ export default function SavingsCalculatorPage() {
                 </Grid>
               )}
 
-              {/* Tab Content 2: Month-wide Cheapest Slots */}
-              {calcTab === 1 && (
+              {calcTab === 1 && calcResult && (
                 <Box sx={{ maxHeight: 400, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
@@ -1317,6 +1562,77 @@ export default function SavingsCalculatorPage() {
                             </span>
                           </TableCell>
                           <TableCell align="right">₹{row.optimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+              )}
+              
+              {calcTab === 2 && marketDecisionResult && (
+                <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Date</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Time</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>TOD Slab</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Source</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Landing (₹)</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DISCOM Landing (₹)</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Buy from Market?</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Savings/kWh (₹)</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {marketDecisionResult.slotsData.slice(0, 150).map((row: any, idx: number) => (
+                        <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
+                          <TableCell>{row.date}</TableCell>
+                          <TableCell align="center">{row.timeStr || `${String(row.hour).padStart(2, '0')}:${String((row.timeblock - 1) * 15 % 60).padStart(2, '0')}`}</TableCell>
+                          <TableCell align="center">
+                            <span style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700, color: 'text.secondary' }}>
+                              {row.tod}
+                            </span>
+                          </TableCell>
+                          <TableCell align="right">
+                            <span style={{ 
+                              textTransform: 'uppercase', 
+                              fontSize: '10px', 
+                              fontWeight: 800, 
+                              color: '#7C3AED',
+                              backgroundColor: '#F5F3FF',
+                              padding: '2px 6px',
+                              borderRadius: '4px'
+                            }}>
+                              {row.marketSource}
+                            </span>
+                          </TableCell>
+                          <TableCell align="right">₹{row.bestMarketLanding > 0 ? row.bestMarketLanding.toFixed(4) : '-'}</TableCell>
+                          <TableCell align="right">₹{row.discomLanding.toFixed(4)}</TableCell>
+                          <TableCell align="center">
+                            {row.shouldBuyFromMarket ? (
+                              <span style={{ 
+                                fontSize: '10px', 
+                                fontWeight: 800, 
+                                color: '#16A34A',
+                                backgroundColor: '#DCFCE7',
+                                padding: '2px 6px',
+                                borderRadius: '4px'
+                              }}>YES</span>
+                            ) : (
+                              <span style={{ 
+                                fontSize: '10px', 
+                                fontWeight: 800, 
+                                color: '#EF4444',
+                                backgroundColor: '#FEE2E2',
+                                padding: '2px 6px',
+                                borderRadius: '4px'
+                              }}>NO</span>
+                            )}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : '#EF4444' }}>
+                            {row.savingsPerKwh > 0 ? '+' : ''}₹{row.savingsPerKwh.toFixed(4)}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

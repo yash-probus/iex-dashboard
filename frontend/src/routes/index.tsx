@@ -12,8 +12,9 @@ import IstsChargesPage from '../pages/resource-center/IstsChargesPage';
 import IexFeesPage from '../pages/resource-center/IexFeesPage';
 import ProltMarginPage from '../pages/resource-center/ProltMarginPage';
 import CtuChargesPage from '../pages/resource-center/CtuChargesPage';
-import StuChargesPage from '../pages/resource-center/StuChargesPage';
+import StateChargesPage from '../pages/resource-center/StateChargesPage';
 import StateTariffPage from '../pages/resource-center/StateTariffPage';
+import FppaChargesPage from '../pages/resource-center/FppaChargesPage';
 import DashboardPage from '../pages/DashboardPage';
 import AdminPage from '../pages/AdminPage';
 import MarketDataAdminPage from '../pages/admin/MarketDataAdminPage';
@@ -75,8 +76,9 @@ export default function AppRoutes() {
             <Route path="resource-center/iex-fees" element={<IexFeesPage />} />
             <Route path="resource-center/prolt-margin" element={<ProltMarginPage />} />
             <Route path="resource-center/ctu-charges" element={<CtuChargesPage />} />
-            <Route path="resource-center/stu-charges" element={<StuChargesPage />} />
+            <Route path="resource-center/state-charges" element={<StateChargesPage />} />
             <Route path="resource-center/state-tariff" element={<StateTariffPage />} />
+            <Route path="resource-center/fppa-charges" element={<FppaChargesPage />} />
             <Route path="resource-center" element={<Navigate to="/resource-center/region-state" replace />} />
           </Route>
           

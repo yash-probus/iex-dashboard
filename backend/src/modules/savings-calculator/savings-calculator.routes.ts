@@ -9,5 +9,6 @@ router.post('/', SavingsCalculatorController.create);
 router.put('/:id', SavingsCalculatorController.update);
 router.delete('/:id', SavingsCalculatorController.delete);
 router.post('/:id/calculate', SavingsCalculatorController.calculate);
+router.post('/:id/calculate-market-decision', SavingsCalculatorController.calculateMarketDecision);
 
 export default router;

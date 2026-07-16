@@ -27,7 +27,7 @@ export default function DiscomListPage() {
 
   const columns: ColumnDefinition[] = [
     { field: 'code', headerName: 'Code', align: 'center', width: 150 },
-    { field: 'legalName', headerName: 'Legal Name', align: 'center', width: 400 },
+    { field: 'legalName', headerName: 'Discom Name', align: 'center', width: 400 },
     { field: 'stateCode', headerName: 'State Code', align: 'center', width: 150 },
     { field: 'discomType', headerName: 'Discom Type', align: 'center', width: 200 },
   ];
@@ -35,7 +35,7 @@ export default function DiscomListPage() {
   const handleExport = () => {
     const exportData = filteredData.map((row: any) => ({
       'Code': row.code,
-      'Legal Name': row.legalName,
+      'Discom Name': row.legalName,
       'State Code': row.stateCode,
       'Discom Type': row.discomType
     }));
@@ -43,7 +43,7 @@ export default function DiscomListPage() {
   };
 
   return (
-    <ResourcePageLayout resourceType="discom-list"
+    <ResourcePageLayout lastUpdated={data.length > 0 ? data.reduce((latest: any, r: any) => !r.updatedAt || (latest && latest > r.updatedAt) ? latest : r.updatedAt, null) : null} resourceType="discom-list"
       title={config.title}
       subtitle={config.subtitle}
       icon={<DomainIcon fontSize="large" />}

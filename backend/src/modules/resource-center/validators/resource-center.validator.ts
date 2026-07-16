@@ -53,20 +53,22 @@ const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
   'iex-fees': ['month'],
   'prolt-margin': ['month', 'customerId'],
   'ctu-charges': ['month', 'year', 'pdfUrl'],
-  'stu-charges': ['stateCode', 'state', 'month'],
-  'state-tariff': ['stateCode', 'month', 'state', 'tod']
+  'state-charges': ['state', 'fromDate', 'toDate'],
+  'state-tariff': ['stateCode', 'month', 'state', 'tod'],
+  'fppa-charges': ['state', 'month']
 };
 
 // Map of allowed fields for each resource type to filter out unknown keys from raw payloads
 const VALID_FIELDS: Record<ResourceType, string[]> = {
   'region-state': ['regionalGrid', 'regionCode', 'regionName', 'stateName', 'stateCode', 'stateOrUt'],
   'discom-list': ['code', 'legalName', 'stateCode', 'discomType'],
-  'ists-charges': ['state', 'date', 'istsLossPercent'],
+  'ists-charges': ['startDate', 'endDate', 'istsLossPercent'],
   'iex-fees': ['month', 'exchangeFees', 'exchangeFeesGst', 'nldcApplicationFees', 'nldcSchedulingFees', 'sldcSchedulingFees', 'otherFixCharges'],
   'prolt-margin': ['month', 'customerId', 'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst'],
   'ctu-charges': ['month', 'year', 'pdfUrl'],
-  'stu-charges': ['stateCode', 'state', 'category', 'subCategory', 'voltageLevel', 'month', 'stuChargesRsPerKwh', 'demandCharges', 'percentFppaCharges', 'additionalCharges', 'crossSubsidy', 'distributionWheelingChargesRsPerKwh', 'stuLossPercent', 'distributionWheelingLossPercent'],
-  'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges']
+  'state-charges': ['state', 'category', 'subCategory', 'supplyVoltageCategory', 'voltageLevel', 'fromDate', 'toDate', 'demandFixedChargeKvaPerMonthRs', 'crossSubsidy', 'distributionWheelingCharges', 'stuCharges', 'stuLossPercent', 'wheelingLossPercent', 'additionalCharge'],
+  'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges'],
+  'fppa-charges': ['state', 'month', 'fppaChargePercent']
 };
 
 /**
@@ -149,12 +151,13 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
     'istsLossPercent', 'exchangeFees', 'exchangeFeesGst',
     'nldcApplicationFees', 'nldcSchedulingFees', 'sldcSchedulingFees', 'otherFixCharges',
     'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst',
-    'ctuChargesRsPerKwh', 'dsmChargesRsPerKwh', 'stuChargesRsPerKwh', 'demandCharges',
-    'percentFppaCharges', 'additionalCharges', 'crossSubsidy', 'distributionWheelingChargesRsPerKwh',
-    'stuLossPercent', 'distributionWheelingLossPercent', 'baseEnergyCharges', 'todRate', 'energyCharges'
+    'ctuChargesRsPerKwh', 'dsmChargesRsPerKwh', 'demandFixedChargeKvaPerMonthRs',
+    'additionalCharge', 'crossSubsidy', 'distributionWheelingCharges', 'stuCharges',
+    'stuLossPercent', 'wheelingLossPercent', 'baseEnergyCharges', 'todRate', 'energyCharges',
+    'fppaChargePercent'
   ];
 
-  const percentageFields = ['istsLossPercent', 'stuLossPercent', 'distributionWheelingLossPercent'];
+  const percentageFields = ['istsLossPercent', 'stuLossPercent', 'wheelingLossPercent'];
 
   for (const field of numericFields) {
     if (data[field] !== undefined && data[field] !== null) {

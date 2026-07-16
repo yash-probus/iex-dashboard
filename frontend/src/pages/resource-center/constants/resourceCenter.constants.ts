@@ -11,13 +11,13 @@ export const RESOURCE_CENTER_PAGES = {
     subtitle: 'Reference directory of electricity distribution companies.',
     exportFilename: 'discom-list',
     emptyMessage: 'No Discom List data available.',
-    searchPlaceholder: 'Search by code, legal name, state code...',
+    searchPlaceholder: 'Search by code, discom name, state code...',
   },
-  ISTS_CHARGES: {
-    title: 'ISTS CHARGES',
+  ISTS_LOSSES: {
+    title: 'ISTS LOSSES',
     subtitle: 'Inter-State Transmission System loss percentage reference data.',
     exportFilename: 'ists-charges',
-    emptyMessage: 'No ISTS Charges data available.',
+    emptyMessage: 'No ISTS Losses data available.',
     searchPlaceholder: 'Search by state, date, ISTS loss...',
   },
   IEX_FEES: {
@@ -41,18 +41,25 @@ export const RESOURCE_CENTER_PAGES = {
     emptyMessage: 'No CTU Charges documents available.',
     searchPlaceholder: 'Search by month, year...',
   },
-  STU_CHARGES: {
-    title: 'STU CHARGES',
-    subtitle: 'State Transmission Utility and wheeling charges reference data.',
-    exportFilename: 'stu-charges',
-    emptyMessage: 'No STU Charges data available.',
+  STATE_CHARGES: {
+    title: 'STATE CHARGES',
+    subtitle: 'State charges and wheeling charges reference data.',
+    exportFilename: 'state-charges',
+    emptyMessage: 'No State Charges data available.',
     searchPlaceholder: 'Search by state, category, sub category...',
   },
   STATE_TARIFF: {
     title: 'STATE TARIFF',
-    subtitle: 'State-wise tariff schedules and TOD configurations.',
+    subtitle: 'State-wise tariff schedules with consumer category, voltage, and TOD configurations.',
     exportFilename: 'state-tariff',
     emptyMessage: 'No State Tariff data available.',
-    searchPlaceholder: 'Search by state, TOD, voltage level...',
+    searchPlaceholder: 'Search by state, category, voltage, month...',
+  },
+  FPPA_CHARGES: {
+    title: 'FPPA CHARGES',
+    subtitle: 'Manage FPPA Charges records.',
+    exportFilename: 'fppa-charges',
+    emptyMessage: 'No FPPA Charges data available.',
+    searchPlaceholder: 'Search by state, month...',
   }
 };

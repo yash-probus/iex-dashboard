@@ -22,6 +22,7 @@ interface ResourcePageLayoutProps {
   onExport: () => void;
   isExportDisabled?: boolean;
   resourceType?: string;
+  lastUpdated?: string | null;
   children: React.ReactNode;
 }
 
@@ -39,6 +40,7 @@ export default function ResourcePageLayout({
   onExport,
   isExportDisabled = false,
   resourceType,
+  lastUpdated,
   children
 }: ResourcePageLayoutProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -152,6 +154,11 @@ export default function ResourcePageLayout({
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
             {subtitle}
           </Typography>
+          {lastUpdated && (
+            <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 0.5 }}>
+              Last updated: {new Date(lastUpdated).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </Typography>
+          )}
         </Box>
       </Box>
 

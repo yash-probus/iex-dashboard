@@ -20,13 +20,7 @@ export interface ResourceConfig {
   fields: FormField[];
 }
 
-const formatMonth = (v: any) => {
-  if (typeof v === 'number') {
-    const date = new Date(2026, v - 1);
-    return date.toLocaleString('default', { month: 'short' }) + ' 2026';
-  }
-  return v;
-};
+const formatDate = (v: any) => v ? new Date(v).toLocaleDateString() : '-';
 
 const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
 
@@ -60,38 +54,38 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     subtitle: 'Manage Discom List records.',
     exportFilename: 'discom-list',
     emptyMessage: 'No Discom List data available.',
-    searchPlaceholder: 'Search by code, legal name, state code...',
+    searchPlaceholder: 'Search by code, discom name, state code...',
     searchableFields: ['code', 'legalName', 'stateCode', 'discomType'],
     columns: [
       { field: 'code', headerName: 'Code', align: 'center', width: 150 },
-      { field: 'legalName', headerName: 'Legal Name', align: 'center', width: 400 },
+      { field: 'legalName', headerName: 'Discom Name', align: 'center', width: 400 },
       { field: 'stateCode', headerName: 'State Code', align: 'center', width: 150 },
       { field: 'discomType', headerName: 'Discom Type', align: 'center', width: 200 },
     ],
     fields: [
       { name: 'code', label: 'Code', type: 'text' },
-      { name: 'legalName', label: 'Legal Name', type: 'text' },
+      { name: 'legalName', label: 'Discom Name', type: 'text' },
       { name: 'stateCode', label: 'State Code', type: 'text' },
       { name: 'discomType', label: 'Discom Type', type: 'text' },
     ]
   },
   'ists-charges': {
-    title: 'ISTS CHARGES',
-    subtitle: 'Manage ISTS Charges records.',
+    title: 'ISTS LOSSES',
+    subtitle: 'Manage ISTS Losses records.',
     exportFilename: 'ists-charges',
-    emptyMessage: 'No ISTS Charges data available.',
-    searchPlaceholder: 'Search by state, date, ISTS loss...',
-    searchableFields: ['id', 'state', 'date', 'istsLossPercent'],
+    emptyMessage: 'No ISTS Losses data available.',
+    searchPlaceholder: 'Search by date, ISTS loss...',
+    searchableFields: ['id', 'startDate', 'endDate', 'istsLossPercent'],
     columns: [
       { field: 'id', headerName: 'ID', align: 'center', width: 150 },
-      { field: 'state', headerName: 'State', align: 'center', width: 250 },
-      { field: 'date', headerName: 'Date', align: 'center', width: 150 },
+      { field: 'startDate', headerName: 'Start Date', align: 'center', width: 200 },
+      { field: 'endDate', headerName: 'End Date', align: 'center', width: 200 },
       { field: 'istsLossPercent', headerName: 'ISTS Loss %', align: 'center', width: 200, valueFormatter: formatNum },
     ],
     fields: [
       { name: 'id', label: 'ID', type: 'text' },
-      { name: 'state', label: 'State', type: 'text' },
-      { name: 'date', label: 'Date', type: 'text' },
+      { name: 'startDate', label: 'Start Date', type: 'text' },
+      { name: 'endDate', label: 'End Date', type: 'text' },
       { name: 'istsLossPercent', label: 'ISTS Loss %', type: 'number' },
     ]
   },
@@ -103,7 +97,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     searchPlaceholder: 'Search by month, fees, charges...',
     searchableFields: ['month', 'exchangeFees', 'nldcApplicationFees'],
     columns: [
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
       { field: 'exchangeFees', headerName: 'Exchange Fees', align: 'center', width: 200, valueFormatter: formatNum },
       { field: 'exchangeFeesGst', headerName: 'Exchange Fees GST', align: 'center', width: 200, valueFormatter: formatNum },
       { field: 'nldcApplicationFees', headerName: 'NLDC Application Fees', align: 'center', width: 200, valueFormatter: formatNum },
@@ -129,7 +123,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     searchPlaceholder: 'Search by customer ID, month, margin...',
     searchableFields: ['month', 'customerId', 'tradingMargin'],
     columns: [
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
       { field: 'customerId', headerName: 'Customer ID', align: 'center', width: 200 },
       { field: 'tradingMargin', headerName: 'Trading Margin', align: 'center', width: 200, valueFormatter: formatNum },
       { field: 'tradingMarginGst', headerName: 'Trading Margin GST', align: 'center', width: 200, valueFormatter: formatNum },
@@ -150,69 +144,58 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     subtitle: 'Manage CTU Charges records.',
     exportFilename: 'ctu-charges',
     emptyMessage: 'No CTU Charges data available.',
-    searchPlaceholder: 'Search by state, month, charges...',
-    searchableFields: ['id', 'month', 'year', 'pdfUrl'],
+    searchPlaceholder: 'Search by state, month...',
+    searchableFields: ['state', 'month'],
     columns: [
       { field: 'id', headerName: 'ID', align: 'center', width: 100 },
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-      { field: 'year', headerName: 'Year', align: 'center', width: 150 },
-      { 
-        field: 'pdfUrl', 
-        headerName: 'Document', 
-        align: 'center', 
-        width: 250,
-        renderCell: (row) => (
-          <a href={row.pdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#EC4899', textDecoration: 'none', fontWeight: 'bold' }}>
-            Download PDF
-          </a>
-        )
-      },
+      { field: 'state', headerName: 'State', align: 'center', width: 200 },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
+      { field: 'ctu_charges_rs_per_kwh', headerName: 'CTU Charges (Rs/kWh)', align: 'center', width: 250, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'id', label: 'ID', type: 'number' },
+      { name: 'state', label: 'State', type: 'text' },
       { name: 'month', label: 'Month', type: 'number' },
-      { name: 'year', label: 'Year', type: 'number' },
-      { name: 'pdfUrl', label: 'PDF URL', type: 'text' },
+      { name: 'ctu_charges_rs_per_kwh', label: 'CTU Charges (Rs/kWh)', type: 'number' },
     ]
   },
-  'stu-charges': {
-    title: 'STU CHARGES',
-    subtitle: 'Manage STU Charges records.',
-    exportFilename: 'stu-charges',
-    emptyMessage: 'No STU Charges data available.',
+  'state-charges': {
+    title: 'STATE CHARGES',
+    subtitle: 'Manage State Charges records.',
+    exportFilename: 'state-charges',
+    emptyMessage: 'No State Charges data available.',
     searchPlaceholder: 'Search by state, category, sub category...',
-    searchableFields: ['stateCode', 'state', 'category', 'subCategory', 'month', 'stuChargesRsPerKwh'],
+    searchableFields: ['state', 'category', 'subCategory', 'supplyVoltageCategory', 'voltageLevel'],
     columns: [
-      { field: 'stateCode', headerName: 'State Code', align: 'center', width: 120, sticky: true },
       { field: 'state', headerName: 'State', align: 'center', width: 180, sticky: true },
       { field: 'category', headerName: 'Category', align: 'center', width: 180 },
       { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 180 },
+      { field: 'supplyVoltageCategory', headerName: 'Supply Voltage Category', align: 'center', width: 200 },
       { field: 'voltageLevel', headerName: 'Voltage Level', align: 'center', width: 150 },
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-      { field: 'stuChargesRsPerKwh', headerName: 'STU Charges (₹/kWh)', align: 'center', width: 200, valueFormatter: formatNum },
-      { field: 'demandCharges', headerName: 'Demand Charges', align: 'center', width: 180, valueFormatter: formatNum },
-      { field: 'percentFppaCharges', headerName: 'FPPA Charges (%)', align: 'center', width: 180, valueFormatter: formatNum },
-      { field: 'additionalCharges', headerName: 'Additional Charges', align: 'center', width: 180, valueFormatter: formatNum },
+      { field: 'fromDate', headerName: 'From Date', align: 'center', width: 120, valueFormatter: formatDate },
+      { field: 'toDate', headerName: 'To Date', align: 'center', width: 120, valueFormatter: formatDate },
+      { field: 'demandFixedChargeKvaPerMonthRs', headerName: 'Demand Fixed Charge', align: 'center', width: 180, valueFormatter: formatNum },
       { field: 'crossSubsidy', headerName: 'Cross Subsidy', align: 'center', width: 180, valueFormatter: formatNum },
-      { field: 'distributionWheelingChargesRsPerKwh', headerName: 'Distribution Wheeling Charges (₹/kWh)', align: 'center', width: 300, valueFormatter: formatNum },
+      { field: 'distributionWheelingCharges', headerName: 'Dist Wheeling Charges', align: 'center', width: 180, valueFormatter: formatNum },
+      { field: 'stuCharges', headerName: 'STU Charges', align: 'center', width: 180, valueFormatter: formatNum },
       { field: 'stuLossPercent', headerName: 'STU Loss (%)', align: 'center', width: 150, valueFormatter: formatNum },
-      { field: 'distributionWheelingLossPercent', headerName: 'Distribution Wheeling Loss (%)', align: 'center', width: 250, valueFormatter: formatNum },
+      { field: 'wheelingLossPercent', headerName: 'Wheeling Loss (%)', align: 'center', width: 150, valueFormatter: formatNum },
+      { field: 'additionalCharge', headerName: 'Additional Charge', align: 'center', width: 180, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'stateCode', label: 'State Code', type: 'text' },
       { name: 'state', label: 'State', type: 'text' },
       { name: 'category', label: 'Category', type: 'text' },
       { name: 'subCategory', label: 'Sub Category', type: 'text' },
+      { name: 'supplyVoltageCategory', label: 'Supply Voltage Category', type: 'text' },
       { name: 'voltageLevel', label: 'Voltage Level', type: 'text' },
-      { name: 'month', label: 'Month', type: 'number' },
-      { name: 'stuChargesRsPerKwh', label: 'STU Charges (₹/kWh)', type: 'number' },
-      { name: 'demandCharges', label: 'Demand Charges', type: 'number' },
-      { name: 'percentFppaCharges', label: 'FPPA Charges (%)', type: 'number' },
-      { name: 'additionalCharges', label: 'Additional Charges', type: 'number' },
+      { name: 'fromDate', label: 'From Date', type: 'text' },
+      { name: 'toDate', label: 'To Date', type: 'text' },
+      { name: 'demandFixedChargeKvaPerMonthRs', label: 'Demand Fixed Charge', type: 'number' },
       { name: 'crossSubsidy', label: 'Cross Subsidy', type: 'number' },
-      { name: 'distributionWheelingChargesRsPerKwh', label: 'Distribution Wheeling Charges (₹/kWh)', type: 'number' },
+      { name: 'distributionWheelingCharges', label: 'Dist Wheeling Charges', type: 'number' },
+      { name: 'stuCharges', label: 'STU Charges', type: 'number' },
       { name: 'stuLossPercent', label: 'STU Loss (%)', type: 'number' },
-      { name: 'distributionWheelingLossPercent', label: 'Distribution Wheeling Loss (%)', type: 'number' },
+      { name: 'wheelingLossPercent', label: 'Wheeling Loss (%)', type: 'number' },
+      { name: 'additionalCharge', label: 'Additional Charge', type: 'number' },
     ]
   },
   'state-tariff': {
@@ -220,39 +203,54 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     subtitle: 'Manage State Tariff records.',
     exportFilename: 'state-tariff',
     emptyMessage: 'No State Tariff data available.',
-    searchPlaceholder: 'Search by state, TOD, voltage level...',
-    searchableFields: ['stateCode', 'state', 'tod', 'voltageLevel', 'month', 'category', 'subCategory', 'todName'],
+    searchPlaceholder: 'Search by state, category, voltage, month...',
+    searchableFields: ['state', 'consumerCategory', 'subCategory', 'supplyVoltageCategory', 'supplyVoltage', 'month', 'baseEnergyUnit'],
     columns: [
-      { field: 'stateCode', headerName: 'State Code', align: 'center', width: 120, sticky: true },
       { field: 'state', headerName: 'State', align: 'center', width: 180, sticky: true },
-      { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-      { field: 'category', headerName: 'Category', align: 'center', width: 180 },
-      { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 180 },
-      { field: 'voltageLevel', headerName: 'Voltage Level', align: 'center', width: 150 },
-      { field: 'tod', headerName: 'TOD', align: 'center', width: 120 },
-      { field: 'todName', headerName: 'TOD Name', align: 'center', width: 200 },
-      { field: 'season', headerName: 'Season', align: 'center', width: 150 },
-      { field: 'todStartHour', headerName: 'TOD Start Hour', align: 'center', width: 150 },
-      { field: 'todEndHour', headerName: 'TOD End Hour', align: 'center', width: 150 },
-      { field: 'baseEnergyCharges', headerName: 'Base Energy Charges', align: 'center', width: 200, valueFormatter: formatNum },
-      { field: 'todRate', headerName: 'TOD Rate', align: 'center', width: 150, valueFormatter: formatNum },
-      { field: 'energyCharges', headerName: 'Energy Charges', align: 'center', width: 180, valueFormatter: formatNum },
+      { field: 'consumerCategory', headerName: 'Consumer Category', align: 'center', width: 160 },
+      { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 260 },
+      { field: 'supplyVoltageCategory', headerName: 'Supply Voltage Category', align: 'center', width: 220 },
+      { field: 'supplyVoltage', headerName: 'Supply Voltage', align: 'center', width: 150 },
+      { field: 'month', headerName: 'Month', align: 'center', width: 120 },
+      { field: 'todStartTime', headerName: 'TOD Start Time', align: 'center', width: 150 },
+      { field: 'todEndTime', headerName: 'TOD End Time', align: 'center', width: 150 },
+      { field: 'baseEnergyRate', headerName: 'Base Energy Rate', align: 'center', width: 180, valueFormatter: formatNum },
+      { field: 'baseEnergyUnit', headerName: 'Unit', align: 'center', width: 100 },
+      { field: 'todChargePercent', headerName: 'TOD Charge %', align: 'center', width: 150 },
+      { field: 'energyRate', headerName: 'Energy Rate', align: 'center', width: 150, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'stateCode', label: 'State Code', type: 'text' },
+      { name: 'state', label: 'State', type: 'text' },
+      { name: 'consumerCategory', label: 'Consumer Category', type: 'text' },
+      { name: 'subCategory', label: 'Sub Category', type: 'text' },
+      { name: 'supplyVoltageCategory', label: 'Supply Voltage Category', type: 'text' },
+      { name: 'supplyVoltage', label: 'Supply Voltage', type: 'text' },
+      { name: 'month', label: 'Month (YYYYMM)', type: 'number' },
+      { name: 'todStartTime', label: 'TOD Start Time', type: 'text' },
+      { name: 'todEndTime', label: 'TOD End Time', type: 'text' },
+      { name: 'baseEnergyRate', label: 'Base Energy Rate', type: 'number' },
+      { name: 'baseEnergyUnit', label: 'Base Energy Unit', type: 'text' },
+      { name: 'todChargePercent', label: 'TOD Charge %', type: 'number' },
+      { name: 'energyRate', label: 'Energy Rate', type: 'number' },
+    ]
+  },
+  'fppa-charges': {
+    title: 'FPPA CHARGES',
+    subtitle: 'Manage FPPA Charges records.',
+    exportFilename: 'fppa-charges',
+    emptyMessage: 'No FPPA Charges data available.',
+    searchPlaceholder: 'Search by state, month...',
+    searchableFields: ['state', 'month'],
+    columns: [
+      { field: 'id', headerName: 'ID', align: 'center', width: 100 },
+      { field: 'state', headerName: 'State', align: 'center', width: 250 },
+      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
+      { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
+    ],
+    fields: [
       { name: 'state', label: 'State', type: 'text' },
       { name: 'month', label: 'Month', type: 'number' },
-      { name: 'category', label: 'Category', type: 'text' },
-      { name: 'subCategory', label: 'Sub Category', type: 'text' },
-      { name: 'voltageLevel', label: 'Voltage Level', type: 'text' },
-      { name: 'tod', label: 'TOD', type: 'text' },
-      { name: 'todName', label: 'TOD Name', type: 'text' },
-      { name: 'season', label: 'Season', type: 'text' },
-      { name: 'todStartHour', label: 'TOD Start Hour', type: 'text' },
-      { name: 'todEndHour', label: 'TOD End Hour', type: 'text' },
-      { name: 'baseEnergyCharges', label: 'Base Energy Charges', type: 'number' },
-      { name: 'todRate', label: 'TOD Rate', type: 'number' },
-      { name: 'energyCharges', label: 'Energy Charges', type: 'number' },
+      { name: 'fppaChargePercent', label: 'FPPA Charge %', type: 'number' },
     ]
   }
 };

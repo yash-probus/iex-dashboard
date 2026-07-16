@@ -147,28 +147,29 @@ model RegionState {
   stateName    String         @map("state_name") @db.VarChar(50)
   stateCode    String?        @unique(map: "uq_region_state_code") @map("state_code") @db.VarChar(10)
   stateOrUt    state_ut_enum? @map("state_or_ut")
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at")
 
   @@map("region_state")
 }
 
 model DiscomList {
-  code       String  @unique(map: "uq_discom_list_code") @db.VarChar(20)
-  legalName  String  @unique(map: "uq_discom_list_name") @map("legal_name") @db.VarChar(255)
-  stateCode  String? @map("state_code") @db.VarChar(10)
-  discomType String? @map("discom_type") @db.VarChar(30)
-  id         Int     @id @default(autoincrement())
+  code       String   @unique(map: "uq_discom_list_code") @db.VarChar(20)
+  legalName  String   @unique(map: "uq_discom_list_name") @map("legal_name") @db.VarChar(255)
+  stateCode  String?  @map("state_code") @db.VarChar(100)
+  discomType String?  @map("discom_type") @db.VarChar(30)
+  id         Int      @id @default(autoincrement())
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("discom_list")
 }
 
 model IstsCharges {
-  id              Int     @id @default(autoincrement())
-  stateCode       String? @map("state_code") @db.VarChar(10)
-  state           String  @db.VarChar(50)
-  date            Int
-  istsLossPercent Decimal @map("ists_loss_percent") @db.Decimal(6, 4)
+  id              Int      @id @default(autoincrement())
+  startDate       DateTime @map("start_date") @db.Date
+  endDate         DateTime @map("end_date") @db.Date
+  istsLossPercent Decimal  @map("ists_loss_percent") @db.Decimal(6, 4)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@unique([state, date], map: "uq_ists_charges_state_date")
   @@map("ists_charges")
 }
 
@@ -182,6 +183,7 @@ model IexFees {
   nldcSchedulingFees  Decimal? @map("nldc_scheduling_fees") @db.Decimal(12, 4)
   sldcSchedulingFees  Decimal? @map("sldc_scheduling_fees") @db.Decimal(12, 4)
   otherFixCharges     Decimal? @map("other_fix_charges") @db.Decimal(12, 4)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("iex_fees")
 }
@@ -194,16 +196,18 @@ model ProltMargin {
   proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
   proltMarginGst   Decimal? @map("prolt_margin_gst") @db.Decimal(12, 4)
   id               Int      @id @default(autoincrement())
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([month, customerId], map: "uq_prolt_margin_month_cust")
   @@map("prolt_margin")
 }
 
 model CtuCharges {
-  id                 Int      @id @default(autoincrement())
-  state              String   @db.VarChar(50)
-  month              Int
-  ctuChargesRsPerKwh Decimal? @map("ctu_charges_rs_per_kwh") @db.Decimal(12, 6)
+  id                     Int      @id @default(autoincrement())
+  state                  String   @db.VarChar(50)
+  month                  Int
+  ctu_charges_rs_per_kwh Decimal? @db.Decimal(12, 6)
+  updatedAt              DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([state, month], map: "uq_ctu_charges_state_month")
   @@map("ctu_charges")
@@ -222,46 +226,44 @@ model IstsChargeDocs {
   @@map("ists_charge_docs")
 }
 
-model StuCharges {
-  stateCode                           String   @map("state_code") @db.VarChar(10)
-  state                               String   @db.VarChar(100)
-  category                            String?  @db.VarChar(50)
-  subCategory                         String?  @map("sub_category") @db.VarChar(100)
-  voltageLevel                        String?  @map("voltage_level") @db.VarChar(20)
-  month                               Int
-  stuChargesRsPerKwh                  Decimal? @map("stu_charges_rs_per_kwh") @db.Decimal(12, 6)
-  demandCharges                       Decimal? @map("demand_charges") @db.Decimal(12, 6)
-  percentFppaCharges                  Decimal? @map("percent_fppa_charges") @db.Decimal(12, 6)
-  additionalCharges                   Decimal? @map("additional_charges") @db.Decimal(12, 6)
-  crossSubsidy                        Decimal? @map("cross_subsidy") @db.Decimal(12, 6)
-  distributionWheelingChargesRsPerKwh Decimal? @map("distribution_wheeling_charges_rs_per_kwh") @db.Decimal(12, 6)
-  stuLossPercent                      Decimal? @map("stu_loss_percent") @db.Decimal(12, 6)
-  distributionWheelingLossPercent     Decimal? @map("distribution_wheeling_loss_percent") @db.Decimal(12, 6)
-  id                                  Int      @id @default(autoincrement())
+model StateCharges {
+  id                             Int      @id @default(autoincrement())
+  state                          String   @db.VarChar(100)
+  category                       String?  @db.VarChar(100)
+  subCategory                    String?  @map("sub_category") @db.VarChar(255)
+  supplyVoltageCategory          String?  @map("supply_voltage_category") @db.VarChar(100)
+  voltageLevel                   String?  @map("voltage_level") @db.VarChar(100)
+  fromDate                       DateTime @map("from_date") @db.Date
+  toDate                         DateTime @map("to_date") @db.Date
+  demandFixedChargeKvaPerMonthRs Decimal? @map("demand_fixed_charge_kva_per_month_rs") @db.Decimal(12, 6)
+  crossSubsidy                   Decimal? @map("cross_subsidy") @db.Decimal(12, 6)
+  distributionWheelingCharges    Decimal? @map("distribution_wheeling_charges") @db.Decimal(12, 6)
+  stuCharges                     Decimal? @map("stu_charges") @db.Decimal(12, 6)
+  stuLossPercent                 Decimal? @map("stu_loss_percent") @db.Decimal(12, 6)
+  wheelingLossPercent            Decimal? @map("wheeling_loss_percent") @db.Decimal(12, 6)
+  additionalCharge               Decimal? @map("additional_charge") @db.Decimal(12, 6)
+  updatedAt                      DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@unique([stateCode, month, category, subCategory, voltageLevel], map: "uq_stu_charges_composite")
-  @@map("stu_charges")
+  @@map("state_charges")
 }
 
 model StateTariff {
-  stateCode         String   @map("state_code") @db.VarChar(10)
-  month             Int
-  state             String   @db.VarChar(100)
-  category          String?  @db.VarChar(50)
-  subCategory       String?  @map("sub_category") @db.VarChar(100)
-  discom            String?  @db.VarChar(100)
-  voltageLevel      String?  @map("voltage_level") @db.VarChar(20)
-  tod               String   @db.VarChar(50)
-  todName           String?  @map("tod_name") @db.VarChar(255)
-  season            String?  @db.VarChar(50)
-  todStartHour      String?  @map("tod_start_hour") @db.VarChar(20)
-  todEndHour        String?  @map("tod_end_hour") @db.VarChar(20)
-  baseEnergyCharges Decimal? @map("base_energy_charges") @db.Decimal(12, 6)
-  todRate           Decimal? @map("tod_rate") @db.Decimal(12, 6)
-  energyCharges     Decimal? @map("energy_charges") @db.Decimal(12, 6)
-  id                Int      @id @default(autoincrement())
+  id                    Int      @id @default(autoincrement())
+  state                 String   @db.VarChar(100)
+  consumerCategory      String   @map("consumer_category") @db.VarChar(50)
+  subCategory           String   @map("sub_category") @db.VarChar(255)
+  supplyVoltageCategory String   @map("supply_voltage_category") @db.VarChar(100)
+  supplyVoltage         String   @map("supply_voltage") @db.VarChar(50)
+  month                 Int
+  todStartTime          String   @map("tod_start_time") @db.VarChar(20)
+  todEndTime            String   @map("tod_end_time") @db.VarChar(20)
+  baseEnergyRate        Decimal  @map("base_energy_rate") @db.Decimal(12, 6)
+  baseEnergyUnit        String   @map("base_energy_unit") @db.VarChar(10)
+  todChargePercent      Int      @map("tod_charge_percent")
+  energyRate            Decimal  @map("energy_rate") @db.Decimal(12, 6)
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@unique([stateCode, month, category, subCategory, discom, voltageLevel, season, todName, tod], map: "uq_state_tariff_composite")
+  @@unique([state, consumerCategory, subCategory, supplyVoltageCategory, supplyVoltage, month, todStartTime, todEndTime], map: "uq_state_tariff_composite")
   @@map("state_tariff")
 }
 
@@ -329,62 +331,62 @@ model StateDemandData {
 }
 
 model WeatherForecast {
-  id                String   @id @default(uuid())
-  date              String   @db.VarChar(10) // YYYY-MM-DD
+  id                String        @id @default(uuid())
+  date              String        @db.VarChar(10) // YYYY-MM-DD
   cityId            String
   city              CityStateData @relation(fields: [cityId], references: [id])
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
-  relativeHumidity  Float    @default(0)
-  precipitationProb Float    @default(0)
-  precipitationSum  Float    @default(0)
-  sunshineDuration  Float    @default(0)
-  sunrise           String   @default("") @db.VarChar(10)
-  sunset            String   @default("") @db.VarChar(10)
-  isActual          Boolean  @default(false)
-  updatedAt         DateTime @default(now()) @updatedAt
+  relativeHumidity  Float         @default(0)
+  precipitationProb Float         @default(0)
+  precipitationSum  Float         @default(0)
+  sunshineDuration  Float         @default(0)
+  sunrise           String        @default("") @db.VarChar(10)
+  sunset            String        @default("") @db.VarChar(10)
+  isActual          Boolean       @default(false)
+  updatedAt         DateTime      @default(now()) @updatedAt
 
   @@unique([date, cityId])
 }
 
 model WeatherForecastHourly {
-  id                String   @id @default(uuid())
-  date              String   @db.VarChar(10) // YYYY-MM-DD
-  timeStr           String   @db.VarChar(5) // HH:MM
+  id                String        @id @default(uuid())
+  date              String        @db.VarChar(10) // YYYY-MM-DD
+  timeStr           String        @db.VarChar(5) // HH:MM
   cityId            String
   city              CityStateData @relation(fields: [cityId], references: [id])
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
-  relativeHumidity  Float    @default(0)
-  precipitationProb Float    @default(0)
-  precipitationSum  Float    @default(0)
-  sunshineDuration  Float    @default(0)
-  sunrise           String   @default("") @db.VarChar(10)
-  sunset            String   @default("") @db.VarChar(10)
-  isActual          Boolean  @default(false)
-  updatedAt         DateTime @default(now()) @updatedAt
+  relativeHumidity  Float         @default(0)
+  precipitationProb Float         @default(0)
+  precipitationSum  Float         @default(0)
+  sunshineDuration  Float         @default(0)
+  sunrise           String        @default("") @db.VarChar(10)
+  sunset            String        @default("") @db.VarChar(10)
+  isActual          Boolean       @default(false)
+  updatedAt         DateTime      @default(now()) @updatedAt
 
   @@unique([date, timeStr, cityId])
 }
 
 model WeatherHistorical {
-  id                String   @id @default(uuid())
-  date              String   @db.VarChar(10) // YYYY-MM-DD
+  id                String        @id @default(uuid())
+  date              String        @db.VarChar(10) // YYYY-MM-DD
   cityId            String
   city              CityStateData @relation(fields: [cityId], references: [id])
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
-  relativeHumidity  Float    @default(0)
-  precipitationProb Float    @default(0)
-  precipitationSum  Float    @default(0)
-  sunshineDuration  Float    @default(0)
-  sunrise           String   @default("") @db.VarChar(10)
-  sunset            String   @default("") @db.VarChar(10)
-  isActual          Boolean  @default(false)
-  updatedAt         DateTime @default(now()) @updatedAt
+  relativeHumidity  Float         @default(0)
+  precipitationProb Float         @default(0)
+  precipitationSum  Float         @default(0)
+  sunshineDuration  Float         @default(0)
+  sunrise           String        @default("") @db.VarChar(10)
+  sunset            String        @default("") @db.VarChar(10)
+  isActual          Boolean       @default(false)
+  updatedAt         DateTime      @default(now()) @updatedAt
 
   @@unique([date, cityId])
 }
@@ -419,6 +421,35 @@ model NppRawGenerationData {
   updatedAt     DateTime @default(now()) @updatedAt
 
   @@unique([date, timeStr], map: "uq_npp_gen_date_time")
+  @@index([date])
+}
+
+model NppAdjustedDemandData {
+  id            String   @id @default(uuid())
+  date          String
+  timeStr       String
+  demandMet     Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@unique([date, timeStr], map: "uq_npp_adj_demand")
+  @@index([date])
+}
+
+model NppAdjustedGenerationData {
+  id            String   @id @default(uuid())
+  date          String
+  timeStr       String
+  thermal       Float?
+  gas           Float?
+  nuclear       Float?
+  hydro         Float?
+  wind          Float?
+  solar         Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@unique([date, timeStr], map: "uq_npp_adj_gen")
   @@index([date])
 }
 
@@ -483,7 +514,10 @@ model SavingsCalculatorEntry {
   industryName     String   @map("industry_name") @db.VarChar(255)
   address          String   @db.Text
   sanctionedLoadKw Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
-  stateCode        String?  @map("state_code") @db.VarChar(10)
+  proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
+  traderMargin     Decimal? @map("trader_margin") @db.Decimal(12, 4)
+
+  stateCode        String?  @map("state_code") @db.VarChar(100)
   discom           String?  @map("discom") @db.VarChar(100)
   consumerCategory String?  @map("consumer_category") @db.VarChar(100)
   voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
@@ -492,4 +526,35 @@ model SavingsCalculatorEntry {
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("savings_calculator_entries")
+}
+
+model StateMarketRecord {
+  id             String     @id @default(uuid())
+  market         MarketType
+  area           String     @db.VarChar(100)
+  deliveryDate   DateTime   @db.Date
+  intervalNumber Int        @db.SmallInt
+  intervalTime   String     @db.VarChar(15)
+  purchaseBid    Decimal    @db.Decimal(18, 4)
+  sellBid        Decimal    @db.Decimal(18, 4)
+  clearedVolume  Decimal    @db.Decimal(18, 4) // MCV
+  price          Decimal    @db.Decimal(18, 4) // MCP
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([market, area, deliveryDate, intervalNumber])
+  @@index([market])
+  @@index([area])
+  @@index([deliveryDate])
+}
+
+model FppaCharges {
+  id                  Int      @id @default(autoincrement())
+  state               String   @db.VarChar(100)
+  month               Int
+  fppaChargePercent   Decimal? @map("fppa_charge_percent") @db.Decimal(12, 6)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([state, month], map: "uq_fppa_charges_state_month")
+  @@map("fppa_charges")
 }

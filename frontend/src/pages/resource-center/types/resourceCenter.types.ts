@@ -1,27 +1,33 @@
 export interface RegionState {
+  id?: number;
   regionalGrid: string;
   regionCode: string;
   regionName: string;
   stateName: string;
   stateCode: string;
   stateOrUt: string;
+  updatedAt?: string;
 }
 
 export interface DiscomList {
+  id?: number;
   code: string;
   legalName: string;
   stateCode: string;
   discomType: string;
+  updatedAt?: string;
 }
 
 export interface IstsCharges {
-  id: string;
-  state: string;
-  date: string;
+  id?: string;
+  startDate: string;
+  endDate: string;
   istsLossPercent: number;
+  updatedAt?: string;
 }
 
 export interface IexFees {
+  id?: number;
   month: number;
   exchangeFees: number;
   exchangeFeesGst: number;
@@ -29,54 +35,68 @@ export interface IexFees {
   nldcSchedulingFees: number;
   sldcSchedulingFees: number;
   otherFixCharges: number;
+  updatedAt?: string;
 }
 
 export interface ProltMargin {
+  id?: number;
   month: number;
   customerId: string;
   tradingMargin: number;
   tradingMarginGst: number;
   proltMargin: number;
   proltMarginGst: number;
+  updatedAt?: string;
 }
 
 export interface CtuCharges {
-  id: number;
+  id?: string;
+  state: string;
   month: number;
-  year: number;
-  pdfUrl: string;
+  ctu_charges_rs_per_kwh: number;
+  updatedAt?: string;
 }
 
-export interface StuCharges {
-  stateCode: string;
+export interface StateCharges {
+  id?: number;
   state: string;
   category: string;
   subCategory: string;
+  supplyVoltageCategory: string;
   voltageLevel: string;
-  month: number;
-  stuChargesRsPerKwh: number;
-  demandCharges: number;
-  percentFppaCharges: number;
-  additionalCharges: number;
+  fromDate: string;
+  toDate: string;
+  demandFixedChargeKvaPerMonthRs: number;
   crossSubsidy: number;
-  distributionWheelingChargesRsPerKwh: number;
+  distributionWheelingCharges: number;
+  stuCharges: number;
   stuLossPercent: number;
-  distributionWheelingLossPercent: number;
+  wheelingLossPercent: number;
+  additionalCharge: number;
+  updatedAt?: string;
 }
 
 export interface StateTariff {
-  stateCode: string;
-  month: number;
+  id?: number;
   state: string;
-  category: string;
+  consumerCategory: string;
   subCategory: string;
-  voltageLevel: string;
-  tod: string;
-  todName: string;
-  season: string;
-  todStartHour: string;
-  todEndHour: string;
-  baseEnergyCharges: number;
-  todRate: number;
-  energyCharges: number;
+  supplyVoltageCategory: string;
+  supplyVoltage: string;
+  month: number;
+  todStartTime: string;
+  todEndTime: string;
+  baseEnergyRate: number;
+  baseEnergyUnit: string;
+  todChargePercent: number;
+  energyRate: number;
+  updatedAt?: string;
+}
+
+export interface FppaCharges {
+  id?: string;
+  state: string;
+  month: number;
+  fppaChargePercent: number;
+  updatedAt?: string;
 }
