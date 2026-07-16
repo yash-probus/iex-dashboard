@@ -105,9 +105,11 @@ export class SavingsCalculatorExportService {
     sheet.addRow([]);
     sheet.addRow(['Daily Fixed Overhead (NLDC/SLDC)', Math.round(oaDetailed.dailyFixedOverhead)]);
     sheet.addRow(['Bid Application Fees', Math.round(oaDetailed.bidApplicationFees)]);
+    sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
+    sheet.addRow(['Total Gross Bill (Net Landed OA Cost)', Math.round(result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
     
     // Auto-fit column A
-    sheet.getColumn(1).width = 25;
+    sheet.getColumn(1).width = 40;
 
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
