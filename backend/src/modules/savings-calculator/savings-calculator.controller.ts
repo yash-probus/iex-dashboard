@@ -143,4 +143,20 @@ export class SavingsCalculatorController {
       res.status(500).json({ message: error.message || 'Market decision calculation failed.' });
     }
   }
+  static async exportExcel(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const targetMonth = req.query.month;
+      
+      const { SavingsCalculatorExportService } = await import('./savings-calculator.export');
+      const buffer = await SavingsCalculatorExportService.exportToExcel(id as string, targetMonth as string | undefined);
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=Savings_Analysis_${id}.xlsx`);
+      res.status(200).send(buffer);
+    } catch (error: any) {
+      console.error('[SavingsCalculatorController] Excel Export failed:', error);
+      res.status(500).json({ message: error.message || 'Excel export failed.' });
+    }
+  }
 }

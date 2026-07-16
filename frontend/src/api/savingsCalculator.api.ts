@@ -152,3 +152,17 @@ export const calculateMarketDecision = async (id: string, month?: string): Promi
   const response = await apiClient.post<MarketDecisionResult>(url);
   return response.data;
 };
+
+export const exportSavingsExcel = async (id: string, month?: string): Promise<void> => {
+  const url = month ? `/savings-calculator/${id}/export-excel?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/export-excel`;
+  const response = await apiClient.get(url, { responseType: 'blob' });
+  const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.setAttribute('download', `Savings_Analysis_${id}.xlsx`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(downloadUrl);
+};

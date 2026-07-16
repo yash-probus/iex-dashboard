@@ -35,7 +35,8 @@ import {
   SavingsCalculatorEntry, 
   CalculationResult,
   CalculationSlotDetail,
-  MarketDecisionResult
+  MarketDecisionResult,
+  exportSavingsExcel
 } from '../api/savingsCalculator.api';
 import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
@@ -1473,13 +1474,34 @@ export default function SavingsCalculatorPage() {
                 </Grid>
               </Grid>
 
-              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Tabs value={calcTab} onChange={(e, v) => setCalcTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 } }}>
                   <Tab label="Slabs Group Summary (TOD Sorted)" disabled={!calcResult} />
                   <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} />
                   <Tab label="Market Buy Decision" disabled={!marketDecisionResult} />
                   <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} />
                 </Tabs>
+                {marketDecisionResult && (
+                  <Button 
+                    variant="outlined" 
+                    startIcon={<DownloadIcon />} 
+                    onClick={async () => {
+                      if (!calcEntry) return;
+                      try {
+                        await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined);
+                      } catch (err: any) {
+                        setSnackbar({
+                          open: true,
+                          message: err.message || 'Export failed',
+                          severity: 'error'
+                        });
+                      }
+                    }}
+                    sx={{ mr: 2, textTransform: 'none', borderRadius: 2, fontWeight: 600, borderColor: 'divider' }}
+                  >
+                    Export OA Sheet
+                  </Button>
+                )}
               </Box>
 
               {calcTab === 0 && calcResult && (
