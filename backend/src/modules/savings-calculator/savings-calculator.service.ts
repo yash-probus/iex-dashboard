@@ -842,7 +842,7 @@ export class SavingsCalculatorService {
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
-      const slabED = slabEnergyBill * 0.075;
+      const slabED = (slabEnergyBill + slabDemandCharge) * 0.075;
       totalElectricityDuty += slabED;
 
       // Baseline: all consumption at DISCOM rate (inclusive of fixed/taxes)
