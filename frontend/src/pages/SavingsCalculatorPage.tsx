@@ -1809,6 +1809,16 @@ export default function SavingsCalculatorPage() {
                         ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block">Net Savings</Typography>
+                      <Typography variant="body2" fontWeight={700} color="#16A34A">
+                        ₹{(
+                          marketDecisionResult.totalSavings - 
+                          marketDecisionResult.oaDetailed.dailyFixedOverhead - 
+                          marketDecisionResult.oaDetailed.bidApplicationFees
+                        ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               )}
