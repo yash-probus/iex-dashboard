@@ -125,7 +125,8 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['POC charges', Math.round(t.pocCharge)]);
     sheet.addRow(['STU charges', Math.round(t.stuCharge)]);
     sheet.addRow(['Discom charges', Math.round(t.dcCharge)]);
-    sheet.addRow(['IEX fee (including GST)', Math.round(t.iexFee)]);
+    sheet.addRow(['IEX fee', Math.round(t.iexFee)]);
+    sheet.addRow(['Trader Margin', Math.round((t as any).traderMargin || 0)]);
     sheet.addRow(['SLDC Operating charges', Math.round(oaDetailed.dailyFixedOverhead)]);
     sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees)]);
     

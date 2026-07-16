@@ -790,6 +790,7 @@ export class SavingsCalculatorService {
     let globalStuCharge = 0;
     let globalDcCharge = 0;
     let globalIexFee = 0;
+    let globalTraderMargin = 0;
 
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
     const oaDetailedBreakdown: any[] = [];
@@ -903,7 +904,8 @@ export class SavingsCalculatorService {
       globalPocCharge += pocCharge;
       globalStuCharge += stuChargeVal;
       globalDcCharge += dcCharge;
-      globalIexFee += iexFeesTotal + traderMarginTotal; // Combining IEX Fee + Trader Margin into one as requested
+      globalIexFee += iexFeesTotal;
+      globalTraderMargin += traderMarginTotal;
 
       const marketEnergyCost = marketEnergy * avgMarketPrice;
       const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + marketEnergyCost;
@@ -963,7 +965,8 @@ export class SavingsCalculatorService {
           pocCharge: globalPocCharge,
           stuCharge: globalStuCharge,
           dcCharge: globalDcCharge,
-          iexFee: globalIexFee
+          iexFee: globalIexFee,
+          traderMargin: globalTraderMargin,
         }
       }
     };
