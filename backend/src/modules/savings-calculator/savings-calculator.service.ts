@@ -840,6 +840,11 @@ export class SavingsCalculatorService {
       const marketEnergy = Math.min(slabConsumption, maxMarketVolumeForCheapSlots);
       const discomEnergy = slabConsumption - marketEnergy;
 
+      const energyPerMarketSlot = marketSlots.length > 0 ? marketEnergy / marketSlots.length : 0;
+      marketSlots.forEach(s => {
+        (s as any).marketEnergy = energyPerMarketSlot;
+      });
+
       // Average DISCOM rate for this slab (should be same for all slots, take first valid)
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
 
