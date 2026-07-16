@@ -1786,8 +1786,12 @@ export default function SavingsCalculatorPage() {
                   </Box>
                   <Box sx={{ display: 'flex', gap: 4, mt: 2, p: 2, backgroundColor: '#F1F5F9', borderRadius: 2 }}>
                     <Box>
-                      <Typography variant="caption" color="text.secondary" display="block">Daily Fixed Overhead (NLDC/SLDC)</Typography>
-                      <Typography variant="body2" fontWeight={600}>₹{marketDecisionResult.oaDetailed.dailyFixedOverhead.toLocaleString()} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">SLDC Scheduling Cost</Typography>
+                      <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString()} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block">NLDC Scheduling Cost</Typography>
+                      <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.nldcSchedulingCost || 0).toLocaleString()} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>

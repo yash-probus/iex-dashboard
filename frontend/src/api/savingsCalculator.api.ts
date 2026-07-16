@@ -111,6 +111,8 @@ export interface MarketDecisionResult {
   oaDetailed?: {
     breakdown: OADetailedBreakdown[];
     dailyFixedOverhead: number;
+    nldcSchedulingCost?: number;
+    sldcSchedulingCost?: number;
     bidApplicationFees: number;
     totalDaysTraded: number;
   };

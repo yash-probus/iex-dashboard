@@ -775,7 +775,9 @@ export class SavingsCalculatorService {
 
     const allTradedDates = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]);
     const totalDaysTraded = allTradedDates.size;
-    const dailyFixedOverhead = (nldcSchedulingFees + sldcSchedulingFees) * totalDaysTraded;
+    const nldcSchedulingCost = nldcSchedulingFees * totalDaysTraded;
+    const sldcSchedulingCost = sldcSchedulingFees * totalDaysTraded;
+    const dailyFixedOverhead = nldcSchedulingCost + sldcSchedulingCost;
     const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
 
     let totalBaselineCost = 0;
@@ -959,6 +961,8 @@ export class SavingsCalculatorService {
       oaDetailed: {
         breakdown: oaDetailedBreakdown,
         dailyFixedOverhead,
+        nldcSchedulingCost,
+        sldcSchedulingCost,
         bidApplicationFees,
         totalDaysTraded,
         totals: {
