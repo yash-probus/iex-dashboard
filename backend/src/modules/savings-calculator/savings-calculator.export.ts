@@ -91,7 +91,15 @@ export class SavingsCalculatorExportService {
     };
 
     // Just output the general OA breakdown
-    const breakdownHeader = ['TOD Slab', 'Total Sourced (DISCOM Units)', 'Market Sourced (OA Units)', 'DISCOM Bill (Total)', 'Prolt DISCOM Bill (Net)', 'OA Consumer Bus Units', 'OA Bill'];
+    const breakdownHeader = [
+      'TOD Slab',
+      'Actual DISCOM Units (kWh)',
+      'Actual DISCOM Bill (Rs.)',
+      'OA Units (kWh, Regional Bus)',
+      'OA Units (kWh, Consumer Bus)',
+      'OA Energy Charges (Rs.)',
+      'DISCOM Bill after OA (Rs.)'
+    ];
     sheet.addRow(breakdownHeader);
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
 
@@ -101,11 +109,11 @@ export class SavingsCalculatorExportService {
       sheet.addRow([
         b.slabName,
         Math.round(b.discomUnits),
-        Math.round(b.oaUnits),
         Math.round(b.discomBill),
-        Math.round(b.proltDiscomBill),
+        Math.round(b.oaUnits),
         Math.round(b.consumerBusUnits),
-        Math.round(b.oaBill)
+        Math.round(b.oaBill),
+        Math.round(b.proltDiscomBill)
       ]);
       totalDiscomU += b.discomUnits;
       totalOaU += b.oaUnits;
@@ -115,7 +123,15 @@ export class SavingsCalculatorExportService {
       totalOaB += b.oaBill;
     });
 
-    sheet.addRow(['Total', Math.round(totalDiscomU), Math.round(totalOaU), Math.round(totalDiscomB), Math.round(totalNetB), Math.round(totalConsumerU), Math.round(totalOaB)]);
+    sheet.addRow([
+      'Total', 
+      Math.round(totalDiscomU), 
+      Math.round(totalDiscomB), 
+      Math.round(totalOaU), 
+      Math.round(totalConsumerU), 
+      Math.round(totalOaB),
+      Math.round(totalNetB)
+    ]);
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
 
     sheet.addRow([]);
