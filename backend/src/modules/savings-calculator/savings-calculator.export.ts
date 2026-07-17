@@ -136,17 +136,63 @@ export class SavingsCalculatorExportService {
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
 
     sheet.addRow([]);
+    
+    // Add charges header with rate/kWh information
+    const chargesHeader = ['Charge Type', 'Total Amount (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
+    sheet.addRow(chargesHeader);
+    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    
     const t = oaDetailed.totals;
-    sheet.addRow(['Cross Subsidy', Math.round(t.cssCharge)]);
-    sheet.addRow(['RPPO', Math.round(t.rpoCharge)]);
-    sheet.addRow(['POC charges', Math.round(t.pocCharge)]);
-    sheet.addRow(['STU charges', Math.round(t.stuCharge)]);
-    sheet.addRow(['Discom charges', Math.round(t.dcCharge)]);
-    sheet.addRow(['IEX fee', Math.round(t.iexFee)]);
-    sheet.addRow(['Trader Margin', Math.round((t as any).traderMargin || 0)]);
-    sheet.addRow(['SLDC Operating charges', Math.round((oaDetailed as any).sldcSchedulingCost || 0)]);
-    sheet.addRow(['NLDC Scheduling charges', Math.round((oaDetailed as any).nldcSchedulingCost || 0)]);
-    sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees)]);
+    const totalMarketEnergy = result.totalMarketEnergyKwh;
+    
+    // Calculate and add each charge with rate information
+    const addChargeRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
+      sheet.addRow([
+        name,
+        Math.round(amount),
+        ratePerKwh > 0 ? ratePerKwh.toFixed(4) : '-',
+        basisKwh > 0 ? Math.round(basisKwh) : '-',
+        percentage > 0 ? percentage.toFixed(2) : '-'
+      ]);
+    };
+    
+    // Cross Subsidy (rate varies by state, calculate from total)
+    const cssRate = totalMarketEnergy > 0 ? t.cssCharge / totalMarketEnergy : 0;
+    addChargeRow('Cross Subsidy', t.cssCharge, cssRate, totalMarketEnergy);
+    
+    // RPPO (flat rate of ₹0.25/kWh)
+    addChargeRow('RPPO', t.rpoCharge, 0.25, t.rpoCharge / 0.25);
+    
+    // POC charges (CTU charges)
+    const pocRate = totalMarketEnergy > 0 ? t.pocCharge / totalMarketEnergy : 0;
+    addChargeRow('POC charges', t.pocCharge, pocRate, totalMarketEnergy);
+    
+    // STU charges
+    const stuRate = totalMarketEnergy > 0 ? t.stuCharge / totalMarketEnergy : 0;
+    addChargeRow('STU charges', t.stuCharge, stuRate, totalMarketEnergy);
+    
+    // Discom charges (Distribution/Wheeling charges)
+    const dcRate = totalMarketEnergy > 0 ? t.dcCharge / totalMarketEnergy : 0;
+    addChargeRow('Discom charges', t.dcCharge, dcRate, totalMarketEnergy);
+    
+    // IEX fee (fixed at ₹0.02/kWh)
+    addChargeRow('IEX fee', t.iexFee, 0.02, totalMarketEnergy, 0.02);
+    
+    // Trader Margin (varies, calculate rate)
+    const traderMargin = (t as any).traderMargin || 0;
+    const traderRate = totalMarketEnergy > 0 ? traderMargin / totalMarketEnergy : 0;
+    addChargeRow('Trader Margin', traderMargin, traderRate, totalMarketEnergy);
+    
+    // SLDC Operating charges (fixed per day)
+    const sldcCost = (oaDetailed as any).sldcSchedulingCost || 0;
+    sheet.addRow(['SLDC Operating charges', Math.round(sldcCost), '-', '-', '-']);
+    
+    // NLDC Scheduling charges (fixed per day)
+    const nldcCost = (oaDetailed as any).nldcSchedulingCost || 0;
+    sheet.addRow(['NLDC Scheduling charges', Math.round(nldcCost), '-', '-', '-']);
+    
+    // NLDC application charges (fixed per bid)
+    sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees), '-', '-', '-']);
     
     sheet.addRow([]);
     sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
