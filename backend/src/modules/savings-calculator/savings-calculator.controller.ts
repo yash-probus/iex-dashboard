@@ -161,6 +161,9 @@ export class SavingsCalculatorController {
       
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename=Savings_Analysis_${sanitizedClientName}.xlsx`);
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.status(200).send(buffer);
     } catch (error: any) {
       console.error('[SavingsCalculatorController] Excel Export failed:', error);
