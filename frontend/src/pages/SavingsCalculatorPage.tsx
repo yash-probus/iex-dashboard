@@ -25,7 +25,7 @@ import {
   FileDownload as FileDownloadIcon,
   BarChart as BarChartIcon
 } from '@mui/icons-material';
-import { DailyMarketSimulationGraph } from '../components/dashboard/DailyMarketSimulationGraph';
+import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import { 
@@ -1458,7 +1458,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {calculatingMarket ? 'Analyzing...' : 'Daily Market Graph'}
+              {calculatingMarket ? 'Analyzing...' : 'Slot-wise Heatmap'}
             </Button>
 
             {calcResult && (
@@ -1940,14 +1940,14 @@ export default function SavingsCalculatorPage() {
         PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
-          Daily Market Simulation
+          Slot-wise Market Simulation
           <IconButton onClick={() => setGraphDialogOpen(false)} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent>
           {marketDecisionResult && (
-            <DailyMarketSimulationGraph slotsData={marketDecisionResult.slotsData} />
+            <SlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
           )}
         </DialogContent>
       </Dialog>
