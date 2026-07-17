@@ -145,6 +145,10 @@ export class SavingsCalculatorExportService {
     const t = oaDetailed.totals;
     const totalMarketEnergy = result.totalMarketEnergyKwh;
     
+    console.log('[Excel Export Debug] Cross Subsidy from totals:', t.cssCharge);
+    console.log('[Excel Export Debug] STU Charges from totals:', t.stuCharge);
+    console.log('[Excel Export Debug] Total Market Energy:', totalMarketEnergy);
+    
     // Calculate and add each charge with rate information
     const addChargeRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
       sheet.addRow([
