@@ -563,6 +563,25 @@ export default function SavingsCalculatorPage() {
     }
   };
 
+  const executeGraphSimulation = async () => {
+    if (!calcEntry) return;
+    try {
+      setCalculatingMarket(true);
+      const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined);
+      setMarketDecisionResult(res);
+      setGraphDialogOpen(true);
+    } catch (err: any) {
+      console.error('Graph Simulation failed:', err);
+      setSnackbar({
+        open: true,
+        message: err.message || 'Graph calculation failed.',
+        severity: 'error'
+      });
+    } finally {
+      setCalculatingMarket(false);
+    }
+  };
+
   const exportCalcToCSV = () => {
     if (!calcResult || !calcResult.sortedMonthlyList) return;
     const exportData = calcResult.sortedMonthlyList.map((row) => ({
@@ -1425,6 +1444,23 @@ export default function SavingsCalculatorPage() {
               {calculatingMarket ? 'Analyzing...' : 'Detailed OA Simulation'}
             </Button>
 
+            <Button
+              variant="contained"
+              startIcon={<BarChartIcon />}
+              onClick={executeGraphSimulation}
+              disabled={calculatingMarket || !selectedSimMonth}
+              sx={{ 
+                textTransform: 'none', 
+                borderRadius: 2, 
+                bgcolor: '#F59E0B',
+                '&:hover': {
+                  bgcolor: '#D97706'
+                }
+              }}
+            >
+              {calculatingMarket ? 'Analyzing...' : 'Daily Market Graph'}
+            </Button>
+
             {calcResult && (
               <Button
                 variant="outlined"
@@ -1671,16 +1707,6 @@ export default function SavingsCalculatorPage() {
               
               {calcTab === 2 && marketDecisionResult && (
                 <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<BarChartIcon />}
-                      onClick={() => setGraphDialogOpen(true)}
-                      sx={{ textTransform: 'none', borderRadius: 2 }}
-                    >
-                      View Daily Simulation Graph
-                    </Button>
-                  </Box>
                   {marketDecisionResult.todSummaries && marketDecisionResult.todSummaries.length > 0 && (
                     <Grid container spacing={2} sx={{ mb: 3 }}>
                       {marketDecisionResult.todSummaries.map((summary, idx) => (
