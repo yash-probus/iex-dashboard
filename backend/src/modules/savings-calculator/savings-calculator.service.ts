@@ -478,6 +478,20 @@ export class SavingsCalculatorService {
       }
     });
 
+    console.log('[StateCharges Query Debug]', {
+      state: stateName.toUpperCase().replace(/\s+/g, '_'),
+      category: category,
+      startStr,
+      endStr,
+      found: !!stateCharges,
+      charges: stateCharges ? {
+        crossSubsidy: stateCharges.crossSubsidy,
+        stuCharges: stateCharges.stuCharges,
+        fromDate: stateCharges.fromDate,
+        toDate: stateCharges.toDate
+      } : null
+    });
+
     const ctuCharges = await prisma.ctuCharges.findFirst({
       where: { month: yyyymmMonth }
     });

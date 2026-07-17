@@ -17,10 +17,27 @@ function parseDate(dateStr: string): Date {
 
 async function seedStateCharges() {
   console.log('Seeding State Charges...');
-  const csvFilePath = path.join(__dirname, '../backend_tables_updated - state_charges.csv');
   
-  if (!fs.existsSync(csvFilePath)) {
-    console.log('State charges CSV file not found, skipping...');
+  // Try multiple possible paths for the CSV file
+  const possiblePaths = [
+    path.join(__dirname, '../backend_tables_updated - state_charges.csv'),
+    path.join(__dirname, '../../backend_tables_updated - state_charges.csv'),
+    '/app/backend_tables_updated - state_charges.csv',
+    './backend_tables_updated - state_charges.csv'
+  ];
+  
+  let csvFilePath = '';
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      csvFilePath = p;
+      console.log(`Found state charges CSV at: ${csvFilePath}`);
+      break;
+    }
+  }
+  
+  if (!csvFilePath) {
+    console.log('State charges CSV file not found in any location, skipping...');
+    console.log('Searched paths:', possiblePaths);
     return;
   }
 
