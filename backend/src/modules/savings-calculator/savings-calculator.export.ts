@@ -183,13 +183,33 @@ export class SavingsCalculatorExportService {
     const traderRate = totalMarketEnergy > 0 ? traderMargin / totalMarketEnergy : 0;
     addChargeRow('Trader Margin', traderMargin, traderRate, totalMarketEnergy);
     
-    // SLDC Operating charges (fixed per day)
+    // SLDC Operating charges (per market per day)
     const sldcCost = (oaDetailed as any).sldcSchedulingCost || 0;
-    sheet.addRow(['SLDC Operating charges', Math.round(sldcCost), '-', '-', '-']);
     
-    // NLDC Scheduling charges (fixed per day)
+    // Calculate SLDC breakdown by market
+    const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
+    slotsData.forEach(s => {
+      if (s.shouldBuyFromMarket && s.marketSource) {
+        if (s.marketSource === 'DAM') tradedDays.DAM.add(s.date);
+        else if (s.marketSource === 'GDAM') tradedDays.GDAM.add(s.date);
+        else if (s.marketSource === 'RTM') tradedDays.RTM.add(s.date);
+      }
+    });
+    
+    const sldcFeePerDay = 1500; // Default SLDC fee per market per day
+    const damSldcCost = tradedDays.DAM.size * sldcFeePerDay;
+    const gdamSldcCost = tradedDays.GDAM.size * sldcFeePerDay;
+    const rtmSldcCost = tradedDays.RTM.size * sldcFeePerDay;
+    
+    sheet.addRow(['SLDC Operating charges - DAM', Math.round(damSldcCost), '-', `${tradedDays.DAM.size} days`, '-']);
+    sheet.addRow(['SLDC Operating charges - GDAM', Math.round(gdamSldcCost), '-', `${tradedDays.GDAM.size} days`, '-']);
+    sheet.addRow(['SLDC Operating charges - RTM', Math.round(rtmSldcCost), '-', `${tradedDays.RTM.size} days`, '-']);
+    sheet.addRow(['SLDC Operating charges - Total', Math.round(sldcCost), '-', `${tradedDays.DAM.size + tradedDays.GDAM.size + tradedDays.RTM.size} market-days`, '-']);
+    
+    // NLDC Scheduling charges (fixed per unique day)
     const nldcCost = (oaDetailed as any).nldcSchedulingCost || 0;
-    sheet.addRow(['NLDC Scheduling charges', Math.round(nldcCost), '-', '-', '-']);
+    const uniqueDays = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]).size;
+    sheet.addRow(['NLDC Scheduling charges', Math.round(nldcCost), '-', `${uniqueDays} unique days`, '-']);
     
     // NLDC application charges (fixed per bid)
     sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees), '-', '-', '-']);

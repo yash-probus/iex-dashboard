@@ -777,8 +777,13 @@ export class SavingsCalculatorService {
 
     const allTradedDates = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]);
     const totalDaysTraded = allTradedDates.size;
+    
+    // NLDC is charged per unique day (regardless of how many markets are used)
     const nldcSchedulingCost = nldcSchedulingFees * totalDaysTraded;
-    const sldcSchedulingCost = sldcSchedulingFees * totalDaysTraded;
+    
+    // SLDC is charged per market per day (if DAM, GDAM, RTM are all used on same day, pay 3x)
+    const sldcSchedulingCost = sldcSchedulingFees * (totalDamDays + totalGdamDays + totalRtmDays);
+    
     const dailyFixedOverhead = nldcSchedulingCost + sldcSchedulingCost;
     const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
 
