@@ -154,8 +154,13 @@ export class SavingsCalculatorController {
       const { SavingsCalculatorExportService } = await import('./savings-calculator.export');
       const buffer = await SavingsCalculatorExportService.exportToExcel(id as string, targetMonth as string | undefined);
       
+      // Get client name for filename
+      const entry = await SavingsCalculatorService.getById(id as string);
+      const clientName = entry?.clientName || id;
+      const sanitizedClientName = String(clientName).replace(/[^a-zA-Z0-9_-]/g, '_');
+      
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename=Savings_Analysis_${id}.xlsx`);
+      res.setHeader('Content-Disposition', `attachment; filename=Savings_Analysis_${sanitizedClientName}.xlsx`);
       res.status(200).send(buffer);
     } catch (error: any) {
       console.error('[SavingsCalculatorController] Excel Export failed:', error);
