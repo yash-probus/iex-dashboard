@@ -925,6 +925,8 @@ export class SavingsCalculatorService {
       const rpoCharge = nonGdamConsumerBusUnits * RPO_FLAT_RATE;
       const cssCharge = consumerBusUnits * crossSubsidy;
       
+      console.log('[CSS Calculation Debug] consumerBusUnits:', consumerBusUnits, 'crossSubsidy:', crossSubsidy, 'cssCharge:', cssCharge);
+      
       const pocCharge = marketEnergy * ctuCharge;
       const stuChargeVal = marketEnergy * stuCharge;
       const dcCharge = marketEnergy * wheelingCharge;
