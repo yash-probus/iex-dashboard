@@ -10,6 +10,8 @@ export interface ForecastIntervalData {
   mcv: number;
   fsv: number;
   mcp: number;
+  actualMcp?: number | null;
+  confidence?: string;
 }
 
 export interface DemandForecastIntervalData {
@@ -71,6 +73,13 @@ export class ForecastService {
         const sumMcv = hourRecords.reduce((sum, r) => sum + r.mcv, 0);
         const sumFsv = hourRecords.reduce((sum, r) => sum + r.fsv, 0);
 
+        // Aggregate actualMcp
+        const actualRecords = hourRecords.filter(r => r.actualMcp !== null && r.actualMcp !== undefined);
+        const sumActualMcp = actualRecords.reduce((sum, r) => sum + (r.actualMcp || 0), 0);
+        const actualMcp = actualRecords.length > 0 
+          ? parseFloat((sumActualMcp / actualRecords.length).toFixed(2))
+          : null;
+
         hourlyData.push({
           date: hourRecords[0].date,
           hour: hourStr,
@@ -80,7 +89,9 @@ export class ForecastService {
           sellBid: Math.round(sumSell / hourRecords.length),
           mcv: Math.round(sumMcv / hourRecords.length),
           fsv: Math.round(sumFsv / hourRecords.length),
-          mcp: parseFloat((sumMcp / hourRecords.length).toFixed(2))
+          mcp: parseFloat((sumMcp / hourRecords.length).toFixed(2)),
+          actualMcp,
+          confidence: 'N/A'
         });
       }
       return hourlyData;
@@ -93,6 +104,13 @@ export class ForecastService {
     const sumMcv = records.reduce((sum, r) => sum + r.mcv, 0);
     const sumFsv = records.reduce((sum, r) => sum + r.fsv, 0);
 
+    // Aggregate actualMcp
+    const actualRecords = records.filter(r => r.actualMcp !== null && r.actualMcp !== undefined);
+    const sumActualMcp = actualRecords.reduce((sum, r) => sum + (r.actualMcp || 0), 0);
+    const actualMcp = actualRecords.length > 0 
+      ? parseFloat((sumActualMcp / actualRecords.length).toFixed(2))
+      : null;
+
     return [{
       date: records[0].date,
       hour: '00',
@@ -102,7 +120,9 @@ export class ForecastService {
       sellBid: Math.round(sumSell / records.length),
       mcv: Math.round(sumMcv / records.length),
       fsv: Math.round(sumFsv / records.length),
-      mcp: parseFloat((sumMcp / records.length).toFixed(2))
+      mcp: parseFloat((sumMcp / records.length).toFixed(2)),
+      actualMcp,
+      confidence: 'N/A'
     }];
   }
 
@@ -111,11 +131,31 @@ export class ForecastService {
    */
   public static async getPriceForecast(market: string, startDateStr: string, endDateStr: string, interval: string = '15min', model: string = 'Model1') {
     const intervals: ForecastIntervalData[] = [];
+    const actualMap = new Map<string, number>();
 
     if (market.toUpperCase() === 'DAM') {
       try {
         let modelNum = 1;
         if (model === 'Model2') modelNum = 2;
+
+        // Fetch actuals for mapping
+        const actualRows: any[] = await prisma.$queryRawUnsafe(
+          `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+           FROM "DamRecord" dr 
+           JOIN "Dataset" d ON dr."datasetId" = d.id 
+           WHERE d.market = 'DAM' AND d.status = 'ACTIVE'
+           AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
+          startDateStr,
+          endDateStr
+        );
+
+        for (const act of actualRows) {
+          const dateStr = act.date instanceof Date 
+            ? act.date.toISOString().split('T')[0] 
+            : new Date(act.date).toISOString().split('T')[0];
+          const key = `${dateStr}_${act.timeblock}`;
+          actualMap.set(key, parseFloat((Number(act.mcp) / 1000.0).toFixed(2)));
+        }
 
         const rows: any[] = await prisma.$queryRawUnsafe(
           `SELECT DISTINCT ON (forecasting_for::date, time_block) * FROM "forecasting"."dam_forecasting"
@@ -140,6 +180,9 @@ export class ForecastService {
               ? r.forecasting_for.toISOString().split('T')[0] 
               : new Date(r.forecasting_for).toISOString().split('T')[0];
 
+            const key = `${dateStr}_${r.time_block}`;
+            const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
+
             return {
               date: dateStr,
               hour,
@@ -149,7 +192,9 @@ export class ForecastService {
               sellBid: 0,
               mcv: 0,
               fsv: 0,
-              mcp
+              mcp,
+              actualMcp,
+              confidence: 'N/A'
             };
           });
 
@@ -162,36 +207,73 @@ export class ForecastService {
 
     // Compute analytics
     let sumMcp = 0;
+    let sumActualMcp = 0;
+    let actualCount = 0;
     let sumFsv = 0;
     let maxMcp = -Infinity;
-    let minMcp = Infinity;
+    let minForecastMcp = Infinity;
+    let minActualMcp = Infinity;
     let maxMcv = -Infinity;
     let maxFsv = -Infinity;
 
+    let sumAbsoluteError = 0;
+    let sumPercentageError = 0;
+    let errorCount = 0;
+
     for (const row of intervals) {
       const mcp = Number(row.mcp || 0);
+      const actualMcp = row.actualMcp !== null && row.actualMcp !== undefined ? Number(row.actualMcp) : null;
       const fsv = Number(row.fsv || 0);
       const mcv = Number(row.mcv || 0);
 
       sumMcp += mcp;
       sumFsv += fsv;
       if (mcp > maxMcp) maxMcp = mcp;
-      if (mcp < minMcp) minMcp = mcp;
+      if (mcp < minForecastMcp) minForecastMcp = mcp;
       if (mcv > maxMcv) maxMcv = mcv;
       if (fsv > maxFsv) maxFsv = fsv;
+
+      if (actualMcp !== null) {
+        sumActualMcp += actualMcp;
+        actualCount++;
+        if (actualMcp < minActualMcp) minActualMcp = actualMcp;
+
+        // Absolute error calculation
+        const absErr = Math.abs(actualMcp - mcp);
+        sumAbsoluteError += absErr;
+
+        if (actualMcp > 0) {
+          sumPercentageError += (absErr / actualMcp);
+          errorCount++;
+        }
+      }
     }
 
-    const averageMcp = intervals.length > 0 ? sumMcp / intervals.length : 0;
+    const averageMcpForecasted = intervals.length > 0 ? sumMcp / intervals.length : 0;
+    const averageMcpActual = actualCount > 0 ? sumActualMcp / actualCount : null;
+    const minMcpForecasted = minForecastMcp === Infinity ? 0 : minForecastMcp;
+    const minMcpActual = minActualMcp === Infinity ? null : minActualMcp;
+
+    const mae = actualCount > 0 ? sumAbsoluteError / actualCount : null;
+    const mape = errorCount > 0 ? (sumPercentageError / errorCount) * 100 : null;
 
     return {
       intervals,
       analytics: {
-        averageMcp: parseFloat(averageMcp.toFixed(2)),
+        averageMcp: parseFloat(averageMcpForecasted.toFixed(2)),
+        averageMcpForecasted: parseFloat(averageMcpForecasted.toFixed(2)),
+        averageMcpActual: averageMcpActual !== null ? parseFloat(averageMcpActual.toFixed(2)) : 'N/A',
         totalVolume: parseFloat(sumFsv.toFixed(2)),
         maxMcv: maxMcv === -Infinity ? 0 : maxMcv,
         maxFsv: maxFsv === -Infinity ? 0 : maxFsv,
         maxMcp: maxMcp === -Infinity ? 0 : parseFloat(maxMcp.toFixed(2)),
-        minMcp: minMcp === Infinity ? 0 : parseFloat(minMcp.toFixed(2))
+        minMcp: minMcpForecasted === Infinity ? 0 : parseFloat(minMcpForecasted.toFixed(2)),
+        minMcpForecasted: parseFloat(minMcpForecasted.toFixed(2)),
+        minMcpActual: minMcpActual !== null ? parseFloat(minMcpActual.toFixed(2)) : 'N/A',
+        mape: mape !== null ? `${mape.toFixed(2)}%` : 'N/A',
+        mae: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
+        avgAbsoluteError: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
+        confidence: 'N/A'
       }
     };
   }

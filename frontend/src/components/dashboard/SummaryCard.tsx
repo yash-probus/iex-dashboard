@@ -4,7 +4,7 @@ import { TrendingUp as TrendingUpIcon, TrendingDown as TrendingDownIcon } from '
 
 interface SummaryCardProps {
   title: string;
-  value: string | number;
+  value: string | number | React.ReactNode;
   change?: string;
   isPositive?: boolean;
   accentColor?: string;
@@ -60,10 +60,14 @@ export default function SummaryCard({ title, value, change, isPositive = true, a
         )}
       </Box>
       
-      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mt: 0.5 }}>
-        <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 800, letterSpacing: '-1px' }}>
-          {value}
-        </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mt: 0.5, width: '100%' }}>
+        {typeof value === 'string' || typeof value === 'number' ? (
+          <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 800, letterSpacing: '-1px' }}>
+            {value}
+          </Typography>
+        ) : (
+          value
+        )}
       </Box>
 
       {change && (
