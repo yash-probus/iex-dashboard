@@ -379,7 +379,8 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = (event?: any, reason?: string) => {
+    if (reason && (reason === 'backdropClick' || reason === 'escapeKeyDown')) return;
     setDialogMode(null);
     setSelectedEntry(null);
     setFormErrors({});
@@ -493,7 +494,8 @@ export default function SavingsCalculatorPage() {
     setSelectedSimMonth(months.length > 0 ? months[0] : '');
   };
 
-  const handleCloseCalc = () => {
+  const handleCloseCalc = (event?: any, reason?: string) => {
+    if (reason && (reason === 'backdropClick' || reason === 'escapeKeyDown')) return;
     setCalcDialogOpen(false);
     setCalcEntry(null);
     setCalcResult(null);

@@ -1,10 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
 
 async function main() {
-  const stateTariff = await prisma.stateCharges.findFirst({
-    where: { stateCode: 'UP' }
+  const prisma = new PrismaClient();
+  const c = await prisma.stateTariff.findMany({ where: { state: 'UTTAR_PRADESH', supplyVoltageCategory: 'Up to 11 kV' } });
+  c.forEach(x => {
+    if(x.fromDate && x.fromDate.getFullYear() === 2025) {
+       console.log(x.todStartTime, x.todEndTime, Number(x.energyRate), x.todChargePercent);
+    }
   });
-  console.log(stateTariff);
 }
-main();
+main().catch(console.error);
