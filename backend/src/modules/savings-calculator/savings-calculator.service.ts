@@ -575,6 +575,9 @@ export class SavingsCalculatorService {
     const stuLoss = Number(stateCharges.stuLossPercent);
     const wheelingLoss = Number(stateCharges.wheelingLossPercent);
 
+    console.log('[Charge Values Debug] crossSubsidy from DB:', crossSubsidy);
+    console.log('[Charge Values Debug] stuCharge from DB:', stuCharge);
+
     const query = `
       SELECT
           COALESCE(dam.date, rtm.date, gdam.date) AS date,
