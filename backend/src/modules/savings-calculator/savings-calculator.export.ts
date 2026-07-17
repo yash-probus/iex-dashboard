@@ -180,8 +180,11 @@ export class SavingsCalculatorExportService {
     
     // Trader Margin (varies, calculate rate)
     const traderMargin = (t as any).traderMargin || 0;
+    const traderMarginGst = (t as any).traderMarginGst || 0;
     const traderRate = totalMarketEnergy > 0 ? traderMargin / totalMarketEnergy : 0;
+    const traderGstRate = totalMarketEnergy > 0 ? traderMarginGst / totalMarketEnergy : 0;
     addChargeRow('Trader Margin', traderMargin, traderRate, totalMarketEnergy);
+    addChargeRow('Trader Margin GST (18%)', traderMarginGst, traderGstRate, totalMarketEnergy, 18);
     
     // SLDC Operating charges (per market per day)
     const sldcCost = (oaDetailed as any).sldcSchedulingCost || 0;

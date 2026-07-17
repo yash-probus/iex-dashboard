@@ -802,6 +802,7 @@ export class SavingsCalculatorService {
     let globalDcCharge = 0;
     let globalIexFee = 0;
     let globalTraderMargin = 0;
+    let globalTraderMarginGst = 0;
 
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
     const oaDetailedBreakdown: any[] = [];
@@ -914,6 +915,7 @@ export class SavingsCalculatorService {
 
       const iexFeesTotal = marketEnergy * EXCHANGE_FEES;
       const traderMarginTotal = marketEnergy * TRADER_MARGIN;
+      const traderMarginGstTotal = marketEnergy * GST_TRADER_MARGIN;
       
       globalCssCharge += cssCharge;
       globalRpoCharge += rpoCharge;
@@ -922,9 +924,10 @@ export class SavingsCalculatorService {
       globalDcCharge += dcCharge;
       globalIexFee += iexFeesTotal;
       globalTraderMargin += traderMarginTotal;
+      globalTraderMarginGst += traderMarginGstTotal;
 
       const marketEnergyCost = marketEnergy * avgMarketPrice;
-      const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + marketEnergyCost;
+      const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + traderMarginGstTotal + marketEnergyCost;
 
       // Exchange cost: market portion with all surcharges + Prolt DISCOM Bill
       totalLandedExchangeCost += slabOaBill + proltDiscomBillTotal;
@@ -987,6 +990,7 @@ export class SavingsCalculatorService {
           dcCharge: globalDcCharge,
           iexFee: globalIexFee,
           traderMargin: globalTraderMargin,
+          traderMarginGst: globalTraderMarginGst,
           proltMarginCost: totalProltMarginCost,
         }
       }
