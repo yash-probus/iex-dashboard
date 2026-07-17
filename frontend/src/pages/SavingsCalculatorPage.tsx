@@ -65,6 +65,7 @@ export default function SavingsCalculatorPage() {
   const [discom, setDiscom] = useState('');
   const [consumerCategory, setConsumerCategory] = useState('');
   const [voltageLevel, setVoltageLevel] = useState('');
+  const [applyElectricityDuty, setApplyElectricityDuty] = useState<boolean>(true);
   const [supplyVoltageValue, setSupplyVoltageValue] = useState('');
   const [proltMargin, setProltMargin] = useState<string>('');
   const [traderMargin, setTraderMargin] = useState('');
@@ -1027,10 +1028,20 @@ export default function SavingsCalculatorPage() {
                   >
                     <option value="" disabled>Select Value</option>
                     {availableSupplyVoltageValues.map((val) => (
-                      <option key={val} value={val}>{val}</option>
+                      <option key={val} value={val}>{val} kV</option>
                     ))}
+                    {supplyVoltageValue && !availableSupplyVoltageValues.includes(supplyVoltageValue) && (
+                      <option value={supplyVoltageValue}>{supplyVoltageValue} kV</option>
+                    )}
                   </TextField>
                 )}
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, p: 1, backgroundColor: '#f8fafc', borderRadius: 1 }}>
+                  <FormControlLabel
+                    control={<Switch checked={applyElectricityDuty} onChange={(e) => setApplyElectricityDuty(e.target.checked)} color="primary" />}
+                    label="Apply Electricity Duty?"
+                  />
+                </Box>
               </Box>
             )
           })}
