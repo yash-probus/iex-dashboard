@@ -39,7 +39,8 @@ export class SavingsCalculatorController {
         voltageLevel,
         proltMargin,
         traderMargin,
-        todConsumptions
+        todConsumptions,
+        applyElectricityDuty
       } = req.body;
 
       if (!clientName || !industryName || !address) {
@@ -57,7 +58,8 @@ export class SavingsCalculatorController {
         voltageLevel,
         proltMargin: proltMargin ? parseFloat(proltMargin) : undefined,
         traderMargin: traderMargin ? parseFloat(traderMargin) : undefined,
-        todConsumptions
+        todConsumptions,
+        applyElectricityDuty: applyElectricityDuty !== undefined ? applyElectricityDuty : true
       });
 
       res.status(201).json(entry);
@@ -81,7 +83,8 @@ export class SavingsCalculatorController {
         voltageLevel,
         proltMargin,
         traderMargin,
-        todConsumptions
+        todConsumptions,
+        applyElectricityDuty
       } = req.body;
 
       if (!clientName || !industryName || !address) {

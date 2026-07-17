@@ -25,6 +25,7 @@ export class SavingsCalculatorService {
     proltMargin?: number;
     traderMargin?: number;
     todConsumptions?: any;
+    applyElectricityDuty?: boolean;
   }) {
     return prisma.savingsCalculatorEntry.create({
       data: {
@@ -866,7 +867,7 @@ export class SavingsCalculatorService {
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
-      const slabED = (slabEnergyBill + slabDemandCharge) * 0.075;
+      const slabED = entry.applyElectricityDuty !== false ? (slabEnergyBill + slabDemandCharge) * 0.075 : 0;
       totalElectricityDuty += slabED;
 
       // Baseline: all consumption at DISCOM rate (inclusive of fixed/taxes)

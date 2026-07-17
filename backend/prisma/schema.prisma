@@ -525,6 +525,7 @@ model SavingsCalculatorEntry {
   consumerCategory String?  @map("consumer_category") @db.VarChar(100)
   voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
   todConsumptions  Json?    @map("tod_consumptions")
+  applyElectricityDuty Boolean @default(true) @map("apply_electricity_duty")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 

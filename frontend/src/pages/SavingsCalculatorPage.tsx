@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import { FormControlLabel, Switch, 
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
@@ -1220,7 +1220,8 @@ export default function SavingsCalculatorPage() {
       {/* PROLT Config Dialog */}
       <Dialog 
         open={proltDialogOpen} 
-        onClose={() => setProltDialogOpen(false)}
+        onClose={(e, reason) => { if (reason !== "backdropClick" && reason !== "escapeKeyDown") setProltDialogOpen(false); }} 
+        disableEscapeKeyDown
         maxWidth="xs"
         fullWidth
         PaperProps={{
@@ -1244,18 +1245,18 @@ export default function SavingsCalculatorPage() {
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <TextField
-              label="PROLT Margin (Rs/kWh)"
-              value={proltMargin}
-              onChange={(e) => setProltMargin(e.target.value)}
+              label="Trader Margin (Rs/kWh)"
+              value={traderMargin}
+              onChange={(e) => setTraderMargin(e.target.value)}
               fullWidth
               type="number"
               variant="outlined"
               size="small"
             />
             <TextField
-              label="Trader Margin (Rs/kWh)"
-              value={traderMargin}
-              onChange={(e) => setTraderMargin(e.target.value)}
+              label="PROLT Margin (%)"
+              value={proltMargin}
+              onChange={(e) => setProltMargin(e.target.value)}
               fullWidth
               type="number"
               variant="outlined"
