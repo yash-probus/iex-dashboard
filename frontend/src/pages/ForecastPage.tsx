@@ -157,7 +157,9 @@ export default function ForecastPage() {
 
     return [
       ...baseColumns,
-      { field: 'mcp', headerName: 'MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
+      { field: 'mcp', headerName: 'Forecasted MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
+      { field: 'actualMcp', headerName: 'Actual MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+      { field: 'confidence', headerName: 'Confidence', align: 'center' },
     ];
   };
 
@@ -165,9 +167,22 @@ export default function ForecastPage() {
 
   // Define chart metrics
   const getChartMetrics = (): ChartMetric[] => {
-    return [
-      {key: 'mcp', name: 'MCP (₹/kWh)', color: accentColor, type: 'area', yAxisId: 'right'},
+    const metrics: ChartMetric[] = [
+      {key: 'mcp', name: 'Forecasted MCP (₹/kWh)', color: accentColor, type: 'area', yAxisId: 'right'},
     ];
+
+    const hasActual = data.some(d => d.actualMcp !== null && d.actualMcp !== undefined);
+    if (hasActual) {
+      metrics.push({
+        key: 'actualMcp',
+        name: 'Actual MCP (₹/kWh)',
+        color: '#10B981', // green for actual
+        type: 'line',
+        yAxisId: 'right'
+      });
+    }
+
+    return metrics;
   };
 
   const chartMetrics = getChartMetrics();
@@ -305,8 +320,10 @@ export default function ForecastPage() {
                 label="Forecast Date"
                 value={localStartDate}
                 onChange={(e) => {
-                  setLocalStartDate(e.target.value);
-                  setLocalEndDate(e.target.value);
+                  const val = e.target.value;
+                  setLocalStartDate(val);
+                  setLocalEndDate(val);
+                  setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
                 }}
                 size="small"
                 sx={{
@@ -332,8 +349,10 @@ export default function ForecastPage() {
                 label="Forecast Date"
                 value={localStartDate}
                 onChange={(e) => {
-                  setLocalStartDate(e.target.value);
-                  setLocalEndDate(e.target.value);
+                  const val = e.target.value;
+                  setLocalStartDate(val);
+                  setLocalEndDate(val);
+                  setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
                 }}
                 size="small"
                 InputLabelProps={{ shrink: true }}
@@ -350,7 +369,11 @@ export default function ForecastPage() {
               select
               label="Model"
               value={localModel}
-              onChange={(e) => setLocalModel(e.target.value as 'Model1' | 'Model2')}
+              onChange={(e) => {
+                const val = e.target.value as 'Model1' | 'Model2';
+                setLocalModel(val);
+                setFilters(prev => ({ ...prev, model: val }));
+              }}
               size="small"
               sx={{
                 minWidth: 150,
@@ -367,7 +390,11 @@ export default function ForecastPage() {
               select
               label="Interval"
               value={localInterval}
-              onChange={(e) => setLocalInterval(e.target.value as '15min' | 'hourly' | 'daily')}
+              onChange={(e) => {
+                const val = e.target.value as '15min' | 'hourly' | 'daily';
+                setLocalInterval(val);
+                setFilters(prev => ({ ...prev, interval: val }));
+              }}
               size="small"
               sx={{
                 minWidth: 150,
@@ -409,35 +436,120 @@ export default function ForecastPage() {
       ) : (
         <>
           {/* Summary Cards */}
-          <SummaryGrid>
-            {isLoading ? <SummaryCardSkeleton /> : (
-              <SummaryCard
-                title="Average Forecasted MCP"
-                value={`₹ ${Number(summaryMetrics.averageMcp || 0).toFixed(2)}`}
-                icon={<TrendingUp fontSize="small" />}
-                accentColor={accentColor}
-                sx={{ p: 2 }}
-              />
-            )}
-            {isLoading ? <SummaryCardSkeleton /> : (
-              <SummaryCard
-                title="Peak Forecasted MCP"
-                value={`₹ ${Number(summaryMetrics.maxMcp || 0).toFixed(2)}`}
-                icon={<ShowChart fontSize="small" />}
-                accentColor={accentColor}
-                sx={{ p: 2 }}
-              />
-            )}
-            {isLoading ? <SummaryCardSkeleton /> : (
-              <SummaryCard
-                title="Minimum Forecasted MCP"
-                value={`₹ ${Number(summaryMetrics.minMcp || 0).toFixed(2)}`}
-                icon={<TrendingDown fontSize="small" />}
-                accentColor={accentColor}
-                sx={{ p: 2 }}
-              />
-            )}
-          </SummaryGrid>
+          {/* Summary Cards */}
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: '100%', mb: 3 }}>
+            {/* Average Card */}
+            <Box sx={{ flex: '1.8 1 280px', minWidth: 260 }}>
+              {isLoading ? <SummaryCardSkeleton /> : (
+                <SummaryCard
+                  title="Average MCP"
+                  value={
+                    <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                          ₹{Number(summaryMetrics.averageMcpForecasted || summaryMetrics.averageMcp || 0).toFixed(2)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                          {summaryMetrics.averageMcpActual === 'N/A' || summaryMetrics.averageMcpActual === undefined || summaryMetrics.averageMcpActual === null
+                            ? 'N/A'
+                            : `₹${Number(summaryMetrics.averageMcpActual).toFixed(2)}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                  icon={<TrendingUp fontSize="small" />}
+                  accentColor={accentColor}
+                  sx={{ p: 1.75 }}
+                />
+              )}
+            </Box>
+
+            {/* Minimum Card */}
+            <Box sx={{ flex: '1.8 1 280px', minWidth: 260 }}>
+              {isLoading ? <SummaryCardSkeleton /> : (
+                <SummaryCard
+                  title="Minimum MCP"
+                  value={
+                    <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                          ₹{Number(summaryMetrics.minMcpForecasted || summaryMetrics.minMcp || 0).toFixed(2)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                          {summaryMetrics.minMcpActual === 'N/A' || summaryMetrics.minMcpActual === undefined || summaryMetrics.minMcpActual === null
+                            ? 'N/A'
+                            : `₹${Number(summaryMetrics.minMcpActual).toFixed(2)}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                  icon={<TrendingDown fontSize="small" />}
+                  accentColor={accentColor}
+                  sx={{ p: 1.75 }}
+                />
+              )}
+            </Box>
+
+            {/* MAPE Card */}
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
+              {isLoading ? <SummaryCardSkeleton /> : (
+                <SummaryCard
+                  title="MAPE"
+                  value={summaryMetrics.mape || 'N/A'}
+                  icon={<ShowChart fontSize="small" />}
+                  accentColor="#F59E0B"
+                  sx={{ p: 1.75 }}
+                />
+              )}
+            </Box>
+
+            {/* MAE Card */}
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
+              {isLoading ? <SummaryCardSkeleton /> : (
+                <SummaryCard
+                  title="MAE"
+                  value={summaryMetrics.mae !== undefined && summaryMetrics.mae !== null && summaryMetrics.mae !== 'N/A' ? `₹${Number(summaryMetrics.mae).toFixed(2)}` : 'N/A'}
+                  icon={<ShowChart fontSize="small" />}
+                  accentColor="#EF4444"
+                  sx={{ p: 1.75 }}
+                />
+              )}
+            </Box>
+
+            {/* Avg Absolute Error Card */}
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
+              {isLoading ? <SummaryCardSkeleton /> : (
+                <SummaryCard
+                  title="Avg. Abs. Error"
+                  value={summaryMetrics.avgAbsoluteError !== undefined && summaryMetrics.avgAbsoluteError !== null && summaryMetrics.avgAbsoluteError !== 'N/A' ? `₹${Number(summaryMetrics.avgAbsoluteError).toFixed(2)}` : 'N/A'}
+                  icon={<ShowChart fontSize="small" />}
+                  accentColor="#3B82F6"
+                  sx={{ p: 1.75 }}
+                />
+              )}
+            </Box>
+
+            {/* Confidence Card */}
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
+              {isLoading ? <SummaryCardSkeleton /> : (
+                <SummaryCard
+                  title="Confidence"
+                  value={summaryMetrics.confidence || 'N/A'}
+                  icon={<ShowChart fontSize="small" />}
+                  accentColor="#8B5CF6"
+                  sx={{ p: 1.75 }}
+                />
+              )}
+            </Box>
+          </Box>
 
           {isLoading ? (
             <>
