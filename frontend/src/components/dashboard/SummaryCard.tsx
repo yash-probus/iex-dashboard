@@ -40,7 +40,7 @@ export default function SummaryCard({ title, value, change, isPositive = true, a
         ...sx
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.75 }}>
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1.2 }}>
           {title}
         </Typography>

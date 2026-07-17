@@ -320,8 +320,10 @@ export default function ForecastPage() {
                 label="Forecast Date"
                 value={localStartDate}
                 onChange={(e) => {
-                  setLocalStartDate(e.target.value);
-                  setLocalEndDate(e.target.value);
+                  const val = e.target.value;
+                  setLocalStartDate(val);
+                  setLocalEndDate(val);
+                  setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
                 }}
                 size="small"
                 sx={{
@@ -347,8 +349,10 @@ export default function ForecastPage() {
                 label="Forecast Date"
                 value={localStartDate}
                 onChange={(e) => {
-                  setLocalStartDate(e.target.value);
-                  setLocalEndDate(e.target.value);
+                  const val = e.target.value;
+                  setLocalStartDate(val);
+                  setLocalEndDate(val);
+                  setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
                 }}
                 size="small"
                 InputLabelProps={{ shrink: true }}
@@ -365,7 +369,11 @@ export default function ForecastPage() {
               select
               label="Model"
               value={localModel}
-              onChange={(e) => setLocalModel(e.target.value as 'Model1' | 'Model2')}
+              onChange={(e) => {
+                const val = e.target.value as 'Model1' | 'Model2';
+                setLocalModel(val);
+                setFilters(prev => ({ ...prev, model: val }));
+              }}
               size="small"
               sx={{
                 minWidth: 150,
@@ -382,7 +390,11 @@ export default function ForecastPage() {
               select
               label="Interval"
               value={localInterval}
-              onChange={(e) => setLocalInterval(e.target.value as '15min' | 'hourly' | 'daily')}
+              onChange={(e) => {
+                const val = e.target.value as '15min' | 'hourly' | 'daily';
+                setLocalInterval(val);
+                setFilters(prev => ({ ...prev, interval: val }));
+              }}
               size="small"
               sx={{
                 minWidth: 150,
@@ -425,23 +437,23 @@ export default function ForecastPage() {
         <>
           {/* Summary Cards */}
           {/* Summary Cards */}
-          <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: '100%', mb: 3 }}>
             {/* Average Card */}
-            <Grid item xs={12} md={6}>
+            <Box sx={{ flex: '1.8 1 280px', minWidth: 260 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="Average MCP"
                   value={
-                    <Box sx={{ display: 'flex', gap: 2.5, width: '100%', mt: 0.5 }}>
+                    <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase' }}>Forecasted</Typography>
-                        <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
                           ₹{Number(summaryMetrics.averageMcpForecasted || summaryMetrics.averageMcp || 0).toFixed(2)}
                         </Typography>
                       </Box>
-                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2.5 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase' }}>Actual</Typography>
-                        <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
                           {summaryMetrics.averageMcpActual === 'N/A' || summaryMetrics.averageMcpActual === undefined || summaryMetrics.averageMcpActual === null
                             ? 'N/A'
                             : `₹${Number(summaryMetrics.averageMcpActual).toFixed(2)}`}
@@ -451,27 +463,27 @@ export default function ForecastPage() {
                   }
                   icon={<TrendingUp fontSize="small" />}
                   accentColor={accentColor}
-                  sx={{ p: 2 }}
+                  sx={{ p: 1.75 }}
                 />
               )}
-            </Grid>
+            </Box>
 
             {/* Minimum Card */}
-            <Grid item xs={12} md={6}>
+            <Box sx={{ flex: '1.8 1 280px', minWidth: 260 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="Minimum MCP"
                   value={
-                    <Box sx={{ display: 'flex', gap: 2.5, width: '100%', mt: 0.5 }}>
+                    <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase' }}>Forecasted</Typography>
-                        <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
                           ₹{Number(summaryMetrics.minMcpForecasted || summaryMetrics.minMcp || 0).toFixed(2)}
                         </Typography>
                       </Box>
-                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2.5 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase' }}>Actual</Typography>
-                        <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
                           {summaryMetrics.minMcpActual === 'N/A' || summaryMetrics.minMcpActual === undefined || summaryMetrics.minMcpActual === null
                             ? 'N/A'
                             : `₹${Number(summaryMetrics.minMcpActual).toFixed(2)}`}
@@ -481,63 +493,63 @@ export default function ForecastPage() {
                   }
                   icon={<TrendingDown fontSize="small" />}
                   accentColor={accentColor}
-                  sx={{ p: 2 }}
+                  sx={{ p: 1.75 }}
                 />
               )}
-            </Grid>
+            </Box>
 
             {/* MAPE Card */}
-            <Grid item xs={6} sm={3}>
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="MAPE"
                   value={summaryMetrics.mape || 'N/A'}
                   icon={<ShowChart fontSize="small" />}
                   accentColor="#F59E0B"
-                  sx={{ p: 2 }}
+                  sx={{ p: 1.75 }}
                 />
               )}
-            </Grid>
+            </Box>
 
             {/* MAE Card */}
-            <Grid item xs={6} sm={3}>
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="MAE"
                   value={summaryMetrics.mae !== undefined && summaryMetrics.mae !== null && summaryMetrics.mae !== 'N/A' ? `₹${Number(summaryMetrics.mae).toFixed(2)}` : 'N/A'}
                   icon={<ShowChart fontSize="small" />}
                   accentColor="#EF4444"
-                  sx={{ p: 2 }}
+                  sx={{ p: 1.75 }}
                 />
               )}
-            </Grid>
+            </Box>
 
             {/* Avg Absolute Error Card */}
-            <Grid item xs={6} sm={3}>
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="Avg. Abs. Error"
                   value={summaryMetrics.avgAbsoluteError !== undefined && summaryMetrics.avgAbsoluteError !== null && summaryMetrics.avgAbsoluteError !== 'N/A' ? `₹${Number(summaryMetrics.avgAbsoluteError).toFixed(2)}` : 'N/A'}
                   icon={<ShowChart fontSize="small" />}
                   accentColor="#3B82F6"
-                  sx={{ p: 2 }}
+                  sx={{ p: 1.75 }}
                 />
               )}
-            </Grid>
+            </Box>
 
             {/* Confidence Card */}
-            <Grid item xs={6} sm={3}>
+            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="Confidence"
                   value={summaryMetrics.confidence || 'N/A'}
                   icon={<ShowChart fontSize="small" />}
                   accentColor="#8B5CF6"
-                  sx={{ p: 2 }}
+                  sx={{ p: 1.75 }}
                 />
               )}
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           {isLoading ? (
             <>
