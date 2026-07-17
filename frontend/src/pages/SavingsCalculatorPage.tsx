@@ -21,8 +21,11 @@ import {
   Bolt as BoltIcon,
   Speed as SpeedIcon,
   Business as BusinessIcon,
-  ArrowForward as ArrowForwardIcon
+  ArrowForward as ArrowForwardIcon,
+  FileDownload as FileDownloadIcon,
+  BarChart as BarChartIcon
 } from '@mui/icons-material';
+import { DailyMarketSimulationGraph } from '../components/dashboard/DailyMarketSimulationGraph';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import { 
@@ -95,6 +98,7 @@ export default function SavingsCalculatorPage() {
   const [marketDecisionResult, setMarketDecisionResult] = useState<MarketDecisionResult | null>(null);
   const [calculatingMarket, setCalculatingMarket] = useState(false);
   const [calcTab, setCalcTab] = useState(0);
+  const [graphDialogOpen, setGraphDialogOpen] = useState(false);
 
   // Market Decision States
   const [marketDecisionOpen, setMarketDecisionOpen] = useState(false);
@@ -1667,6 +1671,16 @@ export default function SavingsCalculatorPage() {
               
               {calcTab === 2 && marketDecisionResult && (
                 <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<BarChartIcon />}
+                      onClick={() => setGraphDialogOpen(true)}
+                      sx={{ textTransform: 'none', borderRadius: 2 }}
+                    >
+                      View Daily Simulation Graph
+                    </Button>
+                  </Box>
                   {marketDecisionResult.todSummaries && marketDecisionResult.todSummaries.length > 0 && (
                     <Grid container spacing={2} sx={{ mb: 3 }}>
                       {marketDecisionResult.todSummaries.map((summary, idx) => (
@@ -1892,6 +1906,25 @@ export default function SavingsCalculatorPage() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      <Dialog
+        open={graphDialogOpen}
+        onClose={() => setGraphDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+          Daily Market Simulation
+          <IconButton onClick={() => setGraphDialogOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {marketDecisionResult && (
+            <DailyMarketSimulationGraph slotsData={marketDecisionResult.slotsData} />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

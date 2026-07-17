@@ -850,6 +850,11 @@ export class SavingsCalculatorService {
         (s as any).marketEnergy = energyPerMarketSlot;
       });
 
+      const energyPerDiscomSlot = discomSlots.length > 0 ? discomEnergy / discomSlots.length : 0;
+      discomSlots.forEach(s => {
+        (s as any).discomEnergy = energyPerDiscomSlot;
+      });
+
       // Average DISCOM rate for this slab (should be same for all slots, take first valid)
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
 
