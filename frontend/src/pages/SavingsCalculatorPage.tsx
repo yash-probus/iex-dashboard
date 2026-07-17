@@ -326,7 +326,7 @@ export default function SavingsCalculatorPage() {
       }
       setTodConsumptions(tc);
       
-      setActiveStep(6); 
+      setActiveStep(7); 
     } else {
       setSelectedEntry(null);
       resetForm();
@@ -349,10 +349,12 @@ export default function SavingsCalculatorPage() {
         if (availableSupplyVoltageValues.length > 0 && !supplyVoltageValue.trim()) return false;
         return true;
       case 5:
+        return true; // Apply ED step is always valid
+      case 6:
         if (!sanctionedLoadKw.trim()) return false;
         const parsed = parseFloat(sanctionedLoadKw);
         return !isNaN(parsed) && parsed > 0;
-      case 6:
+      case 7:
         let isValid = true;
         Object.values(todConsumptions).forEach(monthData => {
           Object.values(monthData).forEach(val => {
@@ -650,7 +652,7 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 6) {
+                  if (stepIndex < 7) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     setProltDialogOpen(true);
@@ -832,7 +834,7 @@ export default function SavingsCalculatorPage() {
           {dialogMode !== 'view' && (
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
-                width: `${((activeStep + 1) / 8) * 100}%`, 
+                width: `${((activeStep + 1) / 9) * 100}%`, 
                 height: '100%', 
                 background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', 
                 transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
@@ -1036,7 +1038,19 @@ export default function SavingsCalculatorPage() {
                   </TextField>
                 )}
 
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, p: 1, backgroundColor: '#f8fafc', borderRadius: 1 }}>
+                
+              </Box>
+            )
+          })}
+
+          {renderStep(5, {
+            icon: <BoltIcon />,
+            title: "Apply Electricity Duty?",
+            question: "Should Electricity Duty be applied?",
+            summary: applyElectricityDuty ? "Yes" : "No",
+            content: (
+              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', p: 1, backgroundColor: '#f8fafc', borderRadius: 1 }}>
                   <FormControlLabel
                     control={<Switch checked={applyElectricityDuty} onChange={(e) => setApplyElectricityDuty(e.target.checked)} color="primary" />}
                     label="Apply Electricity Duty?"
@@ -1045,8 +1059,8 @@ export default function SavingsCalculatorPage() {
               </Box>
             )
           })}
-
-          {renderStep(5, {
+          
+          {renderStep(6, {
             icon: <SpeedIcon />,
             title: "What is your sanctioned load?",
             question: "What is your sanctioned load?",
@@ -1068,7 +1082,7 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {renderStep(6, {
+          {renderStep(7, {
             icon: <CalculateIcon />,
             title: "Energy Consumption per TOD Slab",
             question: "Select a month and enter your consumption (kWh) per TOD slab",
