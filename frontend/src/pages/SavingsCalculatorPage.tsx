@@ -201,7 +201,14 @@ export default function SavingsCalculatorPage() {
       const matchState = !stateCode || 
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
-      if (matchState && row.consumerCategory) categoriesSet.add(row.consumerCategory);
+      if (matchState && row.consumerCategory) {
+        if (row.consumerCategory === 'HV-1') {
+          categoriesSet.add('HV-1 A');
+          categoriesSet.add('HV-1 B');
+        } else {
+          categoriesSet.add(row.consumerCategory);
+        }
+      }
     });
 
     // Always ensure the known UP categories are present
@@ -222,7 +229,8 @@ export default function SavingsCalculatorPage() {
       const matchState = !stateCode || 
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
-      const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
+      const parsedCategory = (consumerCategory === "HV-1 A" || consumerCategory === "HV-1 B") ? "HV-1" : consumerCategory;
+      const matchCategory = !consumerCategory || row.consumerCategory === parsedCategory;
       if (matchState && matchCategory && row.supplyVoltageCategory) {
         levelsSet.add(row.supplyVoltageCategory);
       }
@@ -236,7 +244,8 @@ export default function SavingsCalculatorPage() {
       const matchState = !stateCode || 
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
-      const matchCategory = !consumerCategory || row.consumerCategory === consumerCategory;
+      const parsedCategory = (consumerCategory === "HV-1 A" || consumerCategory === "HV-1 B") ? "HV-1" : consumerCategory;
+      const matchCategory = !consumerCategory || row.consumerCategory === parsedCategory;
       let parsedVoltageLevel = voltageLevel;
       if (parsedVoltageLevel && parsedVoltageLevel.includes(' - ')) {
         parsedVoltageLevel = parsedVoltageLevel.split(' - ')[0];

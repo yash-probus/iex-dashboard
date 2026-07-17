@@ -91,10 +91,11 @@ export class SavingsCalculatorService {
     const category = entry.consumerCategory || 'Industrial';
     if (category.startsWith('LMV-11')) {
       return this.calculateSavingsLMV11(entry, targetMonth);
+    } else if (category === 'HV-1 A' || category === 'HV-1 B' || category === 'HV-2') {
+      return this.calculateSavingsHV2(entry, targetMonth);
     } else if (category.startsWith('HV-1')) {
       return this.calculateSavingsHV1(entry, targetMonth);
     } else {
-      // Default to HV-2 logic for now
       return this.calculateSavingsHV2(entry, targetMonth);
     }
   }
