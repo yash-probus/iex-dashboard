@@ -478,19 +478,18 @@ export class SavingsCalculatorService {
       }
     });
 
-    console.log('[StateCharges Query Debug]', {
-      state: stateName.toUpperCase().replace(/\s+/g, '_'),
-      category: category,
-      startStr,
-      endStr,
-      found: !!stateCharges,
-      charges: stateCharges ? {
-        crossSubsidy: stateCharges.crossSubsidy,
-        stuCharges: stateCharges.stuCharges,
-        fromDate: stateCharges.fromDate,
-        toDate: stateCharges.toDate
-      } : null
-    });
+    console.log('[StateCharges Query Debug] State:', stateName.toUpperCase().replace(/\s+/g, '_'));
+    console.log('[StateCharges Query Debug] Category:', category);
+    console.log('[StateCharges Query Debug] Date Range:', startStr, 'to', endStr);
+    console.log('[StateCharges Query Debug] Found:', !!stateCharges);
+    if (stateCharges) {
+      console.log('[StateCharges Query Debug] Cross Subsidy:', stateCharges.crossSubsidy);
+      console.log('[StateCharges Query Debug] STU Charges:', stateCharges.stuCharges);
+      console.log('[StateCharges Query Debug] Valid From:', stateCharges.fromDate);
+      console.log('[StateCharges Query Debug] Valid To:', stateCharges.toDate);
+    } else {
+      console.log('[StateCharges Query Debug] ERROR: No matching state charges record found!');
+    }
 
     const ctuCharges = await prisma.ctuCharges.findFirst({
       where: { month: yyyymmMonth }
