@@ -1002,6 +1002,7 @@ export class SavingsCalculatorService {
         totalDaysTraded,
         totals: {
           cssCharge: globalCssCharge,
+          cssRate: crossSubsidy,
           rpoCharge: globalRpoCharge,
           pocCharge: globalPocCharge,
           stuCharge: globalStuCharge,
