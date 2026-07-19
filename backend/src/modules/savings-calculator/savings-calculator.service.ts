@@ -980,6 +980,11 @@ export class SavingsCalculatorService {
     const proltMarginInput = Number(entry.proltMargin || 0);
     const totalProltMarginCost = totalMarketEnergyKwh * proltMarginInput;
     const totalSavings = (totalBaselineCost - totalLandedExchangeCost) - totalProltMarginCost;
+    
+    // Ensure savings are never negative - if they would be, set to 0
+    const finalSavings = Math.max(0, totalSavings);
+    
+    console.log('[Savings Debug] totalBaselineCost:', totalBaselineCost, 'totalLandedExchangeCost:', totalLandedExchangeCost, 'totalProltMarginCost:', totalProltMarginCost, 'totalSavings:', totalSavings, 'finalSavings:', finalSavings);
 
     return {
       clientId: id,
@@ -989,7 +994,7 @@ export class SavingsCalculatorService {
       totalMarketEnergyKwh,
       totalBaselineCost,
       totalLandedExchangeCost,
-      totalSavings,
+      totalSavings: finalSavings,
       demandCharge,
       electricityDuty: totalElectricityDuty,
       todSummaries,
