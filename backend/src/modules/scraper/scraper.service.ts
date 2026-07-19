@@ -76,7 +76,7 @@ export class ScraperService {
 
         records.push({
           intervalNumber,
-          intervalTime: timeBlock,
+          intervalTime: start.trim(),
           purchaseBid: this.parseNumber(pb),
           sellBid: this.parseNumber(sb),
           mcv: this.parseNumber(mcv),
@@ -137,7 +137,7 @@ export class ScraperService {
 
         records.push({
           intervalNumber,
-          intervalTime: timeBlock,
+          intervalTime: start.trim(),
           purchaseBid:    this.parseNumber(row[offset + 1]  ?? '0'),
           sellBidTotal:   this.parseNumber(row[offset + 2]  ?? '0'),
           sellBidSolar:   this.parseNumber(row[offset + 3]  ?? '0'),

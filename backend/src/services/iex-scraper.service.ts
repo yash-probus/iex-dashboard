@@ -130,14 +130,14 @@ export class IexScraperService {
               sellBid: row.sellBid,
               clearedVolume: row.mcv,
               price: row.mcp,
-              intervalTime: row.timePeriod
+              intervalTime: row.timePeriod.split(' - ')[0]?.trim() || row.timePeriod.split('-')[0]?.trim() || row.timePeriod
             },
             create: {
               market,
               area: stateName,
               deliveryDate: isoDate,
               intervalNumber: i + 1,
-              intervalTime: row.timePeriod,
+              intervalTime: row.timePeriod.split(' - ')[0]?.trim() || row.timePeriod.split('-')[0]?.trim() || row.timePeriod,
               purchaseBid: row.purchaseBid,
               sellBid: row.sellBid,
               clearedVolume: row.mcv,
