@@ -647,6 +647,13 @@ export class SavingsCalculatorService {
       let marketSource = 'DAM';
       if (bestMarketLanding === rtmLanding) marketSource = 'RTM';
       if (bestMarketLanding === gdamLanding) marketSource = 'GDAM';
+      
+      // Store all market landing prices for later SLDC optimization
+      const marketLandings = {
+        DAM: damLanding,
+        RTM: rtmLanding,
+        GDAM: gdamLanding
+      };
 
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
@@ -681,8 +688,129 @@ export class SavingsCalculatorService {
         discomLanding,
         shouldBuyFromMarket,
         savingsPerKwh: discomLanding - bestMarketLanding,
-        istsLoss
+        istsLoss,
+        marketLandings
       };
+    });
+
+    // ── SLDC-Aware Market Optimization ──────────────
+    // Optimize market selection per date to minimize total cost including SLDC overhead
+    const sldcFeePerMarketPerDay = sldcSchedulingFees; // ₹1500 per market per day
+    
+    // Group slots by date
+    const slotsByDate = new Map<string, typeof slotsData>();
+    slotsData.forEach(slot => {
+      if (!slotsByDate.has(slot.date)) {
+        slotsByDate.set(slot.date, []);
+      }
+      slotsByDate.get(slot.date)!.push(slot);
+    });
+    
+    // For each date, optimize market selection considering SLDC costs
+    slotsByDate.forEach((dateSlots, date) => {
+      const marketableSlots = dateSlots.filter(s => s.shouldBuyFromMarket);
+      if (marketableSlots.length === 0) return;
+      
+      // Calculate total energy cost for each market option
+      const marketCosts = {
+        DAM: 0,
+        RTM: 0,
+        GDAM: 0
+      };
+      
+      const marketCounts = {
+        DAM: 0,
+        RTM: 0,
+        GDAM: 0
+      };
+      
+      marketableSlots.forEach(slot => {
+        const maxEnergy = maxEnergyPerSlot;
+        if (slot.marketLandings.DAM && slot.marketLandings.DAM < slot.discomLanding) {
+          marketCosts.DAM += slot.marketLandings.DAM * maxEnergy;
+          marketCounts.DAM++;
+        }
+        if (slot.marketLandings.RTM && slot.marketLandings.RTM < slot.discomLanding) {
+          marketCosts.RTM += slot.marketLandings.RTM * maxEnergy;
+          marketCounts.RTM++;
+        }
+        if (slot.marketLandings.GDAM && slot.marketLandings.GDAM < slot.discomLanding) {
+          marketCosts.GDAM += slot.marketLandings.GDAM * maxEnergy;
+          marketCounts.GDAM++;
+        }
+      });
+      
+      // Calculate total cost including SLDC for each market combination
+      const calculateTotalCost = (markets: string[]) => {
+        let energyCost = 0;
+        let sldcCost = markets.length * sldcFeePerMarketPerDay;
+        
+        marketableSlots.forEach(slot => {
+          const maxEnergy = maxEnergyPerSlot;
+          let bestCost = slot.discomLanding * maxEnergy; // Default to DISCOM
+          let bestMarket = null;
+          
+          markets.forEach(market => {
+            const landing = slot.marketLandings[market as keyof typeof slot.marketLandings];
+            if (landing && landing < bestCost) {
+              bestCost = landing * maxEnergy;
+              bestMarket = market;
+            }
+          });
+          
+          energyCost += bestCost;
+        });
+        
+        return energyCost + sldcCost;
+      };
+      
+      // Evaluate different market combinations
+      const combinations = [
+        ['DAM'],
+        ['RTM'],
+        ['GDAM'],
+        ['DAM', 'RTM'],
+        ['DAM', 'GDAM'],
+        ['RTM', 'GDAM'],
+        ['DAM', 'RTM', 'GDAM']
+      ];
+      
+      let bestCombination = ['DAM'];
+      let lowestTotalCost = Infinity;
+      
+      combinations.forEach(combination => {
+        const totalCost = calculateTotalCost(combination);
+        if (totalCost < lowestTotalCost) {
+          lowestTotalCost = totalCost;
+          bestCombination = combination;
+        }
+      });
+      
+      console.log(`[SLDC Optimization] Date ${date}: Best markets = ${bestCombination.join(', ')}, Total cost = ${lowestTotalCost.toFixed(2)}`);
+      
+      // Reassign markets based on optimal combination
+      marketableSlots.forEach(slot => {
+        const maxEnergy = maxEnergyPerSlot;
+        let bestCost = slot.discomLanding * maxEnergy;
+        let bestMarket = null;
+        
+        bestCombination.forEach(market => {
+          const landing = slot.marketLandings[market as keyof typeof slot.marketLandings];
+          if (landing && landing < bestCost) {
+            bestCost = landing * maxEnergy;
+            bestMarket = market;
+          }
+        });
+        
+        if (bestMarket) {
+          slot.marketSource = bestMarket;
+          const landing = slot.marketLandings[bestMarket as keyof typeof slot.marketLandings];
+          slot.bestMarketLanding = landing || slot.discomLanding;
+        } else {
+          slot.shouldBuyFromMarket = false;
+          slot.marketSource = 'DISCOM';
+        }
+      });
     });
 
     // ── RTM Contiguity Optimization ──────────────
