@@ -15,17 +15,26 @@ export interface GdamIntervalRecord {
   intervalTime: string;
   purchaseBid: number;
   sellBidTotal: number;
-  sellBidSolar: number;
-  sellBidNonSolar: number;
+  sellBidSolar?: number;
+  sellBidNonSolar?: number;
   sellBidHydro: number;
+  sellBidWind: number;
+  sellBidOtherRE: number;
+  sellBidORE: number;
   mcvTotal: number;
-  mcvSolar: number;
-  mcvNonSolar: number;
+  mcvSolar?: number;
+  mcvNonSolar?: number;
   mcvHydro: number;
+  mcvWind: number;
+  mcvOtherRE: number;
+  mcvORE: number;
   fsvTotal: number;
-  fsvSolar: number;
-  fsvNonSolar: number;
+  fsvSolar?: number;
+  fsvNonSolar?: number;
   fsvHydro: number;
+  fsvWind: number;
+  fsvOtherRE: number;
+  fsvORE: number;
   mcp: number;
 }
 
