@@ -169,6 +169,15 @@ export class SavingsCalculatorExportService {
     // RPPO (flat rate of ₹0.25/kWh)
     addChargeRow('RPPO', t.rpoCharge, 0.25, t.rpoCharge / 0.25);
     
+    // Losses (Percentages)
+    const istsLoss = slotsData.length > 0 ? (slotsData[0] as any).istsLoss || 0 : 0;
+    const stuLoss = slotsData.length > 0 ? (slotsData[0] as any).stuLoss || 0 : 0;
+    const wheelingLoss = slotsData.length > 0 ? (slotsData[0] as any).wheelingLoss || 0 : 0;
+    
+    addChargeRow('ISTS Loss', 0, 0, 0, istsLoss);
+    addChargeRow('STU Loss', 0, 0, 0, stuLoss);
+    addChargeRow('Wheeling Loss', 0, 0, 0, wheelingLoss);
+
     // POC charges (CTU charges)
     const pocRate = totalMarketEnergy > 0 ? t.pocCharge / totalMarketEnergy : 0;
     addChargeRow('POC charges', t.pocCharge, pocRate, totalMarketEnergy);
