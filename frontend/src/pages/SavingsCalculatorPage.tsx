@@ -605,6 +605,32 @@ export default function SavingsCalculatorPage() {
     exportToCSV(exportData, filename);
   };
 
+  const exportDetailedOAToCSV = () => {
+    if (!marketDecisionResult || !marketDecisionResult.slotsData) return;
+    const exportData = marketDecisionResult.slotsData.map((row) => ({
+      'Date': row.date,
+      'Timeblock': row.timeblock,
+      'TOD Slab': row.tod,
+      'DAM MCP': row.damMcp?.toFixed(4) || '-',
+      'RTM MCP': row.rtmMcp?.toFixed(4) || '-',
+      'GDAM MCP': row.gdamMcp?.toFixed(4) || '-',
+      'DAM Landing': row.damLanding?.toFixed(4) || '-',
+      'RTM Landing': row.rtmLanding?.toFixed(4) || '-',
+      'GDAM Landing': row.gdamLanding?.toFixed(4) || '-',
+      'DISCOM Landing': row.discomLanding?.toFixed(4) || '-',
+      'Best Market Source': row.marketSource,
+      'Best Market Landing': row.bestMarketLanding?.toFixed(4) || '-',
+      'Savings Per Kwh': row.savingsPerKwh?.toFixed(4) || '-',
+      'Should Buy Market': row.shouldBuyFromMarket ? 'Yes' : 'No',
+      'ISTS Loss (%)': row.istsLoss?.toFixed(4) || '0.0000',
+      'STU Loss (%)': row.stuLoss?.toFixed(4) || '0.0000',
+      'Wheeling Loss (%)': row.wheelingLoss?.toFixed(4) || '0.0000'
+    }));
+    
+    const filename = `${calcEntry?.clientName || 'Client'}_detailed_OA_report.csv`;
+    exportToCSV(exportData, filename);
+  };
+
   const renderStep = (
     stepIndex: number, 
     stepMeta: { icon: React.ReactNode; title: string; question: string; summary: string; content: React.ReactNode }
@@ -1806,9 +1832,19 @@ export default function SavingsCalculatorPage() {
 
               {calcTab === 3 && marketDecisionResult?.oaDetailed?.breakdown && (
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
-                    Detailed OA Savings Breakdown
-                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                      Detailed OA Savings Breakdown
+                    </Typography>
+                    <Button 
+                      variant="outlined" 
+                      startIcon={<DownloadIcon />} 
+                      onClick={exportDetailedOAToCSV}
+                      sx={{ textTransform: 'none', borderRadius: 2 }}
+                    >
+                      Export Detailed Report CSV
+                    </Button>
+                  </Box>
                   <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2.5, overflow: 'hidden' }}>
                     <Table size="small">
                       <TableHead>

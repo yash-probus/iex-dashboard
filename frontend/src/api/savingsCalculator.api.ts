@@ -77,6 +77,9 @@ export interface MarketDecisionSlot {
   discomLanding: number;
   shouldBuyFromMarket: boolean;
   savingsPerKwh: number;
+  istsLoss: number;
+  stuLoss: number;
+  wheelingLoss: number;
 }
 
 export interface MarketDecisionTodSummary {

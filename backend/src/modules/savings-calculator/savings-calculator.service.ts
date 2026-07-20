@@ -683,6 +683,8 @@ export class SavingsCalculatorService {
         shouldBuyFromMarket,
         savingsPerKwh: discomLanding - bestMarketLanding,
         istsLoss,
+        stuLoss,
+        wheelingLoss,
         marketLandings
       };
     });
