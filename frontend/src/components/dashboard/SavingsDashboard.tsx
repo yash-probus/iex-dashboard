@@ -6,6 +6,10 @@ import {
 } from 'recharts';
 import { MarketDecisionResult } from '../../api/savingsCalculator.api';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
+import DownloadIcon from '@mui/icons-material/Download';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { useRef } from 'react';
 
 interface SavingsDashboardProps {
   result: MarketDecisionResult;
@@ -15,6 +19,27 @@ interface SavingsDashboardProps {
 export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, monthStr }) => {
   const [activeTab, setActiveTab] = useState<'overall' | 'monthly'>('overall');
   const [purchaseMode, setPurchaseMode] = useState<'actual' | 'recommended'>('recommended');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = async () => {
+    if (!dashboardRef.current) return;
+    try {
+      setIsDownloading(true);
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Savings_Dashboard_${monthStr}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   // Aggregate daily data
   const dailyData = useMemo(() => {
@@ -144,7 +169,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} ref={dashboardRef}>
       {/* Tabs Row */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: -1 }}>
         <Box sx={{ display: 'flex', bgcolor: '#F3F4F6', p: 0.5, borderRadius: 8 }}>
@@ -179,11 +204,33 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             Monthly Details
           </Button>
         </Box>
-        {activeTab === 'monthly' && (
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', px: 2, py: 1, borderRadius: 2, border: '1px solid #E5E7EB' }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>{displayMonth}</Typography>
-          </Box>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {activeTab === 'monthly' && (
+            <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', px: 2, py: 1, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>{displayMonth}</Typography>
+            </Box>
+          )}
+          <Button
+            variant="outlined"
+            onClick={handleDownloadPDF}
+            startIcon={<DownloadIcon />}
+            disabled={isDownloading}
+            data-html2canvas-ignore
+            sx={{
+              borderRadius: 8,
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: '#E5E7EB',
+              color: '#374151',
+              '&:hover': {
+                bgcolor: '#F9FAFB',
+                borderColor: '#D1D5DB'
+              }
+            }}
+          >
+            {isDownloading ? 'Generating PDF...' : 'Download PDF'}
+          </Button>
+        </Box>
       </Box>
 
       {renderBanner()}
