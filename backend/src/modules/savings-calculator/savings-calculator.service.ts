@@ -170,19 +170,11 @@ export class SavingsCalculatorService {
         month: yyyymmMonth
       };
 
-      let nextMonthNum = month + 1;
-      let nextYearNum = year;
-      if (nextMonthNum > 12) {
-        nextMonthNum = 1;
-        nextYearNum += 1;
-      }
-      const nextYyyymmMonth = parseInt(`${nextYearNum}${String(nextMonthNum).padStart(2, '0')}`, 10);
-
-      // Fetch FPPA percent (using next month as FPPA is applied retroactively based on the following month's announcement)
+      // Fetch FPPA percent (using current month for simulation accuracy)
       const fppaData = await prisma.fppaCharges.findFirst({
         where: {
           state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
-          month: nextYyyymmMonth
+          month: yyyymmMonth
         }
       });
       const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
@@ -552,19 +544,11 @@ export class SavingsCalculatorService {
     if (stateCharges.stuLossPercent == null) throw new Error('STU Loss Percent value is missing.');
     if (stateCharges.wheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
 
-    let nextMonthNum = month + 1;
-    let nextYearNum = year;
-    if (nextMonthNum > 12) {
-      nextMonthNum = 1;
-      nextYearNum += 1;
-    }
-    const nextYyyymmMonth = parseInt(`${nextYearNum}${String(nextMonthNum).padStart(2, '0')}`, 10);
-
-    // Fetch FPPA percent
+    // Fetch FPPA percent (using current month for simulation accuracy)
     const fppaData = await prisma.fppaCharges.findFirst({
       where: {
         state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
-        month: nextYyyymmMonth
+        month: yyyymmMonth
       }
     });
     const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
