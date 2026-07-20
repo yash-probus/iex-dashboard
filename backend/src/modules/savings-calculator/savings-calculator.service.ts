@@ -1135,8 +1135,13 @@ export class SavingsCalculatorService {
     });
 
     const proltMarginInput = Number(entry.proltMargin || 0);
-    const totalProltMarginCost = totalMarketEnergyKwh * proltMarginInput;
-    const totalSavings = (totalBaselineCost - totalLandedExchangeCost) - totalProltMarginCost;
+    const rawSavings = totalBaselineCost - totalLandedExchangeCost;
+    
+    // Treat proltMargin as a percentage of gross savings
+    const grossSavings = Math.max(0, rawSavings);
+    const totalProltMarginCost = grossSavings * (proltMarginInput / 100);
+    
+    const totalSavings = rawSavings - totalProltMarginCost;
     
     // Ensure savings are never negative - if they would be, set to 0
     const finalSavings = Math.max(0, totalSavings);
