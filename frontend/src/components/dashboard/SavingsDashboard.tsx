@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Box, Typography, Card, CardContent, Grid, Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer, Button } from '@mui/material';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -8,9 +8,7 @@ import { MarketDecisionResult } from '../../api/savingsCalculator.api';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import DownloadIcon from '@mui/icons-material/Download';
 import html2pdf from 'html2pdf.js';
-import jsPDF from 'jspdf';
-import { PDFDocument } from 'pdf-lib';
-import { useRef } from 'react';
+import { ProltLogo } from '../ProltLogo';
 
 interface SavingsDashboardProps {
   result: MarketDecisionResult;
@@ -31,7 +29,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const opt = {
-        margin:       [30, 10, 10, 10] as [number, number, number, number], // Increased top margin to avoid letterhead header
+        margin:       10, // Standard margin
         filename:     `Savings_Dashboard_${monthStr}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
@@ -39,53 +37,10 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
         pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
-      // 1. Generate PDF as ArrayBuffer
-      const pdfArrayBuffer = await html2pdf().set(opt).from(dashboardRef.current).output('arraybuffer');
-      
-      // 2. Fetch Letterhead PDF
-      const letterheadRes = await fetch('/Prolt_Energy_Letterhead.pdf');
-      const letterheadBuffer = await letterheadRes.arrayBuffer();
-
-      // 3. Merge them using pdf-lib
-      const mergedPdf = await PDFDocument.create();
-      const letterheadPdf = await PDFDocument.load(letterheadBuffer);
-      const generatedPdf = await PDFDocument.load(pdfArrayBuffer);
-
-      const [letterheadPage] = await mergedPdf.embedPdf(letterheadPdf, [0]);
-      const generatedPages = generatedPdf.getPages();
-      const embeddedGeneratedPages = await mergedPdf.embedPdf(generatedPdf, generatedPages.map((_, i) => i));
-
-      for (let i = 0; i < embeddedGeneratedPages.length; i++) {
-        const page = mergedPdf.addPage([letterheadPage.width, letterheadPage.height]);
-        
-        // Draw the letterhead as the background
-        page.drawPage(letterheadPage, {
-          x: 0,
-          y: 0,
-          width: letterheadPage.width,
-          height: letterheadPage.height
-        });
-
-        // Draw the generated content over it
-        page.drawPage(embeddedGeneratedPages[i], {
-          x: 0,
-          y: 0,
-          width: letterheadPage.width,
-          height: letterheadPage.height
-        });
-      }
-
-      const mergedPdfBytes = await mergedPdf.save();
-      
-      // 4. Trigger download
-      // @ts-ignore
-      const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `Savings_Dashboard_${monthStr}.pdf`;
-      link.click();
+      // Generate and save directly
+      await html2pdf().set(opt).from(dashboardRef.current).save();
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('PDF generation failed:', error);
     } finally {
       setIsDownloading(false);
     }
@@ -220,6 +175,11 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} ref={dashboardRef}>
+      {isDownloading && (
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2, pt: 2 }}>
+          <ProltLogo variant="full" size="xl" />
+        </Box>
+      )}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: -1 }}>
         <Box data-html2canvas-ignore sx={{ display: 'flex', bgcolor: '#F3F4F6', p: 0.5, borderRadius: 8 }}>
           <Button 
