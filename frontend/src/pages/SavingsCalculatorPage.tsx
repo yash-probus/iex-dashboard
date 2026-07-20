@@ -177,11 +177,16 @@ export default function SavingsCalculatorPage() {
   const [selectedSimMonth, setSelectedSimMonth] = useState<string>('');
 
   const uniqueStates = React.useMemo(() => {
-    const statesSet = new Set<string>();
+    const statesMap = new Map<string, string>();
     tariffData.forEach((row: any) => {
-      if (row.state) statesSet.add(row.state.trim().toUpperCase());
+      if (row.state) {
+        const key = row.state.trim().toUpperCase();
+        if (!statesMap.has(key)) {
+          statesMap.set(key, row.state.trim());
+        }
+      }
     });
-    return Array.from(statesSet)
+    return Array.from(statesMap.values())
       .sort()
       .map((name) => ({ stateCode: name, stateName: name }));
   }, [tariffData]);
@@ -196,7 +201,10 @@ export default function SavingsCalculatorPage() {
     }
 
     return discomList
-      .filter((d: any) => !stateCode || d.stateCode === normalizedCode || d.state === stateCode || d.stateCode === stateCode)
+      .filter((d: any) => !stateCode || 
+        (d.stateCode && normalizedCode && d.stateCode.toLowerCase() === normalizedCode.toLowerCase()) || 
+        (d.state && d.state.toLowerCase() === stateCode.toLowerCase()) || 
+        (d.stateCode && d.stateCode.toLowerCase() === stateCode.toLowerCase()))
       .map((d: any) => ({ code: d.code, legalName: d.legalName }));
   }, [discomList, stateCode, regionStates]);
 
@@ -987,7 +995,7 @@ export default function SavingsCalculatorPage() {
                   <MenuItem value="" disabled>Select State</MenuItem>
                   {uniqueStates.map((s) => (
                     <MenuItem key={s.stateCode} value={s.stateCode}>
-                      {s.stateCode} - {s.stateName}
+                      {s.stateName}
                     </MenuItem>
                   ))}
                   {stateCode && !uniqueStates.some((s) => s.stateCode === stateCode) && (
