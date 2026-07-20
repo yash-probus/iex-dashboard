@@ -22,7 +22,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
     const totalSlots = slots.length || 1;
     const energyPerSlot = result.totalEnergyKwh / totalSlots;
 
-    slots.forEach((slot) => {
+    slots.forEach((slot: any) => {
       const dateKey = slot.date;
       if (!days[dateKey]) {
         days[dateKey] = {
@@ -37,20 +37,37 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
         };
       }
       
-      days[dateKey].totalUnits += energyPerSlot;
+      // Use exact slot energies if available, otherwise fallback
+      const marketEnergy = slot.marketEnergy || 0;
+      const discomEnergy = slot.discomEnergy || 0;
+      let totalSlotEnergy = marketEnergy + discomEnergy;
+      if (totalSlotEnergy === 0) {
+        totalSlotEnergy = energyPerSlot;
+      }
       
-      const discomCostForSlot = energyPerSlot * slot.discomLanding;
+      days[dateKey].totalUnits += totalSlotEnergy;
+      
+      const discomCostForSlot = totalSlotEnergy * slot.discomLanding;
       days[dateKey].actualSpend += discomCostForSlot;
       
-      if (slot.shouldBuyFromMarket) {
-        days[dateKey].oaUnits += energyPerSlot;
-        days[dateKey].proltSpend += energyPerSlot * slot.bestMarketLanding;
-        days[dateKey].savings += (discomCostForSlot - (energyPerSlot * slot.bestMarketLanding));
+      if (slot.shouldBuyFromMarket && slot.bestMarketLanding > 0) {
+        days[dateKey].oaUnits += totalSlotEnergy;
+        days[dateKey].proltSpend += totalSlotEnergy * slot.bestMarketLanding;
       } else {
-        days[dateKey].discomUnits += energyPerSlot;
+        days[dateKey].discomUnits += totalSlotEnergy;
         days[dateKey].proltSpend += discomCostForSlot;
       }
     });
+
+    // Scale daily prolt spend to match totalLandedExchangeCost
+    const rawTotalProlt = Object.values(days).reduce((acc: number, cur: any) => acc + cur.proltSpend, 0);
+    const scaleFactor = rawTotalProlt > 0 ? (result.totalLandedExchangeCost / rawTotalProlt) : 1;
+
+    Object.values(days).forEach((day: any) => {
+      day.proltSpend = day.proltSpend * scaleFactor;
+      day.savings = day.actualSpend - day.proltSpend;
+    });
+
     
     return Object.values(days).sort((a, b) => a.date.localeCompare(b.date));
   }, [result]);
@@ -128,10 +145,10 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
           </Card>
         </Grid>
         <Grid item xs={12} md={6}>
-           <Card variant="outlined">
-            <CardContent>
+           <Card variant="outlined" sx={{ height: '100%' }}>
+            <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Typography variant="h6" gutterBottom>Cost Vs Consumption</Typography>
-              <Box sx={{ height: 300, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
+              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography color="text.secondary">Current Rate</Typography>
                   <Typography variant="h3" fontWeight="bold">₹{(result.totalBaselineCost / result.totalEnergyKwh).toFixed(2)}</Typography>
