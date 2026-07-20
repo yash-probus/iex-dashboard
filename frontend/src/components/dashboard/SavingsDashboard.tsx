@@ -159,9 +159,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       day.savings = day.actualSpend - day.proltSpend;
     });
     
-    const finalDays = Object.values(days).sort((a: any, b: any) => a.date.localeCompare(b.date));
-    // Filter out days that have NaN or 0 spend (indicating missing future data)
-    return finalDays.filter((day: any) => !isNaN(day.actualSpend) && day.actualSpend > 0);
+    return Object.values(days).sort((a: any, b: any) => a.date.localeCompare(b.date));
   }, [result]);
 
   const formatCurrency = (val: number) => `₹${(val / 100000).toFixed(2)}L`; // Lakhs
@@ -301,8 +299,8 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <YAxis tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => formatCurrency(value)} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="Actual" name="Actual Spend" fill="#FDA4AF" barSize={100} radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Prolt" name="Prolt Optimised Spend" fill="#86EFAC" barSize={100} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Actual" name="Actual Spend" fill="#FDA4AF" barSize={100} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Prolt" name="Prolt Optimised Spend" fill="#86EFAC" barSize={100} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
@@ -325,11 +323,11 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toLocaleString()} kWh`} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
                     
-                    <Bar dataKey="Actual DISCOM" stackId="a" fill="#93C5FD" barSize={40} />
-                    <Bar dataKey="Actual OA" stackId="a" fill="#D8B4E2" barSize={40} />
+                    <Bar dataKey="Actual DISCOM" stackId="a" fill="#93C5FD" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Actual OA" stackId="a" fill="#D8B4E2" barSize={40} isAnimationActive={!isDownloading} />
                     
-                    <Bar dataKey="Prolt Optimized DISCOM" stackId="b" fill="#A7F3D0" barSize={40} />
-                    <Bar dataKey="Prolt Optimized OA" stackId="b" fill="#60A5FA" barSize={40} />
+                    <Bar dataKey="Prolt Optimized DISCOM" stackId="b" fill="#A7F3D0" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Prolt Optimized OA" stackId="b" fill="#60A5FA" barSize={40} isAnimationActive={!isDownloading} />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
@@ -359,9 +357,9 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <YAxis tickFormatter={(val) => `${(val / 1000).toFixed(0)}K`} tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
                     <Tooltip formatter={(value: number) => `₹${value.toFixed(2)}`} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                    <Area type="monotone" dataKey="actualSpend" name="Actual Spend" stroke="#EF4444" fillOpacity={0} />
-                    <Area type="monotone" dataKey="proltSpend" name="Prolt Optimized Spend" stroke="#3B82F6" fillOpacity={0} />
-                    <Area type="monotone" dataKey="savings" name="Saving Zone" stroke="#10B981" fill="url(#colorSavings)" />
+                    <Area type="monotone" dataKey="actualSpend" name="Actual Spend" stroke="#EF4444" fillOpacity={0} isAnimationActive={!isDownloading} />
+                    <Area type="monotone" dataKey="proltSpend" name="Prolt Optimized Spend" stroke="#3B82F6" fillOpacity={0} isAnimationActive={!isDownloading} />
+                    <Area type="monotone" dataKey="savings" name="Saving Zone" stroke="#10B981" fill="url(#colorSavings)" isAnimationActive={!isDownloading} />
                   </AreaChart>
                 </ResponsiveContainer>
               </Box>
@@ -418,11 +416,11 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toFixed(2)} units`} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
                     {purchaseMode === 'actual' ? (
-                      <Bar dataKey="actualDiscomUnits" name="DISCOM Energy" fill="#8B5CF6" barSize={12} radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="actualDiscomUnits" name="DISCOM Energy" fill="#8B5CF6" barSize={12} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
                     ) : (
                       <>
-                        <Bar dataKey="discomUnits" name="DISCOM Energy" stackId="a" fill="#8B5CF6" barSize={12} />
-                        <Bar dataKey="oaUnits" name="OA Energy (Estimated)" stackId="a" fill="#10B981" barSize={12} radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="discomUnits" name="DISCOM Energy" stackId="a" fill="#8B5CF6" barSize={12} isAnimationActive={!isDownloading} />
+                        <Bar dataKey="oaUnits" name="OA Energy (Estimated)" stackId="a" fill="#10B981" barSize={12} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
                       </>
                     )}
                   </BarChart>
