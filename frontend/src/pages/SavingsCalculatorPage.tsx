@@ -1669,6 +1669,7 @@ export default function SavingsCalculatorPage() {
                         <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DISCOM Rate</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Compared Lowest</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Cheapest Source</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Decision</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Cost</TableCell>
                       </TableRow>
                     </TableHead>
@@ -1698,6 +1699,19 @@ export default function SavingsCalculatorPage() {
                               borderRadius: '4px'
                             }}>
                               {row.selectedSource}
+                            </span>
+                          </TableCell>
+                          <TableCell align="center">
+                            <span style={{ 
+                              textTransform: 'uppercase', 
+                              fontSize: '10px', 
+                              fontWeight: 800, 
+                              color: row.selectedSource !== 'DISCOM' ? '#16A34A' : '#DC2626',
+                              backgroundColor: row.selectedSource !== 'DISCOM' ? '#DCFCE7' : '#FEE2E2',
+                              padding: '2px 6px',
+                              borderRadius: '4px'
+                            }}>
+                              {row.selectedSource !== 'DISCOM' ? 'Yes' : 'No'}
                             </span>
                           </TableCell>
                           <TableCell align="right">₹{row.optimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
