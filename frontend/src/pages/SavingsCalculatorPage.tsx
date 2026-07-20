@@ -179,7 +179,7 @@ export default function SavingsCalculatorPage() {
   const uniqueStates = React.useMemo(() => {
     const statesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      if (row.state) statesSet.add(row.state);
+      if (row.state) statesSet.add(row.state.trim().toUpperCase());
     });
     return Array.from(statesSet)
       .sort()

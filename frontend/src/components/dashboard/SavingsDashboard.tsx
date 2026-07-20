@@ -26,13 +26,30 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
     if (!dashboardRef.current) return;
     try {
       setIsDownloading(true);
+      // Wait for React to render both tabs and full table
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL('image/png');
+      
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position -= pageHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
       pdf.save(`Savings_Dashboard_${monthStr}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -235,7 +252,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
 
       {renderBanner()}
 
-      {activeTab === 'overall' && (
+      {(activeTab === 'overall' || isDownloading) && (
         <>
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
@@ -287,7 +304,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
         </>
       )}
 
-      {activeTab === 'monthly' && (
+      {(activeTab === 'monthly' || isDownloading) && (
         <>
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
@@ -393,7 +410,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                   <span style={{ color: '#3B82F6' }}>📅</span> Prolt Suggested Daily Breakdown
                 </Typography>
               </Box>
-              <TableContainer sx={{ maxHeight: 400 }}>
+              <TableContainer sx={{ maxHeight: isDownloading ? 'none' : 400 }}>
                 <Table stickyHeader size="small">
                   <TableHead>
                     <TableRow>
