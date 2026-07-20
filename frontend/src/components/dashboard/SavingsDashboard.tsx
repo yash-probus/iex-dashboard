@@ -159,7 +159,9 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       day.savings = day.actualSpend - day.proltSpend;
     });
     
-    return Object.values(days).sort((a, b) => a.date.localeCompare(b.date));
+    const finalDays = Object.values(days).sort((a: any, b: any) => a.date.localeCompare(b.date));
+    // Filter out days that have NaN or 0 spend (indicating missing future data)
+    return finalDays.filter((day: any) => !isNaN(day.actualSpend) && day.actualSpend > 0);
   }, [result]);
 
   const formatCurrency = (val: number) => `₹${(val / 100000).toFixed(2)}L`; // Lakhs
