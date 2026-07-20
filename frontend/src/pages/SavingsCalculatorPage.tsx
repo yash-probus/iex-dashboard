@@ -237,8 +237,14 @@ export default function SavingsCalculatorPage() {
       const matchState = !stateCode || 
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
-      const parsedCategory = (consumerCategory === "HV-1 A" || consumerCategory === "HV-1 B") ? "HV-1" : consumerCategory;
-      const matchCategory = !consumerCategory || row.consumerCategory === parsedCategory;
+      let parsedCategory = consumerCategory;
+      let parsedSubCategory = '';
+      if (consumerCategory === "HV-1 A") { parsedCategory = "HV-1"; parsedSubCategory = "Commercial, Private Inst"; }
+      if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
+      if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
+      if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
+      
+      const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
       if (matchState && matchCategory && row.supplyVoltageCategory) {
         levelsSet.add(row.supplyVoltageCategory);
       }
@@ -252,8 +258,14 @@ export default function SavingsCalculatorPage() {
       const matchState = !stateCode || 
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
-      const parsedCategory = (consumerCategory === "HV-1 A" || consumerCategory === "HV-1 B") ? "HV-1" : consumerCategory;
-      const matchCategory = !consumerCategory || row.consumerCategory === parsedCategory;
+      let parsedCategory = consumerCategory;
+      let parsedSubCategory = '';
+      if (consumerCategory === "HV-1 A") { parsedCategory = "HV-1"; parsedSubCategory = "Commercial, Private Inst"; }
+      if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
+      if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
+      if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
+      
+      const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
       let parsedVoltageLevel = voltageLevel;
       if (parsedVoltageLevel && parsedVoltageLevel.includes(' - ')) {
         parsedVoltageLevel = parsedVoltageLevel.split(' - ')[0];

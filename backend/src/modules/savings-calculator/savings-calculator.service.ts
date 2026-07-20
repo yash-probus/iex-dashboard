@@ -156,8 +156,12 @@ export class SavingsCalculatorService {
 
       let parsedCategory = category;
       let parsedSubCategory = undefined;
-      if (category === 'HV-1 A' || category === 'HV-1 B') {
+      if (category === 'HV-1 A') {
         parsedCategory = 'HV-1';
+        parsedSubCategory = 'Commercial, Private Inst';
+      } else if (category === 'HV-1 B') {
+        parsedCategory = 'HV-1';
+        parsedSubCategory = 'Public Inst., Societies';
       } else if (category === 'LMV-11 (Multistoried Buildings)') {
         parsedCategory = 'LMV-11';
         parsedSubCategory = 'Multistoried Buildings';
@@ -470,8 +474,12 @@ export class SavingsCalculatorService {
 
     let parsedCategory = category;
     let parsedSubCategory = undefined;
-    if (category === 'HV-1 A' || category === 'HV-1 B') {
+    if (category === 'HV-1 A') {
       parsedCategory = 'HV-1';
+      parsedSubCategory = 'Commercial, Private Inst';
+    } else if (category === 'HV-1 B') {
+      parsedCategory = 'HV-1';
+      parsedSubCategory = 'Public Inst., Societies';
     } else if (category === 'LMV-11 (Multistoried Buildings)') {
       parsedCategory = 'LMV-11';
       parsedSubCategory = 'Multistoried Buildings';
