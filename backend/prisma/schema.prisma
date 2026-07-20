@@ -562,3 +562,19 @@ model FppaCharges {
   @@unique([state, month], map: "uq_fppa_charges_state_month")
   @@map("fppa_charges")
 }
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tableName String   @db.VarChar(100)
+  recordId  String   @db.VarChar(100)
+  action    String   @db.VarChar(50) // CREATE, UPDATE, DELETE
+  oldData   Json?
+  newData   Json?
+  userId    String?  @db.VarChar(100) // Optional, to track who made the change
+  createdAt DateTime @default(now())
+
+  @@index([tableName])
+  @@index([recordId])
+  @@index([action])
+  @@index([createdAt])
+}

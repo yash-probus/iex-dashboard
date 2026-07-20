@@ -3,6 +3,7 @@ import { ResourceType } from '../types/resource-center.types';
 import { RESOURCE_REGISTRY } from '../constants/resource-center.constants';
 import prisma from '../../../config/prisma';
 import { AppError } from '../../../utils/AppError';
+import { AuditLogService } from '../../../services/audit-log.service';
 
 /**
  * Service mapping for Resource Center DB operations.
@@ -57,6 +58,7 @@ export const createResourceRecord = async (resourceType: ResourceType, payload: 
     const created = await (delegate as any).create({
       data: payload
     });
+    await AuditLogService.logAction(tableInfo.modelName, created.id, 'CREATE', null, created);
     return created;
   } catch (error: any) {
     if (error.code === 'P2002') {
@@ -112,6 +114,7 @@ export const updateResourceRecord = async (resourceType: ResourceType, id: numbe
       where: { id },
       data: payload
     });
+    await AuditLogService.logAction(tableInfo.modelName, id, 'UPDATE', existing, updated);
     return updated;
   } catch (error: any) {
     if (error.code === 'P2002') {
@@ -134,5 +137,6 @@ export const deleteResourceRecord = async (resourceType: ResourceType, id: numbe
 
   // 2. Hard delete
   await (delegate as any).delete({ where: { id } });
+  await AuditLogService.logAction(tableInfo.modelName, id, 'DELETE', existing, null);
   return true;
 };

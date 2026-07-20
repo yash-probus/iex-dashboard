@@ -26,6 +26,7 @@ import {
   BarChart as BarChartIcon
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
+import { SavingsDashboard } from '../components/dashboard/SavingsDashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import { 
@@ -1706,106 +1707,9 @@ export default function SavingsCalculatorPage() {
               )}
               
               {calcTab === 2 && marketDecisionResult && (
-                <Box>
-                  {marketDecisionResult.todSummaries && marketDecisionResult.todSummaries.length > 0 && (
-                    <Grid container spacing={2} sx={{ mb: 3 }}>
-                      {marketDecisionResult.todSummaries.map((summary, idx) => (
-                        <Grid item xs={12} sm={6} md={4} key={idx}>
-                          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                              <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, mb: 1 }}>
-                                TOD: {summary.slabName}
-                              </Typography>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Total Sourced:</Typography>
-                                <Typography variant="body2" fontWeight={600}>{summary.totalEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: summary.marketCostBase !== undefined ? 0.5 : 0 }}>
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Market Sourced:</Typography>
-                                <Typography variant="body2" fontWeight={600} color="#16A34A">{summary.marketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
-                              </Box>
-                              {summary.marketCostBase !== undefined && (
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Market Cost (MCP):</Typography>
-                                  <Typography variant="body2" fontWeight={600} color="#16A34A">₹{summary.marketCostBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
-                                </Box>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  )}
-                  <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
-                    <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Date</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Time</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>TOD Slab</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Source</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Landing (₹)</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DISCOM Landing (₹)</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Buy from Market?</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Savings/kWh (₹)</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {marketDecisionResult.slotsData.slice(0, 150).map((row: any, idx: number) => (
-                        <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
-                          <TableCell>{row.date}</TableCell>
-                          <TableCell align="center">{row.timeStr || `${String(row.hour).padStart(2, '0')}:${String((row.timeblock - 1) * 15 % 60).padStart(2, '0')}`}</TableCell>
-                          <TableCell align="center">
-                            <span style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700, color: 'text.secondary' }}>
-                              {row.tod}
-                            </span>
-                          </TableCell>
-                          <TableCell align="right">
-                            <span style={{ 
-                              textTransform: 'uppercase', 
-                              fontSize: '10px', 
-                              fontWeight: 800, 
-                              color: '#7C3AED',
-                              backgroundColor: '#F5F3FF',
-                              padding: '2px 6px',
-                              borderRadius: '4px'
-                            }}>
-                              {row.marketSource}
-                            </span>
-                          </TableCell>
-                          <TableCell align="right">₹{row.bestMarketLanding > 0 ? row.bestMarketLanding.toFixed(4) : '-'}</TableCell>
-                          <TableCell align="right">₹{row.discomLanding.toFixed(4)}</TableCell>
-                          <TableCell align="center">
-                            {row.shouldBuyFromMarket ? (
-                              <span style={{ 
-                                fontSize: '10px', 
-                                fontWeight: 800, 
-                                color: '#16A34A',
-                                backgroundColor: '#DCFCE7',
-                                padding: '2px 6px',
-                                borderRadius: '4px'
-                              }}>YES</span>
-                            ) : (
-                              <span style={{ 
-                                fontSize: '10px', 
-                                fontWeight: 800, 
-                                color: '#EF4444',
-                                backgroundColor: '#FEE2E2',
-                                padding: '2px 6px',
-                                borderRadius: '4px'
-                              }}>NO</span>
-                            )}
-                          </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : '#EF4444' }}>
-                            {row.savingsPerKwh > 0 ? '+' : ''}₹{row.savingsPerKwh.toFixed(4)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Box>
-                </Box>
+                <SavingsDashboard result={marketDecisionResult} monthStr={selectedSimMonth} />
               )}
+
 
               {calcTab === 3 && marketDecisionResult?.oaDetailed?.breakdown && (
                 <Box>
