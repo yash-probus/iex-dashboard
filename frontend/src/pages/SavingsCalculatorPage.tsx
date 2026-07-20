@@ -220,7 +220,8 @@ export default function SavingsCalculatorPage() {
     });
 
     // Always ensure the known UP categories are present
-    categoriesSet.add('LMV-11');
+    const lmvCategories = ['LMV-1', 'LMV-2', 'LMV-3', 'LMV-4', 'LMV-5', 'LMV-6', 'LMV-7', 'LMV-8', 'LMV-9', 'LMV-10', 'LMV-11'];
+    lmvCategories.forEach(cat => categoriesSet.add(cat));
     categoriesSet.add('HV-1');
     categoriesSet.add('HV-2');
 
@@ -228,7 +229,7 @@ export default function SavingsCalculatorPage() {
   }, [tariffData, stateCode]);
 
   const uniqueVoltageLevels = React.useMemo(() => {
-    if (consumerCategory.startsWith('LMV-11')) return ['Low Tension (LT)', 'High Tension (HT)'];
+    if (consumerCategory.startsWith('LMV-')) return ['Low Tension (LT)', 'High Tension (HT)'];
     if (consumerCategory.startsWith('HV-1')) return ['At 11 kV', 'Above 11 kV'];
     if (consumerCategory.startsWith('HV-2')) return ['Up to 11 kV', 'Above 11 kV to 66 kV', 'Above 66 kV to 132 kV', 'Above 132 kV'];
 
