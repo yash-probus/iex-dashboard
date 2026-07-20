@@ -7,7 +7,7 @@ import {
 import { MarketDecisionResult } from '../../api/savingsCalculator.api';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import DownloadIcon from '@mui/icons-material/Download';
-import html2canvas from 'html2canvas';
+import html2pdf from 'html2pdf.js';
 import jsPDF from 'jspdf';
 import { useRef } from 'react';
 
@@ -29,28 +29,16 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       // Wait for React to render both tabs and full table
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft > 0) {
-        position -= pageHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      pdf.save(`Savings_Dashboard_${monthStr}.pdf`);
+      const opt = {
+        margin:       10,
+        filename:     `Savings_Dashboard_${monthStr}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(dashboardRef.current).save();
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
@@ -254,7 +242,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
 
       {(activeTab === 'overall' || isDownloading) && (
         <>
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, pageBreakInside: 'avoid' }}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#3B82F6' }}>📈</span> Monthly Spend Comparison
@@ -275,7 +263,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, pageBreakInside: 'avoid' }}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#8B5CF6' }}>📊</span> Monthly Consumption Mix - DISCOM Vs OA
@@ -306,7 +294,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
 
       {(activeTab === 'monthly' || isDownloading) && (
         <>
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, pageBreakInside: 'avoid' }}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#3B82F6' }}>₹</span> Daily Savings Opportunity (Energy Cost)
@@ -334,7 +322,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, pageBreakInside: 'avoid' }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -403,7 +391,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, pageBreakInside: 'avoid' }}>
             <CardContent sx={{ p: 0 }}>
               <Box sx={{ p: 2, borderBottom: '1px solid #E5E7EB' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -443,7 +431,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, pageBreakInside: 'avoid' }}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#3B82F6' }}>₹</span> Cost Vs Consumption
