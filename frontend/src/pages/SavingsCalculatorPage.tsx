@@ -3,7 +3,7 @@ import { FormControlLabel, Switch,
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress
+  CircularProgress, MenuItem
 } from '@mui/material';
 import { 
   Calculate as CalculateIcon, 
@@ -982,17 +982,16 @@ export default function SavingsCalculatorPage() {
                   fullWidth
                   variant="outlined"
                   size="small"
-                  SelectProps={{ native: true }}
                   InputLabelProps={{ shrink: true }}
                 >
-                  <option value="" disabled>Select State</option>
+                  <MenuItem value="" disabled>Select State</MenuItem>
                   {uniqueStates.map((s) => (
-                    <option key={s.stateCode} value={s.stateCode}>
+                    <MenuItem key={s.stateCode} value={s.stateCode}>
                       {s.stateCode} - {s.stateName}
-                    </option>
+                    </MenuItem>
                   ))}
                   {stateCode && !uniqueStates.some((s) => s.stateCode === stateCode) && (
-                    <option value={stateCode}>{stateCode}</option>
+                    <MenuItem value={stateCode}>{stateCode}</MenuItem>
                   )}
                 </TextField>
               </Box>
@@ -1014,17 +1013,16 @@ export default function SavingsCalculatorPage() {
                   fullWidth
                   variant="outlined"
                   size="small"
-                  SelectProps={{ native: true }}
                   InputLabelProps={{ shrink: true }}
                 >
-                  <option value="" disabled>Select DISCOM</option>
+                  <MenuItem value="" disabled>Select DISCOM</MenuItem>
                   {filteredDiscoms.map((d) => (
-                    <option key={d.code} value={d.code}>
+                    <MenuItem key={d.code} value={d.code}>
                       {d.code} - {d.legalName}
-                    </option>
+                    </MenuItem>
                   ))}
                   {discom && !filteredDiscoms.some((d) => d.code === discom) && (
-                    <option value={discom}>{discom}</option>
+                    <MenuItem value={discom}>{discom}</MenuItem>
                   )}
                 </TextField>
               </Box>
@@ -1046,17 +1044,16 @@ export default function SavingsCalculatorPage() {
                   fullWidth
                   variant="outlined"
                   size="small"
-                  SelectProps={{ native: true }}
                   InputLabelProps={{ shrink: true }}
                 >
-                  <option value="" disabled>Select Category</option>
+                  <MenuItem value="" disabled>Select Category</MenuItem>
                   {uniqueCategories.map((cat) => (
-                    <option key={cat} value={cat}>
+                    <MenuItem key={cat} value={cat}>
                       {cat}
-                    </option>
+                    </MenuItem>
                   ))}
                   {consumerCategory && !uniqueCategories.includes(consumerCategory) && (
-                    <option value={consumerCategory}>{consumerCategory}</option>
+                    <MenuItem value={consumerCategory}>{consumerCategory}</MenuItem>
                   )}
                 </TextField>
               </Box>
@@ -1081,17 +1078,16 @@ export default function SavingsCalculatorPage() {
                   fullWidth
                   variant="outlined"
                   size="small"
-                  SelectProps={{ native: true }}
                   InputLabelProps={{ shrink: true }}
                 >
-                  <option value="" disabled>Select Voltage</option>
+                  <MenuItem value="" disabled>Select Voltage</MenuItem>
                   {uniqueVoltageLevels.map((lvl) => (
-                    <option key={lvl} value={lvl}>
+                    <MenuItem key={lvl} value={lvl}>
                       {lvl}
-                    </option>
+                    </MenuItem>
                   ))}
                   {voltageLevel && !uniqueVoltageLevels.includes(voltageLevel) && (
-                    <option value={voltageLevel}>{voltageLevel}</option>
+                    <MenuItem value={voltageLevel}>{voltageLevel}</MenuItem>
                   )}
                 </TextField>
 
@@ -1104,15 +1100,14 @@ export default function SavingsCalculatorPage() {
                     fullWidth
                     variant="outlined"
                     size="small"
-                    SelectProps={{ native: true }}
                     InputLabelProps={{ shrink: true }}
                   >
-                    <option value="" disabled>Select Value</option>
+                    <MenuItem value="" disabled>Select Value</MenuItem>
                     {availableSupplyVoltageValues.map((val) => (
-                      <option key={val} value={val}>{val} kV</option>
+                      <MenuItem key={val} value={val}>{val} kV</MenuItem>
                     ))}
                     {supplyVoltageValue && !availableSupplyVoltageValues.includes(supplyVoltageValue) && (
-                      <option value={supplyVoltageValue}>{supplyVoltageValue} kV</option>
+                      <MenuItem value={supplyVoltageValue}>{supplyVoltageValue} kV</MenuItem>
                     )}
                   </TextField>
                 )}
@@ -1175,13 +1170,12 @@ export default function SavingsCalculatorPage() {
                     value={entryYear}
                     onChange={(e) => setEntryYear(Number(e.target.value))}
                     size="small"
-                    SelectProps={{ native: true }}
                     sx={{ width: 120 }}
                   >
-                    <option value={2023}>2023</option>
-                    <option value={2024}>2024</option>
-                    <option value={2025}>2025</option>
-                    <option value={2026}>2026</option>
+                    <MenuItem value={2023}>2023</MenuItem>
+                    <MenuItem value={2024}>2024</MenuItem>
+                    <MenuItem value={2025}>2025</MenuItem>
+                    <MenuItem value={2026}>2026</MenuItem>
                   </TextField>
                   <TextField
                     select
@@ -1189,21 +1183,20 @@ export default function SavingsCalculatorPage() {
                     value={entryMonth}
                     onChange={(e) => setEntryMonth(Number(e.target.value))}
                     size="small"
-                    SelectProps={{ native: true }}
                     sx={{ width: 150 }}
                   >
-                    <option value={1}>January</option>
-                    <option value={2}>February</option>
-                    <option value={3}>March</option>
-                    <option value={4}>April</option>
-                    <option value={5}>May</option>
-                    <option value={6}>June</option>
-                    <option value={7}>July</option>
-                    <option value={8}>August</option>
-                    <option value={9}>September</option>
-                    <option value={10}>October</option>
-                    <option value={11}>November</option>
-                    <option value={12}>December</option>
+                    <MenuItem value={1}>January</MenuItem>
+                    <MenuItem value={2}>February</MenuItem>
+                    <MenuItem value={3}>March</MenuItem>
+                    <MenuItem value={4}>April</MenuItem>
+                    <MenuItem value={5}>May</MenuItem>
+                    <MenuItem value={6}>June</MenuItem>
+                    <MenuItem value={7}>July</MenuItem>
+                    <MenuItem value={8}>August</MenuItem>
+                    <MenuItem value={9}>September</MenuItem>
+                    <MenuItem value={10}>October</MenuItem>
+                    <MenuItem value={11}>November</MenuItem>
+                    <MenuItem value={12}>December</MenuItem>
                   </TextField>
                   <Button 
                     variant="outlined" 
@@ -1429,12 +1422,11 @@ export default function SavingsCalculatorPage() {
               }}
               size="small"
               sx={{ width: 220, bgcolor: 'background.paper' }}
-              SelectProps={{ native: true }}
             >
               {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
-                <option key={ym} value={ym}>
+                <MenuItem key={ym} value={ym}>
                   {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
-                </option>
+                </MenuItem>
               ))}
             </TextField>
 
