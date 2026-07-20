@@ -659,8 +659,8 @@ export class SavingsCalculatorService {
       
       // Store all market landing prices for later SLDC optimization
       const marketLandings = {
-        DAM: damLanding,
-        RTM: rtmLanding,
+        DAM: sanctionedLoad >= 1000 ? damLanding : null,
+        RTM: sanctionedLoad >= 1000 ? rtmLanding : null,
         GDAM: gdamLanding
       };
 
