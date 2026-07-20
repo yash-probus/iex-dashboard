@@ -210,6 +210,9 @@ export default function SavingsCalculatorPage() {
         if (row.consumerCategory === 'HV-1') {
           categoriesSet.add('HV-1 A');
           categoriesSet.add('HV-1 B');
+        } else if (row.consumerCategory === 'LMV-11') {
+          categoriesSet.add('LMV-11 (Multistoried Buildings)');
+          categoriesSet.add('LMV-11 (Public Charging)');
         } else {
           categoriesSet.add(row.consumerCategory);
         }

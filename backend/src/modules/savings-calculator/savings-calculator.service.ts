@@ -89,19 +89,10 @@ export class SavingsCalculatorService {
     }
 
     const category = entry.consumerCategory || 'Industrial';
-    if (category.startsWith('LMV-11')) {
-      return this.calculateSavingsLMV11(entry, targetMonth);
-    } else if (category === 'HV-1 A' || category === 'HV-1 B' || category === 'HV-2') {
-      return this.calculateSavingsHV2(entry, targetMonth);
-    } else if (category.startsWith('HV-1')) {
+    if (category.startsWith('HV-1') && category !== 'HV-1 A' && category !== 'HV-1 B') {
       return this.calculateSavingsHV1(entry, targetMonth);
-    } else {
-      return this.calculateSavingsHV2(entry, targetMonth);
     }
-  }
-
-  static async calculateSavingsLMV11(entry: any, targetMonth?: string) {
-    throw new Error('Calculation logic for LMV-11 is not yet implemented.');
+    return this.calculateSavingsHV2(entry, targetMonth);
   }
 
   static async calculateSavingsHV1(entry: any, targetMonth?: string) {
@@ -163,12 +154,27 @@ export class SavingsCalculatorService {
         parsedSupplyVoltageCategory = parsedSupplyVoltageCategory.split(' - ')[0];
       }
 
+      let parsedCategory = category;
+      let parsedSubCategory = undefined;
+      if (category === 'HV-1 A' || category === 'HV-1 B') {
+        parsedCategory = 'HV-1';
+      } else if (category === 'LMV-11 (Multistoried Buildings)') {
+        parsedCategory = 'LMV-11';
+        parsedSubCategory = 'Multistoried Buildings';
+      } else if (category === 'LMV-11 (Public Charging)') {
+        parsedCategory = 'LMV-11';
+        parsedSubCategory = 'Public Charging';
+      }
+
       const whereClause: any = {
         state: stateName,
-        consumerCategory: category,
+        consumerCategory: parsedCategory,
         supplyVoltageCategory: parsedSupplyVoltageCategory,
         month: yyyymmMonth
       };
+      if (parsedSubCategory) {
+        whereClause.subCategory = { contains: parsedSubCategory };
+      }
 
       // Fetch FPPA percent (using current month for simulation accuracy)
       const fppaData = await prisma.fppaCharges.findFirst({
@@ -185,8 +191,10 @@ export class SavingsCalculatorService {
       });
 
       if (tariffs.length === 0) {
+        const fallbackWhere: any = { state: stateName, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+        if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
         const allTariffs = await prisma.stateTariff.findMany({
-          where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
+          where: fallbackWhere,
           orderBy: { month: 'desc' }
         });
         const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
@@ -460,10 +468,22 @@ export class SavingsCalculatorService {
       parsedSupplyVoltageCategory = parsedSupplyVoltageCategory.split(' - ')[0];
     }
 
+    let parsedCategory = category;
+    let parsedSubCategory = undefined;
+    if (category === 'HV-1 A' || category === 'HV-1 B') {
+      parsedCategory = 'HV-1';
+    } else if (category === 'LMV-11 (Multistoried Buildings)') {
+      parsedCategory = 'LMV-11';
+      parsedSubCategory = 'Multistoried Buildings';
+    } else if (category === 'LMV-11 (Public Charging)') {
+      parsedCategory = 'LMV-11';
+      parsedSubCategory = 'Public Charging';
+    }
+
     const stateCharges = await prisma.stateCharges.findFirst({
       where: {
         state: stateName.toUpperCase().replace(/\s+/g, '_'),
-        category: category,
+        category: parsedCategory,
         fromDate: { lte: new Date(startStr) },
         toDate: { gte: new Date(endStr) },
         // StateCharges uses the full string (e.g. '33' or '0.433') so we might need the second part if available
@@ -501,12 +521,17 @@ export class SavingsCalculatorService {
       where: { month: yyyymmMonth }
     });
 
-    let whereClauseTariff: any = { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
+    let whereClauseTariff: any = { state: stateName, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
+    if (parsedSubCategory) {
+      whereClauseTariff.subCategory = { contains: parsedSubCategory };
+    }
     let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
 
     if (tariffs.length === 0) {
+      const fallbackWhere: any = { state: stateName, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+      if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
       const allTariffs = await prisma.stateTariff.findMany({
-        where: { state: stateName, consumerCategory: category, supplyVoltageCategory: parsedSupplyVoltageCategory },
+        where: fallbackWhere,
         orderBy: { month: 'desc' }
       });
       const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
