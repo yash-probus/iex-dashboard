@@ -305,8 +305,10 @@ export class SavingsCalculatorService {
 
         // Source 100% from Open Access if available, regardless of whether it's cheaper than DISCOM
         const availableMarkets = [];
-        if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
-        if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
+        if (sanctionedLoad >= 1000) {
+          if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
+          if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
+        }
         if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
 
         if (availableMarkets.length > 0) {
@@ -641,11 +643,18 @@ export class SavingsCalculatorService {
       const rtmLanding = calcExchangeLanding(rtmMcp);
       const gdamLanding = calcExchangeLanding(gdamMcp);
 
-      const marketPrices = [damLanding, rtmLanding, gdamLanding].filter(p => p !== null) as number[];
+      let marketPrices = [damLanding, rtmLanding, gdamLanding].filter(p => p !== null) as number[];
+      if (sanctionedLoad < 1000) {
+        marketPrices = [gdamLanding].filter(p => p !== null) as number[];
+      }
+      
       const bestMarketLanding = marketPrices.length > 0 ? Math.min(...marketPrices) : 0;
 
-      let marketSource = 'DAM';
-      if (bestMarketLanding === rtmLanding) marketSource = 'RTM';
+      let marketSource = 'GDAM'; // Default to GDAM if below 1MW
+      if (sanctionedLoad >= 1000) {
+        if (bestMarketLanding === damLanding) marketSource = 'DAM';
+        if (bestMarketLanding === rtmLanding) marketSource = 'RTM';
+      }
       if (bestMarketLanding === gdamLanding) marketSource = 'GDAM';
       
       // Store all market landing prices for later SLDC optimization

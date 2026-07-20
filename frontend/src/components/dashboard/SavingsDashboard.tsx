@@ -59,11 +59,21 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       }
     });
 
-    // Scale daily prolt spend to match totalLandedExchangeCost
+    // Calculate net spend including overheads to scale daily values correctly
+    const netProltSpend = result.totalLandedExchangeCost 
+      + (result.oaDetailed?.dailyFixedOverhead || 0) 
+      + (result.oaDetailed?.bidApplicationFees || 0);
+
+    // Scale daily prolt spend to match netProltSpend
     const rawTotalProlt = Object.values(days).reduce((acc: number, cur: any) => acc + cur.proltSpend, 0);
-    const scaleFactor = rawTotalProlt > 0 ? (result.totalLandedExchangeCost / rawTotalProlt) : 1;
+    const scaleFactor = rawTotalProlt > 0 ? (netProltSpend / rawTotalProlt) : 1;
+
+    // Scale actual spend to match totalBaselineCost
+    const rawTotalActual = Object.values(days).reduce((acc: number, cur: any) => acc + cur.actualSpend, 0);
+    const actualScaleFactor = rawTotalActual > 0 ? (result.totalBaselineCost / rawTotalActual) : 1;
 
     Object.values(days).forEach((day: any) => {
+      day.actualSpend = day.actualSpend * actualScaleFactor;
       day.proltSpend = day.proltSpend * scaleFactor;
       day.savings = day.actualSpend - day.proltSpend;
     });
@@ -75,8 +85,15 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
   const formatCurrency = (val: number) => `₹${(val / 100000).toFixed(2)}L`; // Lakhs
   const formatThousands = (val: number) => `₹${(val / 1000).toFixed(2)}K`;
 
-  const savingsPerc = ((result.totalSavings / result.totalBaselineCost) * 100).toFixed(2);
-  const isPositiveSavings = result.totalSavings > 0;
+  // Calculate Net Prolt Spend and Net Savings
+  const netProltSpend = result.totalLandedExchangeCost 
+    + (result.oaDetailed?.dailyFixedOverhead || 0) 
+    + (result.oaDetailed?.bidApplicationFees || 0);
+    
+  const netSavings = result.totalBaselineCost - netProltSpend;
+
+  const savingsPerc = ((netSavings / result.totalBaselineCost) * 100).toFixed(2);
+  const isPositiveSavings = netSavings > 0;
 
   return (
     <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -86,7 +103,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
           {isPositiveSavings ? '🎉 Great news! Your bill could drop by' : 'Analysis Complete'}
         </Typography>
         <Typography variant="h3" sx={{ color: isPositiveSavings ? '#059669' : '#DC2626', fontWeight: 800 }}>
-          {result.totalSavings >= 100000 ? formatCurrency(result.totalSavings) : formatThousands(result.totalSavings)}
+          {netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)}
         </Typography>
         <Typography variant="subtitle1" sx={{ color: 'text.secondary', mt: 1 }}>
           ({savingsPerc}% {isPositiveSavings ? 'reduction' : 'change'}) Total potential savings for {monthStr}.
@@ -107,19 +124,49 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
           <Card sx={{ bgcolor: '#F3F4F6', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom>Prolt Optimized Spend</Typography>
-              <Typography variant="h4" fontWeight="bold" color="primary">{formatCurrency(result.totalLandedExchangeCost)}</Typography>
+              <Typography variant="h4" fontWeight="bold" color="primary">{formatCurrency(netProltSpend)}</Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
       
-      <Typography variant="body2" color="text.secondary" align="center">
-        Total Units : {result.totalEnergyKwh.toLocaleString()} kWh analyzed
-      </Typography>
+      {/* KPI Cards Row 2 */}
+      <Grid container spacing={3} sx={{ mt: 0 }}>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ bgcolor: '#F9FAFB', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>Total Units</Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {result.totalEnergyKwh.toLocaleString()} <Typography component="span" variant="body1" color="text.secondary">kWh analyzed</Typography>
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ bgcolor: '#F9FAFB', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>Current Rate</Typography>
+              <Typography variant="h5" fontWeight="bold">
+                ₹{(result.totalBaselineCost / result.totalEnergyKwh).toFixed(2)} <Typography component="span" variant="body1" color="text.secondary">/kWh</Typography>
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ bgcolor: '#F3F4F6', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>Optimized Rate</Typography>
+              <Typography variant="h5" fontWeight="bold" color="primary">
+                ₹{(netProltSpend / result.totalEnergyKwh).toFixed(2)} <Typography component="span" variant="body1" color="text.secondary">/kWh</Typography>
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Graph Area */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+      <Grid container spacing={3} sx={{ mt: 0 }}>
+        <Grid item xs={12}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6" gutterBottom>Monthly Consumption Mix - DISCOM Vs OA</Typography>
@@ -140,25 +187,6 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <Bar dataKey="OA" stackId="a" fill="#10B981" />
                   </BarChart>
                 </ResponsiveContainer>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-           <Card variant="outlined" sx={{ height: '100%' }}>
-            <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h6" gutterBottom>Cost Vs Consumption</Typography>
-              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary">Current Rate</Typography>
-                  <Typography variant="h3" fontWeight="bold">₹{(result.totalBaselineCost / result.totalEnergyKwh).toFixed(2)}</Typography>
-                  <Typography variant="caption" color="text.secondary">/kWh</Typography>
-                </Box>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary">Optimized Rate</Typography>
-                  <Typography variant="h3" fontWeight="bold" color="primary">₹{(result.totalLandedExchangeCost / result.totalEnergyKwh).toFixed(2)}</Typography>
-                  <Typography variant="caption" color="text.secondary">/kWh</Typography>
-                </Box>
               </Box>
             </CardContent>
           </Card>
