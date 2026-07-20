@@ -597,6 +597,8 @@ export default function SavingsCalculatorPage() {
       'Optimized Cost (Rs)': row.optimizedCost.toFixed(2),
       'Baseline DISCOM Cost (Rs)': row.baselineCost.toFixed(2),
       'Savings (Rs)': (row.baselineCost - row.optimizedCost).toFixed(2),
+      'Market Decision (Yes/No)': row.selectedSource !== 'DISCOM' ? 'Yes' : 'No',
+      'Selected Source': row.selectedSource,
     }));
     
     const filename = `${calcResult.clientName}_savings_report.csv`;
