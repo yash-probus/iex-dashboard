@@ -8,7 +8,7 @@ import { MarketDecisionResult } from '../../api/savingsCalculator.api';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import DownloadIcon from '@mui/icons-material/Download';
 import html2pdf from 'html2pdf.js';
-import { ProltLogo } from '../ProltLogo';
+
 
 interface SavingsDashboardProps {
   result: MarketDecisionResult;
@@ -176,8 +176,8 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} ref={dashboardRef}>
       {isDownloading && (
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2, pt: 2 }}>
-          <ProltLogo variant="full" size="xl" />
+        <Box sx={{ width: '100%', textAlign: 'center', mb: 4, pt: 2 }}>
+          <img src="/assets/logo.png" alt="Prolt Energy" style={{ height: '70px', objectFit: 'contain' }} />
         </Box>
       )}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: -1 }}>
