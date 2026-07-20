@@ -619,8 +619,9 @@ export class SavingsCalculatorService {
       const calcExchangeLanding = (mcp: number | null) => {
         if (mcp == null) return null;
         const lossCoefficient = (1 - (istsLoss / 100)) * (1 - (stuLoss / 100)) * (1 - (wheelingLoss / 100));
-        const lossAdjustedMcp = mcp / lossCoefficient;
-        return lossAdjustedMcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
+        const regionalCharges = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + additionalSurcharge;
+        const lossAdjustedRegional = regionalCharges / lossCoefficient;
+        return lossAdjustedRegional + crossSubsidy;
       };
 
       const damLanding = calcExchangeLanding(damMcp);
