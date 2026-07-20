@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
-import { Box, Typography, Card, CardContent, Grid, Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer } from '@mui/material';
+import React, { useMemo, useState } from 'react';
+import { Box, Typography, Card, CardContent, Grid, Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer, Button } from '@mui/material';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, AreaChart, Area
+  AreaChart, Area
 } from 'recharts';
-import { MarketDecisionResult, MarketDecisionSlot } from '../../api/savingsCalculator.api';
+import { MarketDecisionResult } from '../../api/savingsCalculator.api';
+import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 
 interface SavingsDashboardProps {
   result: MarketDecisionResult;
@@ -12,6 +13,9 @@ interface SavingsDashboardProps {
 }
 
 export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, monthStr }) => {
+  const [activeTab, setActiveTab] = useState<'overall' | 'monthly'>('overall');
+  const [purchaseMode, setPurchaseMode] = useState<'actual' | 'recommended'>('recommended');
+
   // Aggregate daily data
   const dailyData = useMemo(() => {
     const days: Record<string, any> = {};
@@ -27,13 +31,14 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       if (!days[dateKey]) {
         days[dateKey] = {
           date: dateKey,
-          dayLabel: `Day ${dateKey.substring(8, 10)}`,
+          dayLabel: `${Number(dateKey.substring(8, 10))}`,
           totalUnits: 0,
           oaUnits: 0,
           discomUnits: 0,
           actualSpend: 0,
           proltSpend: 0,
           savings: 0,
+          actualDiscomUnits: 0, // all units
         };
       }
       
@@ -46,6 +51,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       }
       
       days[dateKey].totalUnits += totalSlotEnergy;
+      days[dateKey].actualDiscomUnits += totalSlotEnergy;
       
       const discomCostForSlot = totalSlotEnergy * slot.discomLanding;
       days[dateKey].actualSpend += discomCostForSlot;
@@ -77,7 +83,6 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       day.proltSpend = day.proltSpend * scaleFactor;
       day.savings = day.actualSpend - day.proltSpend;
     });
-
     
     return Object.values(days).sort((a, b) => a.date.localeCompare(b.date));
   }, [result]);
@@ -93,168 +98,325 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
   const netSavings = result.totalBaselineCost - netProltSpend;
 
   const savingsPerc = ((netSavings / result.totalBaselineCost) * 100).toFixed(2);
-  const isPositiveSavings = netSavings > 0;
+  
+  const displayMonth = new Date(`${monthStr}-01`).toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
 
-  return (
-    <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Top Banner */}
-      <Box sx={{ textAlign: 'center', p: 3, bgcolor: isPositiveSavings ? '#ECFDF5' : '#FEF2F2', borderRadius: 2 }}>
-        <Typography variant="h5" sx={{ color: isPositiveSavings ? '#059669' : '#DC2626', fontWeight: 700, mb: 1 }}>
-          {isPositiveSavings ? '🎉 Great news! Your bill could drop by' : 'Analysis Complete'}
-        </Typography>
-        <Typography variant="h3" sx={{ color: isPositiveSavings ? '#059669' : '#DC2626', fontWeight: 800 }}>
+  const renderBanner = () => (
+    <Box sx={{ 
+      p: 4, 
+      background: 'linear-gradient(to right, #EEF2FF, #E0E7FF)', 
+      borderRadius: 2,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      border: '1px solid #C7D2FE',
+      mb: 3
+    }}>
+      <Typography variant="h6" sx={{ color: '#1E3A8A', fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+        🎉 Great news! Your bill could drop by 
+        <Typography component="span" variant="h5" sx={{ fontWeight: 800, color: '#111827' }}>
           {netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)}
         </Typography>
-        <Typography variant="subtitle1" sx={{ color: 'text.secondary', mt: 1 }}>
-          ({savingsPerc}% {isPositiveSavings ? 'reduction' : 'change'}) Total potential savings for {monthStr}.
+        <Typography component="span" variant="subtitle1" sx={{ color: '#3B82F6', fontWeight: 600 }}>
+          ({savingsPerc}% reduction)
         </Typography>
+      </Typography>
+      <Typography variant="body2" sx={{ color: '#6B7280', mb: 3 }}>
+        Total potential savings for {displayMonth}.
+      </Typography>
+      
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Box sx={{ bgcolor: 'white', px: 3, py: 1.5, borderRadius: 2, border: '1px solid #E5E7EB', minWidth: 150, textAlign: 'center' }}>
+          <Typography variant="caption" sx={{ color: '#9CA3AF', fontWeight: 600, letterSpacing: 1 }}>ACTUAL SPEND</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{formatCurrency(result.totalBaselineCost)}</Typography>
+        </Box>
+        <ArrowRightAltIcon sx={{ color: '#9CA3AF' }} />
+        <Box sx={{ bgcolor: '#ECFDF5', px: 3, py: 1.5, borderRadius: 2, border: '1px solid #A7F3D0', minWidth: 150, textAlign: 'center' }}>
+          <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, letterSpacing: 1 }}>PROLT OPTIMIZED SPEND</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#047857' }}>{formatCurrency(netProltSpend)}</Typography>
+        </Box>
+      </Box>
+      
+      <Typography variant="body2" sx={{ color: '#4B5563', fontWeight: 500 }}>
+        Total Units : <strong style={{ color: '#111827' }}>{result.totalEnergyKwh.toLocaleString()} kWh</strong> analyzed
+      </Typography>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Tabs Row */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: -1 }}>
+        <Box sx={{ display: 'flex', bgcolor: '#F3F4F6', p: 0.5, borderRadius: 8 }}>
+          <Button 
+            onClick={() => setActiveTab('overall')}
+            sx={{ 
+              borderRadius: 8, 
+              px: 3, 
+              py: 0.5, 
+              textTransform: 'none', 
+              fontWeight: 600,
+              bgcolor: activeTab === 'overall' ? '#111827' : 'transparent',
+              color: activeTab === 'overall' ? 'white' : '#6B7280',
+              '&:hover': { bgcolor: activeTab === 'overall' ? '#111827' : 'rgba(0,0,0,0.04)' }
+            }}
+          >
+            Overall Details
+          </Button>
+          <Button 
+            onClick={() => setActiveTab('monthly')}
+            sx={{ 
+              borderRadius: 8, 
+              px: 3, 
+              py: 0.5, 
+              textTransform: 'none', 
+              fontWeight: 600,
+              bgcolor: activeTab === 'monthly' ? '#111827' : 'transparent',
+              color: activeTab === 'monthly' ? 'white' : '#6B7280',
+              '&:hover': { bgcolor: activeTab === 'monthly' ? '#111827' : 'rgba(0,0,0,0.04)' }
+            }}
+          >
+            Monthly Details
+          </Button>
+        </Box>
+        {activeTab === 'monthly' && (
+          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', px: 2, py: 1, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>{displayMonth}</Typography>
+          </Box>
+        )}
       </Box>
 
-      {/* Summary Cards */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ bgcolor: '#F9FAFB', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>Actual Spend</Typography>
-              <Typography variant="h4" fontWeight="bold">{formatCurrency(result.totalBaselineCost)}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ bgcolor: '#F3F4F6', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>Prolt Optimized Spend</Typography>
-              <Typography variant="h4" fontWeight="bold" color="primary">{formatCurrency(netProltSpend)}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-      
-      {/* KPI Cards Row 2 */}
-      <Grid container spacing={3} sx={{ mt: 0 }}>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ bgcolor: '#F9FAFB', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>Total Units</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                {result.totalEnergyKwh.toLocaleString()} <Typography component="span" variant="body1" color="text.secondary">kWh analyzed</Typography>
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ bgcolor: '#F9FAFB', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>Current Rate</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                ₹{(result.totalBaselineCost / result.totalEnergyKwh).toFixed(2)} <Typography component="span" variant="body1" color="text.secondary">/kWh</Typography>
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ bgcolor: '#F3F4F6', border: '1px solid #E5E7EB', boxShadow: 'none' }}>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>Optimized Rate</Typography>
-              <Typography variant="h5" fontWeight="bold" color="primary">
-                ₹{(netProltSpend / result.totalEnergyKwh).toFixed(2)} <Typography component="span" variant="body1" color="text.secondary">/kWh</Typography>
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {renderBanner()}
 
-      {/* Graph Area */}
-      <Grid container spacing={3} sx={{ mt: 0 }}>
-        <Grid item xs={12}>
-          <Card variant="outlined">
+      {activeTab === 'overall' && (
+        <>
+          <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Monthly Consumption Mix - DISCOM Vs OA</Typography>
-              <Box sx={{ height: 300 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <span style={{ color: '#3B82F6' }}>📈</span> Monthly Spend Comparison
+              </Typography>
+              <Box sx={{ height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      { name: 'Actual', DISCOM: result.totalEnergyKwh, OA: 0 },
-                      { name: 'Prolt Optimized', DISCOM: result.totalEnergyKwh - result.totalMarketEnergyKwh, OA: result.totalMarketEnergyKwh }
-                    ]}
-                  >
+                  <BarChart data={[{ name: displayMonth, Actual: result.totalBaselineCost, Prolt: netProltSpend }]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip cursor={{fill: 'transparent'}} />
-                    <Legend />
-                    <Bar dataKey="DISCOM" stackId="a" fill="#3B82F6" />
-                    <Bar dataKey="OA" stackId="a" fill="#10B981" />
+                    <XAxis dataKey="name" tick={{fontSize: 12, fill: '#6B7280'}} axisLine={{ stroke: '#E5E7EB' }} tickLine={false} />
+                    <YAxis tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => formatCurrency(value)} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    <Bar dataKey="Actual" name="Actual Spend" fill="#FDA4AF" barSize={100} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Prolt" name="Prolt Optimised Spend" fill="#86EFAC" barSize={100} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
-      {/* Graph Area 2 */}
-      <Card variant="outlined" sx={{ mt: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Daily Savings Opportunity (Energy Cost)</Typography>
-          <Box sx={{ height: 400 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="dayLabel" tick={{fontSize: 12}} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Area type="monotone" dataKey="actualSpend" name="Actual Spend" stroke="#EF4444" fillOpacity={0} />
-                <Area type="monotone" dataKey="proltSpend" name="Prolt Optimized Spend" stroke="#3B82F6" fillOpacity={0} />
-                <Area type="monotone" dataKey="savings" name="Saving Zone" stroke="#10B981" fill="url(#colorSavings)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Box>
-        </CardContent>
-      </Card>
 
-      {/* Daily Breakdown Table */}
-      <Card variant="outlined" sx={{ mt: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Prolt Suggested Daily Breakdown</Typography>
-          <TableContainer component={Paper} elevation={0} variant="outlined" sx={{ maxHeight: 500 }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Day</TableCell>
-                  <TableCell align="right">Total Units</TableCell>
-                  <TableCell align="right">OA Units</TableCell>
-                  <TableCell align="right">DISCOM Units</TableCell>
-                  <TableCell align="right">You Paid</TableCell>
-                  <TableCell align="right">Prolt Suggested</TableCell>
-                  <TableCell align="right">Savings</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {dailyData.map((row) => (
-                  <TableRow key={row.date} hover>
-                    <TableCell>{row.dayLabel}</TableCell>
-                    <TableCell align="right">{row.totalUnits.toFixed(2)}</TableCell>
-                    <TableCell align="right">{row.oaUnits.toFixed(2)}</TableCell>
-                    <TableCell align="right">{row.discomUnits.toFixed(2)}</TableCell>
-                    <TableCell align="right">₹{row.actualSpend.toFixed(2)}</TableCell>
-                    <TableCell align="right">₹{row.proltSpend.toFixed(2)}</TableCell>
-                    <TableCell align="right" sx={{ color: row.savings > 0 ? '#10B981' : 'inherit', fontWeight: row.savings > 0 ? 'bold' : 'normal' }}>
-                      ₹{row.savings.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <span style={{ color: '#8B5CF6' }}>📊</span> Monthly Consumption Mix - DISCOM Vs OA
+              </Typography>
+              <Box sx={{ height: 350 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { name: displayMonth, 'Actual DISCOM': result.totalEnergyKwh, 'Actual OA': 0, 'Prolt Optimized DISCOM': result.totalEnergyKwh - result.totalMarketEnergyKwh, 'Prolt Optimized OA': result.totalMarketEnergyKwh }
+                  ]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tick={{fontSize: 12, fill: '#6B7280'}} axisLine={{ stroke: '#E5E7EB' }} tickLine={false} />
+                    <YAxis tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toLocaleString()} kWh`} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    
+                    <Bar dataKey="Actual DISCOM" stackId="a" fill="#93C5FD" barSize={40} />
+                    <Bar dataKey="Actual OA" stackId="a" fill="#D8B4E2" barSize={40} />
+                    
+                    <Bar dataKey="Prolt Optimized DISCOM" stackId="b" fill="#A7F3D0" barSize={40} />
+                    <Bar dataKey="Prolt Optimized OA" stackId="b" fill="#60A5FA" barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {activeTab === 'monthly' && (
+        <>
+          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <span style={{ color: '#3B82F6' }}>₹</span> Daily Savings Opportunity (Energy Cost)
+              </Typography>
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="dayLabel" tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
+                    <YAxis tickFormatter={(val) => `${(val / 1000).toFixed(0)}K`} tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
+                    <Tooltip formatter={(value: number) => `₹${value.toFixed(2)}`} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    <Area type="monotone" dataKey="actualSpend" name="Actual Spend" stroke="#EF4444" fillOpacity={0} />
+                    <Area type="monotone" dataKey="proltSpend" name="Prolt Optimized Spend" stroke="#3B82F6" fillOpacity={0} />
+                    <Area type="monotone" dataKey="savings" name="Saving Zone" stroke="#10B981" fill="url(#colorSavings)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span style={{ color: '#3B82F6' }}>📈</span> Purchase Comparison - {displayMonth}
+                </Typography>
+                <Box sx={{ display: 'flex', bgcolor: '#F9FAFB', p: 0.5, borderRadius: 8, border: '1px solid #E5E7EB' }}>
+                  <Button 
+                    onClick={() => setPurchaseMode('actual')}
+                    sx={{ 
+                      borderRadius: 8, 
+                      px: 2, 
+                      py: 0.5, 
+                      textTransform: 'none', 
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      bgcolor: purchaseMode === 'actual' ? '#111827' : 'transparent',
+                      color: purchaseMode === 'actual' ? 'white' : '#6B7280',
+                      '&:hover': { bgcolor: purchaseMode === 'actual' ? '#111827' : 'rgba(0,0,0,0.04)' }
+                    }}
+                  >
+                    How You Actually Purchased
+                  </Button>
+                  <Button 
+                    onClick={() => setPurchaseMode('recommended')}
+                    sx={{ 
+                      borderRadius: 8, 
+                      px: 2, 
+                      py: 0.5, 
+                      textTransform: 'none', 
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      bgcolor: purchaseMode === 'recommended' ? '#111827' : 'transparent',
+                      color: purchaseMode === 'recommended' ? 'white' : '#6B7280',
+                      '&:hover': { bgcolor: purchaseMode === 'recommended' ? '#111827' : 'rgba(0,0,0,0.04)' }
+                    }}
+                  >
+                    How You Should Purchase <span style={{ color: '#10B981', marginLeft: 4, background: '#D1FAE5', padding: '2px 6px', borderRadius: 4, fontSize: '10px' }}>RECOMMENDED</span>
+                  </Button>
+                </Box>
+              </Box>
+              
+              <Box sx={{ height: 250 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="dayLabel" tick={{fontSize: 10, fill: '#6B7280'}} axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toFixed(2)} units`} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    {purchaseMode === 'actual' ? (
+                      <Bar dataKey="actualDiscomUnits" name="DISCOM Energy" fill="#8B5CF6" barSize={12} radius={[4, 4, 0, 0]} />
+                    ) : (
+                      <>
+                        <Bar dataKey="discomUnits" name="DISCOM Energy" stackId="a" fill="#8B5CF6" barSize={12} />
+                        <Bar dataKey="oaUnits" name="OA Energy (Estimated)" stackId="a" fill="#10B981" barSize={12} radius={[4, 4, 0, 0]} />
+                      </>
+                    )}
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+              
+              <Box sx={{ mt: 2, bgcolor: '#EEF2FF', borderRadius: 2, py: 1.5, textAlign: 'center', border: '1px solid #E0E7FF' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
+                  Total Energy Cost Paid : {formatCurrency(purchaseMode === 'actual' ? result.totalBaselineCost : netProltSpend)}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+            <CardContent sx={{ p: 0 }}>
+              <Box sx={{ p: 2, borderBottom: '1px solid #E5E7EB' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span style={{ color: '#3B82F6' }}>📅</span> Prolt Suggested Daily Breakdown
+                </Typography>
+              </Box>
+              <TableContainer sx={{ maxHeight: 400 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600, bgcolor: '#F9FAFB', color: '#6B7280' }}>Day</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#F9FAFB', color: '#6B7280' }}>Total Units</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#F9FAFB', color: '#6B7280' }}>OA Units</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#F9FAFB', color: '#6B7280' }}>DISCOM Units</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#F9FAFB', color: '#6B7280' }}>You Paid</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#F9FAFB', color: '#6B7280' }}>Prolt Suggested</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#F9FAFB', color: '#6B7280' }}>Savings</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {dailyData.map((row) => (
+                      <TableRow key={row.date} hover>
+                        <TableCell sx={{ fontSize: '13px' }}>Day {row.dayLabel}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '13px' }}>{(row.totalUnits/1000).toFixed(2)}K</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '13px' }}>{row.oaUnits > 0 ? row.oaUnits.toFixed(2) : '-'}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '13px', color: '#059669', fontWeight: 600 }}>{row.discomUnits.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '13px' }}>{formatThousands(row.actualSpend)}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '13px' }}>{formatThousands(row.proltSpend)}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '13px', color: row.savings > 0 ? '#10B981' : 'inherit', fontWeight: row.savings > 0 ? 'bold' : 'normal' }}>
+                          {formatThousands(row.savings)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <span style={{ color: '#3B82F6' }}>₹</span> Cost Vs Consumption
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ border: '1px solid #E5E7EB', borderRadius: 2, p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700, letterSpacing: 1, mb: 1 }}>CURRENT RATE</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: '#111827' }}>
+                      ₹{(result.totalBaselineCost / result.totalEnergyKwh).toFixed(2)}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#9CA3AF' }}>/kWh</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ border: '1px solid #10B981', bgcolor: '#ECFDF5', borderRadius: 2, p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#059669', fontWeight: 700, letterSpacing: 1, mb: 1 }}>OPTIMIZED RATE</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669' }}>
+                      ₹{(netProltSpend / result.totalEnergyKwh).toFixed(2)}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#059669' }}>/kWh</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ border: '1px solid #E5E7EB', borderRadius: 2, p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700, letterSpacing: 1, mb: 1 }}>TOTAL UNITS</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: '#111827' }}>
+                      {result.totalEnergyKwh.toLocaleString()}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#9CA3AF' }}>kWh</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </Box>
   );
 };
