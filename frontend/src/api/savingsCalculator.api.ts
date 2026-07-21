@@ -209,7 +209,7 @@ export interface DemandShiftInsightsResult {
 }
 
 export const fetchDemandShiftInsights = async (id: string, targetMonth?: string): Promise<DemandShiftInsightsResult> => {
-  const response = await apiClient.post<DemandShiftInsightsResult>(`/savings-calculator/${id}/demand-shift-insights`, null, {
+  const response = await apiClient.post<DemandShiftInsightsResult>(`/savings-calculator/${id}/demand-shift-insights`, {}, {
     params: { month: targetMonth },
   });
   return response.data;
