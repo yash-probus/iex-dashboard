@@ -83,6 +83,8 @@ export default function SavingsCalculatorPage() {
     address?: string;
     sanctionedLoadKw?: string;
     clientDetails?: string;
+    stateCode?: string;
+    discom?: string;
   }>({});
 
   // Submitting States
@@ -215,23 +217,13 @@ export default function SavingsCalculatorPage() {
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       if (matchState && row.consumerCategory) {
-        if (row.consumerCategory === 'HV-1') {
-          categoriesSet.add('HV-1 A');
-          categoriesSet.add('HV-1 B');
-        } else if (row.consumerCategory === 'LMV-11') {
-          categoriesSet.add('LMV-11 (Multistoried Buildings)');
-          categoriesSet.add('LMV-11 (Public Charging)');
+        if (row.subCategory) {
+          categoriesSet.add(`${row.consumerCategory} | ${row.subCategory}`);
         } else {
           categoriesSet.add(row.consumerCategory);
         }
       }
     });
-
-    // Always ensure the known UP categories are present
-    const lmvCategories = ['LMV-1', 'LMV-2', 'LMV-3', 'LMV-4', 'LMV-5', 'LMV-6', 'LMV-7', 'LMV-8', 'LMV-9', 'LMV-10', 'LMV-11'];
-    lmvCategories.forEach(cat => categoriesSet.add(cat));
-    categoriesSet.add('HV-1');
-    categoriesSet.add('HV-2');
 
     return Array.from(categoriesSet).sort();
   }, [tariffData, stateCode]);
@@ -422,6 +414,8 @@ export default function SavingsCalculatorPage() {
     if (!clientName.trim()) errors.clientName = 'Client Name is required.';
     if (!industryName.trim()) errors.industryName = 'Industry Name is required.';
     if (!address.trim()) errors.address = 'Address is required.';
+    if (!stateCode.trim()) errors.stateCode = 'State is required.';
+    if (!discom.trim()) errors.discom = 'DISCOM is required.';
     
     if (sanctionedLoadKw.trim()) {
       const parsed = parseFloat(sanctionedLoadKw);
@@ -431,6 +425,9 @@ export default function SavingsCalculatorPage() {
     }
     
     setFormErrors(errors);
+    if (errors.stateCode || errors.discom) {
+      setSnackbar({ open: true, message: 'Please select a State and DISCOM.', severity: 'error' });
+    }
     return Object.keys(errors).length === 0;
   };
 

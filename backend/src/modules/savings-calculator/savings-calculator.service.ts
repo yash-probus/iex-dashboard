@@ -156,18 +156,24 @@ export class SavingsCalculatorService {
 
       let parsedCategory = category;
       let parsedSubCategory = undefined;
-      if (category === 'HV-1 A') {
-        parsedCategory = 'HV-1';
-        parsedSubCategory = 'Commercial, Private Inst';
-      } else if (category === 'HV-1 B') {
-        parsedCategory = 'HV-1';
-        parsedSubCategory = 'Public Inst., Societies';
-      } else if (category === 'LMV-11 (Multistoried Buildings)') {
-        parsedCategory = 'LMV-11';
-        parsedSubCategory = 'Multistoried Buildings';
-      } else if (category === 'LMV-11 (Public Charging)') {
-        parsedCategory = 'LMV-11';
-        parsedSubCategory = 'Public Charging';
+      if (category.includes(' | ')) {
+        const parts = category.split(' | ');
+        parsedCategory = parts[0];
+        parsedSubCategory = parts[1];
+      } else {
+        if (category === 'HV-1 A') {
+          parsedCategory = 'HV-1';
+          parsedSubCategory = 'Commercial, Private Inst';
+        } else if (category === 'HV-1 B') {
+          parsedCategory = 'HV-1';
+          parsedSubCategory = 'Public Inst., Societies';
+        } else if (category === 'LMV-11 (Multistoried Buildings)') {
+          parsedCategory = 'LMV-11';
+          parsedSubCategory = 'Multistoried Buildings';
+        } else if (category === 'LMV-11 (Public Charging)') {
+          parsedCategory = 'LMV-11';
+          parsedSubCategory = 'Public Charging';
+        }
       }
 
       const whereClause: any = {
@@ -436,6 +442,9 @@ export class SavingsCalculatorService {
     if (!entry) {
       throw new Error('Savings calculator entry not found');
     }
+    if (!entry.stateCode) {
+      throw new Error('State is required to calculate savings. Please edit this entry to select a state.');
+    }
 
     let year = new Date().getFullYear();
     let month = new Date().getMonth() + 1;
@@ -474,18 +483,24 @@ export class SavingsCalculatorService {
 
     let parsedCategory = category;
     let parsedSubCategory = undefined;
-    if (category === 'HV-1 A') {
-      parsedCategory = 'HV-1';
-      parsedSubCategory = 'Commercial, Private Inst';
-    } else if (category === 'HV-1 B') {
-      parsedCategory = 'HV-1';
-      parsedSubCategory = 'Public Inst., Societies';
-    } else if (category === 'LMV-11 (Multistoried Buildings)') {
-      parsedCategory = 'LMV-11';
-      parsedSubCategory = 'Multistoried Buildings';
-    } else if (category === 'LMV-11 (Public Charging)') {
-      parsedCategory = 'LMV-11';
-      parsedSubCategory = 'Public Charging';
+    if (category.includes(' | ')) {
+      const parts = category.split(' | ');
+      parsedCategory = parts[0];
+      parsedSubCategory = parts[1];
+    } else {
+      if (category === 'HV-1 A') {
+        parsedCategory = 'HV-1';
+        parsedSubCategory = 'Commercial, Private Inst';
+      } else if (category === 'HV-1 B') {
+        parsedCategory = 'HV-1';
+        parsedSubCategory = 'Public Inst., Societies';
+      } else if (category === 'LMV-11 (Multistoried Buildings)') {
+        parsedCategory = 'LMV-11';
+        parsedSubCategory = 'Multistoried Buildings';
+      } else if (category === 'LMV-11 (Public Charging)') {
+        parsedCategory = 'LMV-11';
+        parsedSubCategory = 'Public Charging';
+      }
     }
 
     const stateCharges = await prisma.stateCharges.findFirst({
@@ -651,7 +666,10 @@ export class SavingsCalculatorService {
 
       const calcExchangeLanding = (mcp: number | null) => {
         if (mcp == null) return null;
-        const lossCoefficient = (1 - (istsLoss / 100)) * (1 - (stuLoss / 100)) * (1 - (wheelingLoss / 100));
+        const safeIsts = Math.min(istsLoss, 99.9);
+        const safeStu = Math.min(stuLoss, 99.9);
+        const safeWheeling = Math.min(wheelingLoss, 99.9);
+        const lossCoefficient = (1 - (safeIsts / 100)) * (1 - (safeStu / 100)) * (1 - (safeWheeling / 100));
         const regionalCharges = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + additionalSurcharge;
         const lossAdjustedRegional = regionalCharges / lossCoefficient;
         return lossAdjustedRegional + crossSubsidy;
