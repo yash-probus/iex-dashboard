@@ -641,8 +641,8 @@ export default function SavingsCalculatorPage() {
             p: 1.75,
             transition: 'all 0.2s ease-in-out',
             '&:hover': {
-              borderColor: dialogMode !== 'view' ? '#6366F1' : 'divider',
-              bgcolor: dialogMode !== 'view' ? `${alpha('#6366F1', 0.02)}` : '#F8FAFC'
+              borderColor: dialogMode !== 'view' ? '#8B5CF6' : 'divider',
+              bgcolor: dialogMode !== 'view' ? `${alpha('#8B5CF6', 0.02)}` : '#F8FAFC'
             }
           }}
         >
@@ -669,7 +669,7 @@ export default function SavingsCalculatorPage() {
           key={stepIndex}
           elevation={0}
           sx={{ 
-            border: '2px solid #6366F1', 
+            border: '2px solid #8B5CF6', 
             borderRadius: '16px',
             p: 3,
             boxShadow: '0 4px 12px -2px rgba(139, 92, 246, 0.08), 0 2px 6px -1px rgba(139, 92, 246, 0.04)',
@@ -677,7 +677,7 @@ export default function SavingsCalculatorPage() {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-            <Box sx={{ color: '#6366F1', display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ color: '#8B5CF6', display: 'flex', alignItems: 'center' }}>
               {stepMeta.icon}
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1rem' }}>
@@ -722,9 +722,9 @@ export default function SavingsCalculatorPage() {
                 textTransform: 'none', 
                 borderRadius: 2.5, 
                 fontWeight: 600, 
-                bgcolor: '#6366F1',
+                bgcolor: '#8B5CF6',
                 '&:hover': {
-                  bgcolor: '#4F46E5'
+                  bgcolor: '#7C3AED'
                 }
               }}
             >
@@ -761,13 +761,13 @@ export default function SavingsCalculatorPage() {
             sx={{ 
               fontSize: '11px', 
               py: 0.5, 
-              borderColor: '#6366F1', 
-              color: '#6366F1',
+              borderColor: '#8B5CF6', 
+              color: '#8B5CF6',
               textTransform: 'none',
               borderRadius: 2,
               '&:hover': {
-                borderColor: '#4F46E5',
-                bg: `${alpha('#6366F1', 0.05)}`
+                borderColor: '#7C3AED',
+                bg: `${alpha('#8B5CF6', 0.05)}`
               }
             }}
           >
@@ -801,8 +801,8 @@ export default function SavingsCalculatorPage() {
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
           <Box sx={{
-            color: '#6366F1',
-            backgroundColor: `${alpha('#6366F1', 0.1)}`,
+            color: '#8B5CF6',
+            backgroundColor: `${alpha('#8B5CF6', 0.1)}`,
             p: 2,
             borderRadius: 2,
             display: 'flex',
@@ -829,9 +829,9 @@ export default function SavingsCalculatorPage() {
             textTransform: 'none', 
             borderRadius: 2.5, 
             fontWeight: 600, 
-            bgcolor: '#6366F1',
+            bgcolor: '#8B5CF6',
             '&:hover': {
-              bgcolor: '#4F46E5'
+              bgcolor: '#7C3AED'
             },
             px: 2.5,
             py: 1
@@ -1298,7 +1298,7 @@ export default function SavingsCalculatorPage() {
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, pb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ bgcolor: '#F3E8FF', color: '#6366F1', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ bgcolor: '#F3E8FF', color: '#8B5CF6', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CalculateIcon fontSize="small" />
             </Box>
             Margin Details
@@ -1346,8 +1346,8 @@ export default function SavingsCalculatorPage() {
               handleSubmit();
             }}
             sx={{
-              bgcolor: '#6366F1',
-              '&:hover': { bgcolor: '#4F46E5' },
+              bgcolor: '#8B5CF6',
+              '&:hover': { bgcolor: '#7C3AED' },
               borderRadius: 2,
               textTransform: 'none',
               px: 3
@@ -1369,7 +1369,7 @@ export default function SavingsCalculatorPage() {
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <CalculateIcon sx={{ color: '#6366F1' }} />
+            <CalculateIcon sx={{ color: '#8B5CF6' }} />
             <Typography variant="h2" sx={{ fontWeight: 700 }}>
               Savings Analysis for {calcEntry?.clientName}
             </Typography>
@@ -1409,9 +1409,9 @@ export default function SavingsCalculatorPage() {
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2, 
-                bgcolor: '#6366F1',
+                bgcolor: '#8B5CF6',
                 '&:hover': {
-                  bgcolor: '#4F46E5'
+                  bgcolor: '#7C3AED'
                 }
               }}
             >
@@ -1489,7 +1489,7 @@ export default function SavingsCalculatorPage() {
 
           {calculating && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 2 }}>
-              <CircularProgress sx={{ color: '#6366F1' }} />
+              <CircularProgress sx={{ color: '#8B5CF6' }} />
               <Typography variant="body2" color="text.secondary">
                 Running cost simulations and sorting 15-minute slot metrics...
               </Typography>
@@ -1604,7 +1604,7 @@ export default function SavingsCalculatorPage() {
                                     <span style={{ 
                                       fontSize: '9px', 
                                       fontWeight: 800, 
-                                      color: row.selectedSource === 'DISCOM' ? '#64748B' : '#4F46E5',
+                                      color: row.selectedSource === 'DISCOM' ? '#64748B' : '#7C3AED',
                                       backgroundColor: row.selectedSource === 'DISCOM' ? '#F1F5F9' : '#F5F3FF',
                                       padding: '1px 4px',
                                       borderRadius: '3px',
@@ -1666,7 +1666,7 @@ export default function SavingsCalculatorPage() {
                               textTransform: 'uppercase', 
                               fontSize: '10px', 
                               fontWeight: 800, 
-                              color: row.selectedSource === 'DISCOM' ? '#64748B' : '#4F46E5',
+                              color: row.selectedSource === 'DISCOM' ? '#64748B' : '#7C3AED',
                               backgroundColor: row.selectedSource === 'DISCOM' ? '#F1F5F9' : '#F5F3FF',
                               padding: '2px 6px',
                               borderRadius: '4px'
@@ -1742,7 +1742,7 @@ export default function SavingsCalculatorPage() {
                               textTransform: 'uppercase', 
                               fontSize: '10px', 
                               fontWeight: 800, 
-                              color: row.marketSource === 'DAM' ? '#3B82F6' : row.marketSource === 'GDAM' ? '#10B981' : '#6366F1',
+                              color: row.marketSource === 'DAM' ? '#3B82F6' : row.marketSource === 'GDAM' ? '#10B981' : '#8B5CF6',
                               backgroundColor: row.marketSource === 'DAM' ? '#EFF6FF' : row.marketSource === 'GDAM' ? '#ECFDF5' : '#F5F3FF',
                               padding: '2px 6px',
                               borderRadius: '4px'
@@ -1852,7 +1852,7 @@ export default function SavingsCalculatorPage() {
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
-                      <Typography variant="body2" fontWeight={700} color="#4F46E5">
+                      <Typography variant="body2" fontWeight={700} color="#7C3AED">
                         ₹{(
                           marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0) + 
                           marketDecisionResult.oaDetailed.dailyFixedOverhead + 
