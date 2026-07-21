@@ -31,7 +31,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const opt = {
-        margin:       [30, 10, 10, 10] as [number, number, number, number], // Increased top margin to avoid letterhead header
+        margin:       [40, 10, 40, 10] as [number, number, number, number], // Top, Right, Bottom, Left margin in mm
         filename:     `Savings_Dashboard_${monthStr}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
@@ -43,7 +43,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       const pdfArrayBuffer = await html2pdf().set(opt).from(dashboardRef.current).output('arraybuffer');
       
       // 2. Fetch Letterhead PDF
-      const letterheadRes = await fetch('/Prolt_Energy_Letterhead.pdf');
+      const letterheadRes = await fetch('/Minimalist_Business_Letterhead.pdf');
       const letterheadBuffer = await letterheadRes.arrayBuffer();
 
       // 3. Merge them using pdf-lib
