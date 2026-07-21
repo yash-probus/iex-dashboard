@@ -207,6 +207,10 @@ export interface DemandShiftInsightsResult {
     originalEnergy: number;
     newEnergy: number;
     costPerKwh: number;
+    marketSource: string;
+    shouldBuyFromMarket: boolean;
+    marketEnergy: number;
+    discomEnergy: number;
   }[];
 }
 

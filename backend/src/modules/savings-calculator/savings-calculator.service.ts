@@ -1325,14 +1325,21 @@ export class SavingsCalculatorService {
         tod,
         ...data
       })),
-      slotsData: shiftableSlots.map(s => ({
-        date: s.date,
-        timeblock: s.timeblock,
-        tod: s.tod,
-        originalEnergy: s.originalEnergy,
-        newEnergy: s.currentEnergy,
-        costPerKwh: s.costPerKwh
-      }))
+      slotsData: shiftableSlots.map(s => {
+        const originalSlot = slotsData[s.originalIndex];
+        return {
+          date: s.date,
+          timeblock: s.timeblock,
+          tod: s.tod,
+          originalEnergy: s.originalEnergy,
+          newEnergy: s.currentEnergy,
+          costPerKwh: s.costPerKwh,
+          marketSource: originalSlot.marketSource,
+          shouldBuyFromMarket: s.shouldBuyFromMarket,
+          marketEnergy: s.currentMarketEnergy,
+          discomEnergy: s.currentDiscomEnergy
+        };
+      })
     };
   }
 }

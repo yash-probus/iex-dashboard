@@ -106,6 +106,7 @@ export default function SavingsCalculatorPage() {
 
   const [calcTab, setCalcTab] = useState(0);
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
+  const [demandShiftGraphOpen, setDemandShiftGraphOpen] = useState(false);
 
   // Market Decision States
   const [marketDecisionOpen, setMarketDecisionOpen] = useState(false);
@@ -637,7 +638,27 @@ export default function SavingsCalculatorPage() {
       'Wheeling Loss (%)': row.wheelingLoss?.toFixed(4) || '0.0000'
     }));
     
-    const filename = `${calcEntry?.clientName || 'Client'}_detailed_OA_report.csv`;
+    const filename = `${marketDecisionResult.clientName}_detailed_oa_simulation.csv`;
+    exportToCSV(exportData, filename);
+  };
+
+  const exportInsightsToCSV = () => {
+    if (!demandShiftInsights || !demandShiftInsights.slotsData) return;
+    const exportData = demandShiftInsights.slotsData.map((row) => ({
+      'Date': row.date,
+      'Timeblock': row.timeblock,
+      'TOD Slab': row.tod,
+      'Cost Per Kwh': row.costPerKwh?.toFixed(4) || '-',
+      'Original Energy (kWh)': row.originalEnergy?.toFixed(2) || '0.00',
+      'New Energy (kWh)': row.newEnergy?.toFixed(2) || '0.00',
+      'Original Market Energy (kWh)': (row.marketEnergy - (row.newEnergy - row.originalEnergy))?.toFixed(2) || '0.00',
+      'New Market Energy (kWh)': row.marketEnergy?.toFixed(2) || '0.00',
+      'Discom Energy (kWh)': row.discomEnergy?.toFixed(2) || '0.00',
+      'Market Source': row.marketSource || 'DISCOM',
+      'Should Buy Market': row.shouldBuyFromMarket ? 'Yes' : 'No'
+    }));
+    
+    const filename = `${demandShiftInsights.clientName}_industry_insights.csv`;
     exportToCSV(exportData, filename);
   };
 
@@ -1936,7 +1957,39 @@ export default function SavingsCalculatorPage() {
 
           {calcTab === 4 && demandShiftInsights && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Industry Insights: Demand Shifting</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6" fontWeight={700}>Industry Insights: Demand Shifting</Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<BarChartIcon />}
+                    onClick={() => setDemandShiftGraphOpen(true)}
+                    sx={{ 
+                      textTransform: 'none', 
+                      borderRadius: 2, 
+                      bgcolor: '#F59E0B',
+                      '&:hover': {
+                        bgcolor: '#D97706'
+                      }
+                    }}
+                  >
+                    Slot-wise Heatmap
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    onClick={exportInsightsToCSV}
+                    sx={{ 
+                      textTransform: 'none', 
+                      borderRadius: 2, 
+                      borderColor: 'divider', 
+                      color: 'text.secondary' 
+                    }}
+                  >
+                    Export CSV
+                  </Button>
+                </Box>
+              </Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
                   <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
@@ -2033,6 +2086,26 @@ export default function SavingsCalculatorPage() {
         <DialogContent>
           {marketDecisionResult && (
             <SlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={demandShiftGraphOpen}
+        onClose={() => setDemandShiftGraphOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+          Industry Insights Heatmap
+          <IconButton onClick={() => setDemandShiftGraphOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {demandShiftInsights && (
+            <SlotWiseMarketHeatmap slotsData={demandShiftInsights.slotsData} />
           )}
         </DialogContent>
       </Dialog>
