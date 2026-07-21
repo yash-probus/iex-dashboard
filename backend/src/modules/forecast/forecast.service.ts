@@ -80,6 +80,13 @@ export class ForecastService {
           ? parseFloat((sumActualMcp / actualRecords.length).toFixed(2))
           : null;
 
+        // Aggregate confidence
+        const confRecords = hourRecords.filter(r => r.confidence !== 'N/A' && r.confidence !== undefined && r.confidence !== null);
+        const sumConf = confRecords.reduce((sum, r) => sum + Number(r.confidence || 0), 0);
+        const confidence = confRecords.length > 0
+          ? (sumConf / confRecords.length).toFixed(2)
+          : 'N/A';
+
         hourlyData.push({
           date: hourRecords[0].date,
           hour: hourStr,
@@ -91,7 +98,7 @@ export class ForecastService {
           fsv: Math.round(sumFsv / hourRecords.length),
           mcp: parseFloat((sumMcp / hourRecords.length).toFixed(2)),
           actualMcp,
-          confidence: 'N/A'
+          confidence
         });
       }
       return hourlyData;
@@ -111,6 +118,13 @@ export class ForecastService {
       ? parseFloat((sumActualMcp / actualRecords.length).toFixed(2))
       : null;
 
+    // Aggregate confidence
+    const confRecords = records.filter(r => r.confidence !== 'N/A' && r.confidence !== undefined && r.confidence !== null);
+    const sumConf = confRecords.reduce((sum, r) => sum + Number(r.confidence || 0), 0);
+    const confidence = confRecords.length > 0
+      ? (sumConf / confRecords.length).toFixed(2)
+      : 'N/A';
+
     return [{
       date: records[0].date,
       hour: '00',
@@ -122,7 +136,7 @@ export class ForecastService {
       fsv: Math.round(sumFsv / records.length),
       mcp: parseFloat((sumMcp / records.length).toFixed(2)),
       actualMcp,
-      confidence: 'N/A'
+      confidence
     }];
   }
 
@@ -194,7 +208,7 @@ export class ForecastService {
               fsv: 0,
               mcp,
               actualMcp,
-              confidence: 'N/A'
+              confidence: r.confidence_pct !== undefined && r.confidence_pct !== null ? String(r.confidence_pct) : 'N/A'
             };
           });
 
@@ -219,6 +233,9 @@ export class ForecastService {
     let sumAbsoluteError = 0;
     let sumPercentageError = 0;
     let errorCount = 0;
+    
+    let sumConfidence = 0;
+    let confidenceCount = 0;
 
     for (const row of intervals) {
       const mcp = Number(row.mcp || 0);
@@ -232,6 +249,11 @@ export class ForecastService {
       if (mcp < minForecastMcp) minForecastMcp = mcp;
       if (mcv > maxMcv) maxMcv = mcv;
       if (fsv > maxFsv) maxFsv = fsv;
+
+      if (row.confidence !== 'N/A' && row.confidence !== null && row.confidence !== undefined) {
+        sumConfidence += Number(row.confidence);
+        confidenceCount++;
+      }
 
       if (actualMcp !== null) {
         sumActualMcp += actualMcp;
@@ -273,7 +295,7 @@ export class ForecastService {
         mape: mape !== null ? `${mape.toFixed(2)}%` : 'N/A',
         mae: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
         avgAbsoluteError: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
-        confidence: 'N/A'
+        confidence: confidenceCount > 0 ? (sumConfidence / confidenceCount).toFixed(2) : 'N/A'
       }
     };
   }

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { AUTH_TOKEN_KEY } from '../constants/auth';
 import { triggerGlobalLogout } from '../utils/events';
 
-const baseURL = (import.meta as any).env.VITE_API_BASE_URL;
+const baseURL = (import.meta as any).env.VITE_API_BASE_URL || "http://localhost:5001/api";
 
 if (!baseURL) {
   const errorMsg = 'VITE_API_BASE_URL is not configured.';
