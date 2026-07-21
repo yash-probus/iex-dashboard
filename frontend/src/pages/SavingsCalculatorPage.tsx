@@ -99,7 +99,7 @@ export default function SavingsCalculatorPage() {
   const [calcResult, setCalcResult] = useState<CalculationResult | null>(null);
   const [calculating, setCalculating] = useState(false);
   const [marketDecisionResult, setMarketDecisionResult] = useState<MarketDecisionResult | null>(null);
-  const [calculatingMarket, setCalculatingMarket] = useState(false);
+
   const [calcTab, setCalcTab] = useState(0);
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
 
@@ -532,8 +532,12 @@ export default function SavingsCalculatorPage() {
     if (!calcEntry) return;
     try {
       setCalculating(true);
-      const res = await calculateSavings(calcEntry.id, selectedSimMonth || undefined);
-      setCalcResult(res);
+      const [savingsRes, marketRes] = await Promise.all([
+        calculateSavings(calcEntry.id, selectedSimMonth || undefined),
+        calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined)
+      ]);
+      setCalcResult(savingsRes);
+      setMarketDecisionResult(marketRes);
       setCalcTab(0);
     } catch (err: any) {
       console.error('Calculation failed:', err);
@@ -547,48 +551,10 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  const executeMarketDecision = async () => {
-    if (!calcEntry) return;
-    try {
-      setCalculatingMarket(true);
-      const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined);
-      setMarketDecisionResult(res);
-      setCalcTab(2);
-    } catch (err: any) {
-      console.error('Market Decision failed:', err);
-      setSnackbar({
-        open: true,
-        message: err.message || 'Market decision calculation failed.',
-        severity: 'error'
-      });
-    } finally {
-      setCalculatingMarket(false);
-    }
-  };
-
-  const executeOASimulation = async () => {
-    if (!calcEntry) return;
-    try {
-      setCalculatingMarket(true);
-      const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined);
-      setMarketDecisionResult(res);
-      setCalcTab(3);
-    } catch (err: any) {
-      console.error('Market Decision failed:', err);
-      setSnackbar({
-        open: true,
-        message: err.message || 'OA simulation calculation failed.',
-        severity: 'error'
-      });
-    } finally {
-      setCalculatingMarket(false);
-    }
-  };
-
   const executeGraphSimulation = async () => {
     if (!calcEntry) return;
     try {
-      setCalculatingMarket(true);
+      setCalculating(true);
       const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined);
       setMarketDecisionResult(res);
       setGraphDialogOpen(true);
@@ -600,7 +566,7 @@ export default function SavingsCalculatorPage() {
         severity: 'error'
       });
     } finally {
-      setCalculatingMarket(false);
+      setCalculating(false);
     }
   };
 
@@ -1452,45 +1418,13 @@ export default function SavingsCalculatorPage() {
               {calculating ? 'Analyzing...' : 'Run Simulation'}
             </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<PlayIcon />}
-              onClick={executeMarketDecision}
-              disabled={calculatingMarket || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
-                bgcolor: '#10B981',
-                '&:hover': {
-                  bgcolor: '#059669'
-                }
-              }}
-            >
-              {calculatingMarket ? 'Analyzing...' : 'Market Buy Decision'}
-            </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<PlayIcon />}
-              onClick={executeOASimulation}
-              disabled={calculatingMarket || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
-                bgcolor: '#3B82F6',
-                '&:hover': {
-                  bgcolor: '#2563EB'
-                }
-              }}
-            >
-              {calculatingMarket ? 'Analyzing...' : 'Detailed OA Simulation'}
-            </Button>
 
             <Button
               variant="contained"
               startIcon={<BarChartIcon />}
               onClick={executeGraphSimulation}
-              disabled={calculatingMarket || !selectedSimMonth}
+              disabled={calculating || !selectedSimMonth}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2, 
@@ -1500,7 +1434,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {calculatingMarket ? 'Analyzing...' : 'Slot-wise Heatmap'}
+              {calculating ? 'Analyzing...' : 'Slot-wise Heatmap'}
             </Button>
 
             {calcResult && (
@@ -1553,16 +1487,16 @@ export default function SavingsCalculatorPage() {
             )}
           </Box>
 
-          {(calculating || calculatingMarket) && (
+          {calculating && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 2 }}>
               <CircularProgress sx={{ color: '#8B5CF6' }} />
               <Typography variant="body2" color="text.secondary">
-                {calculating ? 'Running cost simulations and sorting 15-minute slot metrics...' : 'Calculating market landing prices and comparing against grid tariffs...'}
+                Running cost simulations and sorting 15-minute slot metrics...
               </Typography>
             </Box>
           )}
 
-          {!calculating && !calculatingMarket && !calcResult && !marketDecisionResult && (
+          {!calculating && !calcResult && !marketDecisionResult && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
               <Typography variant="body1" color="text.secondary">
                 Click 'Run Simulation' to load the landed cost analysis for your configured months.
