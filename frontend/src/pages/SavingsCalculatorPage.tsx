@@ -40,7 +40,9 @@ import {
   CalculationResult,
   CalculationSlotDetail,
   MarketDecisionResult,
-  exportSavingsExcel
+  exportSavingsExcel,
+  fetchDemandShiftInsights,
+  DemandShiftInsightsResult
 } from '../api/savingsCalculator.api';
 import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
@@ -99,6 +101,8 @@ export default function SavingsCalculatorPage() {
   const [calcResult, setCalcResult] = useState<CalculationResult | null>(null);
   const [calculating, setCalculating] = useState(false);
   const [marketDecisionResult, setMarketDecisionResult] = useState<MarketDecisionResult | null>(null);
+  const [demandShiftInsights, setDemandShiftInsights] = useState<DemandShiftInsightsResult | null>(null);
+  const [calculatingInsights, setCalculatingInsights] = useState(false);
 
   const [calcTab, setCalcTab] = useState(0);
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
@@ -567,6 +571,25 @@ export default function SavingsCalculatorPage() {
       });
     } finally {
       setCalculating(false);
+    }
+  };
+
+  const executeInsights = async () => {
+    if (!calcEntry) return;
+    try {
+      setCalculatingInsights(true);
+      const res = await fetchDemandShiftInsights(calcEntry.id, selectedSimMonth || undefined);
+      setDemandShiftInsights(res);
+      setCalcTab(4); // New tab for insights
+    } catch (err: any) {
+      console.error('Insights calculation failed:', err);
+      setSnackbar({
+        open: true,
+        message: err.message || 'Insights calculation failed.',
+        severity: 'error'
+      });
+    } finally {
+      setCalculatingInsights(false);
     }
   };
 
@@ -1405,7 +1428,7 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               startIcon={<PlayIcon />}
               onClick={executeCalculation}
-              disabled={calculating || !selectedSimMonth}
+              disabled={calculating || calculatingInsights || !selectedSimMonth}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2, 
@@ -1418,7 +1441,22 @@ export default function SavingsCalculatorPage() {
               {calculating ? 'Analyzing...' : 'Run Simulation'}
             </Button>
 
-
+            <Button
+              variant="contained"
+              startIcon={<PlayIcon />}
+              onClick={executeInsights}
+              disabled={calculating || calculatingInsights || !selectedSimMonth}
+              sx={{ 
+                textTransform: 'none', 
+                borderRadius: 2, 
+                bgcolor: '#14B8A6',
+                '&:hover': {
+                  bgcolor: '#0D9488'
+                }
+              }}
+            >
+              {calculatingInsights ? 'Analyzing...' : 'Industry Insights'}
+            </Button>
 
             <Button
               variant="contained"
@@ -1495,8 +1533,17 @@ export default function SavingsCalculatorPage() {
               </Typography>
             </Box>
           )}
+          
+          {calculatingInsights && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 2 }}>
+              <CircularProgress sx={{ color: '#14B8A6' }} />
+              <Typography variant="body2" color="text.secondary">
+                Calculating potential demand shift savings...
+              </Typography>
+            </Box>
+          )}
 
-          {!calculating && !calcResult && !marketDecisionResult && (
+          {!calculating && !calculatingInsights && !calcResult && !marketDecisionResult && !demandShiftInsights && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
               <Typography variant="body1" color="text.secondary">
                 Click 'Run Simulation' to load the landed cost analysis for your configured months.
@@ -1566,6 +1613,7 @@ export default function SavingsCalculatorPage() {
                   <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} />
                   <Tab label="Market Buy Decision" disabled={!marketDecisionResult} />
                   <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} />
+                  <Tab label="Industry Insights" disabled={!demandShiftInsights} />
                 </Tabs>
               </Box>
 
@@ -1883,6 +1931,59 @@ export default function SavingsCalculatorPage() {
                   </Box>
                 </Box>
               )}
+            </Box>
+          )}
+
+          {calcTab === 4 && demandShiftInsights && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Industry Insights: Demand Shifting</Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Original Energy Cost</Typography>
+                    <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.originalTotalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Shifted Energy Cost</Typography>
+                    <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.newTotalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ bgcolor: '#F0FDF4', p: 3, borderRadius: 3, border: '1px solid', borderColor: '#BBF7D0', height: '100%' }}>
+                    <Typography variant="subtitle2" color="#166534" sx={{ mb: 1 }}>Potential Extra Savings</Typography>
+                    <Typography variant="h4" fontWeight={700} color="#15803D">₹{demandShiftInsights.savingsAchieved.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                    <Typography variant="body2" color="#166534" sx={{ mt: 1 }}>by shifting {demandShiftInsights.shiftedEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh to cheaper slots</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Typography variant="h6" fontWeight={700} sx={{ mt: 4, mb: 2 }}>TOD Shifting Summary</Typography>
+              <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                      <TableCell sx={{ fontWeight: 600 }}>TOD Slab</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Original Energy (kWh)</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>New Energy (kWh)</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Difference (kWh)</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {demandShiftInsights.todShiftSummary.map((row) => (
+                      <TableRow key={row.tod}>
+                        <TableCell>{row.tod}</TableCell>
+                        <TableCell align="right">{row.originalEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                        <TableCell align="right">{row.newEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                        <TableCell align="right" sx={{ color: row.diff > 0 ? '#16A34A' : row.diff < 0 ? '#DC2626' : 'inherit', fontWeight: row.diff !== 0 ? 600 : 400 }}>
+                          {row.diff > 0 ? '+' : ''}{row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
             </Box>
           )}
         </DialogContent>

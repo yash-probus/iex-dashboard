@@ -170,4 +170,16 @@ export class SavingsCalculatorController {
       res.status(500).json({ message: error.message || 'Excel export failed.' });
     }
   }
+
+  static async getDemandShiftInsights(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const targetMonth = req.query.month;
+      const result = await SavingsCalculatorService.calculateDemandShiftInsights(id as string, targetMonth as string | undefined);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error('[SavingsCalculatorController] Demand Shift Insights failed:', error);
+      res.status(500).json({ message: error.message || 'Demand shift insights failed.' });
+    }
+  }
 }
