@@ -1337,7 +1337,10 @@ export class SavingsCalculatorService {
           marketSource: originalSlot.marketSource,
           shouldBuyFromMarket: s.shouldBuyFromMarket,
           marketEnergy: s.currentMarketEnergy,
-          discomEnergy: s.currentDiscomEnergy
+          discomEnergy: s.currentDiscomEnergy,
+          damMcp: originalSlot.damMcp,
+          rtmMcp: originalSlot.rtmMcp,
+          gdamMcp: originalSlot.gdamMcp
         };
       })
     };

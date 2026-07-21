@@ -183,6 +183,31 @@ export const exportSavingsExcel = async (id: string, targetMonth?: string): Prom
   window.URL.revokeObjectURL(url);
 };
 
+export const exportDemandShiftExcel = async (id: string, targetMonth?: string): Promise<void> => {
+  const response = await apiClient.get('/savings-calculator/' + id + '/demand-shift-insights/export-excel', {
+    params: { month: targetMonth },
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = 'Demand_Shift_Insights.xlsx';
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+    if (filenameMatch && filenameMatch.length === 2)
+        filename = filenameMatch[1];
+  }
+  
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 export interface DemandShiftInsightsResult {
   clientId: string;
   clientName: string;

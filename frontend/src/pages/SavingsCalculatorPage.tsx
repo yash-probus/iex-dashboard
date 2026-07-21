@@ -41,10 +41,11 @@ import {
   CalculationSlotDetail,
   MarketDecisionResult,
   exportSavingsExcel,
+  exportDemandShiftExcel,
   fetchDemandShiftInsights,
   DemandShiftInsightsResult
 } from '../api/savingsCalculator.api';
-import { exportToCSV, exportToExcel } from '../utils/export';
+import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
 import { STATE_TARIFF_MOCK_DATA } from './resource-center/mockData/stateTariff.mock';
 import { DISCOM_LIST_MOCK_DATA } from './resource-center/mockData/discomList.mock';
@@ -662,24 +663,21 @@ export default function SavingsCalculatorPage() {
     exportToCSV(exportData, filename);
   };
 
-  const exportInsightsToExcel = () => {
-    if (!demandShiftInsights || !demandShiftInsights.slotsData) return;
-    const exportData = demandShiftInsights.slotsData.map((row) => ({
-      'Date': row.date,
-      'Timeblock': row.timeblock,
-      'TOD Slab': row.tod,
-      'Cost Per Kwh': row.costPerKwh?.toFixed(4) || '-',
-      'Original Energy (kWh)': row.originalEnergy?.toFixed(2) || '0.00',
-      'New Energy (kWh)': row.newEnergy?.toFixed(2) || '0.00',
-      'Original Market Energy (kWh)': (row.marketEnergy - (row.newEnergy - row.originalEnergy))?.toFixed(2) || '0.00',
-      'New Market Energy (kWh)': row.marketEnergy?.toFixed(2) || '0.00',
-      'Discom Energy (kWh)': row.discomEnergy?.toFixed(2) || '0.00',
-      'Market Source': row.marketSource || 'DISCOM',
-      'Should Buy Market': row.shouldBuyFromMarket ? 'Yes' : 'No'
-    }));
-    
-    const filename = `${demandShiftInsights.clientName}_industry_insights`;
-    exportToExcel(exportData, filename, 'Insights Data');
+  const exportInsightsToExcel = async () => {
+    if (!calcEntry) return;
+    try {
+      setCalculatingInsights(true);
+      await exportDemandShiftExcel(calcEntry.id, selectedSimMonth || undefined);
+    } catch (error) {
+      console.error('Failed to export Demand Shift Insights to Excel', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to export Insights to Excel. Please try again.',
+        severity: 'error'
+      });
+    } finally {
+      setCalculatingInsights(false);
+    }
   };
 
   const renderStep = (

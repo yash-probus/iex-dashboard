@@ -171,6 +171,30 @@ export class SavingsCalculatorController {
     }
   }
 
+  static async exportDemandShiftExcel(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const targetMonth = req.query.month;
+      
+      const { SavingsCalculatorExportService } = await import('./savings-calculator.export');
+      const buffer = await SavingsCalculatorExportService.exportDemandShiftToExcel(id as string, targetMonth as string | undefined);
+      
+      const entry = await SavingsCalculatorService.getById(id as string);
+      const clientName = entry?.clientName || id;
+      const sanitizedClientName = String(clientName).replace(/[^a-zA-Z0-9_-]/g, '_');
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=Demand_Shift_Insights_${sanitizedClientName}.xlsx`);
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.status(200).send(buffer);
+    } catch (error: any) {
+      console.error('[SavingsCalculatorController] Demand Shift Excel Export failed:', error);
+      res.status(500).json({ message: error.message || 'Demand Shift Excel export failed.' });
+    }
+  }
+
   static async getDemandShiftInsights(req: Request, res: Response) {
     try {
       const { id } = req.params;
