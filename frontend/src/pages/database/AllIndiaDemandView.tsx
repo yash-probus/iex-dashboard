@@ -86,7 +86,7 @@ export default function AllIndiaDemandView({
             <Card elevation={0} sx={{ bgcolor: alpha('#2E51FF', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#2E51FF', 0.2) }}>
               <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="body2" color="text.secondary" fontWeight={600} mb={0.5}>{viewType === 'raw' ? 'Demand Met (MW)' : 'Max Demand (MW)'}</Typography>
-                <Typography variant="h6" color="#2E51FF">{latestSnapshot ? (viewType === 'raw' ? latestSnapshot.demandMet?.toLocaleString() : latestSnapshot.maxDemand?.toLocaleString()) : '-'}</Typography>
+                <Typography variant="h6" color="#2E51FF">{latestSnapshot ? (viewType === 'raw' ? latestSnapshot.demandMet?.toLocaleString('en-IN') : latestSnapshot.maxDemand?.toLocaleString('en-IN')) : '-'}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -95,7 +95,7 @@ export default function AllIndiaDemandView({
               <Card elevation={0} sx={{ bgcolor: alpha('#10B981', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#10B981', 0.2) }}>
                 <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                   <Typography variant="caption" color="text.secondary" fontWeight="bold">MIN DEMAND (MW)</Typography>
-                  <Typography variant="h6" color="#10B981">{latestSnapshot?.minDemand?.toLocaleString() || '-'}</Typography>
+                  <Typography variant="h6" color="#10B981">{latestSnapshot?.minDemand?.toLocaleString('en-IN') || '-'}</Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -105,7 +105,7 @@ export default function AllIndiaDemandView({
               <Card elevation={0} sx={{ bgcolor: alpha('#8B5CF6', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#8B5CF6', 0.2) }}>
                 <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                   <Typography variant="caption" color="text.secondary" fontWeight="bold">AVG DEMAND (MW)</Typography>
-                  <Typography variant="h6" color="#8B5CF6">{latestSnapshot?.avgDemand?.toLocaleString() || '-'}</Typography>
+                  <Typography variant="h6" color="#8B5CF6">{latestSnapshot?.avgDemand?.toLocaleString('en-IN') || '-'}</Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -260,17 +260,17 @@ export default function AllIndiaDemandView({
                     {viewType === 'raw' && data.raw.map((row, i) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell>{row.timeStr}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.demandMet.toLocaleString()}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString() : '-'}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString() : '-'}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.demandMet.toLocaleString('en-IN')}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString('en-IN') : '-'}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString('en-IN') : '-'}</TableCell>
                       </TableRow>
                     ))}
                     {viewType === 'adjusted' && data.adjusted.map((row, i) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell>{row.timeStr}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.avgDemand.toLocaleString()}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.maxDemand.toLocaleString()}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.minDemand.toLocaleString()}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.avgDemand.toLocaleString('en-IN')}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.maxDemand.toLocaleString('en-IN')}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.minDemand.toLocaleString('en-IN')}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

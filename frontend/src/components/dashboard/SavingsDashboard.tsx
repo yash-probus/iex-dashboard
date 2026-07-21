@@ -225,7 +225,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       </Box>
       
       <Typography variant="body2" sx={{ color: '#4B5563', fontWeight: 500 }}>
-        Total Units : <strong style={{ color: '#111827' }}>{result.totalEnergyKwh.toLocaleString()} kWh</strong> analyzed
+        Total Units : <strong style={{ color: '#111827' }}>{result.totalEnergyKwh.toLocaleString('en-IN')} kWh</strong> analyzed
       </Typography>
     </Box>
   );
@@ -332,7 +332,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" tick={{fontSize: 12, fill: '#6B7280'}} axisLine={{ stroke: '#E5E7EB' }} tickLine={false} />
                     <YAxis tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toLocaleString()} kWh`} />
+                    <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toLocaleString('en-IN')} kWh`} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
                     
                     <Bar dataKey="Actual DISCOM" stackId="a" fill="#8B5CF6" barSize={40} isAnimationActive={!isDownloading} />
@@ -518,7 +518,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                   <Box sx={{ border: '1px solid #E5E7EB', borderRadius: 2, p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700, letterSpacing: 1, mb: 1 }}>TOTAL UNITS</Typography>
                     <Typography variant="h5" sx={{ fontWeight: 800, color: '#111827' }}>
-                      {result.totalEnergyKwh.toLocaleString()}
+                      {result.totalEnergyKwh.toLocaleString('en-IN')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#9CA3AF' }}>kWh</Typography>
                   </Box>

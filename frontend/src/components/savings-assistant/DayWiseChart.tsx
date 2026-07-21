@@ -63,11 +63,11 @@ export function DayWiseChart({ data, onDayClick, totalSavings, oaUnits, discomUn
           </div>
           <div className="text-center border-x border-border">
             <p className="text-sm text-muted-foreground">OA Units</p>
-            <p className="text-xl font-bold">{oaUnits.toLocaleString()} kWh</p>
+            <p className="text-xl font-bold">{oaUnits.toLocaleString('en-IN')} kWh</p>
           </div>
           <div className="text-center">
             <p className="text-sm text-muted-foreground">DISCOM Units</p>
-            <p className="text-xl font-bold">{discomUnits.toLocaleString()} kWh</p>
+            <p className="text-xl font-bold">{discomUnits.toLocaleString('en-IN')} kWh</p>
           </div>
         </div>
 

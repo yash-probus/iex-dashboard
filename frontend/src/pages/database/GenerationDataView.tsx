@@ -147,7 +147,7 @@ export default function GenerationDataView({
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.thermal, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.thermal, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'thermal' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'thermal' ? 'all' : 'thermal')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">THERMAL (MW)</Typography>
-                <Typography variant="h6" color={COLORS.thermal}>{latestSnapshot?.thermal?.toLocaleString() || '-'}</Typography>
+                <Typography variant="h6" color={COLORS.thermal}>{latestSnapshot?.thermal?.toLocaleString('en-IN') || '-'}</Typography>
               </CardContent>
             </Card>
           </Box>
@@ -155,7 +155,7 @@ export default function GenerationDataView({
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.gas, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.gas, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'gas' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'gas' ? 'all' : 'gas')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">GAS (MW)</Typography>
-                <Typography variant="h6" color={COLORS.gas}>{latestSnapshot?.gas?.toLocaleString() || '-'}</Typography>
+                <Typography variant="h6" color={COLORS.gas}>{latestSnapshot?.gas?.toLocaleString('en-IN') || '-'}</Typography>
               </CardContent>
             </Card>
           </Box>
@@ -163,7 +163,7 @@ export default function GenerationDataView({
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.nuclear, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.nuclear, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'nuclear' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'nuclear' ? 'all' : 'nuclear')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">NUCLEAR (MW)</Typography>
-                <Typography variant="h6" color={COLORS.nuclear}>{latestSnapshot?.nuclear?.toLocaleString() || '-'}</Typography>
+                <Typography variant="h6" color={COLORS.nuclear}>{latestSnapshot?.nuclear?.toLocaleString('en-IN') || '-'}</Typography>
               </CardContent>
             </Card>
           </Box>
@@ -171,7 +171,7 @@ export default function GenerationDataView({
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.hydro, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.hydro, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'hydro' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'hydro' ? 'all' : 'hydro')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">HYDRO (MW)</Typography>
-                <Typography variant="h6" color={COLORS.hydro}>{latestSnapshot?.hydro?.toLocaleString() || '-'}</Typography>
+                <Typography variant="h6" color={COLORS.hydro}>{latestSnapshot?.hydro?.toLocaleString('en-IN') || '-'}</Typography>
               </CardContent>
             </Card>
           </Box>
@@ -179,7 +179,7 @@ export default function GenerationDataView({
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.wind, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.wind, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'wind' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'wind' ? 'all' : 'wind')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">WIND (MW)</Typography>
-                <Typography variant="h6" color={COLORS.wind}>{latestSnapshot?.wind?.toLocaleString() || '-'}</Typography>
+                <Typography variant="h6" color={COLORS.wind}>{latestSnapshot?.wind?.toLocaleString('en-IN') || '-'}</Typography>
               </CardContent>
             </Card>
           </Box>
@@ -187,7 +187,7 @@ export default function GenerationDataView({
             <Card elevation={0} sx={{ bgcolor: alpha(COLORS.solar, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.solar, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'solar' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'solar' ? 'all' : 'solar')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">SOLAR (MW)</Typography>
-                <Typography variant="h6" color={COLORS.solar}>{latestSnapshot?.solar?.toLocaleString() || '-'}</Typography>
+                <Typography variant="h6" color={COLORS.solar}>{latestSnapshot?.solar?.toLocaleString('en-IN') || '-'}</Typography>
               </CardContent>
             </Card>
           </Box>
@@ -329,16 +329,16 @@ export default function GenerationDataView({
                     {chartData?.map((row: any, i: number) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell>{row.timeStr}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.thermal?.toLocaleString() || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.gas?.toLocaleString() || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.nuclear?.toLocaleString() || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.hydro?.toLocaleString() || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.wind?.toLocaleString() || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.solar?.toLocaleString() || 0}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.thermal?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.gas?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.nuclear?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.hydro?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.wind?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell sx={{ textAlign: 'right' }}>{row.solar?.toLocaleString('en-IN') || 0}</TableCell>
                         {viewType === 'raw' && (
                           <>
-                            <TableCell sx={{ textAlign: 'right' }}>{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString() : '-'}</TableCell>
-                            <TableCell sx={{ textAlign: 'right' }}>{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString() : '-'}</TableCell>
+                            <TableCell sx={{ textAlign: 'right' }}>{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString('en-IN') : '-'}</TableCell>
+                            <TableCell sx={{ textAlign: 'right' }}>{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString('en-IN') : '-'}</TableCell>
                           </>
                         )}
                       </TableRow>

@@ -158,16 +158,90 @@ export const calculateMarketDecision = async (id: string, month?: string): Promi
   return response.data;
 };
 
-export const exportSavingsExcel = async (id: string, month?: string): Promise<void> => {
-  const url = month ? `/savings-calculator/${id}/export-excel?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/export-excel`;
-  const response = await apiClient.get(url, { responseType: 'blob' });
-  const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const downloadUrl = window.URL.createObjectURL(blob);
+export const exportSavingsExcel = async (id: string, targetMonth?: string): Promise<void> => {
+  const response = await apiClient.get('/savings-calculator/' + id + '/export-excel', {
+    params: { month: targetMonth },
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
   const link = document.createElement('a');
-  link.href = downloadUrl;
-  link.setAttribute('download', `Savings_Analysis_${id}.xlsx`);
+  link.href = url;
+  
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = 'Savings_Analysis.xlsx';
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+    if (filenameMatch && filenameMatch.length === 2)
+        filename = filenameMatch[1];
+  }
+  
+  link.setAttribute('download', filename);
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.URL.revokeObjectURL(downloadUrl);
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportDemandShiftExcel = async (id: string, targetMonth?: string): Promise<void> => {
+  const response = await apiClient.get('/savings-calculator/' + id + '/demand-shift-insights/export-excel', {
+    params: { month: targetMonth },
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = 'Demand_Shift_Insights.xlsx';
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+    if (filenameMatch && filenameMatch.length === 2)
+        filename = filenameMatch[1];
+  }
+  
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+export interface DemandShiftInsightsResult {
+  clientId: string;
+  clientName: string;
+  sanctionedLoadKw: number;
+  maxEnergyPerSlot: number;
+  originalTotalCost: number;
+  newTotalCost: number;
+  savingsAchieved: number;
+  shiftedEnergy: number;
+  todShiftSummary: {
+    tod: string;
+    originalEnergy: number;
+    newEnergy: number;
+    diff: number;
+    originalMarketEnergy: number;
+    newMarketEnergy: number;
+  }[];
+  slotsData: {
+    date: string;
+    timeblock: number;
+    tod: string;
+    originalEnergy: number;
+    newEnergy: number;
+    costPerKwh: number;
+    marketSource: string;
+    shouldBuyFromMarket: boolean;
+    marketEnergy: number;
+    discomEnergy: number;
+  }[];
+}
+
+export const fetchDemandShiftInsights = async (id: string, targetMonth?: string): Promise<DemandShiftInsightsResult> => {
+  const response = await apiClient.post<DemandShiftInsightsResult>(`/savings-calculator/${id}/demand-shift-insights`, {}, {
+    params: { month: targetMonth },
+  });
+  return response.data;
 };

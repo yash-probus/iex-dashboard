@@ -256,4 +256,98 @@ export class SavingsCalculatorExportService {
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
   }
+
+  static async exportDemandShiftToExcel(id: string, monthStr?: string): Promise<Buffer> {
+    const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr);
+    const { slotsData } = result;
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Demand Shift Insights', {
+      views: [{ state: 'frozen', xSplit: 1, ySplit: 2 }]
+    });
+
+    // We need all unique days sorted
+    const daysSet = new Set<string>();
+    slotsData.forEach(s => daysSet.add(s.date));
+    const days = Array.from(daysSet).sort();
+
+    // Headers
+    const headerRow1 = ['Blockwise DAM Rates on IEX (Post-Shift)'];
+    const headerRow2 = [''];
+    days.forEach(d => {
+      const dateObj = new Date(d);
+      const dayStr = `${dateObj.getDate()}-${dateObj.toLocaleString('default', { month: 'short' })}`;
+      headerRow1.push(dayStr, '', '');
+      headerRow2.push('Price (₹)', 'Qty (kWh Market)', 'Market');
+    });
+
+    const hr1 = sheet.addRow(headerRow1);
+    const hr2 = sheet.addRow(headerRow2);
+    
+    // Merge cells for headerRow1
+    let colIndex = 2;
+    days.forEach(() => {
+      sheet.mergeCells(1, colIndex, 1, colIndex + 2);
+      sheet.getCell(1, colIndex).alignment = { horizontal: 'center' };
+      colIndex += 3;
+    });
+
+    hr1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    hr1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+    
+    hr2.font = { bold: true };
+    hr2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } };
+
+    const formatBlock = (blockIdx: number) => {
+      const startMin = (blockIdx - 1) * 15;
+      const endMin = blockIdx * 15;
+      const h1 = Math.floor(startMin / 60).toString().padStart(2, '0');
+      const m1 = (startMin % 60).toString().padStart(2, '0');
+      const h2 = Math.floor(endMin / 60).toString().padStart(2, '0');
+      const m2 = (endMin % 60).toString().padStart(2, '0');
+      return `${h1}:${m1} - ${h2}:${m2}`;
+    };
+
+    for (let b = 1; b <= 96; b++) {
+      const row = [formatBlock(b)];
+      days.forEach(day => {
+        const slot = slotsData.find(s => s.date === day && s.timeblock === b) as any;
+        if (slot && slot.shouldBuyFromMarket && slot.marketEnergy > 0) {
+          let mcp = 0;
+          if (slot.marketSource === 'DAM') mcp = slot.damMcp || 0;
+          else if (slot.marketSource === 'RTM') mcp = slot.rtmMcp || 0;
+          else if (slot.marketSource === 'GDAM') mcp = slot.gdamMcp || 0;
+          row.push(mcp.toFixed(2));
+          row.push(Math.round(slot.marketEnergy).toString());
+          row.push(slot.marketSource || '-');
+        } else {
+          row.push('-', '-', '-');
+        }
+      });
+      sheet.addRow(row);
+    }
+
+    sheet.addRow([]);
+    sheet.addRow([]);
+    
+    sheet.addRow(['Summary']);
+    if (sheet.lastRow) {
+      sheet.lastRow.font = { bold: true, size: 14 };
+    }
+    
+    sheet.addRow(['Original Total Cost (₹)', Math.round(result.originalTotalCost)]);
+    sheet.addRow(['New Total Cost (Post-Shift) (₹)', Math.round(result.newTotalCost)]);
+    sheet.addRow(['Potential Extra Savings (₹)', Math.round(result.savingsAchieved)]);
+    sheet.addRow(['Shifted Energy (kWh)', Math.round(result.shiftedEnergy)]);
+    
+    if (sheet.lastRow) {
+      sheet.getCell(sheet.lastRow.number, 1).font = { bold: true };
+      sheet.getCell(sheet.lastRow.number - 1, 1).font = { bold: true, color: { argb: 'FF008000' } };
+    }
+
+    sheet.getColumn(1).width = 40;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+  }
 }

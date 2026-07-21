@@ -99,11 +99,11 @@ export function OADiscomSeparateInsights({
             <div className="grid grid-cols-3 gap-4">
               <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                 <p className="text-xs text-muted-foreground">Total Units</p>
-                <p className="text-xl font-bold text-blue-600">{discomTotalUnits.toLocaleString()} kWh</p>
+                <p className="text-xl font-bold text-blue-600">{discomTotalUnits.toLocaleString('en-IN')} kWh</p>
               </div>
               <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                 <p className="text-xs text-muted-foreground">Total Cost</p>
-                <p className="text-xl font-bold text-blue-600">₹{discomTotalCost.toLocaleString()}</p>
+                <p className="text-xl font-bold text-blue-600">₹{discomTotalCost.toLocaleString('en-IN')}</p>
               </div>
               <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                 <p className="text-xs text-muted-foreground">Avg Rate</p>
@@ -124,7 +124,7 @@ export function OADiscomSeparateInsights({
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px'
                     }}
-                    formatter={(value: number) => [`${value.toLocaleString()} kWh`, 'Units']}
+                    formatter={(value: number) => [`${value.toLocaleString('en-IN')} kWh`, 'Units']}
                   />
                   <Bar dataKey="units" radius={[4, 4, 0, 0]}>
                     {discomTodData.map((entry, index) => (
@@ -143,11 +143,11 @@ export function OADiscomSeparateInsights({
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                     <p className="text-xs text-muted-foreground">Total Units</p>
-                    <p className="text-xl font-bold text-green-600">{oaTotalUnits.toLocaleString()} kWh</p>
+                    <p className="text-xl font-bold text-green-600">{oaTotalUnits.toLocaleString('en-IN')} kWh</p>
                   </div>
                   <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                     <p className="text-xs text-muted-foreground">Total Cost</p>
-                    <p className="text-xl font-bold text-green-600">₹{oaTotalCost.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-green-600">₹{oaTotalCost.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                     <p className="text-xs text-muted-foreground">Avg Rate</p>
@@ -158,7 +158,7 @@ export function OADiscomSeparateInsights({
                 <div className="p-4 rounded-lg bg-muted/50">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground">OA Slots Tracked</span>
-                    <span className="font-medium">{oaSlotCount.toLocaleString()} slots</span>
+                    <span className="font-medium">{oaSlotCount.toLocaleString('en-IN')} slots</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">OA Share of Total</span>
@@ -185,14 +185,14 @@ export function OADiscomSeparateInsights({
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
               <p className="text-xs text-muted-foreground">Suggested OA</p>
-              <p className="text-lg font-bold text-accent">{recommendedOaUnits.toLocaleString()} kWh</p>
+              <p className="text-lg font-bold text-accent">{recommendedOaUnits.toLocaleString('en-IN')} kWh</p>
               <p className="text-xs text-muted-foreground">
                 ({totalUnits > 0 ? ((recommendedOaUnits / totalUnits) * 100).toFixed(1) : 0}% of total)
               </p>
             </div>
             <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
               <p className="text-xs text-muted-foreground">Suggested DISCOM</p>
-              <p className="text-lg font-bold text-accent">{recommendedDiscomUnits.toLocaleString()} kWh</p>
+              <p className="text-lg font-bold text-accent">{recommendedDiscomUnits.toLocaleString('en-IN')} kWh</p>
               <p className="text-xs text-muted-foreground">
                 ({totalUnits > 0 ? ((recommendedDiscomUnits / totalUnits) * 100).toFixed(1) : 0}% of total)
               </p>
@@ -202,7 +202,7 @@ export function OADiscomSeparateInsights({
           <div className="mt-4 p-4 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Potential Monthly Savings</p>
-              <p className="text-2xl font-bold text-green-600">₹{savings.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-600">₹{savings.toLocaleString('en-IN')}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-green-500" />
           </div>

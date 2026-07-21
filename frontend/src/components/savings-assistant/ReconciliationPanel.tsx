@@ -98,19 +98,19 @@ export function ReconciliationPanel({
               {reconciliation.breakdown.map((item, idx) => (
                 <tr key={idx} className="border-b border-border/50 hover:bg-muted/30">
                   <td className="py-2 px-3 font-medium">{item.component}</td>
-                  <td className="py-2 px-3 text-right text-muted-foreground">{item.actual.toLocaleString()}</td>
-                  <td className="py-2 px-3 text-right text-muted-foreground">{item.proposed.toLocaleString()}</td>
+                  <td className="py-2 px-3 text-right text-muted-foreground">{item.actual.toLocaleString('en-IN')}</td>
+                  <td className="py-2 px-3 text-right text-muted-foreground">{item.proposed.toLocaleString('en-IN')}</td>
                   <td className="py-2 px-3 text-right text-green-600 font-medium">
-                    {item.diff > 0 ? '+' : ''}{item.diff.toLocaleString()}
+                    {item.diff > 0 ? '+' : ''}{item.diff.toLocaleString('en-IN')}
                   </td>
                 </tr>
               ))}
               <tr className="bg-muted/30 font-semibold">
                 <td className="py-3 px-3">Total</td>
-                <td className="py-3 px-3 text-right">{actualSettlement.chargeBreakdown.total.toLocaleString()}</td>
-                <td className="py-3 px-3 text-right">{proposedSettlement.chargeBreakdown.total.toLocaleString()}</td>
+                <td className="py-3 px-3 text-right">{actualSettlement.chargeBreakdown.total.toLocaleString('en-IN')}</td>
+                <td className="py-3 px-3 text-right">{proposedSettlement.chargeBreakdown.total.toLocaleString('en-IN')}</td>
                 <td className="py-3 px-3 text-right text-green-600">
-                  +{reconciliation.savings.toLocaleString()}
+                  +{reconciliation.savings.toLocaleString('en-IN')}
                 </td>
               </tr>
             </tbody>

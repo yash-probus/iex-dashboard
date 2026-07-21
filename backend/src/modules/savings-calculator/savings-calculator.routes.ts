@@ -10,6 +10,8 @@ router.put('/:id', SavingsCalculatorController.update);
 router.delete('/:id', SavingsCalculatorController.delete);
 router.post('/:id/calculate', SavingsCalculatorController.calculate);
 router.post('/:id/calculate-market-decision', SavingsCalculatorController.calculateMarketDecision);
+router.post('/:id/demand-shift-insights', SavingsCalculatorController.getDemandShiftInsights);
+router.get('/:id/demand-shift-insights/export-excel', SavingsCalculatorController.exportDemandShiftExcel);
 router.get('/:id/export-excel', SavingsCalculatorController.exportExcel);
 
 export default router;

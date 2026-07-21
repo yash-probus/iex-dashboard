@@ -1200,4 +1200,149 @@ export class SavingsCalculatorService {
       }
     };
   }
+
+  static async calculateDemandShiftInsights(id: string, targetMonth?: string) {
+    const entry = await this.getById(id);
+    if (!entry) throw new Error('Entry not found');
+    
+    const marketResult = await this.calculateMarketDecision(id, targetMonth);
+    const slotsData = marketResult.slotsData;
+    
+    const sanctionedLoadKw = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
+    const maxEnergyPerSlot = sanctionedLoadKw * 0.25;
+
+    let originalTotalCost = 0;
+    
+    // Enhance slots with shifting metadata
+    const shiftableSlots = slotsData.map((s: any, index: number) => {
+      const costPerKwh = s.shouldBuyFromMarket ? s.bestMarketLanding : s.discomLanding;
+      const originalMarketEnergy = s.marketEnergy || 0;
+      const originalDiscomEnergy = s.discomEnergy || 0;
+      const currentEnergy = originalMarketEnergy + originalDiscomEnergy;
+      const headroom = Math.max(0, maxEnergyPerSlot - currentEnergy);
+      originalTotalCost += (currentEnergy * costPerKwh);
+      
+      return {
+        originalIndex: index,
+        costPerKwh,
+        currentEnergy,
+        originalEnergy: currentEnergy,
+        currentMarketEnergy: originalMarketEnergy,
+        originalMarketEnergy,
+        currentDiscomEnergy: originalDiscomEnergy,
+        shouldBuyFromMarket: s.shouldBuyFromMarket,
+        headroom,
+        date: s.date,
+        timeblock: s.timeblock,
+        tod: s.tod
+      };
+    });
+
+    // Sort for finding sources (most expensive) and destinations (cheapest)
+    const expensiveSlots = [...shiftableSlots].sort((a, b) => b.costPerKwh - a.costPerKwh);
+    const cheapSlots = [...shiftableSlots].sort((a, b) => a.costPerKwh - b.costPerKwh);
+
+    let shiftedEnergy = 0;
+    let savingsAchieved = 0;
+    let expensiveIdx = 0;
+    let cheapIdx = 0;
+
+    while (expensiveIdx < expensiveSlots.length && cheapIdx < cheapSlots.length) {
+      const expSlot = expensiveSlots[expensiveIdx];
+      const cheapSlot = cheapSlots[cheapIdx];
+
+      // If the expensive slot is actually cheaper or same as the cheap slot, we're done shifting
+      if (expSlot.costPerKwh <= cheapSlot.costPerKwh + 0.01) { // Adding a small 1 paisa margin
+        break;
+      }
+
+      if (expSlot.currentEnergy <= 0) {
+        expensiveIdx++;
+        continue;
+      }
+
+      if (cheapSlot.headroom <= 0) {
+        cheapIdx++;
+        continue;
+      }
+
+      // We can shift
+      const amountToShift = Math.min(expSlot.currentEnergy, cheapSlot.headroom);
+      
+      expSlot.currentEnergy -= amountToShift;
+      // Remove energy from the most expensive source in the expensive slot first
+      // If it's a mix, discom is usually the more expensive part if we bought market up to max
+      // Let's just remove from discom first, then market
+      if (expSlot.currentDiscomEnergy >= amountToShift) {
+        expSlot.currentDiscomEnergy -= amountToShift;
+      } else {
+        const remainingToRemove = amountToShift - expSlot.currentDiscomEnergy;
+        expSlot.currentDiscomEnergy = 0;
+        expSlot.currentMarketEnergy -= remainingToRemove;
+      }
+
+      cheapSlot.headroom -= amountToShift;
+      cheapSlot.currentEnergy += amountToShift;
+      // Add energy to the cheap slot using its cheapest available source (determined by shouldBuyFromMarket)
+      if (cheapSlot.shouldBuyFromMarket) {
+        cheapSlot.currentMarketEnergy += amountToShift;
+      } else {
+        cheapSlot.currentDiscomEnergy += amountToShift;
+      }
+      
+      shiftedEnergy += amountToShift;
+      savingsAchieved += amountToShift * (expSlot.costPerKwh - cheapSlot.costPerKwh);
+    }
+    
+    let newTotalCost = 0;
+    shiftableSlots.forEach(s => {
+      newTotalCost += (s.currentEnergy * s.costPerKwh);
+    });
+    
+    // Calculate TOD breakdown changes
+    const todShiftSummary: Record<string, { originalEnergy: number, newEnergy: number, diff: number, originalMarketEnergy: number, newMarketEnergy: number }> = {};
+    shiftableSlots.forEach(s => {
+      if (!todShiftSummary[s.tod]) {
+        todShiftSummary[s.tod] = { originalEnergy: 0, newEnergy: 0, diff: 0, originalMarketEnergy: 0, newMarketEnergy: 0 };
+      }
+      todShiftSummary[s.tod].originalEnergy += s.originalEnergy;
+      todShiftSummary[s.tod].newEnergy += s.currentEnergy;
+      todShiftSummary[s.tod].originalMarketEnergy += s.originalMarketEnergy;
+      todShiftSummary[s.tod].newMarketEnergy += s.currentMarketEnergy;
+      todShiftSummary[s.tod].diff += (s.currentEnergy - s.originalEnergy);
+    });
+
+    return {
+      clientId: id,
+      clientName: entry.clientName,
+      sanctionedLoadKw,
+      maxEnergyPerSlot,
+      originalTotalCost,
+      newTotalCost,
+      savingsAchieved,
+      shiftedEnergy,
+      todShiftSummary: Object.entries(todShiftSummary).map(([tod, data]) => ({
+        tod,
+        ...data
+      })),
+      slotsData: shiftableSlots.map(s => {
+        const originalSlot = slotsData[s.originalIndex];
+        return {
+          date: s.date,
+          timeblock: s.timeblock,
+          tod: s.tod,
+          originalEnergy: s.originalEnergy,
+          newEnergy: s.currentEnergy,
+          costPerKwh: s.costPerKwh,
+          marketSource: originalSlot.marketSource,
+          shouldBuyFromMarket: s.shouldBuyFromMarket,
+          marketEnergy: s.currentMarketEnergy,
+          discomEnergy: s.currentDiscomEnergy,
+          damMcp: originalSlot.damMcp,
+          rtmMcp: originalSlot.rtmMcp,
+          gdamMcp: originalSlot.gdamMcp
+        };
+      })
+    };
+  }
 }
