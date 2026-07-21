@@ -1216,7 +1216,9 @@ export class SavingsCalculatorService {
     // Enhance slots with shifting metadata
     const shiftableSlots = slotsData.map((s: any, index: number) => {
       const costPerKwh = s.shouldBuyFromMarket ? s.bestMarketLanding : s.discomLanding;
-      const currentEnergy = (s.marketEnergy || 0) + (s.discomEnergy || 0);
+      const originalMarketEnergy = s.marketEnergy || 0;
+      const originalDiscomEnergy = s.discomEnergy || 0;
+      const currentEnergy = originalMarketEnergy + originalDiscomEnergy;
       const headroom = Math.max(0, maxEnergyPerSlot - currentEnergy);
       originalTotalCost += (currentEnergy * costPerKwh);
       
@@ -1225,6 +1227,10 @@ export class SavingsCalculatorService {
         costPerKwh,
         currentEnergy,
         originalEnergy: currentEnergy,
+        currentMarketEnergy: originalMarketEnergy,
+        originalMarketEnergy,
+        currentDiscomEnergy: originalDiscomEnergy,
+        shouldBuyFromMarket: s.shouldBuyFromMarket,
         headroom,
         date: s.date,
         timeblock: s.timeblock,
@@ -1264,8 +1270,25 @@ export class SavingsCalculatorService {
       const amountToShift = Math.min(expSlot.currentEnergy, cheapSlot.headroom);
       
       expSlot.currentEnergy -= amountToShift;
+      // Remove energy from the most expensive source in the expensive slot first
+      // If it's a mix, discom is usually the more expensive part if we bought market up to max
+      // Let's just remove from discom first, then market
+      if (expSlot.currentDiscomEnergy >= amountToShift) {
+        expSlot.currentDiscomEnergy -= amountToShift;
+      } else {
+        const remainingToRemove = amountToShift - expSlot.currentDiscomEnergy;
+        expSlot.currentDiscomEnergy = 0;
+        expSlot.currentMarketEnergy -= remainingToRemove;
+      }
+
       cheapSlot.headroom -= amountToShift;
       cheapSlot.currentEnergy += amountToShift;
+      // Add energy to the cheap slot using its cheapest available source (determined by shouldBuyFromMarket)
+      if (cheapSlot.shouldBuyFromMarket) {
+        cheapSlot.currentMarketEnergy += amountToShift;
+      } else {
+        cheapSlot.currentDiscomEnergy += amountToShift;
+      }
       
       shiftedEnergy += amountToShift;
       savingsAchieved += amountToShift * (expSlot.costPerKwh - cheapSlot.costPerKwh);
@@ -1277,13 +1300,15 @@ export class SavingsCalculatorService {
     });
     
     // Calculate TOD breakdown changes
-    const todShiftSummary: Record<string, { originalEnergy: number, newEnergy: number, diff: number }> = {};
+    const todShiftSummary: Record<string, { originalEnergy: number, newEnergy: number, diff: number, originalMarketEnergy: number, newMarketEnergy: number }> = {};
     shiftableSlots.forEach(s => {
       if (!todShiftSummary[s.tod]) {
-        todShiftSummary[s.tod] = { originalEnergy: 0, newEnergy: 0, diff: 0 };
+        todShiftSummary[s.tod] = { originalEnergy: 0, newEnergy: 0, diff: 0, originalMarketEnergy: 0, newMarketEnergy: 0 };
       }
       todShiftSummary[s.tod].originalEnergy += s.originalEnergy;
       todShiftSummary[s.tod].newEnergy += s.currentEnergy;
+      todShiftSummary[s.tod].originalMarketEnergy += s.originalMarketEnergy;
+      todShiftSummary[s.tod].newMarketEnergy += s.currentMarketEnergy;
       todShiftSummary[s.tod].diff += (s.currentEnergy - s.originalEnergy);
     });
 

@@ -197,6 +197,8 @@ export interface DemandShiftInsightsResult {
     originalEnergy: number;
     newEnergy: number;
     diff: number;
+    originalMarketEnergy: number;
+    newMarketEnergy: number;
   }[];
   slotsData: {
     date: string;

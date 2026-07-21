@@ -1966,7 +1966,9 @@ export default function SavingsCalculatorPage() {
                     <TableRow sx={{ bgcolor: '#F8FAFC' }}>
                       <TableCell sx={{ fontWeight: 600 }}>TOD Slab</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>Original Energy (kWh)</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Orig Market (kWh)</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>New Energy (kWh)</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>New Market (kWh)</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>Difference (kWh)</TableCell>
                     </TableRow>
                   </TableHead>
@@ -1975,7 +1977,9 @@ export default function SavingsCalculatorPage() {
                       <TableRow key={row.tod}>
                         <TableCell>{row.tod}</TableCell>
                         <TableCell align="right">{row.originalEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                        <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.originalMarketEnergy?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || 0}</TableCell>
                         <TableCell align="right">{row.newEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                        <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.newMarketEnergy?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || 0}</TableCell>
                         <TableCell align="right" sx={{ color: row.diff > 0 ? '#16A34A' : row.diff < 0 ? '#DC2626' : 'inherit', fontWeight: row.diff !== 0 ? 600 : 400 }}>
                           {row.diff > 0 ? '+' : ''}{row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </TableCell>
