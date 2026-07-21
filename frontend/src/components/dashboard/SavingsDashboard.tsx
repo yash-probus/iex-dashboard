@@ -31,7 +31,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const opt = {
-        margin:       [40, 10, 60, 10] as [number, number, number, number], // Top, Right, Bottom, Left margin in mm
+        margin:       [25, 10, 30, 10] as [number, number, number, number], // Top, Right, Bottom, Left margin in mm
         filename:     `Savings_Dashboard_${monthStr}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
@@ -384,7 +384,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <span style={{ color: '#3B82F6' }}>📈</span> Purchase Comparison - {displayMonth}
                 </Typography>
-                <Box sx={{ display: 'flex', bgcolor: '#F9FAFB', p: 0.5, borderRadius: 8, border: '1px solid #E5E7EB' }}>
+                <Box data-html2canvas-ignore sx={{ display: 'flex', bgcolor: '#F9FAFB', p: 0.5, borderRadius: 8, border: '1px solid #E5E7EB' }}>
                   <Button 
                     onClick={() => setPurchaseMode('actual')}
                     sx={{ 
