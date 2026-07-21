@@ -114,6 +114,10 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
           proltSpend: 0,
           savings: 0,
           actualDiscomUnits: 0, // all units
+          damUnits: 0,
+          rtmUnits: 0,
+          gdamUnits: 0,
+          hpDamUnits: 0,
         };
       }
       
@@ -134,6 +138,14 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       if (slot.shouldBuyFromMarket && slot.bestMarketLanding > 0) {
         days[dateKey].oaUnits += totalSlotEnergy;
         days[dateKey].proltSpend += totalSlotEnergy * slot.bestMarketLanding;
+        
+        if (slot.marketSource === 'DAM') days[dateKey].damUnits += totalSlotEnergy;
+        else if (slot.marketSource === 'GDAM') days[dateKey].gdamUnits += totalSlotEnergy;
+        else if (slot.marketSource === 'RTM') days[dateKey].rtmUnits += totalSlotEnergy;
+        else if (slot.marketSource === 'HP-DAM') days[dateKey].hpDamUnits += totalSlotEnergy;
+        // fallback if missing
+        else days[dateKey].damUnits += totalSlotEnergy; 
+
       } else {
         days[dateKey].discomUnits += totalSlotEnergy;
         days[dateKey].proltSpend += discomCostForSlot;
@@ -420,7 +432,10 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     ) : (
                       <>
                         <Bar dataKey="discomUnits" name="DISCOM Energy" stackId="a" fill="#8B5CF6" barSize={12} isAnimationActive={!isDownloading} />
-                        <Bar dataKey="oaUnits" name="OA Energy (Estimated)" stackId="a" fill="#10B981" barSize={12} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
+                        <Bar dataKey="damUnits" name="DAM" stackId="a" fill="#F59E0B" barSize={12} isAnimationActive={!isDownloading} />
+                        <Bar dataKey="rtmUnits" name="RTM" stackId="a" fill="#EF4444" barSize={12} isAnimationActive={!isDownloading} />
+                        <Bar dataKey="gdamUnits" name="GDAM" stackId="a" fill="#10B981" barSize={12} isAnimationActive={!isDownloading} />
+                        <Bar dataKey="hpDamUnits" name="HP-DAM" stackId="a" fill="#3B82F6" barSize={12} isAnimationActive={!isDownloading} />
                       </>
                     )}
                   </BarChart>
