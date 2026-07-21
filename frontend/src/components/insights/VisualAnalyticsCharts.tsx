@@ -70,9 +70,10 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
 
     // Add daily fixed overheads to PROLT Cost
     if (marketDecisionResult.oaDetailed) {
-      const { dailyFixedOverhead, bidApplicationFees, sldcSchedulingCost, nldcSchedulingCost, totalDaysTraded } = marketDecisionResult.oaDetailed;
-      const extraDailyCost = dailyFixedOverhead + bidApplicationFees + 
-        ((sldcSchedulingCost || 0) + (nldcSchedulingCost || 0)) / (totalDaysTraded || 30);
+      const { dailyFixedOverhead, bidApplicationFees } = marketDecisionResult.oaDetailed;
+      const totalOverheadForMonth = dailyFixedOverhead + bidApplicationFees;
+      const daysInMonth = Object.keys(dailyData).length || 30;
+      const extraDailyCost = totalOverheadForMonth / daysInMonth;
       
       Object.keys(dailyData).forEach(day => {
         dailyData[day].proltCost += extraDailyCost;
