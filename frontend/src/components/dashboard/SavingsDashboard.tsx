@@ -322,7 +322,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
           <Card variant="outlined" sx={{ borderRadius: 3, pageBreakInside: 'avoid' }}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <span style={{ color: '#8B5CF6' }}>📊</span> Monthly Consumption Mix - DISCOM Vs OA
+                <span style={{ color: '#6366F1' }}>📊</span> Monthly Consumption Mix - DISCOM Vs OA
               </Typography>
               <Box sx={{ height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -335,10 +335,10 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toLocaleString()} kWh`} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
                     
-                    <Bar dataKey="Actual DISCOM" stackId="a" fill="#8B5CF6" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Actual DISCOM" stackId="a" fill="#6366F1" barSize={40} isAnimationActive={!isDownloading} />
                     <Bar dataKey="Actual OA" stackId="a" fill="#F59E0B" barSize={40} isAnimationActive={!isDownloading} />
                     
-                    <Bar dataKey="Prolt Optimized DISCOM" stackId="b" fill="#8B5CF6" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Prolt Optimized DISCOM" stackId="b" fill="#6366F1" barSize={40} isAnimationActive={!isDownloading} />
                     <Bar dataKey="Prolt Optimized OA" stackId="b" fill="#10B981" barSize={40} isAnimationActive={!isDownloading} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -428,10 +428,10 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toFixed(2)} units`} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
                     {purchaseMode === 'actual' ? (
-                      <Bar dataKey="actualDiscomUnits" name="DISCOM Energy" fill="#8B5CF6" barSize={12} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
+                      <Bar dataKey="actualDiscomUnits" name="DISCOM Energy" fill="#6366F1" barSize={12} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
                     ) : (
                       <>
-                        <Bar dataKey="discomUnits" name="DISCOM Energy" stackId="a" fill="#8B5CF6" barSize={12} isAnimationActive={!isDownloading} />
+                        <Bar dataKey="discomUnits" name="DISCOM Energy" stackId="a" fill="#6366F1" barSize={12} isAnimationActive={!isDownloading} />
                         <Bar dataKey="damUnits" name="DAM" stackId="a" fill="#F59E0B" barSize={12} isAnimationActive={!isDownloading} />
                         <Bar dataKey="rtmUnits" name="RTM" stackId="a" fill="#EF4444" barSize={12} isAnimationActive={!isDownloading} />
                         <Bar dataKey="gdamUnits" name="GDAM" stackId="a" fill="#10B981" barSize={12} isAnimationActive={!isDownloading} />
