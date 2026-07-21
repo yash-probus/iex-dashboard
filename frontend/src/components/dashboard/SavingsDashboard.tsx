@@ -311,8 +311,8 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <YAxis tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} tick={{fontSize: 12, fill: '#6B7280'}} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => formatCurrency(value)} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="Actual" name="Actual Spend" fill="#FDA4AF" barSize={100} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
-                    <Bar dataKey="Prolt" name="Prolt Optimised Spend" fill="#86EFAC" barSize={100} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Actual" name="Actual Spend" fill="#EF4444" barSize={100} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Prolt" name="Prolt Optimised Spend" fill="#10B981" barSize={100} radius={[4, 4, 0, 0]} isAnimationActive={!isDownloading} />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
@@ -335,11 +335,11 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                     <Tooltip cursor={{fill: 'transparent'}} formatter={(value: number) => `${value.toLocaleString()} kWh`} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
                     
-                    <Bar dataKey="Actual DISCOM" stackId="a" fill="#93C5FD" barSize={40} isAnimationActive={!isDownloading} />
-                    <Bar dataKey="Actual OA" stackId="a" fill="#D8B4E2" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Actual DISCOM" stackId="a" fill="#8B5CF6" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Actual OA" stackId="a" fill="#F59E0B" barSize={40} isAnimationActive={!isDownloading} />
                     
-                    <Bar dataKey="Prolt Optimized DISCOM" stackId="b" fill="#A7F3D0" barSize={40} isAnimationActive={!isDownloading} />
-                    <Bar dataKey="Prolt Optimized OA" stackId="b" fill="#60A5FA" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Prolt Optimized DISCOM" stackId="b" fill="#8B5CF6" barSize={40} isAnimationActive={!isDownloading} />
+                    <Bar dataKey="Prolt Optimized OA" stackId="b" fill="#10B981" barSize={40} isAnimationActive={!isDownloading} />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
