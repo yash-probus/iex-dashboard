@@ -26,6 +26,7 @@ import {
   BarChart as BarChartIcon
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
+import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
 import { SavingsDashboard } from '../components/dashboard/SavingsDashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
@@ -108,6 +109,8 @@ export default function SavingsCalculatorPage() {
   const [calcTab, setCalcTab] = useState(0);
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
   const [demandShiftGraphOpen, setDemandShiftGraphOpen] = useState(false);
+  const [dynamicGraphDialogOpen, setDynamicGraphDialogOpen] = useState(false);
+  const [dynamicDemandShiftGraphOpen, setDynamicDemandShiftGraphOpen] = useState(false);
 
   // Market Decision States
   const [marketDecisionOpen, setMarketDecisionOpen] = useState(false);
@@ -1514,6 +1517,34 @@ export default function SavingsCalculatorPage() {
               {calculating ? 'Analyzing...' : 'Slot-wise Heatmap'}
             </Button>
 
+            <Button
+              variant="contained"
+              startIcon={<BarChartIcon />}
+              onClick={() => {
+                if (!marketDecisionResult) {
+                  executeGraphSimulation();
+                  // A bit hacky, but they want it to behave the same
+                  setTimeout(() => {
+                    setGraphDialogOpen(false);
+                    setDynamicGraphDialogOpen(true);
+                  }, 1000);
+                } else {
+                  setDynamicGraphDialogOpen(true);
+                }
+              }}
+              disabled={calculating || !selectedSimMonth}
+              sx={{ 
+                textTransform: 'none', 
+                borderRadius: 2, 
+                bgcolor: '#8B5CF6',
+                '&:hover': {
+                  bgcolor: '#7C3AED'
+                }
+              }}
+            >
+              Dynamic Heatmap
+            </Button>
+
             {calcResult && (
               <Button
                 variant="outlined"
@@ -1994,6 +2025,21 @@ export default function SavingsCalculatorPage() {
                     Slot-wise Heatmap
                   </Button>
                   <Button
+                    variant="contained"
+                    startIcon={<BarChartIcon />}
+                    onClick={() => setDynamicDemandShiftGraphOpen(true)}
+                    sx={{ 
+                      textTransform: 'none', 
+                      borderRadius: 2, 
+                      bgcolor: '#8B5CF6',
+                      '&:hover': {
+                        bgcolor: '#7C3AED'
+                      }
+                    }}
+                  >
+                    Dynamic Heatmap
+                  </Button>
+                  <Button
                     variant="outlined"
                     startIcon={<DownloadIcon />}
                     onClick={exportInsightsToCSV}
@@ -2126,6 +2172,26 @@ export default function SavingsCalculatorPage() {
       </Dialog>
 
       <Dialog
+        open={dynamicGraphDialogOpen}
+        onClose={() => setDynamicGraphDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+          Dynamic Slot-wise Market Simulation
+          <IconButton onClick={() => setDynamicGraphDialogOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {marketDecisionResult && (
+            <DynamicSlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={demandShiftGraphOpen}
         onClose={() => setDemandShiftGraphOpen(false)}
         maxWidth="md"
@@ -2141,6 +2207,26 @@ export default function SavingsCalculatorPage() {
         <DialogContent>
           {demandShiftInsights && (
             <SlotWiseMarketHeatmap slotsData={demandShiftInsights.slotsData} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={dynamicDemandShiftGraphOpen}
+        onClose={() => setDynamicDemandShiftGraphOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+          Dynamic Industry Insights Heatmap
+          <IconButton onClick={() => setDynamicDemandShiftGraphOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {demandShiftInsights && (
+            <DynamicSlotWiseMarketHeatmap slotsData={demandShiftInsights.slotsData} />
           )}
         </DialogContent>
       </Dialog>
