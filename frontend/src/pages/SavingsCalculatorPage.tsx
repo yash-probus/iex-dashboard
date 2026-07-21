@@ -44,7 +44,7 @@ import {
   fetchDemandShiftInsights,
   DemandShiftInsightsResult
 } from '../api/savingsCalculator.api';
-import { exportToCSV } from '../utils/export';
+import { exportToCSV, exportToExcel } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
 import { STATE_TARIFF_MOCK_DATA } from './resource-center/mockData/stateTariff.mock';
 import { DISCOM_LIST_MOCK_DATA } from './resource-center/mockData/discomList.mock';
@@ -660,6 +660,26 @@ export default function SavingsCalculatorPage() {
     
     const filename = `${demandShiftInsights.clientName}_industry_insights.csv`;
     exportToCSV(exportData, filename);
+  };
+
+  const exportInsightsToExcel = () => {
+    if (!demandShiftInsights || !demandShiftInsights.slotsData) return;
+    const exportData = demandShiftInsights.slotsData.map((row) => ({
+      'Date': row.date,
+      'Timeblock': row.timeblock,
+      'TOD Slab': row.tod,
+      'Cost Per Kwh': row.costPerKwh?.toFixed(4) || '-',
+      'Original Energy (kWh)': row.originalEnergy?.toFixed(2) || '0.00',
+      'New Energy (kWh)': row.newEnergy?.toFixed(2) || '0.00',
+      'Original Market Energy (kWh)': (row.marketEnergy - (row.newEnergy - row.originalEnergy))?.toFixed(2) || '0.00',
+      'New Market Energy (kWh)': row.marketEnergy?.toFixed(2) || '0.00',
+      'Discom Energy (kWh)': row.discomEnergy?.toFixed(2) || '0.00',
+      'Market Source': row.marketSource || 'DISCOM',
+      'Should Buy Market': row.shouldBuyFromMarket ? 'Yes' : 'No'
+    }));
+    
+    const filename = `${demandShiftInsights.clientName}_industry_insights`;
+    exportToExcel(exportData, filename, 'Insights Data');
   };
 
   const renderStep = (
@@ -1987,6 +2007,23 @@ export default function SavingsCalculatorPage() {
                     }}
                   >
                     Export CSV
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    onClick={exportInsightsToExcel}
+                    sx={{ 
+                      textTransform: 'none', 
+                      borderRadius: 2, 
+                      borderColor: 'divider', 
+                      color: '#10B981',
+                      '&:hover': {
+                        borderColor: '#059669',
+                        bgcolor: '#F0FDF4'
+                      }
+                    }}
+                  >
+                    Export Excel
                   </Button>
                 </Box>
               </Box>
