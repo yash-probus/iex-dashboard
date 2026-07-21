@@ -97,7 +97,7 @@ export const CustomerSummaryCards = ({
 
   const handleDownload = () => {
     // Dummy download for prototype
-    const blob = new Blob([`Parsed Bill Data\n\nAccount: ${billData.account_number}\nConsumer: ${billData.consumer_name}\nBill Month: ${billData.bill_month}\nAmount Payable: ₹${billData.amount_payable.toLocaleString()}\nBilled Units: ${billData.billed_units_kwh} kWh`], { type: 'text/plain' });
+    const blob = new Blob([`Parsed Bill Data\n\nAccount: ${billData.account_number}\nConsumer: ${billData.consumer_name}\nBill Month: ${billData.bill_month}\nAmount Payable: ₹${billData.amount_payable.toLocaleString('en-IN')}\nBilled Units: ${billData.billed_units_kwh} kWh`], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -136,9 +136,9 @@ export const CustomerSummaryCards = ({
       id: 'amount_payable',
       icon: <IndianRupee className="w-4 h-4" />,
       label: 'Amount Payable',
-      value: `₹${billData.amount_payable.toLocaleString()}`,
+      value: `₹${billData.amount_payable.toLocaleString('en-IN')}`,
       tooltip: 'Total amount payable for this bill (final amount after all charges).',
-      details: `Total Amount: ₹${billData.amount_payable.toLocaleString()}\n\nThis is the final amount payable after including all charges: energy charges, fixed charges, taxes, and adjustments.`,
+      details: `Total Amount: ₹${billData.amount_payable.toLocaleString('en-IN')}\n\nThis is the final amount payable after including all charges: energy charges, fixed charges, taxes, and adjustments.`,
       isPrimary: true,
       isAlwaysVisible: true,
     },
@@ -146,9 +146,9 @@ export const CustomerSummaryCards = ({
       id: 'billed_units',
       icon: <Zap className="w-4 h-4" />,
       label: 'Billed Units',
-      value: `${billData.billed_units_kwh.toLocaleString()} kWh`,
+      value: `${billData.billed_units_kwh.toLocaleString('en-IN')} kWh`,
       tooltip: 'Total energy consumed in kWh for this bill month.',
-      details: `Energy Consumption: ${billData.billed_units_kwh.toLocaleString()} kWh\n\nThis is the total electrical energy consumed during the billing period, measured in kilowatt-hours.`,
+      details: `Energy Consumption: ${billData.billed_units_kwh.toLocaleString('en-IN')} kWh\n\nThis is the total electrical energy consumed during the billing period, measured in kilowatt-hours.`,
       isAlwaysVisible: true,
     },
     {
@@ -163,25 +163,25 @@ export const CustomerSummaryCards = ({
       id: 'energy_charges',
       icon: <Layers className="w-4 h-4" />,
       label: 'Energy Charges',
-      value: `₹${billData.total_energy_charges.toLocaleString()}`,
+      value: `₹${billData.total_energy_charges.toLocaleString('en-IN')}`,
       tooltip: 'Total charges for actual energy consumed (variable cost).',
-      details: `Energy Charges: ₹${billData.total_energy_charges.toLocaleString()}\n\nThis is the variable cost component based on your actual consumption multiplied by the applicable tariff rates for each ToD slot.`,
+      details: `Energy Charges: ₹${billData.total_energy_charges.toLocaleString('en-IN')}\n\nThis is the variable cost component based on your actual consumption multiplied by the applicable tariff rates for each ToD slot.`,
     },
     {
       id: 'misc_charges',
       icon: <Info className="w-4 h-4" />,
       label: 'Misc Charges',
-      value: `₹${billData.total_misc_charges.toLocaleString()}`,
+      value: `₹${billData.total_misc_charges.toLocaleString('en-IN')}`,
       tooltip: 'Other charges (wheeling, SLDC, fixed, taxes).',
-      details: `Miscellaneous Charges: ₹${billData.total_misc_charges.toLocaleString()}\n\nThis includes wheeling charges, SLDC charges, fixed/demand charges, electricity duty, and other regulatory levies.`,
+      details: `Miscellaneous Charges: ₹${billData.total_misc_charges.toLocaleString('en-IN')}\n\nThis includes wheeling charges, SLDC charges, fixed/demand charges, electricity duty, and other regulatory levies.`,
     },
     {
       id: 'oa_estimate',
       icon: <Leaf className="w-4 h-4" />,
       label: 'OA Estimate',
-      value: `${billData.oa_estimated_share_pct}% · ₹${billData.oa_estimated_settlement_total.toLocaleString()}`,
+      value: `${billData.oa_estimated_share_pct}% · ₹${billData.oa_estimated_settlement_total.toLocaleString('en-IN')}`,
       tooltip: 'Model estimate of OA share and settlement amount from OA if applicable.',
-      details: `OA Share: ${billData.oa_estimated_share_pct}%\nSettlement Amount: ₹${billData.oa_estimated_settlement_total.toLocaleString()}\n\nThis is the estimated proportion of your consumption that could be met through Open Access procurement and the associated settlement charges.`,
+      details: `OA Share: ${billData.oa_estimated_share_pct}%\nSettlement Amount: ₹${billData.oa_estimated_settlement_total.toLocaleString('en-IN')}\n\nThis is the estimated proportion of your consumption that could be met through Open Access procurement and the associated settlement charges.`,
     },
     {
       id: 'last_payment',
@@ -199,7 +199,7 @@ export const CustomerSummaryCards = ({
         </div>
       ),
       tooltip: 'Status, date and amount of the latest payment recorded.',
-      details: `Payment Status: ${billData.last_payment_status.status}\nDate: ${formatDate(billData.last_payment_status.date)}\nAmount: ₹${billData.last_payment_status.amount.toLocaleString()}\n\nThis shows the status of your most recent payment against electricity bills.`,
+      details: `Payment Status: ${billData.last_payment_status.status}\nDate: ${formatDate(billData.last_payment_status.date)}\nAmount: ₹${billData.last_payment_status.amount.toLocaleString('en-IN')}\n\nThis shows the status of your most recent payment against electricity bills.`,
       isAlwaysVisible: true,
     },
   ];

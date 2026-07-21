@@ -806,7 +806,7 @@ export default function SavingsCalculatorPage() {
   const columns: ColumnDefinition[] = [
     { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150 },
     { field: 'industryName', headerName: 'Industry Name', align: 'left', minWidth: 150 },
-    { field: 'sanctionedLoadKw', headerName: 'Sanctioned Load (kW)', align: 'center', width: 140, valueFormatter: (v) => v ? Number(v).toLocaleString() : '-' },
+    { field: 'sanctionedLoadKw', headerName: 'Sanctioned Load (kW)', align: 'center', width: 140, valueFormatter: (v) => v ? Number(v).toLocaleString('en-IN') : '-' },
     { field: 'stateCode', headerName: 'State', align: 'center', width: 80 },
     { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120 },
     { field: 'consumerCategory', headerName: 'Category', align: 'left', width: 110 },
@@ -1320,20 +1320,20 @@ export default function SavingsCalculatorPage() {
           {dialogMode === 'view' && selectedEntry && (
             <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString()}
+                <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString('en-IN')}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                <strong>Last Updated At:</strong> {new Date(selectedEntry.updatedAt).toLocaleString()}
+                <strong>Last Updated At:</strong> {new Date(selectedEntry.updatedAt).toLocaleString('en-IN')}
               </Typography>
             </Box>
           )}
           {dialogMode === 'view' && selectedEntry && (
             <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString()}
+                <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString('en-IN')}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                <strong>Last Updated At:</strong> {new Date(selectedEntry.updatedAt).toLocaleString()}
+                <strong>Last Updated At:</strong> {new Date(selectedEntry.updatedAt).toLocaleString('en-IN')}
               </Typography>
             </Box>
           )}
@@ -1631,14 +1631,14 @@ export default function SavingsCalculatorPage() {
                         Total Sourced Energy
                       </Typography>
                       <Typography variant="h3" sx={{ fontWeight: 700, mb: marketDecisionResult?.todSummaries ? 1.5 : 0 }}>
-                        {(marketDecisionResult ? marketDecisionResult.totalEnergyKwh : calcResult.totalEnergyKwh).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                        {(marketDecisionResult ? marketDecisionResult.totalEnergyKwh : calcResult.totalEnergyKwh).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
                       </Typography>
                       {marketDecisionResult?.todSummaries && (
                         <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                           {marketDecisionResult.todSummaries.map((summary, idx) => (
                             <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName}</Typography>
-                              <Typography variant="caption" fontWeight={700}>{summary.totalEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</Typography>
+                              <Typography variant="caption" fontWeight={700}>{summary.totalEnergyKwh.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</Typography>
                             </Box>
                           ))}
                         </Box>
@@ -1657,7 +1657,7 @@ export default function SavingsCalculatorPage() {
                         {(marketDecisionResult
                           ? marketDecisionResult.totalMarketEnergyKwh
                           : (calcResult.totalMarketEnergyKwh || 0)
-                        ).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                        ).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
                       </Typography>
                       {marketDecisionResult?.todSummaries && (
                         <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -1665,8 +1665,8 @@ export default function SavingsCalculatorPage() {
                             <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName}</Typography>
                               <Typography variant="caption" fontWeight={700} color="#16A34A">
-                                {summary.marketEnergyKwh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
-                                {summary.marketCostBase !== undefined && ` • ₹${summary.marketCostBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                                {summary.marketEnergyKwh.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
+                                {summary.marketCostBase !== undefined && ` • ₹${summary.marketCostBase.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
                               </Typography>
                             </Box>
                           ))}
@@ -1805,7 +1805,7 @@ export default function SavingsCalculatorPage() {
                               {row.selectedSource !== 'DISCOM' ? 'Yes' : 'No'}
                             </span>
                           </TableCell>
-                          <TableCell align="right">₹{row.optimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                          <TableCell align="right">₹{row.optimizedCost.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1927,33 +1927,33 @@ export default function SavingsCalculatorPage() {
                         {marketDecisionResult.oaDetailed.breakdown.map((row, idx) => (
                           <TableRow key={idx} hover>
                             <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>{row.slabName}</TableCell>
-                            <TableCell align="right">{row.discomUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</TableCell>
-                            <TableCell align="right">{row.oaUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</TableCell>
-                            <TableCell align="right">₹{row.discomBill.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
-                            <TableCell align="right">₹{row.proltDiscomBill.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
-                            <TableCell align="right">{row.consumerBusUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh</TableCell>
-                            <TableCell align="right">₹{row.oaBill.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
+                            <TableCell align="right">{row.discomUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                            <TableCell align="right">{row.oaUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                            <TableCell align="right">₹{row.discomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                            <TableCell align="right">₹{row.proltDiscomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                            <TableCell align="right">{row.consumerBusUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                            <TableCell align="right">₹{row.oaBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
                           </TableRow>
                         ))}
                         <TableRow sx={{ backgroundColor: '#F8FAFC' }}>
                           <TableCell sx={{ fontWeight: 700 }}>Total</TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.discomUnits, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                            {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.discomUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaUnits, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                            {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.discomBill, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.discomBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.proltDiscomBill, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.proltDiscomBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.consumerBusUnits, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                            {marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.consumerBusUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                           </TableCell>
                         </TableRow>
                       </TableBody>
@@ -1962,11 +1962,11 @@ export default function SavingsCalculatorPage() {
                   <Box sx={{ display: 'flex', gap: 4, mt: 2, p: 2, backgroundColor: '#F1F5F9', borderRadius: 2 }}>
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">SLDC Scheduling Cost</Typography>
-                      <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString()} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+                      <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">NLDC Scheduling Cost</Typography>
-                      <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.nldcSchedulingCost || 0).toLocaleString()} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+                      <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.nldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
@@ -1975,7 +1975,7 @@ export default function SavingsCalculatorPage() {
                           marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0) + 
                           marketDecisionResult.oaDetailed.dailyFixedOverhead + 
                           marketDecisionResult.oaDetailed.bidApplicationFees
-                        ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </Typography>
                     </Box>
                     <Box>
@@ -1985,7 +1985,7 @@ export default function SavingsCalculatorPage() {
                           marketDecisionResult.totalLandedExchangeCost + 
                           marketDecisionResult.oaDetailed.dailyFixedOverhead + 
                           marketDecisionResult.oaDetailed.bidApplicationFees
-                        ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </Typography>
                     </Box>
                     <Box>
@@ -1995,7 +1995,7 @@ export default function SavingsCalculatorPage() {
                           marketDecisionResult.totalSavings - 
                           marketDecisionResult.oaDetailed.dailyFixedOverhead - 
                           marketDecisionResult.oaDetailed.bidApplicationFees
-                        ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </Typography>
                     </Box>
                   </Box>
@@ -2075,20 +2075,20 @@ export default function SavingsCalculatorPage() {
                 <Grid item xs={12} md={4}>
                   <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Original Energy Cost</Typography>
-                    <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.originalTotalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                    <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.originalTotalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Shifted Energy Cost</Typography>
-                    <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.newTotalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                    <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.newTotalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <Box sx={{ bgcolor: '#F0FDF4', p: 3, borderRadius: 3, border: '1px solid', borderColor: '#BBF7D0', height: '100%' }}>
                     <Typography variant="subtitle2" color="#166534" sx={{ mb: 1 }}>Potential Extra Savings</Typography>
-                    <Typography variant="h4" fontWeight={700} color="#15803D">₹{demandShiftInsights.savingsAchieved.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
-                    <Typography variant="body2" color="#166534" sx={{ mt: 1 }}>by shifting {demandShiftInsights.shiftedEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh to cheaper slots</Typography>
+                    <Typography variant="h4" fontWeight={700} color="#15803D">₹{demandShiftInsights.savingsAchieved.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
+                    <Typography variant="body2" color="#166534" sx={{ mt: 1 }}>by shifting {demandShiftInsights.shiftedEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh to cheaper slots</Typography>
                   </Box>
                 </Grid>
               </Grid>
@@ -2110,12 +2110,12 @@ export default function SavingsCalculatorPage() {
                     {demandShiftInsights.todShiftSummary.map((row) => (
                       <TableRow key={row.tod}>
                         <TableCell>{row.tod}</TableCell>
-                        <TableCell align="right">{row.originalEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
-                        <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.originalMarketEnergy?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || 0}</TableCell>
-                        <TableCell align="right">{row.newEnergy.toLocaleString(undefined, { maximumFractionDigits: 0 })}</TableCell>
-                        <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.newMarketEnergy?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || 0}</TableCell>
+                        <TableCell align="right">{row.originalEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                        <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.originalMarketEnergy?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || 0}</TableCell>
+                        <TableCell align="right">{row.newEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                        <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.newMarketEnergy?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || 0}</TableCell>
                         <TableCell align="right" sx={{ color: row.diff > 0 ? '#16A34A' : row.diff < 0 ? '#DC2626' : 'inherit', fontWeight: row.diff !== 0 ? 600 : 400 }}>
-                          {row.diff > 0 ? '+' : ''}{row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          {row.diff > 0 ? '+' : ''}{row.diff.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                         </TableCell>
                       </TableRow>
                     ))}

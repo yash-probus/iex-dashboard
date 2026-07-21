@@ -69,7 +69,7 @@ export function PreviewSummary({
                             {item.oaFilesUploaded} days
                           </span>
                           <p className="text-xs text-muted-foreground">
-                            {item.oaTotalKwh.toLocaleString()} kWh
+                            {item.oaTotalKwh.toLocaleString('en-IN')} kWh
                           </p>
                         </div>
                       ) : (
@@ -79,7 +79,7 @@ export function PreviewSummary({
                       )}
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {item.totalKwh.toLocaleString()}
+                      {item.totalKwh.toLocaleString('en-IN')}
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {item.totalBill ?? "—"}
@@ -95,7 +95,7 @@ export function PreviewSummary({
             <div>
               <p className="text-sm text-muted-foreground">Total Consumption</p>
               <p className="text-xl font-semibold font-mono">
-                {totalKwh.toLocaleString()} kWh
+                {totalKwh.toLocaleString('en-IN')} kWh
               </p>
             </div>
             {totalBill > 0 && (

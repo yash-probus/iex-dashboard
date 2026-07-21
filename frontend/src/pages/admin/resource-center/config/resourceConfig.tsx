@@ -22,7 +22,7 @@ export interface ResourceConfig {
 
 const formatDate = (v: any) => v ? new Date(v).toLocaleDateString() : '-';
 
-const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
+const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
 
 export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
   'region-state': {

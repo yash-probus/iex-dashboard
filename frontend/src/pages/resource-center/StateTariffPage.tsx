@@ -42,7 +42,7 @@ export default function StateTariffPage() {
     );
   });
 
-  const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : v;
+  const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : v;
 
   const columns: ColumnDefinition[] = [
     { field: 'state', headerName: 'State', align: 'center', width: 180, sticky: true },

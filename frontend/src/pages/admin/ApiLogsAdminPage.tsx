@@ -286,7 +286,7 @@ export default function ApiLogsAdminPage() {
                 logs.map((log) => (
                   <TableRow key={log.id} hover>
                     <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                      {new Date(log.createdAt).toLocaleString()}
+                      {new Date(log.createdAt).toLocaleString('en-IN')}
                     </TableCell>
                     <TableCell>{log.apiName}</TableCell>
                     <TableCell>

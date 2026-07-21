@@ -149,7 +149,7 @@ export function OAInsightsPanel({
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Amount']}
+                      formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Amount']}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--popover))',
                         border: '1px solid hsl(var(--border))',

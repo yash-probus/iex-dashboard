@@ -111,10 +111,10 @@ export function DownloadActions({
       const actualAvgRate = totalEnergy > 0 ? totalActualCost / totalEnergy : 0;
       
       const summaryData = [
-        ["Total Energy Consumed", `${totalEnergy.toLocaleString()} kWh`],
-        ["OA Energy Purchased", `${oaUnits.toLocaleString()} kWh`],
-        ["DISCOM Energy Purchased", `${discomUnits.toLocaleString()} kWh`],
-        ["Actual Amount Paid", `₹${totalActualCost.toLocaleString()}`],
+        ["Total Energy Consumed", `${totalEnergy.toLocaleString('en-IN')} kWh`],
+        ["OA Energy Purchased", `${oaUnits.toLocaleString('en-IN')} kWh`],
+        ["DISCOM Energy Purchased", `${discomUnits.toLocaleString('en-IN')} kWh`],
+        ["Actual Amount Paid", `₹${totalActualCost.toLocaleString('en-IN')}`],
         ["Actual Avg. Rate", `₹${actualAvgRate.toFixed(2)}/kWh`],
       ];
       
@@ -141,9 +141,9 @@ export function DownloadActions({
       yPos += 12;
       const suggestedAvgRate = totalEnergy > 0 ? totalSuggestedCost / totalEnergy : 0;
       const comparisonData = [
-        ["Prolt Suggested Amount", `₹${totalSuggestedCost.toLocaleString()}`],
+        ["Prolt Suggested Amount", `₹${totalSuggestedCost.toLocaleString('en-IN')}`],
         ["Suggested Avg. Rate", `₹${suggestedAvgRate.toFixed(2)}/kWh`],
-        ["Potential Savings", `₹${totalSavings.toLocaleString()}`],
+        ["Potential Savings", `₹${totalSavings.toLocaleString('en-IN')}`],
         ["Savings per Unit", `₹${((actualAvgRate - suggestedAvgRate)).toFixed(2)}/kWh`],
       ];
       
@@ -260,10 +260,10 @@ export function DownloadActions({
       const recDiscomUnits = slotData.reduce((sum, s) => sum + (s.rec_source === 'DISCOM' ? s.slot_kwh : 0), 0);
       
       const summaryData = [
-        ["Total Energy Consumed", `${totalEnergy.toLocaleString()} kWh`],
-        ["Prolt Optimized OA Purchase", `${Math.round(recOaUnits).toLocaleString()} kWh`],
-        ["Prolt Optimized DISCOM Purchase", `${Math.round(recDiscomUnits).toLocaleString()} kWh`],
-        ["Proposed Total Bill", `₹${totalSuggestedCost.toLocaleString()}`],
+        ["Total Energy Consumed", `${totalEnergy.toLocaleString('en-IN')} kWh`],
+        ["Prolt Optimized OA Purchase", `${Math.round(recOaUnits).toLocaleString('en-IN')} kWh`],
+        ["Prolt Optimized DISCOM Purchase", `${Math.round(recDiscomUnits).toLocaleString('en-IN')} kWh`],
+        ["Proposed Total Bill", `₹${totalSuggestedCost.toLocaleString('en-IN')}`],
         ["Proposed Avg. Rate", `₹${suggestedAvgRate.toFixed(2)}/kWh`],
       ];
       
@@ -289,7 +289,7 @@ export function DownloadActions({
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0, 100, 0);
-      doc.text(`Potential Savings: ₹${totalSavings.toLocaleString()}`, 25, yPos + 5);
+      doc.text(`Potential Savings: ₹${totalSavings.toLocaleString('en-IN')}`, 25, yPos + 5);
       
       const actualAvgRate = totalEnergy > 0 ? totalActualCost / totalEnergy : avgActualRate;
       doc.setFontSize(10);
@@ -305,10 +305,10 @@ export function DownloadActions({
       
       yPos += 12;
       const oaCharges = [
-        ["IEX Energy Charges", `₹${(recOaUnits * 3.5).toLocaleString()} (est. ₹3.50/kWh avg)`],
-        ["STU + CTU Transmission", `₹${(recOaUnits * 0.40).toLocaleString()}`],
-        ["SLDC + NLDC Charges", `₹${(recOaUnits * 0.03).toLocaleString()}`],
-        ["Cross Subsidy Surcharge", `₹${(recOaUnits * 0.80).toLocaleString()} (est.)`],
+        ["IEX Energy Charges", `₹${(recOaUnits * 3.5).toLocaleString('en-IN')} (est. ₹3.50/kWh avg)`],
+        ["STU + CTU Transmission", `₹${(recOaUnits * 0.40).toLocaleString('en-IN')}`],
+        ["SLDC + NLDC Charges", `₹${(recOaUnits * 0.03).toLocaleString('en-IN')}`],
+        ["Cross Subsidy Surcharge", `₹${(recOaUnits * 0.80).toLocaleString('en-IN')} (est.)`],
       ];
       
       doc.setFontSize(10);
@@ -501,15 +501,15 @@ export function DownloadActions({
         
         const values = [
           row.tod.split(' ')[0],
-          row.prevMonthKVAH > 0 ? Math.round(row.prevMonthKVAH).toLocaleString() : '—',
-          row.currMonthKVAH > 0 ? Math.round(row.currMonthKVAH).toLocaleString() : '—',
-          row.oaUnitsPeriphery > 0 ? Math.round(row.oaUnitsPeriphery).toLocaleString() : '—',
-          row.availableForConsumer > 0 ? Math.round(row.availableForConsumer).toLocaleString() : '—',
-          row.adjustableOAUnits > 0 ? Math.round(row.adjustableOAUnits).toLocaleString() : '—',
-          row.extraPurchasedOA > 0 ? Math.round(row.extraPurchasedOA).toLocaleString() : '—',
-          row.oaUnitsToBeAdjusted > 0 ? Math.round(row.oaUnitsToBeAdjusted).toLocaleString() : '—',
-          row.actualAdjustedUnits > 0 ? Math.round(row.actualAdjustedUnits).toLocaleString() : '—',
-          row.billableConsumption > 0 ? Math.round(row.billableConsumption).toLocaleString() : '—',
+          row.prevMonthKVAH > 0 ? Math.round(row.prevMonthKVAH).toLocaleString('en-IN') : '—',
+          row.currMonthKVAH > 0 ? Math.round(row.currMonthKVAH).toLocaleString('en-IN') : '—',
+          row.oaUnitsPeriphery > 0 ? Math.round(row.oaUnitsPeriphery).toLocaleString('en-IN') : '—',
+          row.availableForConsumer > 0 ? Math.round(row.availableForConsumer).toLocaleString('en-IN') : '—',
+          row.adjustableOAUnits > 0 ? Math.round(row.adjustableOAUnits).toLocaleString('en-IN') : '—',
+          row.extraPurchasedOA > 0 ? Math.round(row.extraPurchasedOA).toLocaleString('en-IN') : '—',
+          row.oaUnitsToBeAdjusted > 0 ? Math.round(row.oaUnitsToBeAdjusted).toLocaleString('en-IN') : '—',
+          row.actualAdjustedUnits > 0 ? Math.round(row.actualAdjustedUnits).toLocaleString('en-IN') : '—',
+          row.billableConsumption > 0 ? Math.round(row.billableConsumption).toLocaleString('en-IN') : '—',
         ];
         
         values.forEach((val, j) => {
@@ -537,15 +537,15 @@ export function DownloadActions({
 
       const totalValues = [
         'TOTAL',
-        totals.prev > 0 ? Math.round(totals.prev).toLocaleString() : '—',
-        totals.curr > 0 ? Math.round(totals.curr).toLocaleString() : '—',
-        totals.oaPer > 0 ? Math.round(totals.oaPer).toLocaleString() : '—',
-        totals.avail > 0 ? Math.round(totals.avail).toLocaleString() : '—',
-        totals.adjust > 0 ? Math.round(totals.adjust).toLocaleString() : '—',
-        totals.extra > 0 ? Math.round(totals.extra).toLocaleString() : '—',
-        totals.toAdj > 0 ? Math.round(totals.toAdj).toLocaleString() : '—',
-        totals.actual > 0 ? Math.round(totals.actual).toLocaleString() : '—',
-        totals.billable > 0 ? Math.round(totals.billable).toLocaleString() : '—',
+        totals.prev > 0 ? Math.round(totals.prev).toLocaleString('en-IN') : '—',
+        totals.curr > 0 ? Math.round(totals.curr).toLocaleString('en-IN') : '—',
+        totals.oaPer > 0 ? Math.round(totals.oaPer).toLocaleString('en-IN') : '—',
+        totals.avail > 0 ? Math.round(totals.avail).toLocaleString('en-IN') : '—',
+        totals.adjust > 0 ? Math.round(totals.adjust).toLocaleString('en-IN') : '—',
+        totals.extra > 0 ? Math.round(totals.extra).toLocaleString('en-IN') : '—',
+        totals.toAdj > 0 ? Math.round(totals.toAdj).toLocaleString('en-IN') : '—',
+        totals.actual > 0 ? Math.round(totals.actual).toLocaleString('en-IN') : '—',
+        totals.billable > 0 ? Math.round(totals.billable).toLocaleString('en-IN') : '—',
       ];
       
       totalValues.forEach((val, j) => {
@@ -589,7 +589,7 @@ export function DownloadActions({
       let billY = yPos + 11;
       billItems.forEach(([label, amount]) => {
         doc.text(`${label}:`, billDetailX + 2, billY);
-        doc.text(`₹${Math.round(amount as number).toLocaleString()}`, billDetailX + halfWidth - 20, billY);
+        doc.text(`₹${Math.round(amount as number).toLocaleString('en-IN')}`, billDetailX + halfWidth - 20, billY);
         billY += 5;
       });
 
@@ -602,12 +602,12 @@ export function DownloadActions({
       doc.setTextColor(0, 100, 0);
       doc.text("NET PAYABLE AMOUNT:", margin + 5, yPos + 6);
       doc.setFontSize(12);
-      doc.text(`₹${Math.round(templateData.netPayableAmount).toLocaleString()}`, margin + 65, yPos + 6);
+      doc.text(`₹${Math.round(templateData.netPayableAmount).toLocaleString('en-IN')}`, margin + 65, yPos + 6);
       
       doc.setFontSize(6);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(0, 0, 0);
-      doc.text(`Due Date Rebate @1%: ₹${Math.round(templateData.dueDateRebate).toLocaleString()}   |   Amount Payable before Due Date: ₹${Math.round(templateData.amountPayableBeforeDue).toLocaleString()}`, margin + 5, yPos + 11);
+      doc.text(`Due Date Rebate @1%: ₹${Math.round(templateData.dueDateRebate).toLocaleString('en-IN')}   |   Amount Payable before Due Date: ₹${Math.round(templateData.amountPayableBeforeDue).toLocaleString('en-IN')}`, margin + 5, yPos + 11);
 
       yPos += 18;
 
@@ -626,9 +626,9 @@ export function DownloadActions({
       
       doc.setFont("helvetica", "normal");
       doc.setFontSize(6);
-      doc.text(`TCS: ₹${Math.round(templateData.tcs).toLocaleString()}`, margin + 5, yPos + 11);
-      doc.text(`FPPA Surcharge: ₹${Math.round(templateData.fppaSurcharge).toLocaleString()}`, margin + 60, yPos + 11);
-      doc.text(`Security Deposit Interest: ₹${Math.round(templateData.securityDepositInterest).toLocaleString()}`, margin + 120, yPos + 11);
+      doc.text(`TCS: ₹${Math.round(templateData.tcs).toLocaleString('en-IN')}`, margin + 5, yPos + 11);
+      doc.text(`FPPA Surcharge: ₹${Math.round(templateData.fppaSurcharge).toLocaleString('en-IN')}`, margin + 60, yPos + 11);
+      doc.text(`Security Deposit Interest: ₹${Math.round(templateData.securityDepositInterest).toLocaleString('en-IN')}`, margin + 120, yPos + 11);
 
       yPos += 24;
 
@@ -726,7 +726,7 @@ export function DownloadActions({
         const rowValues = [
           reading.readDate,
           ...reading.zones.map(z => z > 0 ? Math.round(z).toString() : '—'),
-          Math.round(reading.totalKVAH).toLocaleString(),
+          Math.round(reading.totalKVAH).toLocaleString('en-IN'),
         ];
         rowValues.forEach((val, j) => {
           doc.text(val, margin + j * zoneColWidth + zoneColWidth / 2, yPos + 4.5, { align: 'center' });
@@ -763,8 +763,8 @@ export function DownloadActions({
           todTimeZones[i],
           '—',
           templateData.billDate,
-          row.currMonthKVAH > 0 ? Math.round(row.currMonthKVAH).toLocaleString() : '—',
-          row.oaUnitsPeriphery > 0 ? Math.round(row.oaUnitsPeriphery).toLocaleString() : '—',
+          row.currMonthKVAH > 0 ? Math.round(row.currMonthKVAH).toLocaleString('en-IN') : '—',
+          row.oaUnitsPeriphery > 0 ? Math.round(row.oaUnitsPeriphery).toLocaleString('en-IN') : '—',
         ];
         rowData.forEach((val, j) => {
           doc.text(val, margin + j * consColWidth + consColWidth / 2, yPos + 4.5, { align: 'center' });
@@ -785,8 +785,8 @@ export function DownloadActions({
       const sumConsumption = templateData.todConsumption.reduce((sum, r) => sum + r.currMonthKVAH, 0);
       const consumptionAtTrans = sumConsumption * (1 + templateData.lineLoss / 100);
       
-      doc.text(`Sum of Consumption: ${Math.round(sumConsumption).toLocaleString()} KVAH`, margin + 5, yPos + 11);
-      doc.text(`Consumption at Transmission End: ${Math.round(consumptionAtTrans).toLocaleString()} KVAH`, margin + 5, yPos + 16);
+      doc.text(`Sum of Consumption: ${Math.round(sumConsumption).toLocaleString('en-IN')} KVAH`, margin + 5, yPos + 11);
+      doc.text(`Consumption at Transmission End: ${Math.round(consumptionAtTrans).toLocaleString('en-IN')} KVAH`, margin + 5, yPos + 16);
       doc.text(`Line Loss: ${templateData.lineLoss}%`, margin + 5, yPos + 21);
 
       doc.text(`Feeder Type: ${templateData.feederType}`, margin + 110, yPos + 11);

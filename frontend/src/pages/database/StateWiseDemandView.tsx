@@ -164,7 +164,7 @@ export default function StateWiseDemandView({ data }: { data?: { timestamp?: str
                         {region.states.map((state, sIdx) => (
                           <Chip 
                             key={sIdx} 
-                            label={`${state.name} (${state.demand.toLocaleString()} ${state.unit})`} 
+                            label={`${state.name} (${state.demand.toLocaleString('en-IN')} ${state.unit})`} 
                             size="small" 
                             sx={{ 
                               bgcolor: 'white', 

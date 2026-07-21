@@ -187,7 +187,7 @@ export function FileUploadFlow({ fileMappings, onFilesChange, onBack, onPreview 
             parsedOaData = oaParsed;
             toast({
               title: "OA Bill Parsed",
-              description: `Found ${oaParsed.slots.length} slots, ${(oaParsed.totalUnits || 0).toLocaleString()} kWh total`,
+              description: `Found ${oaParsed.slots.length} slots, ${(oaParsed.totalUnits || 0).toLocaleString('en-IN')} kWh total`,
             });
           }
         } else {
