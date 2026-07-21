@@ -46,6 +46,7 @@ import {
   fetchDemandShiftInsights,
   DemandShiftInsightsResult
 } from '../api/savingsCalculator.api';
+import { VisualAnalyticsCharts } from '../components/insights/VisualAnalyticsCharts';
 import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
 import { STATE_TARIFF_MOCK_DATA } from './resource-center/mockData/stateTariff.mock';
@@ -1684,6 +1685,7 @@ export default function SavingsCalculatorPage() {
                   <Tab label="Market Buy Decision" disabled={!marketDecisionResult} />
                   <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} />
                   <Tab label="Industry Insights" disabled={!demandShiftInsights} />
+                  <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} />
                 </Tabs>
               </Box>
 
@@ -2123,6 +2125,14 @@ export default function SavingsCalculatorPage() {
                 </Table>
               </Box>
             </Box>
+          )}
+
+          {calcTab === 5 && marketDecisionResult && demandShiftInsights && (
+            <VisualAnalyticsCharts 
+              marketDecisionResult={marketDecisionResult} 
+              demandShiftInsights={demandShiftInsights}
+              maxEnergyPerSlot={demandShiftInsights.maxEnergyPerSlot} 
+            />
           )}
         </DialogContent>
 
