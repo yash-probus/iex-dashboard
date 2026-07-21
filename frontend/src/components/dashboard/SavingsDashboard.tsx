@@ -472,7 +472,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                   </TableHead>
                   <TableBody>
                     {dailyData.map((row) => (
-                      <TableRow key={row.date} hover>
+                      <TableRow key={row.date} hover sx={{ pageBreakInside: 'avoid' }}>
                         <TableCell sx={{ fontSize: '13px' }}>Day {row.dayLabel}</TableCell>
                         <TableCell align="right" sx={{ fontSize: '13px' }}>{(row.totalUnits/1000).toFixed(2)}K</TableCell>
                         <TableCell align="right" sx={{ fontSize: '13px' }}>{row.oaUnits > 0 ? row.oaUnits.toFixed(2) : '-'}</TableCell>
