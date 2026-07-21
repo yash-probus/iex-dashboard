@@ -21,7 +21,9 @@ async function run() {
         month: '2-digit',
         day: '2-digit'
       });
-      const dateStr = formatter.format(new Date());
+      const now = new Date();
+      now.setDate(now.getDate() + 1); // DAM is Day-Ahead Market, so delivery is tomorrow
+      const dateStr = formatter.format(now);
       const [year, month, day] = dateStr.split('-').map(Number);
       const deliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
       
