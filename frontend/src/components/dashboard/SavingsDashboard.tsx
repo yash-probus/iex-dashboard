@@ -31,7 +31,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const opt = {
-        margin:       [25, 10, 30, 10] as [number, number, number, number], // Top, Right, Bottom, Left margin in mm
+        margin:       [25, 10, 45, 10] as [number, number, number, number], // Top, Right, Bottom, Left margin in mm
         filename:     `Savings_Dashboard_${monthStr}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
