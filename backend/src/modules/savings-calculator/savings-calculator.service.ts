@@ -284,7 +284,7 @@ export class SavingsCalculatorService {
           state: stateName.toUpperCase().replace(/\s+/g, '_'),
           category: parsedCategory,
           fromDate: { lte: new Date(startStr) },
-          toDate: { gte: new Date(endStr) }
+          toDate: { gte: new Date(startStr) }
         }
       });
       const stuLoss = stateCharges?.stuLossPercent ? Number(stateCharges.stuLossPercent) : 0;
@@ -477,6 +477,10 @@ export class SavingsCalculatorService {
         }
 
         discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
+
+        if (entry.discom === 'NPCL') {
+          discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
+        }
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -685,7 +689,7 @@ export class SavingsCalculatorService {
         state: stateName.toUpperCase().replace(/\s+/g, '_'),
         category: parsedCategory,
         fromDate: { lte: new Date(startStr) },
-        toDate: { gte: new Date(endStr) },
+        toDate: { gte: new Date(startStr) },
         // StateCharges uses the full string (e.g. '33' or '0.433') so we might need the second part if available
         // But for now, we will just use voltageLevel since it was '0.433' in DB. Or we can just omit it if it fails.
         // Let's omit voltageLevel for now to avoid false negatives since StateCharges has different voltage formatting.
@@ -936,7 +940,10 @@ export class SavingsCalculatorService {
         }
       }
 
-      const discomLanding = discomBase * (1 + (fppaPercent / 100));
+      let discomLanding = discomBase * (1 + (fppaPercent / 100));
+      if (isNpcl) {
+        discomLanding = discomLanding * 0.90 * 0.99;
+      }
 
       const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
 
