@@ -361,7 +361,59 @@ export class SavingsCalculatorService {
         let discomLandingPrice = 7.5;
         let matchedTariffName = 'normal';
 
-        if (tariffs.length > 0) {
+        const isNpcl = entry.discom === 'NPCL';
+
+        if (isNpcl) {
+          const isWinter = month >= 10 || month <= 3;
+          const baseRate = 6.80; 
+
+          if (isWinter) {
+            // TOD1 [22:00 - 04:00] -> Rate 5.78 (-15%)
+            // TOD2 [04:00 - 06:00] -> Rate 6.80 (0%)
+            // TOD3 [06:00 - 10:00] -> Rate 7.82 (+15%)
+            // TOD4 [10:00 - 17:00] -> Rate 6.80 (0%)
+            // TOD6 [17:00 - 19:00] -> Rate 7.82 (+15%)
+            // TOD5 [19:00 - 22:00] -> Rate 6.80 (0%)
+            if (hour >= 22 || hour < 4) {
+              matchedTariffName = 'TOD1';
+              discomLandingPrice = baseRate * 0.85; 
+            } else if (hour >= 4 && hour < 6) {
+              matchedTariffName = 'TOD2';
+              discomLandingPrice = baseRate;
+            } else if (hour >= 6 && hour < 10) {
+              matchedTariffName = 'TOD3';
+              discomLandingPrice = baseRate * 1.15; 
+            } else if (hour >= 10 && hour < 17) {
+              matchedTariffName = 'TOD4';
+              discomLandingPrice = baseRate;
+            } else if (hour >= 17 && hour < 19) {
+              matchedTariffName = 'TOD6';
+              discomLandingPrice = baseRate * 1.15; 
+            } else if (hour >= 19 && hour < 22) {
+              matchedTariffName = 'TOD5';
+              discomLandingPrice = baseRate;
+            }
+          } else {
+            // Summer (April to September)
+            // TOD4 [07:00 - 16:00] -> Rate 5.78 (-15%)
+            // TOD1 [16:00 - 19:00] -> Rate 6.80 (0%)
+            // TOD2 [19:00 - 02:00] -> Rate 7.82 (+15%)
+            // TOD3 [02:00 - 07:00] -> Rate 6.80 (0%)
+            if (hour >= 7 && hour < 16) {
+              matchedTariffName = 'TOD4';
+              discomLandingPrice = baseRate * 0.85; 
+            } else if (hour >= 16 && hour < 19) {
+              matchedTariffName = 'TOD1';
+              discomLandingPrice = baseRate;
+            } else if (hour >= 19 || hour < 2) {
+              matchedTariffName = 'TOD2';
+              discomLandingPrice = baseRate * 1.15; 
+            } else if (hour >= 2 && hour < 7) {
+              matchedTariffName = 'TOD3';
+              discomLandingPrice = baseRate;
+            }
+          }
+        } else if (tariffs.length > 0) {
           const matched = tariffs.find(t => {
             const start = parseHour(t.todStartTime);
             const end = parseHour(t.todEndTime);
@@ -780,7 +832,49 @@ export class SavingsCalculatorService {
 
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
-      if (tariffs.length > 0) {
+
+      const isNpcl = entry.discom === 'NPCL';
+
+      if (isNpcl) {
+        const isWinter = month >= 10 || month <= 3;
+        const baseRate = 6.80; 
+
+        if (isWinter) {
+          if (hour >= 22 || hour < 4) {
+            matchedTariffName = 'TOD1';
+            discomBase = baseRate * 0.85; 
+          } else if (hour >= 4 && hour < 6) {
+            matchedTariffName = 'TOD2';
+            discomBase = baseRate;
+          } else if (hour >= 6 && hour < 10) {
+            matchedTariffName = 'TOD3';
+            discomBase = baseRate * 1.15; 
+          } else if (hour >= 10 && hour < 17) {
+            matchedTariffName = 'TOD4';
+            discomBase = baseRate;
+          } else if (hour >= 17 && hour < 19) {
+            matchedTariffName = 'TOD6';
+            discomBase = baseRate * 1.15; 
+          } else if (hour >= 19 && hour < 22) {
+            matchedTariffName = 'TOD5';
+            discomBase = baseRate;
+          }
+        } else {
+          if (hour >= 7 && hour < 16) {
+            matchedTariffName = 'TOD4';
+            discomBase = baseRate * 0.85; 
+          } else if (hour >= 16 && hour < 19) {
+            matchedTariffName = 'TOD1';
+            discomBase = baseRate;
+          } else if (hour >= 19 || hour < 2) {
+            matchedTariffName = 'TOD2';
+            discomBase = baseRate * 1.15; 
+          } else if (hour >= 2 && hour < 7) {
+            matchedTariffName = 'TOD3';
+            discomBase = baseRate;
+          }
+        }
+      } else if (tariffs.length > 0) {
         const matched = tariffs.find(t => {
           const start = parseHour(t.todStartTime);
           const end = parseHour(t.todEndTime);
