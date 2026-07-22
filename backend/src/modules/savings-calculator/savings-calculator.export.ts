@@ -2,8 +2,8 @@ import * as ExcelJS from 'exceljs';
 import { SavingsCalculatorService } from './savings-calculator.service';
 
 export class SavingsCalculatorExportService {
-  static async exportToExcel(id: string, monthStr?: string): Promise<Buffer> {
-    const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr);
+  static async exportToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
+    const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version);
     const { slotsData, todSummaries, oaDetailed } = result;
 
     const workbook = new ExcelJS.Workbook();
@@ -257,8 +257,8 @@ export class SavingsCalculatorExportService {
     return Buffer.from(buffer);
   }
 
-  static async exportDemandShiftToExcel(id: string, monthStr?: string): Promise<Buffer> {
-    const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr);
+  static async exportDemandShiftToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
+    const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr, version);
     const { slotsData } = result;
 
     const workbook = new ExcelJS.Workbook();

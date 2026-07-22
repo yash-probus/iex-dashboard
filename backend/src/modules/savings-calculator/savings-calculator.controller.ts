@@ -138,7 +138,8 @@ export class SavingsCalculatorController {
     try {
       const { id } = req.params;
       const targetMonth = req.query.month;
-      const result = await SavingsCalculatorService.calculateSavings(id as string, targetMonth as string | undefined);
+      const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
+      const result = await SavingsCalculatorService.calculateSavings(id as string, targetMonth as string | undefined, version);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('[SavingsCalculatorController] Calculation failed:', error);
@@ -150,7 +151,8 @@ export class SavingsCalculatorController {
     try {
       const { id } = req.params;
       const targetMonth = req.query.month;
-      const result = await SavingsCalculatorService.calculateMarketDecision(id as string, targetMonth as string | undefined);
+      const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
+      const result = await SavingsCalculatorService.calculateMarketDecision(id as string, targetMonth as string | undefined, version);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('[SavingsCalculatorController] Market Decision Calculation failed:', error);
@@ -161,9 +163,10 @@ export class SavingsCalculatorController {
     try {
       const { id } = req.params;
       const targetMonth = req.query.month;
+      const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
       
       const { SavingsCalculatorExportService } = await import('./savings-calculator.export');
-      const buffer = await SavingsCalculatorExportService.exportToExcel(id as string, targetMonth as string | undefined);
+      const buffer = await SavingsCalculatorExportService.exportToExcel(id as string, targetMonth as string | undefined, version);
       
       // Get client name for filename
       const entry = await SavingsCalculatorService.getById(id as string);
@@ -186,9 +189,10 @@ export class SavingsCalculatorController {
     try {
       const { id } = req.params;
       const targetMonth = req.query.month;
+      const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
       
       const { SavingsCalculatorExportService } = await import('./savings-calculator.export');
-      const buffer = await SavingsCalculatorExportService.exportDemandShiftToExcel(id as string, targetMonth as string | undefined);
+      const buffer = await SavingsCalculatorExportService.exportDemandShiftToExcel(id as string, targetMonth as string | undefined, version);
       
       const entry = await SavingsCalculatorService.getById(id as string);
       const clientName = entry?.clientName || id;
@@ -210,7 +214,8 @@ export class SavingsCalculatorController {
     try {
       const { id } = req.params;
       const targetMonth = req.query.month;
-      const result = await SavingsCalculatorService.calculateDemandShiftInsights(id as string, targetMonth as string | undefined);
+      const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
+      const result = await SavingsCalculatorService.calculateDemandShiftInsights(id as string, targetMonth as string | undefined, version);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('[SavingsCalculatorController] Demand Shift Insights failed:', error);

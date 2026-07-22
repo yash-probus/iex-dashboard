@@ -7,10 +7,11 @@ import {
 import { MarketDecisionResult } from '../../api/savingsCalculator.api';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import DownloadIcon from '@mui/icons-material/Download';
-import html2pdf from 'html2pdf.js';
-import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { pdf } from '@react-pdf/renderer';
 import { PDFDocument } from 'pdf-lib';
 import { useRef } from 'react';
+import { SavingsProposalPDF } from './SavingsProposalPDF';
 
 interface SavingsDashboardProps {
   result: MarketDecisionResult;
@@ -22,26 +23,51 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
   const [purchaseMode, setPurchaseMode] = useState<'actual' | 'recommended'>('recommended');
   const [isDownloading, setIsDownloading] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
+  
+  // Chart Refs
+  const spendComparisonRef = useRef<HTMLDivElement>(null);
+  const consumptionMixRef = useRef<HTMLDivElement>(null);
+  const dailySavingsRef = useRef<HTMLDivElement>(null);
+  const purchaseComparisonRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPDF = async () => {
     if (!dashboardRef.current) return;
     try {
       setIsDownloading(true);
-      // Wait for React to render both tabs and full table
+      
+      // If we are currently on "overall" tab, we need to temporarily render everything to capture it.
+      // So we force 'activeTab' and 'purchaseMode' temporarily if needed, though they might already be rendered 
+      // since we removed the tab conditions for `isDownloading`.
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const opt = {
-        margin:       [25, 10, 50, 10] as [number, number, number, number], // Top, Right, Bottom, Left margin in mm
-        filename:     `Savings_Dashboard_${monthStr}.pdf`,
-        image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+      const captureChart = async (ref: React.RefObject<HTMLDivElement>) => {
+        if (!ref.current) return '';
+        const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, logging: false });
+        return canvas.toDataURL('image/png');
       };
 
-      // 1. Generate PDF as ArrayBuffer
-      const pdfArrayBuffer = await html2pdf().set(opt).from(dashboardRef.current).output('arraybuffer');
+      const charts = {
+        spendComparison: await captureChart(spendComparisonRef),
+        consumptionMix: await captureChart(consumptionMixRef),
+        dailySavings: await captureChart(dailySavingsRef),
+        purchaseComparison: await captureChart(purchaseComparisonRef),
+      };
+
+      const pdfBlob = await pdf(
+        <SavingsProposalPDF 
+          result={result} 
+          monthStr={monthStr} 
+          dailyData={dailyData} 
+          netProltSpend={netProltSpend}
+          netSavings={netSavings}
+          savingsPerc={savingsPerc}
+          displayMonth={displayMonth}
+          charts={charts}
+        />
+      ).toBlob();
       
+      const pdfArrayBuffer = await pdfBlob.arrayBuffer();
+
       // 2. Fetch Letterhead PDF
       const letterheadRes = await fetch('/Minimalist_Business_Letterhead.pdf');
       const letterheadBuffer = await letterheadRes.arrayBuffer();
@@ -303,7 +329,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#3B82F6' }}>📈</span> Monthly Spend Comparison
               </Typography>
-              <Box sx={{ height: 350 }}>
+              <Box ref={spendComparisonRef} sx={{ height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[{ name: displayMonth, Actual: result.totalBaselineCost, Prolt: netProltSpend }]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -324,7 +350,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#8B5CF6' }}>📊</span> Monthly Consumption Mix - DISCOM Vs OA
               </Typography>
-              <Box sx={{ height: 350 }}>
+              <Box ref={consumptionMixRef} sx={{ height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[
                     { name: displayMonth, 'Actual DISCOM': result.totalEnergyKwh, 'Actual OA': 0, 'Prolt Optimized DISCOM': result.totalEnergyKwh - result.totalMarketEnergyKwh, 'Prolt Optimized OA': result.totalMarketEnergyKwh }
@@ -355,7 +381,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#3B82F6' }}>₹</span> Daily Savings Opportunity (Energy Cost)
               </Typography>
-              <Box sx={{ height: 300 }}>
+              <Box ref={dailySavingsRef} sx={{ height: 300, bgcolor: 'white' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
@@ -420,7 +446,7 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
                 </Box>
               </Box>
               
-              <Box sx={{ height: 250 }}>
+              <Box ref={purchaseComparisonRef} sx={{ height: 250, bgcolor: 'white' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />

@@ -157,21 +157,21 @@ export const deleteSavingsEntry = async (id: string): Promise<{ message: string 
   return response.data;
 };
 
-export const calculateSavings = async (id: string, month?: string): Promise<CalculationResult> => {
-  const url = month ? `/savings-calculator/${id}/calculate?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/calculate`;
-  const response = await apiClient.post<CalculationResult>(url);
+export const calculateSavings = async (id: string, month?: string, version?: number): Promise<CalculationResult> => {
+  const url = `/savings-calculator/${id}/calculate`;
+  const response = await apiClient.post<CalculationResult>(url, {}, { params: { month, version } });
   return response.data;
 };
 
-export const calculateMarketDecision = async (id: string, month?: string): Promise<MarketDecisionResult> => {
-  const url = month ? `/savings-calculator/${id}/calculate-market-decision?month=${encodeURIComponent(month)}` : `/savings-calculator/${id}/calculate-market-decision`;
-  const response = await apiClient.post<MarketDecisionResult>(url);
+export const calculateMarketDecision = async (id: string, month?: string, version?: number): Promise<MarketDecisionResult> => {
+  const url = `/savings-calculator/${id}/calculate-market-decision`;
+  const response = await apiClient.post<MarketDecisionResult>(url, {}, { params: { month, version } });
   return response.data;
 };
 
-export const exportSavingsExcel = async (id: string, targetMonth?: string): Promise<void> => {
+export const exportSavingsExcel = async (id: string, targetMonth?: string, version?: number): Promise<void> => {
   const response = await apiClient.get('/savings-calculator/' + id + '/export-excel', {
-    params: { month: targetMonth },
+    params: { month: targetMonth, version },
     responseType: 'blob',
   });
   
@@ -194,9 +194,9 @@ export const exportSavingsExcel = async (id: string, targetMonth?: string): Prom
   window.URL.revokeObjectURL(url);
 };
 
-export const exportDemandShiftExcel = async (id: string, targetMonth?: string): Promise<void> => {
+export const exportDemandShiftExcel = async (id: string, targetMonth?: string, version?: number): Promise<void> => {
   const response = await apiClient.get('/savings-calculator/' + id + '/demand-shift-insights/export-excel', {
-    params: { month: targetMonth },
+    params: { month: targetMonth, version },
     responseType: 'blob',
   });
   
@@ -250,9 +250,9 @@ export interface DemandShiftInsightsResult {
   }[];
 }
 
-export const fetchDemandShiftInsights = async (id: string, targetMonth?: string): Promise<DemandShiftInsightsResult> => {
+export const fetchDemandShiftInsights = async (id: string, targetMonth?: string, version?: number): Promise<DemandShiftInsightsResult> => {
   const response = await apiClient.post<DemandShiftInsightsResult>(`/savings-calculator/${id}/demand-shift-insights`, {}, {
-    params: { month: targetMonth },
+    params: { month: targetMonth, version },
   });
   return response.data;
 };

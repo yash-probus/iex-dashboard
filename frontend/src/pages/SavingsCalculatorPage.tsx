@@ -108,6 +108,8 @@ export default function SavingsCalculatorPage() {
   const [marketDecisionResult, setMarketDecisionResult] = useState<MarketDecisionResult | null>(null);
   const [demandShiftInsights, setDemandShiftInsights] = useState<DemandShiftInsightsResult | null>(null);
   const [calculatingInsights, setCalculatingInsights] = useState(false);
+  const [calcVersions, setCalcVersions] = useState<number[]>([]);
+  const [selectedCalcVersion, setSelectedCalcVersion] = useState<number | ''>('');
 
   const [calcTab, setCalcTab] = useState(0);
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
@@ -543,7 +545,7 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  const handleOpenCalc = (entry: SavingsCalculatorEntry) => {
+  const handleOpenCalc = async (entry: SavingsCalculatorEntry) => {
     setCalcEntry(entry);
     setCalcResult(null);
     setMarketDecisionResult(null);
@@ -552,6 +554,21 @@ export default function SavingsCalculatorPage() {
     
     const months = Object.keys(entry.todConsumptions || {}).sort();
     setSelectedSimMonth(months.length > 0 ? months[0] : '');
+
+    try {
+      const history = await fetchEntryHistory(entry.id);
+      const versions = history.map(h => h.version).sort((a, b) => b - a);
+      setCalcVersions(versions);
+      if (versions.length > 0) {
+        setSelectedCalcVersion(versions[0]);
+      } else {
+        setSelectedCalcVersion('');
+      }
+    } catch (err) {
+      console.error('Failed to load entry history:', err);
+      setCalcVersions([]);
+      setSelectedCalcVersion('');
+    }
   };
 
   const handleCloseCalc = (event?: any, reason?: string) => {
@@ -567,8 +584,8 @@ export default function SavingsCalculatorPage() {
     try {
       setCalculating(true);
       const [savingsRes, marketRes] = await Promise.all([
-        calculateSavings(calcEntry.id, selectedSimMonth || undefined),
-        calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined)
+        calculateSavings(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined),
+        calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined)
       ]);
       setCalcResult(savingsRes);
       setMarketDecisionResult(marketRes);
@@ -589,7 +606,7 @@ export default function SavingsCalculatorPage() {
     if (!calcEntry) return;
     try {
       setCalculating(true);
-      const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined);
+      const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
       setMarketDecisionResult(res);
       setGraphDialogOpen(true);
     } catch (err: any) {
@@ -608,7 +625,7 @@ export default function SavingsCalculatorPage() {
     if (!calcEntry) return;
     try {
       setCalculatingInsights(true);
-      const res = await fetchDemandShiftInsights(calcEntry.id, selectedSimMonth || undefined);
+      const res = await fetchDemandShiftInsights(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
       setDemandShiftInsights(res);
       setCalcTab(4); // New tab for insights
     } catch (err: any) {
@@ -695,7 +712,7 @@ export default function SavingsCalculatorPage() {
     if (!calcEntry) return;
     try {
       setCalculatingInsights(true);
-      await exportDemandShiftExcel(calcEntry.id, selectedSimMonth || undefined);
+      await exportDemandShiftExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
     } catch (error) {
       console.error('Failed to export Demand Shift Insights to Excel', error);
       setSnackbar({
@@ -1494,6 +1511,25 @@ export default function SavingsCalculatorPage() {
               ))}
             </TextField>
 
+            <TextField
+              select
+              label="Version"
+              value={selectedCalcVersion}
+              onChange={(e) => {
+                setSelectedCalcVersion(Number(e.target.value));
+                setCalcResult(null);
+                setMarketDecisionResult(null);
+              }}
+              size="small"
+              sx={{ width: 120, bgcolor: 'background.paper' }}
+            >
+              {calcVersions.map((v) => (
+                <MenuItem key={v} value={v}>
+                  v{v} {v === Math.max(...calcVersions) && '(Recent)'}
+                </MenuItem>
+              ))}
+            </TextField>
+
             <Button
               variant="contained"
               startIcon={<PlayIcon />}
@@ -1596,7 +1632,7 @@ export default function SavingsCalculatorPage() {
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
-                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined);
+                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
                   } catch (err: any) {
                     setSnackbar({
                       open: true,

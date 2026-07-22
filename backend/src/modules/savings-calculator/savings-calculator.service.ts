@@ -497,10 +497,8 @@ export class SavingsCalculatorService {
     };
   }
 
-  static async calculateMarketDecision(id: string, targetMonthStr?: string) {
-    const entry = await prisma.savingsCalculatorEntry.findUnique({
-      where: { id }
-    });
+  static async calculateMarketDecision(id: string, targetMonthStr?: string, version?: number) {
+    const entry = await this.getEntryOrVersion(id, version);
 
     if (!entry) {
       throw new Error('Savings calculator entry not found');
@@ -1264,11 +1262,11 @@ export class SavingsCalculatorService {
     };
   }
 
-  static async calculateDemandShiftInsights(id: string, targetMonth?: string) {
-    const entry = await this.getById(id);
+  static async calculateDemandShiftInsights(id: string, targetMonth?: string, version?: number) {
+    const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
     
-    const marketResult = await this.calculateMarketDecision(id, targetMonth);
+    const marketResult = await this.calculateMarketDecision(id, targetMonth, version);
     const slotsData = marketResult.slotsData;
     
     const sanctionedLoadKw = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
