@@ -1361,24 +1361,23 @@ export class SavingsCalculatorService {
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
       
-      // Calculate Regulatory Discount @ 10% and Rebate @ 1% on the total DISCOM components
-      const applyDiscounts = (billAmount: number) => {
-        // Apply 10% regulatory discount and then 1% rebate
-        return billAmount * 0.90 * 0.99;
+      // Demand charge is not yet discounted. Energy bill is already discounted for NPCL at the per-unit level.
+      const getDiscountedDemandCharge = (dc: number) => {
+        return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
       };
 
-      const slabED = entry.applyElectricityDuty !== false ? applyDiscounts(slabEnergyBill + slabDemandCharge) * 0.075 : 0;
+      const discountedSlabBill = slabEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
+      const slabED = entry.applyElectricityDuty !== false ? discountedSlabBill * 0.075 : 0;
       totalElectricityDuty += slabED;
 
       // Baseline: all consumption at DISCOM rate (inclusive of fixed/taxes)
-      // Apply discounts to the fully discom bill
-      const slabTotalDiscomBill = applyDiscounts(slabEnergyBill + slabDemandCharge) + slabED;
+      const slabTotalDiscomBill = discountedSlabBill + slabED;
       totalBaselineCost += slabTotalDiscomBill;
 
       // Prolt Discom Bill is the DISCOM bill for the un-switched units + 100% of the fixed/taxes
       const proltEnergyBill = discomEnergy * slabDiscomRate;
-      // ED applies to total consumption physical units (same as baseline), demand charge is also fixed.
-      const proltDiscomBillTotal = applyDiscounts(proltEnergyBill + slabDemandCharge) + slabED;
+      const discountedProltBill = proltEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
+      const proltDiscomBillTotal = discountedProltBill + slabED;
 
       const nonGdamMarketSlots = marketSlots.filter(s => s.marketSource !== 'GDAM').length;
       const nonGdamFraction = marketSlots.length > 0 ? nonGdamMarketSlots / marketSlots.length : 0;
