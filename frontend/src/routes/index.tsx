@@ -43,15 +43,17 @@ export default function AppRoutes() {
           {/* Module Layout wrapping all module sub-pages */}
           <Route element={<ModuleLayout />}>
             {/* Database Sub-pages */}
-            <Route path="database/all-india-demand" element={<DatabasePage />} />
-            <Route path="database/generation-data" element={<DatabasePage />} />
-            <Route path="database/state-wise-demand" element={<DatabasePage />} />
-            <Route path="database/city-state-data" element={<DatabasePage />} />
-            <Route path="database/weather" element={<Navigate to="/database/weather/forecast" replace />} />
-            <Route path="database/weather/forecast" element={<DatabasePage />} />
-            <Route path="database/weather/historical" element={<DatabasePage />} />
-            <Route path="database/holiday-calendar" element={<DatabasePage />} />
-            <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
+            <Route element={<ProtectedRoute requireAdmin />}>
+              <Route path="database/all-india-demand" element={<DatabasePage />} />
+              <Route path="database/generation-data" element={<DatabasePage />} />
+              <Route path="database/state-wise-demand" element={<DatabasePage />} />
+              <Route path="database/city-state-data" element={<DatabasePage />} />
+              <Route path="database/weather" element={<Navigate to="/database/weather/forecast" replace />} />
+              <Route path="database/weather/forecast" element={<DatabasePage />} />
+              <Route path="database/weather/historical" element={<DatabasePage />} />
+              <Route path="database/holiday-calendar" element={<DatabasePage />} />
+              <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
+            </Route>
 
             {/* Market Sub-pages */}
             <Route path="dam" element={<DAMPage />} />
@@ -82,13 +84,15 @@ export default function AppRoutes() {
             <Route path="resource-center" element={<Navigate to="/resource-center/region-state" replace />} />
           </Route>
           
-          {/* Admin routes are now just nested under the already protected layout */}
-          <Route path="admin">
-            <Route index element={<AdminPage />} />
-            <Route path="market-data" element={<MarketDataAdminPage />} />
-            <Route path="resource-center" element={<ResourceCenterAdminPage />} />
-            <Route path="resource-center/:resourceType" element={<AdminResourcePage />} />
-            <Route path="api-logs" element={<ApiLogsAdminPage />} />
+          {/* Admin routes are now restricted to admins only */}
+          <Route element={<ProtectedRoute requireAdmin />}>
+            <Route path="admin">
+              <Route index element={<AdminPage />} />
+              <Route path="market-data" element={<MarketDataAdminPage />} />
+              <Route path="resource-center" element={<ResourceCenterAdminPage />} />
+              <Route path="resource-center/:resourceType" element={<AdminResourcePage />} />
+              <Route path="api-logs" element={<ApiLogsAdminPage />} />
+            </Route>
           </Route>
         </Route>
       </Route>

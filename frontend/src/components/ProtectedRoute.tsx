@@ -3,8 +3,12 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
 
-export default function ProtectedRoute() {
-  const { isAuthenticated, authLoading } = useAuth();
+interface ProtectedRouteProps {
+  requireAdmin?: boolean;
+}
+
+export default function ProtectedRoute({ requireAdmin = false }: ProtectedRouteProps) {
+  const { isAuthenticated, isAdmin, authLoading } = useAuth();
 
   // Deliverable A1: Wait for bootstrap to avoid redirect flicker
   if (authLoading) {
@@ -17,6 +21,10 @@ export default function ProtectedRoute() {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

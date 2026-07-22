@@ -3,14 +3,15 @@ export interface LoginDTO {
   password?: string;
 }
 
-export interface AdminResponse {
+export interface UserResponse {
   id: string;
   username: string;
   email: string;
+  role: string;
 }
 
 export interface AuthResponse {
   success: boolean;
   token: string;
-  admin: AdminResponse;
+  user: UserResponse;
 }

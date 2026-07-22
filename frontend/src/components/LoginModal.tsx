@@ -51,7 +51,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
     try {
       const response = await authApi.login(trimmedUser, password);
       if (response.success) {
-        login(response.token, response.admin);
+        login(response.token, response.user);
         if (onSuccess) onSuccess();
         onClose();
       }
@@ -99,7 +99,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
             <LockOutlinedIcon sx={{ color: '#fff' }} />
           </Box>
           <Typography component="h1" variant="h5" fontWeight={600}>
-            Admin Login
+            System Login
           </Typography>
         </Box>
 

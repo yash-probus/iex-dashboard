@@ -57,7 +57,11 @@ import { DISCOM_LIST_MOCK_DATA } from './resource-center/mockData/discomList.moc
 
 type DialogMode = 'create' | 'edit' | 'view' | null;
 
+import { useAuth } from '../contexts/AuthContext';
+
 export default function SavingsCalculatorPage() {
+  const { isAdmin } = useAuth();
+  
   // State variables
   const [entries, setEntries] = useState<SavingsCalculatorEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -894,15 +898,19 @@ export default function SavingsCalculatorPage() {
           <IconButton size="small" onClick={() => handleOpenDialog('view', row)} title="View Detail">
             <VisibilityIcon fontSize="small" sx={{ color: 'text.secondary' }} />
           </IconButton>
-          <IconButton size="small" onClick={() => handleOpenDialog('edit', row)} title="Edit Entry">
-            <EditIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-          </IconButton>
-          <IconButton size="small" onClick={() => handleOpenHistory(row)} title="Version History">
-            <HistoryIcon fontSize="small" sx={{ color: '#8B5CF6' }} />
-          </IconButton>
-          <IconButton size="small" color="error" onClick={() => handleDelete(row.id)} title="Delete Entry">
-            <DeleteIcon fontSize="small" />
-          </IconButton>
+          {isAdmin && (
+            <>
+              <IconButton size="small" onClick={() => handleOpenDialog('edit', row)} title="Edit Entry">
+                <EditIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+              </IconButton>
+              <IconButton size="small" onClick={() => handleOpenHistory(row)} title="Version History">
+                <HistoryIcon fontSize="small" sx={{ color: '#8B5CF6' }} />
+              </IconButton>
+              <IconButton size="small" color="error" onClick={() => handleDelete(row.id)} title="Delete Entry">
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </>
+          )}
         </Box>
       )
     }

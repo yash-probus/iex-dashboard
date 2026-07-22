@@ -1,9 +1,10 @@
 import { apiClient } from './client';
 
-export interface AdminUser {
+export interface AppUser {
   id: string;
   username: string;
   email: string;
+  role: 'ADMIN' | 'CLIENT';
   createdAt?: string;
   updatedAt?: string;
 }
@@ -11,7 +12,7 @@ export interface AdminUser {
 export interface LoginResponse {
   success: boolean;
   token: string;
-  admin: AdminUser;
+  user: AppUser;
 }
 
 export const authApi = {

@@ -2,13 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
 import { AppError } from '../utils/AppError';
 
-// Extend Express Request to include admin property
+// Extend Express Request to include user property
 declare global {
   namespace Express {
     interface Request {
-      admin?: {
+      user?: {
         id: string;
         username: string;
+        role: string;
       };
     }
   }
@@ -32,8 +33,8 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     // 2. Verify token
     const decoded = verifyToken(token);
 
-    // 3. Attach admin to request
-    req.admin = decoded;
+    // 3. Attach user to request
+    req.user = decoded;
     
     next();
   } catch (error) {

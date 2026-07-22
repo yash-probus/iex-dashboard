@@ -89,7 +89,7 @@ const FORECAST_ROUTES = [
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery('(max-width:767px)');
 
@@ -202,65 +202,69 @@ export default function Navbar() {
           </ListItemButton>
         </ListItem>
 
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => setMobileDatabaseOpen(!mobileDatabaseOpen)}
-            sx={{
-              mx: 1,
-              mb: 1,
-              ...(isDatabaseActive && {
-                bgcolor: 'transparent',
-                '& .MuiListItemText-primary': {
-                  color: 'primary.dark',
-                  fontWeight: 600,
-                }
-              })
-            }}
-          >
-            <ListItemText
-              primary="Database"
-              primaryTypographyProps={{
-                fontWeight: isDatabaseActive ? 600 : 400,
-                sx: {
-                  textDecoration: isDatabaseActive ? 'underline' : 'none',
-                  textDecorationColor: isDatabaseActive ? 'primary.dark' : 'transparent',
-                  textDecorationThickness: '2px',
-                  textUnderlineOffset: '6px'
-                }
-              }}
-            />
-            {mobileDatabaseOpen ? <ExpandLess /> : <ExpandMore />}
-          </ListItemButton>
-        </ListItem>
-        
-        <Collapse in={mobileDatabaseOpen} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {DATABASE_ROUTES.map((item) => (
-              <ListItemButton 
-                key={item.path}
-                onClick={() => { navigate(item.path); setMobileOpen(false); }}
-                sx={{ 
-                  pl: 4, 
+        {isAdmin && (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => setMobileDatabaseOpen(!mobileDatabaseOpen)}
+                sx={{
                   mx: 1,
-                  mb: 0.5,
-                  borderRadius: 1,
-                  bgcolor: isActive(item.path) ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                  mb: 1,
+                  ...(isDatabaseActive && {
+                    bgcolor: 'transparent',
+                    '& .MuiListItemText-primary': {
+                      color: 'primary.dark',
+                      fontWeight: 600,
+                    }
+                  })
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
-                  {item.icon}
-                </Box>
-                <ListItemText 
-                  primary={item.label} 
-                  primaryTypographyProps={{ 
-                    fontWeight: isActive(item.path) ? 600 : 400,
-                    color: isActive(item.path) ? 'primary.dark' : 'text.primary'
-                  }} 
+                <ListItemText
+                  primary="Database"
+                  primaryTypographyProps={{
+                    fontWeight: isDatabaseActive ? 600 : 400,
+                    sx: {
+                      textDecoration: isDatabaseActive ? 'underline' : 'none',
+                      textDecorationColor: isDatabaseActive ? 'primary.dark' : 'transparent',
+                      textDecorationThickness: '2px',
+                      textUnderlineOffset: '6px'
+                    }
+                  }}
                 />
+                {mobileDatabaseOpen ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
-            ))}
-          </List>
-        </Collapse>
+            </ListItem>
+            
+            <Collapse in={mobileDatabaseOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {DATABASE_ROUTES.map((item) => (
+                  <ListItemButton 
+                    key={item.path}
+                    onClick={() => { navigate(item.path); setMobileOpen(false); }}
+                    sx={{ 
+                      pl: 4, 
+                      mx: 1,
+                      mb: 0.5,
+                      borderRadius: 1,
+                      bgcolor: isActive(item.path) ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                      {item.icon}
+                    </Box>
+                    <ListItemText 
+                      primary={item.label} 
+                      primaryTypographyProps={{ 
+                        fontWeight: isActive(item.path) ? 600 : 400,
+                        color: isActive(item.path) ? 'primary.dark' : 'text.primary'
+                      }} 
+                    />
+                  </ListItemButton>
+                ))}
+              </List>
+            </Collapse>
+          </>
+        )}
 
         <ListItem disablePadding>
           <ListItemButton

@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { AUTH_TOKEN_KEY } from '../constants/auth';
 import { authEventEmitter } from '../utils/events';
-import { AdminUser } from '../api/auth.api';
+import { AppUser } from '../api/auth.api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   token: string | null;
-  admin: AdminUser | null;
+  user: AppUser | null;
   authLoading: boolean;
-  login: (token: string, admin: AdminUser) => void;
+  login: (token: string, user: AppUser) => void;
   logout: () => void;
 }
 
@@ -20,24 +20,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
 
   // Deliverable A1: Bootstrapping & Restore Session
   useEffect(() => {
     const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
-    const storedAdmin = localStorage.getItem('iex_admin_user');
+    const storedUser = localStorage.getItem('iex_user');
     
-    if (storedToken && storedAdmin) {
+    if (storedToken && storedUser) {
       try {
-        const parsedAdmin = JSON.parse(storedAdmin);
+        const parsedUser = JSON.parse(storedUser);
         setToken(storedToken);
-        setAdmin(parsedAdmin);
+        setUser(parsedUser);
         setIsAuthenticated(true);
-        setIsAdmin(true);
+        setIsAdmin(parsedUser.role === 'ADMIN');
       } catch (e) {
         // Invalid stored data, clear it
         localStorage.removeItem(AUTH_TOKEN_KEY);
-        localStorage.removeItem('iex_admin_user');
+        localStorage.removeItem('iex_user');
       }
     }
     
@@ -51,26 +51,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => authEventEmitter.removeEventListener('logout', handleLogout);
   }, []);
 
-  const login = (newToken: string, newAdmin: AdminUser) => {
+  const login = (newToken: string, newUser: AppUser) => {
     setToken(newToken);
-    setAdmin(newAdmin);
+    setUser(newUser);
     setIsAuthenticated(true);
-    setIsAdmin(true);
+    setIsAdmin(newUser.role === 'ADMIN');
     localStorage.setItem(AUTH_TOKEN_KEY, newToken);
-    localStorage.setItem('iex_admin_user', JSON.stringify(newAdmin));
+    localStorage.setItem('iex_user', JSON.stringify(newUser));
   };
 
   const logout = () => {
     setToken(null);
-    setAdmin(null);
+    setUser(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
     localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem('iex_admin_user');
+    localStorage.removeItem('iex_user');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, token, admin, authLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, token, user, authLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

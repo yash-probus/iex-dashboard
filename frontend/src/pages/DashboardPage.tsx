@@ -71,11 +71,11 @@ const MODULES = [
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { admin } = useAuth();
+  const { user } = useAuth();
   const theme = useTheme();
 
-  // Fallback if admin.name isn't available
-  const displayName = admin && (admin as any).name ? (admin as any).name : 'Admin User';
+  // Fallback if user.name isn't available
+  const displayName = user && (user as any).name ? (user as any).name : 'User';
 
   return (
     <Box sx={{

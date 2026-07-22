@@ -102,32 +102,49 @@ async function main() {
 
   const username = process.env.ADMIN_USERNAME || 'admin';
   const email = process.env.ADMIN_EMAIL || 'admin@iexdashboard.local';
-  const password = process.env.ADMIN_PASSWORD || 'securepassword';
+  const password = process.env.ADMIN_PASSWORD || 'admin';
 
   // 1. Check if admin exists
-  const existingAdmin = await prisma.admin.findUnique({
-    where: { username },
+  const existingAdmin = await prisma.user.findUnique({
+    where: { username }
   });
 
   if (existingAdmin) {
     console.log(`Admin user '${username}' already exists. Skipping seed to prevent password overwrite.`);
-    return;
+  } else {
+    // 2. Hash password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // 3. Create admin
+    const admin = await prisma.user.create({
+      data: {
+        username,
+        email,
+        passwordHash,
+        role: 'ADMIN'
+      }
+    });
+
+    console.log('Admin user seeded successfully:', admin.username);
   }
 
-  // 2. Hash the password
-  const salt = await bcrypt.genSalt(12);
-  const passwordHash = await bcrypt.hash(password, salt);
-
-  // 3. Create admin
-  const admin = await prisma.admin.create({
-    data: {
-      username,
-      email,
-      passwordHash,
-    },
-  });
-
-  console.log('Admin user seeded successfully:', admin.username);
+  // Also seed a test client user
+  const clientUsername = 'client';
+  const existingClient = await prisma.user.findUnique({ where: { username: clientUsername } });
+  
+  if (!existingClient) {
+    const passwordHash = await bcrypt.hash('client', 10);
+    await prisma.user.create({
+      data: {
+        username: clientUsername,
+        email: 'client@iexdashboard.local',
+        passwordHash,
+        role: 'CLIENT'
+      }
+    });
+    console.log('Client user seeded successfully: client');
+  }
 }
 
 main()

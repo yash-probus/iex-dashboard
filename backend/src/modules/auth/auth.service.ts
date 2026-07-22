@@ -4,36 +4,37 @@ import { comparePassword } from '../../utils/password';
 import { generateToken } from '../../utils/jwt';
 import { AuthResponse, LoginDTO } from './auth.types';
 
-export const loginAdmin = async (dto: LoginDTO): Promise<AuthResponse> => {
+export const loginUser = async (dto: LoginDTO): Promise<AuthResponse> => {
   const { username, password } = dto;
 
-  // 1. Find admin by username
-  const admin = await prisma.admin.findUnique({
+  // 1. Find user by username
+  const user = await prisma.user.findUnique({
     where: { username },
   });
 
-  // 2. If admin not found, throw generic error
-  if (!admin) {
+  // 2. If user not found, throw generic error
+  if (!user) {
     throw new AppError('Invalid credentials', 401);
   }
 
   // 3. Verify password
-  const isPasswordValid = await comparePassword(password as string, admin.passwordHash);
+  const isPasswordValid = await comparePassword(password as string, user.passwordHash);
   if (!isPasswordValid) {
     throw new AppError('Invalid credentials', 401);
   }
 
-  // 4. Generate JWT
-  const token = generateToken({ id: admin.id, username: admin.username });
+  // 4. Generate JWT (now includes role)
+  const token = generateToken({ id: user.id, username: user.username, role: user.role });
 
-  // 5. Return authenticated admin data
+  // 5. Return authenticated user data
   return {
     success: true,
     token,
-    admin: {
-      id: admin.id,
-      username: admin.username,
-      email: admin.email,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
     },
   };
 };

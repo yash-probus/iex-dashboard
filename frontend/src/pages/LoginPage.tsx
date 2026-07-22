@@ -38,7 +38,7 @@ export default function LoginPage() {
     try {
       const response = await authApi.login(trimmedUser, password);
       if (response.success) {
-        login(response.token, response.admin);
+        login(response.token, response.user);
         navigate('/dashboard', { replace: true });
       }
     } catch (err: any) {
