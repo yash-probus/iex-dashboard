@@ -2221,23 +2221,39 @@ export default function SavingsCalculatorPage() {
                 </Box>
               </Box>
               <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Original Energy Cost</Typography>
                     <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.originalTotalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Shifted Energy Cost</Typography>
                     <Typography variant="h4" fontWeight={700}>₹{demandShiftInsights.newTotalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Box sx={{ bgcolor: '#F0FDF4', p: 3, borderRadius: 3, border: '1px solid', borderColor: '#BBF7D0', height: '100%' }}>
                     <Typography variant="subtitle2" color="#166534" sx={{ mb: 1 }}>Potential Extra Savings</Typography>
                     <Typography variant="h4" fontWeight={700} color="#15803D">₹{demandShiftInsights.savingsAchieved.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
                     <Typography variant="body2" color="#166534" sx={{ mt: 1 }}>by shifting {demandShiftInsights.shiftedEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh to cheaper slots</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Box sx={{ bgcolor: '#EFF6FF', p: 3, borderRadius: 3, border: '1px solid', borderColor: '#BFDBFE', height: '100%' }}>
+                    <Typography variant="subtitle2" color="#1E40AF" sx={{ mb: 1 }}>Total Potential Savings</Typography>
+                    {(() => {
+                      const baseRawSavings = marketDecisionResult ? (marketDecisionResult.totalSavings - marketDecisionResult.oaDetailed.dailyFixedOverhead - marketDecisionResult.oaDetailed.bidApplicationFees) : 0;
+                      const baseSavings = Math.max(0, baseRawSavings);
+                      const totalCombinedSavings = baseSavings + demandShiftInsights.savingsAchieved;
+                      return (
+                        <>
+                          <Typography variant="h4" fontWeight={700} color="#1D4ED8">₹{totalCombinedSavings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
+                          <Typography variant="body2" color="#1E40AF" sx={{ mt: 1 }}>(Base OA Savings + Demand Shifting)</Typography>
+                        </>
+                      );
+                    })()}
                   </Box>
                 </Grid>
               </Grid>
