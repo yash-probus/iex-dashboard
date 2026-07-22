@@ -48,24 +48,28 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
           insightsDamEnergy: 0,
           insightsRtmEnergy: 0,
           insightsGdamEnergy: 0,
+          // For Source Graph BASELINE (DISCOM only)
+          baselineDiscomEnergy: 0,
         };
       }
 
-      const energy = maxEnergyPerSlot;
-      const discomCostForSlot = slot.discomLanding * energy;
+      const marketEnergy = slot.marketEnergy || 0;
+      const discomEnergy = slot.discomEnergy || 0;
+      const totalEnergyForSlot = marketEnergy + discomEnergy;
       
-      let proltCostForSlot = discomCostForSlot;
-      if (slot.shouldBuyFromMarket) {
-        proltCostForSlot = slot.bestMarketLanding * energy;
-        if (slot.marketSource === 'DAM') dailyData[day].proltDamEnergy += energy;
-        else if (slot.marketSource === 'RTM') dailyData[day].proltRtmEnergy += energy;
-        else if (slot.marketSource === 'GDAM') dailyData[day].proltGdamEnergy += energy;
-      } else {
-        dailyData[day].proltDiscomEnergy += energy;
-      }
+      const discomCostForSlot = (slot.discomLanding || 0) * discomEnergy;
+      const marketCostForSlot = (slot.bestMarketLanding || 0) * marketEnergy;
+      
+      dailyData[day].discomCost += (slot.discomLanding || 0) * totalEnergyForSlot;
+      dailyData[day].proltCost += (discomCostForSlot + marketCostForSlot);
+      dailyData[day].baselineDiscomEnergy += totalEnergyForSlot;
 
-      dailyData[day].discomCost += discomCostForSlot;
-      dailyData[day].proltCost += proltCostForSlot;
+      if (marketEnergy > 0) {
+        if (slot.marketSource === 'DAM') dailyData[day].proltDamEnergy += marketEnergy;
+        else if (slot.marketSource === 'RTM') dailyData[day].proltRtmEnergy += marketEnergy;
+        else if (slot.marketSource === 'GDAM') dailyData[day].proltGdamEnergy += marketEnergy;
+      }
+      dailyData[day].proltDiscomEnergy += discomEnergy;
     });
 
     // Add daily fixed overheads to PROLT Cost and Insights Cost
@@ -86,15 +90,18 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
       const day = new Date(slot.date).getDate().toString();
       if (!dailyData[day]) return; // Should already exist from PROLT
 
-      const cost = slot.costPerKwh * slot.newEnergy;
+      const cost = (slot.costPerKwh || 0) * (slot.newEnergy || 0);
       dailyData[day].insightsCost += cost;
 
-      if (slot.shouldBuyFromMarket) {
-        if (slot.marketSource === 'DAM') dailyData[day].insightsDamEnergy += slot.marketEnergy;
-        else if (slot.marketSource === 'RTM') dailyData[day].insightsRtmEnergy += slot.marketEnergy;
-        else if (slot.marketSource === 'GDAM') dailyData[day].insightsGdamEnergy += slot.marketEnergy;
+      const marketEnergy = slot.marketEnergy || 0;
+      const discomEnergy = slot.discomEnergy || 0;
+
+      if (marketEnergy > 0) {
+        if (slot.marketSource === 'DAM') dailyData[day].insightsDamEnergy += marketEnergy;
+        else if (slot.marketSource === 'RTM') dailyData[day].insightsRtmEnergy += marketEnergy;
+        else if (slot.marketSource === 'GDAM') dailyData[day].insightsGdamEnergy += marketEnergy;
       }
-      dailyData[day].insightsDiscomEnergy += slot.discomEnergy;
+      dailyData[day].insightsDiscomEnergy += discomEnergy;
     });
 
     const finalData = Object.values(dailyData).sort((a, b) => parseInt(a.day) - parseInt(b.day));
@@ -167,6 +174,9 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
               
+              {/* BASELINE (DISCOM Only) Bars */}
+              <Bar name="BASELINE DISCOM" dataKey="baselineDiscomEnergy" stackId="baseline" fill="#94A3B8" radius={[4, 4, 4, 4]} />
+
               {/* PROLT Bars */}
               <Bar name="PROLT DISCOM" dataKey="proltDiscomEnergy" stackId="prolt" fill="#8B5CF6" radius={[0, 0, 4, 4]} />
               <Bar name="PROLT DAM" dataKey="proltDamEnergy" stackId="prolt" fill="#F59E0B" />
