@@ -68,7 +68,7 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
       dailyData[day].proltCost += proltCostForSlot;
     });
 
-    // Add daily fixed overheads to PROLT Cost
+    // Add daily fixed overheads to PROLT Cost and Insights Cost
     if (marketDecisionResult.oaDetailed) {
       const { dailyFixedOverhead, bidApplicationFees } = marketDecisionResult.oaDetailed;
       const totalOverheadForMonth = dailyFixedOverhead + bidApplicationFees;
@@ -77,6 +77,7 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
       
       Object.keys(dailyData).forEach(day => {
         dailyData[day].proltCost += extraDailyCost;
+        dailyData[day].insightsCost += extraDailyCost;
       });
     }
 
@@ -143,23 +144,12 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Energy Purchase Comparison (kWh)
           </Typography>
-          <ToggleButtonGroup
-            color="primary"
-            value={sourceView}
-            exclusive
-            onChange={(e, val) => { if (val) setSourceView(val); }}
-            size="small"
-            sx={{ '& .MuiToggleButton-root': { textTransform: 'none', px: 3, fontWeight: 600 } }}
-          >
-            <ToggleButton value="PROLT">PROLT Decision</ToggleButton>
-            <ToggleButton value="INSIGHTS">Industry Insights</ToggleButton>
-          </ToggleButtonGroup>
         </Box>
         
         <Box sx={{ width: '100%', height: 400 }}>
           <ResponsiveContainer>
             <BarChart 
-              data={sourceView === 'PROLT' ? sourceDataProlt : sourceDataInsights} 
+              data={sourceDataProlt} 
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
@@ -173,25 +163,21 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
               <Tooltip 
                 cursor={{ fill: 'transparent' }}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                formatter={(value: number) => [`${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh`, '']}
+                formatter={(value: number, name: string) => [`${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh`, name]}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
               
-              {sourceView === 'PROLT' ? (
-                <>
-                  <Bar name="DISCOM" dataKey="proltDiscomEnergy" stackId="a" fill="#8B5CF6" radius={[0, 0, 4, 4]} />
-                  <Bar name="DAM" dataKey="proltDamEnergy" stackId="a" fill="#F59E0B" />
-                  <Bar name="RTM" dataKey="proltRtmEnergy" stackId="a" fill="#EF4444" />
-                  <Bar name="GDAM" dataKey="proltGdamEnergy" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
-                </>
-              ) : (
-                <>
-                  <Bar name="DISCOM" dataKey="insightsDiscomEnergy" stackId="a" fill="#8B5CF6" radius={[0, 0, 4, 4]} />
-                  <Bar name="DAM" dataKey="insightsDamEnergy" stackId="a" fill="#F59E0B" />
-                  <Bar name="RTM" dataKey="insightsRtmEnergy" stackId="a" fill="#EF4444" />
-                  <Bar name="GDAM" dataKey="insightsGdamEnergy" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
-                </>
-              )}
+              {/* PROLT Bars */}
+              <Bar name="PROLT DISCOM" dataKey="proltDiscomEnergy" stackId="prolt" fill="#8B5CF6" radius={[0, 0, 4, 4]} />
+              <Bar name="PROLT DAM" dataKey="proltDamEnergy" stackId="prolt" fill="#F59E0B" />
+              <Bar name="PROLT RTM" dataKey="proltRtmEnergy" stackId="prolt" fill="#EF4444" />
+              <Bar name="PROLT GDAM" dataKey="proltGdamEnergy" stackId="prolt" fill="#10B981" radius={[4, 4, 0, 0]} />
+
+              {/* INSIGHTS Bars (different opacity to distinguish visually) */}
+              <Bar name="INSIGHTS DISCOM" dataKey="insightsDiscomEnergy" stackId="insights" fill="#C4B5FD" radius={[0, 0, 4, 4]} />
+              <Bar name="INSIGHTS DAM" dataKey="insightsDamEnergy" stackId="insights" fill="#FCD34D" />
+              <Bar name="INSIGHTS RTM" dataKey="insightsRtmEnergy" stackId="insights" fill="#FCA5A5" />
+              <Bar name="INSIGHTS GDAM" dataKey="insightsGdamEnergy" stackId="insights" fill="#6EE7B7" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Box>

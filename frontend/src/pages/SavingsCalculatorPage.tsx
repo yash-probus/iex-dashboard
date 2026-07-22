@@ -3,7 +3,7 @@ import { FormControlLabel, Switch,
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, MenuItem
+  CircularProgress, MenuItem, Paper
 } from '@mui/material';
 import { 
   Calculate as CalculateIcon, 
@@ -23,7 +23,8 @@ import {
   Business as BusinessIcon,
   ArrowForward as ArrowForwardIcon,
   FileDownload as FileDownloadIcon,
-  BarChart as BarChartIcon
+  BarChart as BarChartIcon,
+  History as HistoryIcon
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
@@ -44,7 +45,8 @@ import {
   exportSavingsExcel,
   exportDemandShiftExcel,
   fetchDemandShiftInsights,
-  DemandShiftInsightsResult
+  DemandShiftInsightsResult,
+  fetchEntryHistory
 } from '../api/savingsCalculator.api';
 import { VisualAnalyticsCharts } from '../components/insights/VisualAnalyticsCharts';
 import { exportToCSV } from '../utils/export';
@@ -124,6 +126,12 @@ export default function SavingsCalculatorPage() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
+
+  // Version History States
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyData, setHistoryData] = useState<any[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyClientName, setHistoryClientName] = useState<string>('');
 
   // Snackbar Notification State
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -327,6 +335,22 @@ export default function SavingsCalculatorPage() {
     setTraderMargin('');
     setTodConsumptions({});
     setFormErrors({});
+  };
+
+  const handleOpenHistory = async (entry: SavingsCalculatorEntry) => {
+    setHistoryClientName(entry.clientName);
+    setHistoryDialogOpen(true);
+    setHistoryLoading(true);
+    try {
+      const data = await fetchEntryHistory(entry.id);
+      setHistoryData(data);
+    } catch (error) {
+      console.error(error);
+      setSnackbar({ open: true, message: 'Failed to fetch version history', severity: 'error' });
+      setHistoryDialogOpen(false);
+    } finally {
+      setHistoryLoading(false);
+    }
   };
 
   const handleOpenDialog = (mode: DialogMode, entry?: SavingsCalculatorEntry) => {
@@ -844,6 +868,9 @@ export default function SavingsCalculatorPage() {
           </IconButton>
           <IconButton size="small" onClick={() => handleOpenDialog('edit', row)} title="Edit Entry">
             <EditIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+          </IconButton>
+          <IconButton size="small" onClick={() => handleOpenHistory(row)} title="Version History">
+            <HistoryIcon fontSize="small" sx={{ color: '#8B5CF6' }} />
           </IconButton>
           <IconButton size="small" color="error" onClick={() => handleDelete(row.id)} title="Delete Entry">
             <DeleteIcon fontSize="small" />
@@ -2144,6 +2171,77 @@ export default function SavingsCalculatorPage() {
             Close
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* History Dialog */}
+      <Dialog
+        open={historyDialogOpen}
+        onClose={() => setHistoryDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <HistoryIcon sx={{ color: '#8B5CF6' }} />
+            Version History: {historyClientName}
+          </Box>
+          <IconButton onClick={() => setHistoryDialogOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ bgcolor: 'background.default', p: 3 }}>
+          {historyLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : historyData && historyData.length > 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {historyData.map((v) => (
+                <Paper key={v.id} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="subtitle1" fontWeight={700} color="primary">
+                      Version {v.version}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {new Date(v.changedAt).toLocaleString('en-IN')}
+                    </Typography>
+                  </Box>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6} sm={4}>
+                      <Typography variant="caption" color="text.secondary">Client</Typography>
+                      <Typography variant="body2" fontWeight={600}>{v.clientName}</Typography>
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
+                      <Typography variant="caption" color="text.secondary">Industry</Typography>
+                      <Typography variant="body2" fontWeight={600}>{v.industryName}</Typography>
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
+                      <Typography variant="caption" color="text.secondary">State</Typography>
+                      <Typography variant="body2" fontWeight={600}>{v.stateCode}</Typography>
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
+                      <Typography variant="caption" color="text.secondary">Load</Typography>
+                      <Typography variant="body2" fontWeight={600}>{v.sanctionedLoadKw} kW</Typography>
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
+                      <Typography variant="caption" color="text.secondary">Discom</Typography>
+                      <Typography variant="body2" fontWeight={600}>{v.discom}</Typography>
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
+                      <Typography variant="caption" color="text.secondary">PROLT / Trader Margin</Typography>
+                      <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              ))}
+            </Box>
+          ) : (
+            <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
+              No version history found. Update the entry to create versions.
+            </Typography>
+          )}
+        </DialogContent>
       </Dialog>
 
       {/* Snackbar notification */}

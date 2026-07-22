@@ -17,6 +17,12 @@ export interface SavingsCalculatorEntry {
   updatedAt: string;
 }
 
+export interface SavingsCalculatorEntryHistory extends SavingsCalculatorEntry {
+  entryId: string;
+  version: number;
+  changedAt: string;
+}
+
 export interface CreateSavingsEntryDto {
   clientName: string;
   industryName: string;
@@ -128,6 +134,11 @@ export const fetchSavingsEntries = async (): Promise<SavingsCalculatorEntry[]> =
 
 export const fetchSavingsEntryById = async (id: string): Promise<SavingsCalculatorEntry> => {
   const response = await apiClient.get<SavingsCalculatorEntry>(`/savings-calculator/${id}`);
+  return response.data;
+};
+
+export const fetchEntryHistory = async (id: string): Promise<SavingsCalculatorEntryHistory[]> => {
+  const response = await apiClient.get<SavingsCalculatorEntryHistory[]>(`/savings-calculator/${id}/history`);
   return response.data;
 };
 

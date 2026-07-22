@@ -26,6 +26,17 @@ export class SavingsCalculatorController {
     }
   }
 
+  static async getHistory(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
+      const history = await SavingsCalculatorService.getHistory(id);
+      res.json(history);
+    } catch (error) {
+      console.error('[SavingsCalculatorController] Failed to get entry history:', error);
+      res.status(500).json({ message: 'Failed to retrieve entry history.' });
+    }
+  }
+
   static async create(req: Request, res: Response) {
     try {
       const { 

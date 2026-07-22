@@ -538,7 +538,36 @@ model SavingsCalculatorEntry {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
+  history          SavingsCalculatorEntryHistory[]
+
   @@map("savings_calculator_entries")
+}
+
+model SavingsCalculatorEntryHistory {
+  id               String   @id @default(uuid())
+  entryId          String   @map("entry_id") @db.VarChar(36)
+  version          Int
+  
+  // Snapshot of data
+  clientName       String   @map("client_name") @db.VarChar(255)
+  industryName     String   @map("industry_name") @db.VarChar(255)
+  address          String   @db.Text
+  sanctionedLoadKw Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
+  proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
+  traderMargin     Decimal? @map("trader_margin") @db.Decimal(12, 4)
+  stateCode        String?  @map("state_code") @db.VarChar(100)
+  discom           String?  @map("discom") @db.VarChar(100)
+  consumerCategory String?  @map("consumer_category") @db.VarChar(100)
+  voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
+  todConsumptions  Json?    @map("tod_consumptions")
+  applyElectricityDuty Boolean @default(true) @map("apply_electricity_duty")
+  
+  changedAt        DateTime @default(now()) @map("changed_at")
+  
+  entry            SavingsCalculatorEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId])
+  @@map("savings_calculator_entry_histories")
 }
 
 model StateMarketRecord {

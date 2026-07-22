@@ -27,20 +27,44 @@ export class SavingsCalculatorService {
     todConsumptions?: any;
     applyElectricityDuty?: boolean;
   }) {
-    return prisma.savingsCalculatorEntry.create({
-      data: {
-        clientName: data.clientName,
-        industryName: data.industryName,
-        address: data.address,
-        sanctionedLoadKw: data.sanctionedLoadKw,
-        stateCode: data.stateCode,
-        discom: data.discom,
-        consumerCategory: data.consumerCategory,
-        voltageLevel: data.voltageLevel,
-        proltMargin: data.proltMargin,
-        traderMargin: data.traderMargin,
-        todConsumptions: data.todConsumptions
-      }
+    return prisma.$transaction(async (tx) => {
+      const entry = await tx.savingsCalculatorEntry.create({
+        data: {
+          clientName: data.clientName,
+          industryName: data.industryName,
+          address: data.address,
+          sanctionedLoadKw: data.sanctionedLoadKw,
+          stateCode: data.stateCode,
+          discom: data.discom,
+          consumerCategory: data.consumerCategory,
+          voltageLevel: data.voltageLevel,
+          proltMargin: data.proltMargin,
+          traderMargin: data.traderMargin,
+          todConsumptions: data.todConsumptions,
+          applyElectricityDuty: data.applyElectricityDuty
+        }
+      });
+
+      await tx.savingsCalculatorEntryHistory.create({
+        data: {
+          entryId: entry.id,
+          version: 1,
+          clientName: entry.clientName,
+          industryName: entry.industryName,
+          address: entry.address,
+          sanctionedLoadKw: entry.sanctionedLoadKw,
+          stateCode: entry.stateCode,
+          discom: entry.discom,
+          consumerCategory: entry.consumerCategory,
+          voltageLevel: entry.voltageLevel,
+          proltMargin: entry.proltMargin,
+          traderMargin: entry.traderMargin,
+          todConsumptions: entry.todConsumptions,
+          applyElectricityDuty: entry.applyElectricityDuty
+        }
+      });
+
+      return entry;
     });
   }
 
@@ -56,28 +80,67 @@ export class SavingsCalculatorService {
     proltMargin?: number;
     traderMargin?: number;
     todConsumptions?: any;
+    applyElectricityDuty?: boolean;
   }) {
-    return prisma.savingsCalculatorEntry.update({
-      where: { id },
-      data: {
-        clientName: data.clientName,
-        industryName: data.industryName,
-        address: data.address,
-        sanctionedLoadKw: data.sanctionedLoadKw,
-        stateCode: data.stateCode,
-        discom: data.discom,
-        consumerCategory: data.consumerCategory,
-        voltageLevel: data.voltageLevel,
-        proltMargin: data.proltMargin,
-        traderMargin: data.traderMargin,
-        todConsumptions: data.todConsumptions
-      }
+    return prisma.$transaction(async (tx) => {
+      const entry = await tx.savingsCalculatorEntry.update({
+        where: { id },
+        data: {
+          clientName: data.clientName,
+          industryName: data.industryName,
+          address: data.address,
+          sanctionedLoadKw: data.sanctionedLoadKw,
+          stateCode: data.stateCode,
+          discom: data.discom,
+          consumerCategory: data.consumerCategory,
+          voltageLevel: data.voltageLevel,
+          proltMargin: data.proltMargin,
+          traderMargin: data.traderMargin,
+          todConsumptions: data.todConsumptions,
+          ...(data.applyElectricityDuty !== undefined && { applyElectricityDuty: data.applyElectricityDuty })
+        }
+      });
+
+      // Find highest version
+      const lastHistory = await tx.savingsCalculatorEntryHistory.findFirst({
+        where: { entryId: id },
+        orderBy: { version: 'desc' }
+      });
+      const nextVersion = lastHistory ? lastHistory.version + 1 : 1;
+
+      await tx.savingsCalculatorEntryHistory.create({
+        data: {
+          entryId: entry.id,
+          version: nextVersion,
+          clientName: entry.clientName,
+          industryName: entry.industryName,
+          address: entry.address,
+          sanctionedLoadKw: entry.sanctionedLoadKw,
+          stateCode: entry.stateCode,
+          discom: entry.discom,
+          consumerCategory: entry.consumerCategory,
+          voltageLevel: entry.voltageLevel,
+          proltMargin: entry.proltMargin,
+          traderMargin: entry.traderMargin,
+          todConsumptions: entry.todConsumptions,
+          applyElectricityDuty: entry.applyElectricityDuty
+        }
+      });
+
+      return entry;
     });
   }
 
   static async delete(id: string) {
     return prisma.savingsCalculatorEntry.delete({
       where: { id }
+    });
+  }
+
+  static async getHistory(id: string) {
+    return prisma.savingsCalculatorEntryHistory.findMany({
+      where: { entryId: id },
+      orderBy: { version: 'desc' }
     });
   }
 
