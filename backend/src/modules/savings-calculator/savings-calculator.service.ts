@@ -1332,9 +1332,30 @@ export class SavingsCalculatorService {
       const consumerBusUnits = marketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
       const discomEnergy = slabConsumption - consumerBusUnits;
 
-      const energyPerMarketSlot = marketSlots.length > 0 ? marketEnergy / marketSlots.length : 0;
+      // Greedy Logic: Buy max in the absolute cheapest slots first
+      const maxPerSlot = 0.25 * sanctionedLoad;
+      let remainingToAllocate = marketEnergy;
+      let exactMarketEnergyCost = 0;
+
       marketSlots.forEach(s => {
-        (s as any).marketEnergy = energyPerMarketSlot;
+        let basePrice = 0;
+        if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
+        else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
+        else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
+        (s as any)._tempBasePrice = basePrice;
+        (s as any).marketEnergy = 0; // Initialize
+      });
+
+      // Sort by price ascending to greedily consume the cheapest power
+      marketSlots.sort((a, b) => (a as any)._tempBasePrice - (b as any)._tempBasePrice);
+
+      marketSlots.forEach(s => {
+        if (remainingToAllocate > 0) {
+          const allocation = Math.min(maxPerSlot, remainingToAllocate);
+          (s as any).marketEnergy = allocation;
+          exactMarketEnergyCost += allocation * (s as any)._tempBasePrice;
+          remainingToAllocate -= allocation;
+        }
       });
 
       const energyPerDiscomSlot = discomSlots.length > 0 ? discomEnergy / discomSlots.length : 0;
@@ -1345,16 +1366,8 @@ export class SavingsCalculatorService {
       // Average DISCOM rate for this slab (should be same for all slots, take first valid)
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
 
-      // Average base market price for market-cheaper slots (before all charges)
-      const avgMarketPrice = marketSlots.length > 0
-        ? marketSlots.reduce((sum, s) => {
-          let basePrice = 0;
-          if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
-          else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
-          else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
-          return sum + basePrice;
-        }, 0) / marketSlots.length
-        : 0;
+      // For summary display purposes, calculate an effective average market price
+      const avgMarketPrice = marketEnergy > 0 ? exactMarketEnergyCost / marketEnergy : 0;
 
       // Calculate ED and Prorated Demand Charge for this slab
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
