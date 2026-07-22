@@ -161,6 +161,58 @@ export class SavingsCalculatorService {
     });
   }
 
+  static async getClientOverview(id: string) {
+    const entry = await prisma.savingsCalculatorEntry.findUnique({
+      where: { id }
+    });
+    
+    if (!entry) {
+      throw new Error('Entry not found');
+    }
+
+    const todConsumptions = entry.todConsumptions as Record<string, Record<string, number | string>> | null;
+    if (!todConsumptions || Object.keys(todConsumptions).length === 0) {
+      return {
+        clientName: entry.clientName,
+        industryName: entry.industryName,
+        months: [],
+        totalSavings: 0
+      };
+    }
+
+    const months = Object.keys(todConsumptions).sort();
+    let totalSavings = 0;
+    const monthsData = [];
+
+    for (const month of months) {
+      try {
+        const result = await SavingsCalculatorService.calculateMarketDecision(id, month);
+        const rawSavings = result.totalSavings - result.oaDetailed.dailyFixedOverhead - result.oaDetailed.bidApplicationFees;
+        const netSavings = rawSavings > 0 ? rawSavings : 0;
+        totalSavings += netSavings;
+        
+        monthsData.push({
+          month,
+          savings: netSavings
+        });
+      } catch (error) {
+        console.error(`Error calculating market decision for month ${month}:`, error);
+        monthsData.push({
+          month,
+          savings: 0,
+          error: 'Calculation failed'
+        });
+      }
+    }
+
+    return {
+      clientName: entry.clientName,
+      industryName: entry.industryName,
+      months: monthsData,
+      totalSavings
+    };
+  }
+
   // Savings calculation logic
   static async calculateSavings(id: string, targetMonth?: string, version?: number) {
     const entry = await this.getEntryOrVersion(id, version);

@@ -47,7 +47,9 @@ import {
   exportDemandShiftExcel,
   fetchDemandShiftInsights,
   DemandShiftInsightsResult,
-  fetchEntryHistory
+  fetchEntryHistory,
+  fetchClientOverview,
+  ClientOverviewResult
 } from '../api/savingsCalculator.api';
 import { VisualAnalyticsCharts } from '../components/insights/VisualAnalyticsCharts';
 import { exportToCSV } from '../utils/export';
@@ -71,6 +73,10 @@ export default function SavingsCalculatorPage() {
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
   const [selectedEntry, setSelectedEntry] = useState<SavingsCalculatorEntry | null>(null);
   const [activeStep, setActiveStep] = useState<number>(0);
+  
+  // Client Overview State
+  const [clientOverview, setClientOverview] = useState<ClientOverviewResult | null>(null);
+  const [overviewLoading, setOverviewLoading] = useState<boolean>(false);
   
   // Form Fields State
   const [clientName, setClientName] = useState('');
@@ -379,11 +385,24 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  const handleOpenDialog = (mode: DialogMode, entry?: SavingsCalculatorEntry) => {
+  const handleOpenDialog = async (mode: DialogMode, entry?: SavingsCalculatorEntry) => {
     setDialogMode(mode);
     setFormErrors({});
+    setClientOverview(null);
     if (entry) {
       setSelectedEntry(entry);
+      
+      if (mode === 'view') {
+        setOverviewLoading(true);
+        try {
+          const overview = await fetchClientOverview(entry.id);
+          setClientOverview(overview);
+        } catch (err) {
+          console.error("Failed to fetch overview", err);
+        } finally {
+          setOverviewLoading(false);
+        }
+      }
       setClientName(entry.clientName);
       setIndustryName(entry.industryName);
       setAddress(entry.address);
@@ -1022,7 +1041,56 @@ export default function SavingsCalculatorPage() {
         
         <DialogContent sx={{ pt: 2, maxWidth: '600px', mx: 'auto', width: '100%', pb: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {dialogMode !== 'view' && (
+          {dialogMode === 'view' ? (
+            <Box>
+              {overviewLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4, flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <CircularProgress size={32} />
+                  <Typography variant="body2" color="text.secondary">Aggregating savings across all months...</Typography>
+                </Box>
+              ) : clientOverview ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box>
+                    <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>Client Overview: {clientOverview.clientName}</Typography>
+                    <Typography variant="body2" color="text.secondary">{clientOverview.industryName}</Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+                    <Table size="small">
+                      <TableHead sx={{ bgcolor: 'background.default' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 600 }}>Month</TableCell>
+                          <TableCell sx={{ fontWeight: 600, textAlign: 'right' }}>Net Savings</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {clientOverview.months.map((m) => (
+                          <TableRow key={m.month}>
+                            <TableCell>{m.month}</TableCell>
+                            <TableCell sx={{ textAlign: 'right' }}>
+                              {m.savings <= 0 ? (
+                                <Typography variant="body2" color="error" fontWeight={600}>Not Eligible for OA (₹0)</Typography>
+                              ) : (
+                                <Typography variant="body2" color="success.main" fontWeight={600}>₹{m.savings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow sx={{ bgcolor: '#EFF6FF' }}>
+                          <TableCell sx={{ fontWeight: 700, py: 2, color: '#1E40AF' }}>Total Net Savings</TableCell>
+                          <TableCell sx={{ textAlign: 'right', fontWeight: 700, py: 2, color: '#16A34A' }}>
+                            ₹{clientOverview.totalSavings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </Paper>
+                </Box>
+              ) : (
+                <Typography color="error">Failed to load overview data.</Typography>
+              )}
+            </Box>
+          ) : (
+            <>
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
                 width: `${((activeStep + 1) / 9) * 100}%`, 
@@ -1031,7 +1099,6 @@ export default function SavingsCalculatorPage() {
                 transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
               }} />
             </Box>
-          )}
 
           {renderStep(0, {
             icon: <BusinessIcon />,
@@ -1420,25 +1487,7 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {dialogMode === 'view' && selectedEntry && (
-            <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                <strong>Last Updated At:</strong> {new Date(selectedEntry.updatedAt).toLocaleString('en-IN')}
-              </Typography>
-            </Box>
-          )}
-          {dialogMode === 'view' && selectedEntry && (
-            <Box sx={{ mt: 1, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                <strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                <strong>Last Updated At:</strong> {new Date(selectedEntry.updatedAt).toLocaleString('en-IN')}
-              </Typography>
-            </Box>
+            </>
           )}
           </Box>
         </DialogContent>

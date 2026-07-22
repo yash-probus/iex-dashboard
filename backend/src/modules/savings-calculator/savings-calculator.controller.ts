@@ -159,6 +159,17 @@ export class SavingsCalculatorController {
       res.status(500).json({ message: error.message || 'Market decision calculation failed.' });
     }
   }
+
+  static async getClientOverview(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await SavingsCalculatorService.getClientOverview(id as string);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error('[SavingsCalculatorController] Get Client Overview failed:', error);
+      res.status(500).json({ message: error.message || 'Failed to get client overview.' });
+    }
+  }
   static async exportExcel(req: Request, res: Response) {
     try {
       const { id } = req.params;

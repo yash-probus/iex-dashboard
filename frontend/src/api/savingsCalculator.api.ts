@@ -168,6 +168,23 @@ export const calculateSavings = async (id: string, month?: string, version?: num
   return response.data;
 };
 
+export interface ClientOverviewResult {
+  clientName: string;
+  industryName: string;
+  months: {
+    month: string;
+    savings: number;
+    error?: string;
+  }[];
+  totalSavings: number;
+}
+
+export const fetchClientOverview = async (id: string): Promise<ClientOverviewResult> => {
+  const url = `/savings-calculator/${id}/overview`;
+  const response = await apiClient.get<ClientOverviewResult>(url);
+  return response.data;
+};
+
 export const calculateMarketDecision = async (id: string, month?: string, version?: number): Promise<MarketDecisionResult> => {
   const url = `/savings-calculator/${id}/calculate-market-decision`;
   const response = await apiClient.post<MarketDecisionResult>(url, {}, { params: { month, version } });
