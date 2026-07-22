@@ -175,6 +175,8 @@ export interface ClientOverviewResult {
     month: string;
     savings: number;
     grossSavings?: number;
+    totalEnergyKwh?: number;
+    totalMarketEnergyKwh?: number;
     error?: string;
   }[];
   totalSavings: number;

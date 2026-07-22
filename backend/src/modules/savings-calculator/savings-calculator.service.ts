@@ -218,7 +218,9 @@ export class SavingsCalculatorService {
         monthsData.push({
           month,
           savings: netSavings,
-          grossSavings: grossSavings
+          grossSavings: grossSavings,
+          totalEnergyKwh: result.totalEnergyKwh,
+          totalMarketEnergyKwh: result.totalMarketEnergyKwh
         });
       } catch (error) {
         console.error(`Error calculating market decision for month ${month}:`, error);
