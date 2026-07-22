@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Typography, Card, CardContent, Grid, Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer, Button } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer, Button, Tooltip as MuiTooltip } from '@mui/material';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   AreaChart, Area
@@ -7,6 +7,7 @@ import {
 import { MarketDecisionResult } from '../../api/savingsCalculator.api';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import DownloadIcon from '@mui/icons-material/Download';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import html2canvas from 'html2canvas';
 import { pdf } from '@react-pdf/renderer';
 import { PDFDocument } from 'pdf-lib';
@@ -328,6 +329,9 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#3B82F6' }}>📈</span> Monthly Spend Comparison
+                <MuiTooltip title="Comparison of your total monthly energy cost under the standard DISCOM rate versus the PROLT optimized strategy." placement="top">
+                  <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                </MuiTooltip>
               </Typography>
               <Box ref={spendComparisonRef} sx={{ height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -349,6 +353,9 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#8B5CF6' }}>📊</span> Monthly Consumption Mix - DISCOM Vs OA
+                <MuiTooltip title="Breakdown of energy units (kWh) sourced from the grid (DISCOM) versus Open Access (OA) markets." placement="top">
+                  <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                </MuiTooltip>
               </Typography>
               <Box ref={consumptionMixRef} sx={{ height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -380,6 +387,9 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <span style={{ color: '#3B82F6' }}>₹</span> Daily Savings Opportunity (Energy Cost)
+                <MuiTooltip title="Daily area chart showing the actual spend versus PROLT optimized spend. The green area represents your savings." placement="top">
+                  <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                </MuiTooltip>
               </Typography>
               <Box ref={dailySavingsRef} sx={{ height: 300, bgcolor: 'white' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -409,6 +419,9 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <span style={{ color: '#3B82F6' }}>📈</span> Purchase Comparison - {displayMonth}
+                  <MuiTooltip title="Daily bar chart breaking down the energy units purchased from DISCOM and various Open Access markets." placement="top">
+                    <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                  </MuiTooltip>
                 </Typography>
                 <Box data-html2canvas-ignore sx={{ display: 'flex', bgcolor: '#F9FAFB', p: 0.5, borderRadius: 8, border: '1px solid #E5E7EB' }}>
                   <Button 

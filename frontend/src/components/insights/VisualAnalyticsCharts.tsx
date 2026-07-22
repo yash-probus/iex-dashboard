@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Typography, Paper, ToggleButtonGroup, ToggleButton, useTheme } from '@mui/material';
+import { Box, Typography, Paper, ToggleButtonGroup, ToggleButton, useTheme, Tooltip as MuiTooltip } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   BarChart,
   Bar,
@@ -117,9 +118,14 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 3 }}>
       {/* GRAPH 1: Price Comparison */}
       <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-          Daily Cost Comparison (₹)
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mr: 1 }}>
+            Daily Cost Comparison (₹)
+          </Typography>
+          <MuiTooltip title="Compares the daily energy costs under your original DISCOM plan, the PROLT optimized plan, and the Industry Insights plan." placement="top">
+            <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+          </MuiTooltip>
+        </Box>
         <Box sx={{ width: '100%', height: 400 }}>
           <ResponsiveContainer>
             <BarChart data={costData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -148,9 +154,14 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
       {/* GRAPH 2: Source Breakdown */}
       <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Energy Purchase Comparison (kWh)
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mr: 1 }}>
+              Energy Purchase Comparison (kWh)
+            </Typography>
+            <MuiTooltip title="Breaks down the daily energy purchased from the DISCOM versus the different power exchange markets (DAM, RTM, GDAM) across all scenarios." placement="top">
+              <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+            </MuiTooltip>
+          </Box>
         </Box>
         
         <Box sx={{ width: '100%', height: 400 }}>
