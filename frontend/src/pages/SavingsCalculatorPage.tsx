@@ -261,9 +261,14 @@ export default function SavingsCalculatorPage() {
       let parsedCategory = consumerCategory;
       let parsedSubCategory = '';
       if (consumerCategory === "HV-1 A") { parsedCategory = "HV-1"; parsedSubCategory = "Commercial, Private Inst"; }
-      if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
-      if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
-      if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
+      else if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
+      else if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
+      else if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
+      else if (consumerCategory.includes(' | ')) {
+        const parts = consumerCategory.split(' | ');
+        parsedCategory = parts[0];
+        parsedSubCategory = parts[1];
+      }
       
       const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
       if (matchState && matchCategory && row.supplyVoltageCategory) {
@@ -282,9 +287,14 @@ export default function SavingsCalculatorPage() {
       let parsedCategory = consumerCategory;
       let parsedSubCategory = '';
       if (consumerCategory === "HV-1 A") { parsedCategory = "HV-1"; parsedSubCategory = "Commercial, Private Inst"; }
-      if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
-      if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
-      if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
+      else if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
+      else if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
+      else if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
+      else if (consumerCategory.includes(' | ')) {
+        const parts = consumerCategory.split(' | ');
+        parsedCategory = parts[0];
+        parsedSubCategory = parts[1];
+      }
       
       const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
       let parsedVoltageLevel = voltageLevel;

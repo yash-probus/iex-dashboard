@@ -13,6 +13,23 @@ export class SavingsCalculatorService {
     });
   }
 
+
+  static async getEntryOrVersion(id: string, version?: number) {
+    if (version !== undefined) {
+      const historyEntry = await prisma.savingsCalculatorEntryHistory.findFirst({
+        where: { entryId: id, version }
+      });
+      if (historyEntry) {
+        return {
+          ...historyEntry,
+          id: historyEntry.entryId
+        };
+      }
+      return null;
+    }
+    return this.getById(id);
+  }
+
   static async create(data: {
     clientName: string;
     industryName: string;
@@ -145,8 +162,8 @@ export class SavingsCalculatorService {
   }
 
   // Savings calculation logic
-  static async calculateSavings(id: string, targetMonth?: string) {
-    const entry = await this.getById(id);
+  static async calculateSavings(id: string, targetMonth?: string, version?: number) {
+    const entry = await this.getEntryOrVersion(id, version);
     if (!entry) {
       throw new Error('Entry not found');
     }
