@@ -266,9 +266,17 @@ export class SavingsCalculatorService {
         whereClause.subCategory = { contains: parsedSubCategory };
       }
 
-      const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-      const lastDay = new Date(year, month, 0).getDate();
-      const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+      let startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+      let lastDay = new Date(year, month, 0).getDate();
+      let endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+
+      if (entry.discom === 'NPCL') {
+        startStr = `${year}-${String(month).padStart(2, '0')}-19`;
+        const nextMonthDate = new Date(year, month, 18);
+        const endYear = nextMonthDate.getFullYear();
+        const endMonth = nextMonthDate.getMonth() + 1;
+        endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-18`;
+      }
 
       // Fetch stateCharges for losses
       const stateCharges = await prisma.stateCharges.findFirst({
@@ -392,7 +400,7 @@ export class SavingsCalculatorService {
         const isNpcl = entry.discom === 'NPCL';
 
         if (isNpcl) {
-          const isWinter = month >= 10 || month <= 3;
+          const isWinter = month >= 9 || month <= 3;
           const baseRate = 6.80; 
 
           if (isWinter) {
@@ -632,9 +640,17 @@ export class SavingsCalculatorService {
     const sanctionedLoad = Number(entry.sanctionedLoadKw) || 0;
     const maxEnergyPerSlot = (sanctionedLoad * 0.9 * 0.25);
 
-    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+    let startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+    let lastDay = new Date(year, month, 0).getDate();
+    let endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+
+    if (entry.discom === 'NPCL') {
+      startStr = `${year}-${String(month).padStart(2, '0')}-19`;
+      const nextMonthDate = new Date(year, month, 18);
+      const endYear = nextMonthDate.getFullYear();
+      const endMonth = nextMonthDate.getMonth() + 1;
+      endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-18`;
+    }
     const targetDate = new Date(startStr);
 
     let parsedSupplyVoltageCategory = voltageLevel;
@@ -867,7 +883,7 @@ export class SavingsCalculatorService {
       const isNpcl = entry.discom === 'NPCL';
 
       if (isNpcl) {
-        const isWinter = month >= 10 || month <= 3;
+        const isWinter = month >= 9 || month <= 3;
         const baseRate = 6.80; 
 
         if (isWinter) {

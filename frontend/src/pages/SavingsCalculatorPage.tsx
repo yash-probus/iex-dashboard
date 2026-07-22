@@ -285,7 +285,7 @@ export default function SavingsCalculatorPage() {
 
   const getTodSlabsForMonth = React.useCallback((targetMonth: number) => {
     if (discom === 'NPCL') {
-      const isWinter = targetMonth >= 10 || targetMonth <= 3;
+      const isWinter = targetMonth >= 9 || targetMonth <= 3;
       if (isWinter) {
         return ['TOD1', 'TOD2', 'TOD3', 'TOD4', 'TOD5', 'TOD6'];
       } else {
@@ -2131,13 +2131,21 @@ export default function SavingsCalculatorPage() {
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">Net Savings</Typography>
-                      <Typography variant="body2" fontWeight={700} color="#16A34A">
-                        ₹{(
-                          marketDecisionResult.totalSavings - 
-                          marketDecisionResult.oaDetailed.dailyFixedOverhead - 
-                          marketDecisionResult.oaDetailed.bidApplicationFees
-                        ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                      </Typography>
+                      {(() => {
+                        const rawSavings = marketDecisionResult.totalSavings - marketDecisionResult.oaDetailed.dailyFixedOverhead - marketDecisionResult.oaDetailed.bidApplicationFees;
+                        if (rawSavings <= 0) {
+                          return (
+                            <Typography variant="body2" fontWeight={700} color="#DC2626">
+                              Not Eligible for OA
+                            </Typography>
+                          );
+                        }
+                        return (
+                          <Typography variant="body2" fontWeight={700} color="#16A34A">
+                            ₹{rawSavings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                          </Typography>
+                        );
+                      })()}
                     </Box>
                   </Box>
                 </Box>
