@@ -59,7 +59,7 @@ export class SavingsCalculatorService {
           voltageLevel: entry.voltageLevel,
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
-          todConsumptions: entry.todConsumptions,
+          todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,
           applyElectricityDuty: entry.applyElectricityDuty
         }
       });
@@ -122,7 +122,7 @@ export class SavingsCalculatorService {
           voltageLevel: entry.voltageLevel,
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
-          todConsumptions: entry.todConsumptions,
+          todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,
           applyElectricityDuty: entry.applyElectricityDuty
         }
       });
