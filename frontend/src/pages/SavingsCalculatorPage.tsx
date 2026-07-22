@@ -680,6 +680,9 @@ export default function SavingsCalculatorPage() {
       'Savings (Rs)': (row.baselineCost - row.optimizedCost).toFixed(2),
       'Market Decision (Yes/No)': row.selectedSource !== 'DISCOM' ? 'Yes' : 'No',
       'Selected Source': row.selectedSource,
+      'ISTS Loss (%)': row.istsLoss?.toFixed(4) || '0.0000',
+      'STU Loss (%)': row.stuLoss?.toFixed(4) || '0.0000',
+      'Wheeling Loss (%)': row.wheelingLoss?.toFixed(4) || '0.0000'
     }));
     
     const filename = `${calcResult.clientName}_savings_report.csv`;

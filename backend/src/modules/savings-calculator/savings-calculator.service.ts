@@ -266,6 +266,31 @@ export class SavingsCalculatorService {
         whereClause.subCategory = { contains: parsedSubCategory };
       }
 
+      const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+
+      // Fetch stateCharges for losses
+      const stateCharges = await prisma.stateCharges.findFirst({
+        where: {
+          state: stateName.toUpperCase().replace(/\s+/g, '_'),
+          category: parsedCategory,
+          fromDate: { lte: new Date(startStr) },
+          toDate: { gte: new Date(endStr) }
+        }
+      });
+      const stuLoss = stateCharges?.stuLossPercent ? Number(stateCharges.stuLossPercent) : 0;
+      const wheelingLoss = stateCharges?.wheelingLossPercent ? Number(stateCharges.wheelingLossPercent) : 0;
+
+      // Fetch istsCharges for losses
+      const istsCharges = await prisma.istsCharges.findMany({
+        where: {
+          OR: [
+            { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
+          ]
+        }
+      });
+
       // Fetch FPPA percent (using current month for simulation accuracy)
       const fppaData = await prisma.fppaCharges.findFirst({
         where: {
@@ -297,9 +322,6 @@ export class SavingsCalculatorService {
       }
 
       // Query combined DAM, GDAM, and RTM records for the selected month using FULL OUTER JOIN
-      const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-      const lastDay = new Date(year, month, 0).getDate();
-      const endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
       const query = `
         SELECT
@@ -344,6 +366,12 @@ export class SavingsCalculatorService {
         const deliveryDate = rec.date ? new Date(rec.date) : new Date(startStr);
         const dateStr = deliveryDate.toISOString().split('T')[0];
         const slot = rec.timeblock || rec.timeblock === 0 ? Number(rec.timeblock) : 1;
+
+        let istsLoss = 0;
+        const matchingIsts = istsCharges.find(i => deliveryDate >= i.startDate && deliveryDate <= i.endDate);
+        if (matchingIsts) {
+          istsLoss = Number(matchingIsts.istsLossPercent || 0);
+        }
 
         const startMinutes = (slot - 1) * 15;
         const hour = Math.floor(startMinutes / 60);
@@ -472,7 +500,10 @@ export class SavingsCalculatorService {
           selectedSource,
           maxEnergyPerSlot: 0,
           optimizedCost: 0,
-          baselineCost: 0
+          baselineCost: 0,
+          istsLoss,
+          stuLoss,
+          wheelingLoss
         };
       });
 
@@ -1254,17 +1285,25 @@ export class SavingsCalculatorService {
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
-      const slabED = entry.applyElectricityDuty !== false ? (slabEnergyBill + slabDemandCharge) * 0.075 : 0;
+      
+      // Calculate Regulatory Discount @ 10% and Rebate @ 1% on the total DISCOM components
+      const applyDiscounts = (billAmount: number) => {
+        // Apply 10% regulatory discount and then 1% rebate
+        return billAmount * 0.90 * 0.99;
+      };
+
+      const slabED = entry.applyElectricityDuty !== false ? applyDiscounts(slabEnergyBill + slabDemandCharge) * 0.075 : 0;
       totalElectricityDuty += slabED;
 
       // Baseline: all consumption at DISCOM rate (inclusive of fixed/taxes)
-      const slabTotalDiscomBill = slabEnergyBill + slabDemandCharge + slabED;
+      // Apply discounts to the fully discom bill
+      const slabTotalDiscomBill = applyDiscounts(slabEnergyBill + slabDemandCharge) + slabED;
       totalBaselineCost += slabTotalDiscomBill;
 
       // Prolt Discom Bill is the DISCOM bill for the un-switched units + 100% of the fixed/taxes
       const proltEnergyBill = discomEnergy * slabDiscomRate;
       // ED applies to total consumption physical units (same as baseline), demand charge is also fixed.
-      const proltDiscomBillTotal = proltEnergyBill + slabDemandCharge + slabED;
+      const proltDiscomBillTotal = applyDiscounts(proltEnergyBill + slabDemandCharge) + slabED;
 
       const nonGdamMarketSlots = marketSlots.filter(s => s.marketSource !== 'GDAM').length;
       const nonGdamFraction = marketSlots.length > 0 ? nonGdamMarketSlots / marketSlots.length : 0;
