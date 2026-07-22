@@ -226,15 +226,21 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
       border: '1px solid #C7D2FE',
       mb: 3
     }}>
-      <Typography variant="h6" sx={{ color: '#1E3A8A', fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-        🎉 Great news! Your bill could drop by 
-        <Typography component="span" variant="h5" sx={{ fontWeight: 800, color: '#111827' }}>
-          {netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)}
+      {netSavings > 0 ? (
+        <Typography variant="h6" sx={{ color: '#1E3A8A', fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          🎉 Great news! Your bill could drop by 
+          <Typography component="span" variant="h5" sx={{ fontWeight: 800, color: '#111827' }}>
+            {netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)}
+          </Typography>
+          <Typography component="span" variant="subtitle1" sx={{ color: '#3B82F6', fontWeight: 600 }}>
+            ({savingsPerc}% reduction)
+          </Typography>
         </Typography>
-        <Typography component="span" variant="subtitle1" sx={{ color: '#3B82F6', fontWeight: 600 }}>
-          ({savingsPerc}% reduction)
+      ) : (
+        <Typography variant="h6" sx={{ color: '#991B1B', fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          ⚠️ Not Eligible for Open Access
         </Typography>
-      </Typography>
+      )}
       <Typography variant="body2" sx={{ color: '#6B7280', mb: 3 }}>
         Total potential savings for {displayMonth}.
       </Typography>
@@ -245,9 +251,11 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{formatCurrency(result.totalBaselineCost)}</Typography>
         </Box>
         <ArrowRightAltIcon sx={{ color: '#9CA3AF' }} />
-        <Box sx={{ bgcolor: '#ECFDF5', px: 3, py: 1.5, borderRadius: 2, border: '1px solid #A7F3D0', minWidth: 150, textAlign: 'center' }}>
-          <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, letterSpacing: 1 }}>PROLT OPTIMIZED SPEND</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#047857' }}>{formatCurrency(netProltSpend)}</Typography>
+        <Box sx={{ bgcolor: netSavings > 0 ? '#ECFDF5' : '#FEE2E2', px: 3, py: 1.5, borderRadius: 2, border: netSavings > 0 ? '1px solid #A7F3D0' : '1px solid #FECACA', minWidth: 150, textAlign: 'center' }}>
+          <Typography variant="caption" sx={{ color: netSavings > 0 ? '#059669' : '#991B1B', fontWeight: 600, letterSpacing: 1 }}>
+            {netSavings > 0 ? 'PROLT OPTIMIZED SPEND' : 'SIMULATED OA SPEND'}
+          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: netSavings > 0 ? '#047857' : '#7F1D1D' }}>{formatCurrency(netProltSpend)}</Typography>
         </Box>
       </Box>
       

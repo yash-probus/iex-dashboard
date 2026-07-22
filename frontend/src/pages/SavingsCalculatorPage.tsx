@@ -2036,7 +2036,11 @@ export default function SavingsCalculatorPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {marketDecisionResult.slotsData.slice(0, 150).map((row: any, idx: number) => (
+                      {marketDecisionResult.slotsData.slice(0, 150).map((row: any, idx: number) => {
+                        const isOaEligible = (marketDecisionResult.totalSavings - (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) - (marketDecisionResult.oaDetailed?.bidApplicationFees || 0)) > 0;
+                        const buyDecision = isOaEligible && row.shouldBuyFromMarket;
+                        
+                        return (
                         <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
                           <TableCell>{row.date}</TableCell>
                           <TableCell align="center">{row.timeStr || `${String(row.hour).padStart(2, '0')}:${String((row.timeblock - 1) * 15 % 60).padStart(2, '0')}`}</TableCell>
@@ -2065,19 +2069,20 @@ export default function SavingsCalculatorPage() {
                               textTransform: 'uppercase', 
                               fontSize: '10px', 
                               fontWeight: 800, 
-                              color: row.shouldBuyFromMarket ? '#16A34A' : '#DC2626',
-                              backgroundColor: row.shouldBuyFromMarket ? '#DCFCE7' : '#FEE2E2',
+                              color: buyDecision ? '#16A34A' : '#DC2626',
+                              backgroundColor: buyDecision ? '#DCFCE7' : '#FEE2E2',
                               padding: '2px 6px',
                               borderRadius: '4px'
                             }}>
-                              {row.shouldBuyFromMarket ? 'Yes' : 'No'}
+                              {buyDecision ? 'Yes' : 'No'}
                             </span>
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : 'inherit' }}>
                             {row.savingsPerKwh > 0 ? `₹${row.savingsPerKwh.toFixed(4)}` : '-'}
                           </TableCell>
                         </TableRow>
-                      ))}
+                        );
+                      })}
                     </TableBody>
                     </Table>
                   </Box>

@@ -897,15 +897,24 @@ export class SavingsCalculatorService {
       const rtmMcp = (rec.rtmMcp != null) ? (Number(rec.rtmMcp) / 1000) : null;
       const gdamMcp = (rec.gdamMcp != null) ? (Number(rec.gdamMcp) / 1000) : null;
 
+      const isNpcl = entry.discom === 'NPCL';
+
       const calcExchangeLanding = (mcp: number | null) => {
         if (mcp == null) return null;
-        const safeIsts = Math.min(istsLoss, 99.9);
-        const safeStu = Math.min(stuLoss, 99.9);
-        const safeWheeling = Math.min(wheelingLoss, 99.9);
-        const lossCoefficient = (1 - (safeIsts / 100)) * (1 - (safeStu / 100)) * (1 - (safeWheeling / 100));
-        const regionalCharges = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + additionalSurcharge;
-        const lossAdjustedRegional = regionalCharges / lossCoefficient;
-        return lossAdjustedRegional + crossSubsidy;
+        
+        const sumOfCharges = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
+        
+        // Loss approximation matching the excel sheet: *(1 + L% + M% + N%)
+        const lossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
+        
+        let landingPrice = sumOfCharges * lossMultiplier;
+
+        // Apply 10% regulatory discount and 1% rebate for NPCL
+        if (isNpcl) {
+          landingPrice = landingPrice * 0.90 * 0.99;
+        }
+
+        return landingPrice;
       };
 
       const damLanding = calcExchangeLanding(damMcp);
@@ -935,8 +944,6 @@ export class SavingsCalculatorService {
 
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
-
-      const isNpcl = entry.discom === 'NPCL';
 
       if (isNpcl) {
         const isWinter = month >= 9 || month <= 3;

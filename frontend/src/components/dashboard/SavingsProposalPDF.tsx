@@ -200,10 +200,16 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
       <Page size="A4" style={styles.page}>
         <View style={styles.titleSection}>
           <Text style={styles.redSubtitle}>SAVINGS ANALYSIS / {displayMonth}</Text>
-          <Text style={styles.mainHeadline}>
-            Great news — your bill could{'\n'}
-            drop by <Text style={styles.redHighlightText}>{netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)}</Text> <Text style={styles.highlightText}>({savingsPerc}% reduction).</Text>
-          </Text>
+          {netSavings > 0 ? (
+            <Text style={styles.mainHeadline}>
+              Great news — your bill could{'\n'}
+              drop by <Text style={styles.redHighlightText}>{netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)}</Text> <Text style={styles.highlightText}>({savingsPerc}% reduction).</Text>
+            </Text>
+          ) : (
+            <Text style={styles.mainHeadline}>
+              <Text style={{ color: '#991B1B', fontWeight: 800 }}>Not Eligible for Open Access</Text>
+            </Text>
+          )}
           <Text style={styles.description}>
             Total potential savings across 1 month, based on the consumption you shared with the Prolt Savings Calculator. This document summarises what you are paying today, the mix Prolt recommends, and the daily breakdown behind the projected saving.
           </Text>
@@ -215,13 +221,13 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
             <Text style={styles.kpiValueActual}>{formatCurrency(result.totalBaselineCost)}</Text>
           </View>
           <View style={styles.kpiCardProlt}>
-            <Text style={styles.kpiLabelProlt}>Prolt Optimized Spend</Text>
+            <Text style={styles.kpiLabelProlt}>{netSavings > 0 ? 'Prolt Optimized Spend' : 'Simulated OA Spend'}</Text>
             <Text style={styles.kpiValueProlt}>{formatCurrency(netProltSpend)}</Text>
           </View>
           <View style={styles.kpiCardSavings}>
             <Text style={styles.kpiLabelSavings}>Prolt Projected Savings</Text>
-            <Text style={styles.kpiValueSavings}>{netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)}</Text>
-            <Text style={{ fontSize: 9, color: '#0369A1', marginTop: 4 }}>{savingsPerc}% reduction</Text>
+            <Text style={styles.kpiValueSavings}>{netSavings > 0 ? (netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)) : 'Rs 0'}</Text>
+            {netSavings > 0 && <Text style={{ fontSize: 9, color: '#0369A1', marginTop: 4 }}>{savingsPerc}% reduction</Text>}
           </View>
         </View>
 
