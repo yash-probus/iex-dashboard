@@ -3,7 +3,7 @@ import { FormControlLabel, Switch,
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, MenuItem, Paper
+  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment
 } from '@mui/material';
 import { 
   Calculate as CalculateIcon, 
@@ -24,7 +24,8 @@ import {
   ArrowForward as ArrowForwardIcon,
   FileDownload as FileDownloadIcon,
   BarChart as BarChartIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  InfoOutlined as InfoOutlinedIcon
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
@@ -1136,6 +1137,15 @@ export default function SavingsCalculatorPage() {
                   variant="outlined"
                   size="small"
                   InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <MuiTooltip title="Your official customer category defined by the DISCOM (determines your base tariff)." placement="top">
+                          <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                        </MuiTooltip>
+                      </InputAdornment>
+                    )
+                  }}
                 >
                   <MenuItem value="" disabled>Select Category</MenuItem>
                   {uniqueCategories.map((cat) => (
@@ -1170,6 +1180,15 @@ export default function SavingsCalculatorPage() {
                   variant="outlined"
                   size="small"
                   InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <MuiTooltip title="The supply voltage level for your connection (affects surcharges)." placement="top">
+                          <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                        </MuiTooltip>
+                      </InputAdornment>
+                    )
+                  }}
                 >
                   <MenuItem value="" disabled>Select Voltage</MenuItem>
                   {uniqueVoltageLevels.map((lvl) => (
@@ -1242,6 +1261,15 @@ export default function SavingsCalculatorPage() {
                   variant="outlined"
                   size="small"
                   type="number"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <MuiTooltip title="The maximum power capacity your DISCOM has approved for your facility." placement="top">
+                          <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                        </MuiTooltip>
+                      </InputAdornment>
+                    )
+                  }}
                 />
               </Box>
             )
@@ -1440,6 +1468,15 @@ export default function SavingsCalculatorPage() {
               type="number"
               variant="outlined"
               size="small"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <MuiTooltip title="The fixed fee per unit (kWh) paid to the exchange trader." placement="top">
+                      <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                    </MuiTooltip>
+                  </InputAdornment>
+                )
+              }}
             />
             <TextField
               label="PROLT Margin (%)"
@@ -1449,6 +1486,15 @@ export default function SavingsCalculatorPage() {
               type="number"
               variant="outlined"
               size="small"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <MuiTooltip title="Our optimization fee taken as a percentage of your total savings." placement="top">
+                      <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                    </MuiTooltip>
+                  </InputAdornment>
+                )
+              }}
             />
           </Box>
         </DialogContent>
@@ -1571,7 +1617,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {calculatingInsights ? 'Analyzing...' : 'Industry Insights'}
+              {calculatingInsights ? 'Analyzing...' : 'Usage Recommendations'}
             </Button>
 
             <Button
@@ -1757,7 +1803,7 @@ export default function SavingsCalculatorPage() {
                   <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} />
                   <Tab label="Market Buy Decision" disabled={!marketDecisionResult} />
                   <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} />
-                  <Tab label="Industry Insights" disabled={!demandShiftInsights} />
+                  <Tab label="Usage Recommendations" disabled={!demandShiftInsights} />
                   <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} />
                 </Tabs>
               </Box>
@@ -2082,7 +2128,7 @@ export default function SavingsCalculatorPage() {
           {calcTab === 4 && demandShiftInsights && (
             <Box sx={{ mt: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" fontWeight={700}>Industry Insights: Demand Shifting</Typography>
+                <Typography variant="h6" fontWeight={700}>Usage Recommendations: Demand Shifting</Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Button
                     variant="contained"
@@ -2353,7 +2399,7 @@ export default function SavingsCalculatorPage() {
         PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
-          Industry Insights Heatmap
+          Usage Recommendations Heatmap
           <IconButton onClick={() => setDemandShiftGraphOpen(false)} size="small">
             <CloseIcon />
           </IconButton>
@@ -2373,7 +2419,7 @@ export default function SavingsCalculatorPage() {
         PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
-          Dynamic Industry Insights Heatmap
+          Dynamic Usage Recommendations Heatmap
           <IconButton onClick={() => setDynamicDemandShiftGraphOpen(false)} size="small">
             <CloseIcon />
           </IconButton>

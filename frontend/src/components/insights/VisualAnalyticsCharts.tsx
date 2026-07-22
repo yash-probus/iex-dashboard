@@ -122,7 +122,7 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
           <Typography variant="h6" sx={{ fontWeight: 700, mr: 1 }}>
             Daily Cost Comparison (₹)
           </Typography>
-          <MuiTooltip title="Compares the daily energy costs under your original DISCOM plan, the PROLT optimized plan, and the Industry Insights plan." placement="top">
+          <MuiTooltip title="Compares the daily energy costs under your original DISCOM plan, the PROLT optimized plan, and the Usage Recommendations plan." placement="top">
             <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
           </MuiTooltip>
         </Box>
@@ -145,7 +145,7 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
               <Bar name="Actual DISCOM Cost" dataKey="discomCost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
               <Bar name="PROLT Cost" dataKey="proltCost" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
-              <Bar name="Industry Insights Cost" dataKey="insightsCost" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+              <Bar name="Usage Recommendations Cost" dataKey="insightsCost" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Box>
