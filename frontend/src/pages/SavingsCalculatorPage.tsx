@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell } from 'recharts';
 import { FormControlLabel, Switch, 
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
@@ -1054,6 +1055,46 @@ export default function SavingsCalculatorPage() {
                     <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>Client Overview: {clientOverview.clientName}</Typography>
                     <Typography variant="body2" color="text.secondary">{clientOverview.industryName}</Typography>
                   </Box>
+
+                  {/* Monthly Savings Chart */}
+                  {clientOverview.months && clientOverview.months.length > 0 && (
+                    <Box sx={{ width: '100%', height: 300, mt: 2, mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Monthly Savings Projection</Typography>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={clientOverview.months} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10B981" stopOpacity={0.9}/>
+                              <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
+                            </linearGradient>
+                            <linearGradient id="colorZero" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#EF4444" stopOpacity={0.9}/>
+                              <stop offset="95%" stopColor="#EF4444" stopOpacity={0.2}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} dy={10} />
+                          <YAxis 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12, fill: '#6B7280' }} 
+                            tickFormatter={(value) => `₹${(value / 100000).toFixed(1)}L`}
+                          />
+                          <Tooltip 
+                            cursor={{ fill: '#F3F4F6' }}
+                            contentStyle={{ borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                            formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Net Savings']}
+                            labelStyle={{ color: '#111827', fontWeight: 700, marginBottom: '4px' }}
+                          />
+                          <Bar dataKey="savings" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                            {clientOverview.months.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.savings > 0 ? "url(#colorSavings)" : "url(#colorZero)"} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  )}
                   <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
                     <Table size="small">
                       <TableHead sx={{ bgcolor: 'background.default' }}>
