@@ -187,13 +187,15 @@ export class SavingsCalculatorService {
     for (const month of months) {
       try {
         const result = await SavingsCalculatorService.calculateMarketDecision(id, month);
-        const rawSavings = result.totalSavings - result.oaDetailed.dailyFixedOverhead - result.oaDetailed.bidApplicationFees;
-        const netSavings = rawSavings > 0 ? rawSavings : 0;
+        const netSavings = result.totalSavings;
+        const grossSavings = netSavings + (result.oaDetailed?.totals?.proltMarginCost || 0);
+        
         totalSavings += netSavings;
         
         monthsData.push({
           month,
-          savings: netSavings
+          savings: netSavings,
+          grossSavings: grossSavings
         });
       } catch (error) {
         console.error(`Error calculating market decision for month ${month}:`, error);

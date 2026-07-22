@@ -1071,6 +1071,10 @@ export default function SavingsCalculatorPage() {
                               <stop offset="5%" stopColor="#EF4444" stopOpacity={0.9}/>
                               <stop offset="95%" stopColor="#EF4444" stopOpacity={0.2}/>
                             </linearGradient>
+                            <linearGradient id="colorGross" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.9}/>
+                              <stop offset="95%" stopColor="#6366F1" stopOpacity={0.2}/>
+                            </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                           <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} dy={10} />
@@ -1083,10 +1087,16 @@ export default function SavingsCalculatorPage() {
                           <Tooltip 
                             cursor={{ fill: '#F3F4F6' }}
                             contentStyle={{ borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                            formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Net Savings']}
+                            formatter={(value: number, name: string) => {
+                              if (name === 'savings') return [`₹${value.toLocaleString('en-IN')}`, 'Net Savings'];
+                              if (name === 'grossSavings') return [`₹${value.toLocaleString('en-IN')}`, 'Gross Savings (Before Prolt)'];
+                              return [value, name];
+                            }}
                             labelStyle={{ color: '#111827', fontWeight: 700, marginBottom: '4px' }}
                           />
-                          <Bar dataKey="savings" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                          <Legend wrapperStyle={{ paddingTop: '10px' }} iconType="circle" />
+                          <Bar name="Gross Savings (Before Prolt)" dataKey="grossSavings" fill="url(#colorGross)" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                          <Bar name="Net Savings" dataKey="savings" radius={[4, 4, 0, 0]} maxBarSize={32}>
                             {clientOverview.months.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.savings > 0 ? "url(#colorSavings)" : "url(#colorZero)"} />
                             ))}
