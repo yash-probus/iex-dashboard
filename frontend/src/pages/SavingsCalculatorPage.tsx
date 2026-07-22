@@ -284,6 +284,15 @@ export default function SavingsCalculatorPage() {
   }, [tariffData, stateCode, consumerCategory]);
 
   const getTodSlabsForMonth = React.useCallback((targetMonth: number) => {
+    if (discom === 'NPCL') {
+      const isWinter = targetMonth >= 10 || targetMonth <= 3;
+      if (isWinter) {
+        return ['TOD1', 'TOD2', 'TOD3', 'TOD4', 'TOD5', 'TOD6'];
+      } else {
+        return ['TOD1', 'TOD2', 'TOD3', 'TOD4'];
+      }
+    }
+
     const slabsSet = new Set<string>();
     tariffData.forEach((row: any) => {
       const matchState = !stateCode || 
@@ -325,7 +334,7 @@ export default function SavingsCalculatorPage() {
     // If no slabs found, always include a FLAT slab
     if (slabsSet.size === 0) slabsSet.add('FLAT');
     return Array.from(slabsSet).sort();
-  }, [tariffData, stateCode, consumerCategory, voltageLevel]);
+  }, [tariffData, stateCode, consumerCategory, voltageLevel, discom]);
 
   const availableSupplyVoltageValues = React.useMemo(() => {
     switch (voltageLevel) {
