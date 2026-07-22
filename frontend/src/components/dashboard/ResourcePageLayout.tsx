@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 import { Add as AddIcon, GetApp as TemplateIcon } from '@mui/icons-material';
 import ResourceFormModal from '../../components/admin/ResourceFormModal';
 import { RESOURCE_CONFIG } from '../../pages/admin/resource-center/config/resourceConfig';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ResourcePageLayoutProps {
   title: string;
@@ -45,6 +46,7 @@ export default function ResourcePageLayout({
 }: ResourcePageLayoutProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = React.useState(false);
+  const { isAdmin } = useAuth();
 
   const config = resourceType ? RESOURCE_CONFIG[resourceType] : null;
 
@@ -183,7 +185,7 @@ export default function ResourcePageLayout({
             ref={fileInputRef}
             onChange={handleFileChange}
           />
-          {config && (
+          {isAdmin && config && (
             <>
               <ActionButton
                 variant="secondary"
@@ -201,27 +203,31 @@ export default function ResourcePageLayout({
               </ActionButton>
             </>
           )}
-          <ActionButton
-            variant="secondary"
-            startIcon={<UploadIcon fontSize="small" />}
-            onClick={() => {
-              if (onUpload) {
-                fileInputRef.current?.click();
-              } else {
-                alert('Upload functionality coming soon!');
-              }
-            }}
-          >
-            Upload Data
-          </ActionButton>
-          <ActionButton
-            variant="secondary"
-            startIcon={<DownloadIcon fontSize="small" />}
-            onClick={onExport}
-            disabled={isExportDisabled}
-          >
-            Export Data
-          </ActionButton>
+          {isAdmin && (
+            <ActionButton
+              variant="secondary"
+              startIcon={<UploadIcon fontSize="small" />}
+              onClick={() => {
+                if (onUpload) {
+                  fileInputRef.current?.click();
+                } else {
+                  alert('Upload functionality coming soon!');
+                }
+              }}
+            >
+              Upload Data
+            </ActionButton>
+          )}
+          {isAdmin && (
+            <ActionButton
+              variant="secondary"
+              startIcon={<DownloadIcon fontSize="small" />}
+              onClick={onExport}
+              disabled={isExportDisabled}
+            >
+              Export Data
+            </ActionButton>
+          )}
         </Box>
       </Box>
 
