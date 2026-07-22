@@ -1115,12 +1115,22 @@ export class SavingsCalculatorService {
 
       const marketFraction = totalSlots > 0 ? marketSlots.length / totalSlots : 0;
 
+      const avgIstsLoss = marketSlots.length > 0
+        ? marketSlots.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / marketSlots.length
+        : 0;
+
+      const istsLossMultiplier = (1 - (avgIstsLoss / 100));
+      const stuLossMultiplier = (1 - (stuLoss / 100));
+      const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
+
       // Maximum volume we can physically source from the market in these cheap slots
       const maxMarketVolumeForCheapSlots = marketSlots.length * maxEnergyPerSlot;
       
       // We buy as much as possible from the cheap slots up to our total slab requirement
       const marketEnergy = Math.min(slabConsumption, maxMarketVolumeForCheapSlots);
-      const discomEnergy = slabConsumption - marketEnergy;
+      
+      const consumerBusUnits = marketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
+      const discomEnergy = slabConsumption - consumerBusUnits;
 
       const energyPerMarketSlot = marketSlots.length > 0 ? marketEnergy / marketSlots.length : 0;
       marketSlots.forEach(s => {
@@ -1161,15 +1171,6 @@ export class SavingsCalculatorService {
       const proltEnergyBill = discomEnergy * slabDiscomRate;
       // ED applies to total consumption physical units (same as baseline), demand charge is also fixed.
       const proltDiscomBillTotal = proltEnergyBill + slabDemandCharge + slabED;
-
-      const avgIstsLoss = marketSlots.length > 0
-        ? marketSlots.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / marketSlots.length
-        : 0;
-
-      const istsLossMultiplier = (1 - (avgIstsLoss / 100));
-      const stuLossMultiplier = (1 - (stuLoss / 100));
-      const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
-      const consumerBusUnits = marketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
 
       const nonGdamMarketSlots = marketSlots.filter(s => s.marketSource !== 'GDAM').length;
       const nonGdamFraction = marketSlots.length > 0 ? nonGdamMarketSlots / marketSlots.length : 0;
