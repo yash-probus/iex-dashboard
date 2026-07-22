@@ -51,6 +51,9 @@ export interface CalculationSlotDetail {
   maxEnergyPerSlot: number;
   optimizedCost: number;
   baselineCost: number;
+  istsLoss?: number;
+  stuLoss?: number;
+  wheelingLoss?: number;
 }
 
 export interface CalculationResult {
