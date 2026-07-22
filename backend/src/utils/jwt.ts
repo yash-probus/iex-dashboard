@@ -5,6 +5,7 @@ import { AppError } from './AppError';
 export interface JwtPayload {
   id: string;
   username: string;
+  role: string;
 }
 
 /**
