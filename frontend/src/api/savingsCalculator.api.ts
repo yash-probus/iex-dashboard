@@ -86,6 +86,8 @@ export interface MarketDecisionSlot {
   istsLoss: number;
   stuLoss: number;
   wheelingLoss: number;
+  marketEnergy?: number;
+  discomEnergy?: number;
 }
 
 export interface MarketDecisionTodSummary {
