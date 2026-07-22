@@ -2248,6 +2248,31 @@ export default function SavingsCalculatorPage() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    <TableRow sx={{ bgcolor: '#F1F5F9' }}>
+                      <TableCell sx={{ fontWeight: 700 }}>Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700 }}>
+                        {demandShiftInsights.todShiftSummary.reduce((sum, row) => sum + (row.originalEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                        {demandShiftInsights.todShiftSummary.reduce((sum, row) => sum + (row.originalMarketEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700 }}>
+                        {demandShiftInsights.todShiftSummary.reduce((sum, row) => sum + (row.newEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                        {demandShiftInsights.todShiftSummary.reduce((sum, row) => sum + (row.newMarketEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700 }}>
+                        {(() => {
+                          const totalDiff = demandShiftInsights.todShiftSummary.reduce((sum, row) => sum + (row.diff || 0), 0);
+                          return (
+                            <Box component="span" sx={{ color: totalDiff > 0 ? '#16A34A' : totalDiff < 0 ? '#DC2626' : 'inherit' }}>
+                              {totalDiff > 0 ? '+' : ''}{totalDiff.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </Box>
+                          );
+                        })()}
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </Box>
