@@ -183,12 +183,35 @@ export class SavingsCalculatorService {
     const months = Object.keys(todConsumptions).sort();
     let totalSavings = 0;
     const monthsData = [];
+    const aggregatedCosts = {
+      cssCharge: 0,
+      rpoCharge: 0,
+      pocCharge: 0,
+      stuCharge: 0,
+      dcCharge: 0,
+      iexFee: 0,
+      traderMarginTotal: 0,
+      dailyFixedOverhead: 0,
+      bidApplicationFees: 0,
+      proltMarginCost: 0
+    };
 
     for (const month of months) {
       try {
         const result = await SavingsCalculatorService.calculateMarketDecision(id, month);
         const netSavings = result.totalSavings;
         const grossSavings = netSavings + (result.oaDetailed?.totals?.proltMarginCost || 0);
+        
+        aggregatedCosts.cssCharge += result.oaDetailed?.totals?.cssCharge || 0;
+        aggregatedCosts.rpoCharge += result.oaDetailed?.totals?.rpoCharge || 0;
+        aggregatedCosts.pocCharge += result.oaDetailed?.totals?.pocCharge || 0;
+        aggregatedCosts.stuCharge += result.oaDetailed?.totals?.stuCharge || 0;
+        aggregatedCosts.dcCharge += result.oaDetailed?.totals?.dcCharge || 0;
+        aggregatedCosts.iexFee += result.oaDetailed?.totals?.iexFee || 0;
+        aggregatedCosts.traderMarginTotal += (result.oaDetailed?.totals?.traderMargin || 0) + (result.oaDetailed?.totals?.traderMarginGst || 0);
+        aggregatedCosts.dailyFixedOverhead += result.oaDetailed?.dailyFixedOverhead || 0;
+        aggregatedCosts.bidApplicationFees += result.oaDetailed?.bidApplicationFees || 0;
+        aggregatedCosts.proltMarginCost += result.oaDetailed?.totals?.proltMarginCost || 0;
         
         totalSavings += netSavings;
         
@@ -211,7 +234,8 @@ export class SavingsCalculatorService {
       clientName: entry.clientName,
       industryName: entry.industryName,
       months: monthsData,
-      totalSavings
+      totalSavings,
+      aggregatedCosts
     };
   }
 

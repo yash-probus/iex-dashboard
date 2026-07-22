@@ -174,9 +174,22 @@ export interface ClientOverviewResult {
   months: {
     month: string;
     savings: number;
+    grossSavings?: number;
     error?: string;
   }[];
   totalSavings: number;
+  aggregatedCosts?: {
+    cssCharge: number;
+    rpoCharge: number;
+    pocCharge: number;
+    stuCharge: number;
+    dcCharge: number;
+    iexFee: number;
+    traderMarginTotal: number;
+    dailyFixedOverhead: number;
+    bidApplicationFees: number;
+    proltMarginCost: number;
+  };
 }
 
 export const fetchClientOverview = async (id: string): Promise<ClientOverviewResult> => {

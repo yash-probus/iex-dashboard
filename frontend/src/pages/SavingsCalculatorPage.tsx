@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, PieChart, Pie } from 'recharts';
 import { FormControlLabel, Switch, 
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
@@ -1105,6 +1105,58 @@ export default function SavingsCalculatorPage() {
                       </ResponsiveContainer>
                     </Box>
                   )}
+
+                  {/* OA Cost Breakdown Pie Chart */}
+                  {clientOverview.aggregatedCosts && (
+                    <Box sx={{ width: '100%', height: 350, mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Annual Open Access Cost Breakdown</Typography>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 20 }}>
+                          <Pie
+                            data={[
+                              { name: 'Cross Subsidy', value: clientOverview.aggregatedCosts.cssCharge, color: '#3B82F6' },
+                              { name: 'RPO Charge', value: clientOverview.aggregatedCosts.rpoCharge, color: '#10B981' },
+                              { name: 'POC Charge', value: clientOverview.aggregatedCosts.pocCharge, color: '#F59E0B' },
+                              { name: 'STU Charge', value: clientOverview.aggregatedCosts.stuCharge, color: '#8B5CF6' },
+                              { name: 'Wheeling/DC', value: clientOverview.aggregatedCosts.dcCharge, color: '#EC4899' },
+                              { name: 'IEX Fee', value: clientOverview.aggregatedCosts.iexFee, color: '#6366F1' },
+                              { name: 'Trader Margin', value: clientOverview.aggregatedCosts.traderMarginTotal, color: '#14B8A6' },
+                              { name: 'Daily Overhead', value: clientOverview.aggregatedCosts.dailyFixedOverhead, color: '#F43F5E' },
+                              { name: 'Bid Fees', value: clientOverview.aggregatedCosts.bidApplicationFees, color: '#F97316' },
+                              { name: 'Prolt Margin', value: clientOverview.aggregatedCosts.proltMarginCost, color: '#64748B' }
+                            ].filter(d => d.value > 0)}
+                            cx="50%"
+                            cy="45%"
+                            innerRadius={70}
+                            outerRadius={100}
+                            paddingAngle={2}
+                            dataKey="value"
+                          >
+                            {[
+                              { name: 'Cross Subsidy', value: clientOverview.aggregatedCosts.cssCharge, color: '#3B82F6' },
+                              { name: 'RPO Charge', value: clientOverview.aggregatedCosts.rpoCharge, color: '#10B981' },
+                              { name: 'POC Charge', value: clientOverview.aggregatedCosts.pocCharge, color: '#F59E0B' },
+                              { name: 'STU Charge', value: clientOverview.aggregatedCosts.stuCharge, color: '#8B5CF6' },
+                              { name: 'Wheeling/DC', value: clientOverview.aggregatedCosts.dcCharge, color: '#EC4899' },
+                              { name: 'IEX Fee', value: clientOverview.aggregatedCosts.iexFee, color: '#6366F1' },
+                              { name: 'Trader Margin', value: clientOverview.aggregatedCosts.traderMarginTotal, color: '#14B8A6' },
+                              { name: 'Daily Overhead', value: clientOverview.aggregatedCosts.dailyFixedOverhead, color: '#F43F5E' },
+                              { name: 'Bid Fees', value: clientOverview.aggregatedCosts.bidApplicationFees, color: '#F97316' },
+                              { name: 'Prolt Margin', value: clientOverview.aggregatedCosts.proltMarginCost, color: '#64748B' }
+                            ].filter(d => d.value > 0).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                            formatter={(value: number) => [`₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`, 'Cost']}
+                          />
+                          <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: '20px', fontSize: '11px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  )}
+
                   <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
                     <Table size="small">
                       <TableHead sx={{ bgcolor: 'background.default' }}>
