@@ -506,8 +506,8 @@ export default function Navbar() {
           display: 'flex',
           justifyContent: 'center',
           backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
+          borderBottom: '2px solid',
+          borderColor: '#C5DDF0',
           boxShadow: scrolled ? '0 4px 12px rgba(15, 23, 42, 0.05)' : 'none',
           zIndex: (theme) => theme.zIndex.appBar,
           transition: 'all 250ms ease',
@@ -528,7 +528,7 @@ export default function Navbar() {
               src="/assets/logo.png"
               alt="IEX Analytics"
               sx={{
-                maxHeight: { xs: '20px', sm: '28px' },
+                maxHeight: { xs: '32px', sm: '44px' },
                 height: 'auto',
                 width: 'auto',
                 objectFit: 'contain',
@@ -573,23 +573,23 @@ export default function Navbar() {
                       fontWeight: 500,
                       fontSize: '14px',
                       px: 3,
-                      py: 0.75,
-                      minHeight: '40px',
-                      borderColor: alpha(theme.palette.text.primary, 0.3),
-                      color: 'text.primary',
+                      py: 0.5,
+                      minHeight: '36px',
+                      borderColor: '#1a237e',
+                      color: '#1a237e',
                       transition: 'all 250ms ease',
                       '@media (prefers-reduced-motion: no-preference)': {
                         '&:hover': {
-                          borderColor: 'text.primary',
-                          color: 'text.primary',
-                          backgroundColor: alpha(theme.palette.text.primary, 0.05)
+                          borderColor: '#1a237e',
+                          color: '#1a237e',
+                          backgroundColor: alpha('#1a237e', 0.05)
                         }
                       },
                       '@media (prefers-reduced-motion: reduce)': {
                         '&:hover': {
-                          borderColor: 'text.primary',
-                          color: 'text.primary',
-                          backgroundColor: alpha(theme.palette.text.primary, 0.05)
+                          borderColor: '#1a237e',
+                          color: '#1a237e',
+                          backgroundColor: alpha('#1a237e', 0.05)
                         }
                       }
                     }}

@@ -158,12 +158,17 @@ export class SavingsCalculatorExportService {
     
     const energyCharges = (result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0);
     const demandCharges = result.demandCharge || 0;
-    const miscCharges = result.electricityDuty || 0;
+    const ed = result.electricityDuty || 0;
+    const arrear = result.arrearAmount || 0;
+    const lpsc = result.currentLpsc || 0;
     
     sheet.addRow(['Energy Charges', Math.round(energyCharges)]);
     sheet.addRow(['Demand & Fixed Charges', Math.round(demandCharges)]);
-    sheet.addRow(['Miscellaneous Charges (Electricity Duty, etc.)', Math.round(miscCharges)]);
-    sheet.addRow(['Total DISCOM Baseline Bill', Math.round(result.totalBaselineCost || 0)]);
+    sheet.addRow(['Electricity Duty', Math.round(ed)]);
+    if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
+    if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
+    const totalBaselineWithMisc = (result.totalBaselineCost || 0) + arrear + lpsc;
+    sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
 
     sheet.addRow([]);
@@ -270,6 +275,11 @@ export class SavingsCalculatorExportService {
     
     sheet.addRow([]);
     const netSavings = totalDiscomB - totalGrossBill;
+    
+    sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomB + (result.arrearAmount || 0) + (result.currentLpsc || 0))]);
+    const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
+    sheet.addRow(['DISCOM Bill After PROLT', Math.round(discomAfterProltWithMisc)]);
+    
     sheet.addRow(['Net Savings', Math.round(netSavings)]);
     
     const proltMarginVal = (t as any).proltMarginCost || 0;

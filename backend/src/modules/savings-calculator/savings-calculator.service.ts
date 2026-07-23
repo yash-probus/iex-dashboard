@@ -297,6 +297,7 @@ export class SavingsCalculatorService {
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
     let totalLandedExchangeCost = 0;
+    let totalDiscomAfterProlt = 0;
     let demandCharge = 0;
     let electricityDuty = 0;
     let peakDemand = 0;
@@ -321,6 +322,7 @@ export class SavingsCalculatorService {
           totalEnergyKwh += res.totalEnergyKwh;
           totalMarketEnergyKwh += res.totalMarketEnergyKwh;
           totalLandedExchangeCost += res.totalLandedExchangeCost;
+          totalDiscomAfterProlt += res.totalDiscomAfterProlt;
           demandCharge += res.demandCharge;
           electricityDuty += res.electricityDuty;
           peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
@@ -358,9 +360,12 @@ export class SavingsCalculatorService {
       totalMarketEnergyKwh,
       totalBaselineCost,
       totalLandedExchangeCost,
+      totalDiscomAfterProlt,
       totalSavings,
       demandCharge,
       electricityDuty,
+      arrearAmount: entry.arrearAmount ? Number(entry.arrearAmount) : 0,
+      currentLpsc: entry.currentLpsc ? Number(entry.currentLpsc) : 0,
       peakDemand,
       demandChargeRate,
       todSummaries: [],
@@ -1552,6 +1557,7 @@ export class SavingsCalculatorService {
     let totalBaselineCost = 0;
     let totalElectricityDuty = 0;
     let totalLandedExchangeCost = 0;
+    let totalDiscomAfterProlt = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
 
@@ -1624,6 +1630,7 @@ export class SavingsCalculatorService {
       const proltEnergyBill = discomEnergy * slabDiscomRate;
       const discountedProltBill = proltEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
       const proltDiscomBillTotal = discountedProltBill + slabED;
+      totalDiscomAfterProlt += proltDiscomBillTotal;
 
       const nonGdamMarketSlots = marketSlots.filter(s => s.marketSource !== 'GDAM').length;
       const nonGdamFraction = marketSlots.length > 0 ? nonGdamMarketSlots / marketSlots.length : 0;
@@ -1697,9 +1704,12 @@ export class SavingsCalculatorService {
       totalMarketEnergyKwh,
       totalBaselineCost,
       totalLandedExchangeCost,
+      totalDiscomAfterProlt,
       totalSavings: finalSavings,
       demandCharge,
       electricityDuty: totalElectricityDuty,
+      arrearAmount: entry.arrearAmount ? Number(entry.arrearAmount) : 0,
+      currentLpsc: entry.currentLpsc ? Number(entry.currentLpsc) : 0,
       peakDemand,
       demandChargeRate,
       todSummaries,
