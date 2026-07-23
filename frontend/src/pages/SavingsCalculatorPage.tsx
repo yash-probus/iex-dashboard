@@ -2121,6 +2121,51 @@ export default function SavingsCalculatorPage() {
                 </Tabs>
               </Box>
 
+              {selectedSimMonth === 'all' && (calcTab === 0 || calcTab === 1 || calcTab === 3) && (
+                <Box sx={{ 
+                  mt: 2, 
+                  p: { xs: 4, md: 6 }, 
+                  background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)', 
+                  borderRadius: 4, 
+                  border: '1px solid', 
+                  borderColor: '#bbf7d0', 
+                  textAlign: 'center',
+                  boxShadow: '0 10px 25px -5px rgba(34, 197, 94, 0.15)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.05, transform: 'rotate(15deg)' }}>
+                    <BarChartIcon sx={{ fontSize: 160, color: '#16A34A' }} />
+                  </Box>
+                  <Box sx={{ position: 'absolute', bottom: -20, left: -20, opacity: 0.05, transform: 'rotate(-15deg)' }}>
+                    <HistoryIcon sx={{ fontSize: 140, color: '#16A34A' }} />
+                  </Box>
+                  
+                  <Box sx={{ 
+                    width: 72, 
+                    height: 72, 
+                    bgcolor: 'white', 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    margin: '0 auto',
+                    mb: 3,
+                    boxShadow: '0 10px 15px -3px rgba(34, 197, 94, 0.2)'
+                  }}>
+                    <BarChartIcon sx={{ fontSize: 36, color: '#16A34A' }} />
+                  </Box>
+                  
+                  <Typography variant="h5" color="#14532D" fontWeight={800} gutterBottom sx={{ position: 'relative' }}>
+                    Yearly Aggregation Active
+                  </Typography>
+                  <Typography variant="body1" color="#166534" sx={{ maxWidth: 650, mx: 'auto', mt: 1.5, lineHeight: 1.7, fontWeight: 500, position: 'relative' }}>
+                    Detailed slot-level views and granular breakdowns are hidden while viewing the aggregated yearly summary. 
+                    <strong> Select an individual month from the tabs above</strong> to explore detailed tabular data.
+                  </Typography>
+                </Box>
+              )}
+
               {calcTab === 0 && calcResult && selectedSimMonth !== 'all' && (
                 <Grid container spacing={3}>
                   {Object.entries(calcResult.todGroups).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]) => {
@@ -2334,10 +2379,46 @@ export default function SavingsCalculatorPage() {
                   </Box>
                   </>
                   ) : (
-                    <Box sx={{ mt: 4, p: 3, bgcolor: '#F0FDF4', borderRadius: 3, border: '1px dashed #22C55E', textAlign: 'center' }}>
-                      <Typography variant="h6" color="#166534" fontWeight={700}>Yearly Aggregation Active</Typography>
-                      <Typography variant="body2" color="#15803D" sx={{ mt: 1 }}>
-                        Detailed 15-minute slot tables and daily graphs are hidden while viewing the aggregated yearly summary. Select an individual month to view slot-level data and analysis.
+                    <Box sx={{ 
+                      mt: 4, 
+                      p: { xs: 4, md: 6 }, 
+                      background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)', 
+                      borderRadius: 4, 
+                      border: '1px solid', 
+                      borderColor: '#bbf7d0', 
+                      textAlign: 'center',
+                      boxShadow: '0 10px 25px -5px rgba(34, 197, 94, 0.15)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.05, transform: 'rotate(15deg)' }}>
+                        <BarChartIcon sx={{ fontSize: 160, color: '#16A34A' }} />
+                      </Box>
+                      <Box sx={{ position: 'absolute', bottom: -20, left: -20, opacity: 0.05, transform: 'rotate(-15deg)' }}>
+                        <HistoryIcon sx={{ fontSize: 140, color: '#16A34A' }} />
+                      </Box>
+                      
+                      <Box sx={{ 
+                        width: 72, 
+                        height: 72, 
+                        bgcolor: 'white', 
+                        borderRadius: '50%', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        margin: '0 auto',
+                        mb: 3,
+                        boxShadow: '0 10px 15px -3px rgba(34, 197, 94, 0.2)'
+                      }}>
+                        <BarChartIcon sx={{ fontSize: 36, color: '#16A34A' }} />
+                      </Box>
+                      
+                      <Typography variant="h5" color="#14532D" fontWeight={800} gutterBottom sx={{ position: 'relative' }}>
+                        Yearly Aggregation Active
+                      </Typography>
+                      <Typography variant="body1" color="#166534" sx={{ maxWidth: 650, mx: 'auto', mt: 1.5, lineHeight: 1.7, fontWeight: 500, position: 'relative' }}>
+                        Detailed 15-minute slot tables and daily graphs are hidden while viewing the aggregated yearly summary. 
+                        <strong> Select an individual month from the tabs above</strong> to view slot-level data and deep analysis.
                       </Typography>
                     </Box>
                   )}
