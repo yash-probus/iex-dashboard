@@ -1843,6 +1843,9 @@ export default function SavingsCalculatorPage() {
               size="small"
               sx={{ width: 220, bgcolor: 'background.paper' }}
             >
+              <MenuItem value="all">
+                All Months (Yearly Summary)
+              </MenuItem>
               {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
                 <MenuItem key={ym} value={ym}>
                   {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
