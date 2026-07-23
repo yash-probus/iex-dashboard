@@ -519,24 +519,10 @@ export default function Navbar() {
 
           {/* Left: Logo */}
           <Box
-            sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0, gap: 1 }}
+            sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}
             onClick={() => navigate('/dashboard')}
             aria-label="Home"
           >
-            {!logoError && (
-              <Box
-                component="img"
-                src="/assets/logo.png"
-                alt="IEX Analytics"
-                onError={() => setLogoError(true)}
-                sx={{
-                  maxHeight: { xs: '20px', sm: '28px' },
-                  height: 'auto',
-                  width: 'auto',
-                  objectFit: 'contain',
-                }}
-              />
-            )}
             <Typography
               variant="h6"
               noWrap
