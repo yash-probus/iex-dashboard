@@ -133,6 +133,8 @@ export interface MarketDecisionResult {
   totalSavings: number;
   demandCharge?: number;
   electricityDuty?: number;
+  peakDemand?: number;
+  demandChargeRate?: number;
   todSummaries?: MarketDecisionTodSummary[];
   oaDetailed?: {
     breakdown: OADetailedBreakdown[];
@@ -204,6 +206,12 @@ export interface ClientOverviewResult {
     bidApplicationFees: number;
     proltMarginCost: number;
     totalDiscomCost?: number;
+    energyCharges?: number;
+    demandAndFixedCharges?: number;
+    penaltiesAndAdjustments?: number;
+    miscellaneousCharges?: number;
+    peakDemand?: number;
+    demandChargeRate?: number;
   };
 }
 

@@ -24,18 +24,34 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
     value: Number(val) || 0
   })).filter(d => d.value > 0);
 
-  // Fallback to mock data if no ToD consumption data exists
-  const chartData = dynamicConsumptionData.length > 0 ? dynamicConsumptionData : [
-    { name: 'ToD1 (Off Peak)', value: 125000 },
-    { name: 'ToD2 (Normal)', value: 200000 },
-    { name: 'ToD3 (Peak)', value: 125000 },
-    { name: 'ToD4 (Normal)', value: 50000 },
-  ];
+  const chartData = dynamicConsumptionData;
+  const currentMonthData = overview?.months?.find(m => m.month === currentMonth);
+  const totalBilledUnits = currentMonthData?.totalEnergyKwh || 0;
 
   const netCurrentBill = overview?.aggregatedCosts?.totalDiscomCost || 0;
   const arrearAmount = entry.arrearAmount || 0;
   const currentLpsc = entry.currentLpsc || 0;
   const totalBill = netCurrentBill + arrearAmount + currentLpsc;
+
+  const energyCharges = overview?.aggregatedCosts?.energyCharges || 0;
+  const demandAndFixed = overview?.aggregatedCosts?.demandAndFixedCharges || 0;
+  const penalties = overview?.aggregatedCosts?.penaltiesAndAdjustments || 0;
+  const miscCharges = overview?.aggregatedCosts?.miscellaneousCharges || 0;
+  const totalDiscomCost = overview?.aggregatedCosts?.totalDiscomCost || 0;
+
+  const energyPct = totalDiscomCost > 0 ? (energyCharges / totalDiscomCost) * 100 : 0;
+  const demandPct = totalDiscomCost > 0 ? (demandAndFixed / totalDiscomCost) * 100 : 0;
+  const penaltiesPct = totalDiscomCost > 0 ? (penalties / totalDiscomCost) * 100 : 0;
+  const miscPct = totalDiscomCost > 0 ? (miscCharges / totalDiscomCost) * 100 : 0;
+
+  const formatLakhs = (val: number) => (val / 100000).toFixed(2) + 'L';
+
+  const peakDemand = overview?.aggregatedCosts?.peakDemand || 0;
+  const demandChargeRate = overview?.aggregatedCosts?.demandChargeRate || 0;
+  const sanctionedLoad = entry.sanctionedLoadKw || 0;
+  const utilizationPct = sanctionedLoad > 0 ? Math.min(100, Math.round((peakDemand / sanctionedLoad) * 100)) : 0;
+
+
 
   return (
     <Box sx={{ display: 'flex', gap: 3 }}>
@@ -76,7 +92,7 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
           <Grid container spacing={2}>
             <Grid item xs={12} md={2.4}><SummaryCard label="Bill Month" value={currentMonth} /></Grid>
             <Grid item xs={12} md={2.4}><SummaryCard label="Bill Date" value={entry.billDate || "N/A"} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Billed Units" value={`${chartData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString()} kWh`} /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Billed Units" value={`${totalBilledUnits.toLocaleString()} kWh`} /></Grid>
             <Grid item xs={12} md={2.4}><SummaryCard label="Amount Payable" value={formatCurrency(totalBill)} highlight /></Grid>
             <Grid item xs={12} md={2.4}><SummaryCard label="Energy Charges" value="View Breakdown" /></Grid>
             <Grid item xs={12} md={2.4}><SummaryCard label="Misc Charges" value="View Breakdown" /></Grid>
@@ -122,14 +138,14 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
               <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <BreakdownRow label="Energy Charges" percentage={42.0} amount="14.70L" color="#3B82F6" />
-                    <BreakdownRow label="Demand & Fixed" percentage={22.0} amount="7.70L" color="#3B82F6" />
-                    <BreakdownRow label="Penalties & Adjustments" percentage={11.0} amount="3.85L" color="#3B82F6" />
-                    <BreakdownRow label="Miscellaneous" percentage={25.0} amount="8.75L" color="#3B82F6" />
+                    <BreakdownRow label="Energy Charges" percentage={energyPct} amount={formatLakhs(energyCharges)} color="#3B82F6" />
+                    <BreakdownRow label="Demand & Fixed" percentage={demandPct} amount={formatLakhs(demandAndFixed)} color="#3B82F6" />
+                    <BreakdownRow label="Penalties & Adjustments" percentage={penaltiesPct} amount={formatLakhs(penalties)} color="#3B82F6" />
+                    <BreakdownRow label="Miscellaneous" percentage={miscPct} amount={formatLakhs(miscCharges)} color="#3B82F6" />
                   </Box>
                   <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body1" fontWeight={700}>Total Bill</Typography>
-                    <Typography variant="h6" fontWeight={800}>{formatCurrency(totalBill)}</Typography>
+                    <Typography variant="h6" fontWeight={800}>{formatCurrency(totalDiscomCost)}</Typography>
                   </Box>
                 </CardContent>
               </Card>
@@ -148,7 +164,7 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
                   {/* Gauge Mockup */}
                   <Box sx={{ width: 200, height: 100, position: 'relative', overflow: 'hidden', mb: 2 }}>
                     <Box sx={{ width: 200, height: 200, borderRadius: '50%', border: '20px solid #E5E7EB', borderTopColor: '#22C55E', borderLeftColor: '#22C55E', transform: 'rotate(45deg)', position: 'absolute', top: 0, left: 0 }} />
-                    <Typography variant="h4" fontWeight={800} color="success.main" sx={{ position: 'absolute', bottom: 0, width: '100%', textAlign: 'center' }}>75%</Typography>
+                    <Typography variant="h4" fontWeight={800} color="success.main" sx={{ position: 'absolute', bottom: 0, width: '100%', textAlign: 'center' }}>{utilizationPct}%</Typography>
                     <Typography variant="caption" fontWeight={700} color="success.main" sx={{ position: 'absolute', bottom: -20, width: '100%', textAlign: 'center' }}>Optimal</Typography>
                   </Box>
                   
@@ -156,20 +172,20 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
                     <Grid item xs={6}>
                       <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>Sanctioned Load</Typography>
-                        <Typography variant="body1" fontWeight={800}>{entry.sanctionedLoadKw ? `${entry.sanctionedLoadKw} kW` : 'N/A'}</Typography>
+                        <Typography variant="body1" fontWeight={800}>{sanctionedLoad ? `${sanctionedLoad} kW` : 'N/A'}</Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={6}>
                       <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>Est. Max Demand</Typography>
-                        <Typography variant="body1" fontWeight={800}>1875.00 kVA</Typography>
+                        <Typography variant="body1" fontWeight={800}>{peakDemand ? `${peakDemand.toFixed(2)} kVA` : 'N/A'}</Typography>
                       </Box>
                     </Grid>
                   </Grid>
                   <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center', width: '100%', mt: 2 }}>
                     <Typography variant="caption" color="text.secondary" fontWeight={600}>Monthly Fixed Charge</Typography>
-                    <Typography variant="body1" fontWeight={800}>₹8750.00L</Typography>
-                    <Typography variant="caption" color="text.secondary">@ ₹350/kVA</Typography>
+                    <Typography variant="body1" fontWeight={800}>₹{formatLakhs(demandAndFixed)}</Typography>
+                    <Typography variant="caption" color="text.secondary">@ ₹{demandChargeRate}/kVA</Typography>
                   </Box>
                 </CardContent>
               </Card>

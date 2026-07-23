@@ -223,7 +223,14 @@ export class SavingsCalculatorService {
       traderMarginTotal: 0,
       dailyFixedOverhead: 0,
       bidApplicationFees: 0,
-      proltMarginCost: 0
+      proltMarginCost: 0,
+      totalDiscomCost: 0,
+      energyCharges: 0,
+      demandAndFixedCharges: 0,
+      penaltiesAndAdjustments: 0,
+      miscellaneousCharges: 0,
+      peakDemand: 0,
+      demandChargeRate: 0
     };
 
     for (const month of months) {
@@ -243,6 +250,13 @@ export class SavingsCalculatorService {
         aggregatedCosts.bidApplicationFees += result.oaDetailed?.bidApplicationFees || 0;
         aggregatedCosts.proltMarginCost += result.oaDetailed?.totals?.proltMarginCost || 0;
         
+        aggregatedCosts.totalDiscomCost += result.totalBaselineCost || 0;
+        aggregatedCosts.demandAndFixedCharges += result.demandCharge || 0;
+        aggregatedCosts.miscellaneousCharges += result.electricityDuty || 0;
+        aggregatedCosts.energyCharges += ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0));
+        aggregatedCosts.peakDemand = Math.max(aggregatedCosts.peakDemand, result.peakDemand || 0);
+        aggregatedCosts.demandChargeRate = result.demandChargeRate || aggregatedCosts.demandChargeRate;
+
         totalSavings += netSavings;
         
         monthsData.push({
@@ -1680,6 +1694,8 @@ export class SavingsCalculatorService {
       totalSavings: finalSavings,
       demandCharge,
       electricityDuty: totalElectricityDuty,
+      peakDemand,
+      demandChargeRate,
       todSummaries,
       oaDetailed: {
         breakdown: oaDetailedBreakdown,
