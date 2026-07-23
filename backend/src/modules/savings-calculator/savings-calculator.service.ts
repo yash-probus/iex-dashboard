@@ -41,6 +41,8 @@ export class SavingsCalculatorService {
     voltageLevel?: string;
     proltMargin?: number;
     traderMargin?: number;
+    consultancyFee?: number;
+    probusPlatformFee?: number;
     todConsumptions?: any;
     applyElectricityDuty?: boolean;
     billedDemandKv?: number | null;
@@ -62,6 +64,8 @@ export class SavingsCalculatorService {
           voltageLevel: data.voltageLevel,
           proltMargin: data.proltMargin,
           traderMargin: data.traderMargin,
+          consultancyFee: data.consultancyFee,
+          probusPlatformFee: data.probusPlatformFee,
           todConsumptions: data.todConsumptions,
           applyElectricityDuty: data.applyElectricityDuty,
           billedDemandKv: data.billedDemandKv,
@@ -86,6 +90,8 @@ export class SavingsCalculatorService {
           voltageLevel: entry.voltageLevel,
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
+          consultancyFee: entry.consultancyFee,
+          probusPlatformFee: entry.probusPlatformFee,
           todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,
           applyElectricityDuty: entry.applyElectricityDuty,
           billedDemandKv: entry.billedDemandKv,
@@ -111,6 +117,8 @@ export class SavingsCalculatorService {
     voltageLevel?: string;
     proltMargin?: number;
     traderMargin?: number;
+    consultancyFee?: number;
+    probusPlatformFee?: number;
     todConsumptions?: any;
     applyElectricityDuty?: boolean;
     billedDemandKv?: number | null;
@@ -133,6 +141,8 @@ export class SavingsCalculatorService {
           voltageLevel: data.voltageLevel,
           proltMargin: data.proltMargin,
           traderMargin: data.traderMargin,
+          consultancyFee: data.consultancyFee,
+          probusPlatformFee: data.probusPlatformFee,
           todConsumptions: data.todConsumptions,
           ...(data.applyElectricityDuty !== undefined && { applyElectricityDuty: data.applyElectricityDuty }),
           billedDemandKv: data.billedDemandKv,
@@ -164,6 +174,8 @@ export class SavingsCalculatorService {
           voltageLevel: entry.voltageLevel,
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
+          consultancyFee: entry.consultancyFee,
+          probusPlatformFee: entry.probusPlatformFee,
           todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,
           applyElectricityDuty: entry.applyElectricityDuty,
           billedDemandKv: entry.billedDemandKv,
@@ -224,6 +236,8 @@ export class SavingsCalculatorService {
       dailyFixedOverhead: 0,
       bidApplicationFees: 0,
       proltMarginCost: 0,
+      consultancyFee: 0,
+      probusPlatformFee: 0,
       totalDiscomCost: 0,
       energyCharges: 0,
       demandAndFixedCharges: 0,
@@ -249,6 +263,8 @@ export class SavingsCalculatorService {
         aggregatedCosts.dailyFixedOverhead += result.oaDetailed?.dailyFixedOverhead || 0;
         aggregatedCosts.bidApplicationFees += result.oaDetailed?.bidApplicationFees || 0;
         aggregatedCosts.proltMarginCost += result.oaDetailed?.totals?.proltMarginCost || 0;
+        aggregatedCosts.consultancyFee += (result.oaDetailed?.totals as any)?.consultancyFee || 0;
+        aggregatedCosts.probusPlatformFee += (result.oaDetailed?.totals as any)?.probusPlatformFee || 0;
         
         aggregatedCosts.totalDiscomCost += result.totalBaselineCost || 0;
         aggregatedCosts.demandAndFixedCharges += result.demandCharge || 0;
@@ -264,7 +280,11 @@ export class SavingsCalculatorService {
           savings: netSavings,
           grossSavings: grossSavings,
           totalEnergyKwh: result.totalEnergyKwh,
-          totalMarketEnergyKwh: result.totalMarketEnergyKwh
+          totalMarketEnergyKwh: result.totalMarketEnergyKwh,
+          proltMarginCost: result.oaDetailed?.totals?.proltMarginCost || 0,
+          traderMargin: (result.oaDetailed?.totals?.traderMargin || 0) + (result.oaDetailed?.totals?.traderMarginGst || 0),
+          consultancyFee: (result.oaDetailed?.totals as any)?.consultancyFee || 0,
+          probusPlatformFee: (result.oaDetailed?.totals as any)?.probusPlatformFee || 0
         });
       } catch (error) {
         console.error(`Error calculating market decision for month ${month}:`, error);
@@ -305,7 +325,8 @@ export class SavingsCalculatorService {
     
     const aggregatedTotals = {
       cssCharge: 0, cssRate: 0, rpoCharge: 0, pocCharge: 0, stuCharge: 0,
-      dcCharge: 0, iexFee: 0, traderMargin: 0, traderMarginGst: 0, proltMarginCost: 0
+      dcCharge: 0, iexFee: 0, traderMargin: 0, traderMarginGst: 0, proltMarginCost: 0,
+      consultancyFee: 0, probusPlatformFee: 0
     };
     let aggregatedDailyOverhead = 0;
     let aggregatedNldc = 0;
@@ -339,6 +360,8 @@ export class SavingsCalculatorService {
             aggregatedTotals.traderMargin += t.traderMargin;
             aggregatedTotals.traderMarginGst += t.traderMarginGst;
             aggregatedTotals.proltMarginCost += t.proltMarginCost;
+            aggregatedTotals.consultancyFee += (t as any).consultancyFee || 0;
+            aggregatedTotals.probusPlatformFee += (t as any).probusPlatformFee || 0;
             
             aggregatedDailyOverhead += res.oaDetailed.dailyFixedOverhead;
             aggregatedNldc += res.oaDetailed.nldcSchedulingCost;
@@ -1690,7 +1713,10 @@ export class SavingsCalculatorService {
     const grossSavings = Math.max(0, rawSavings);
     const totalProltMarginCost = grossSavings * (proltMarginInput / 100);
     
-    const totalSavings = rawSavings - totalProltMarginCost;
+    const consultancyFee = Number(entry.consultancyFee || 0);
+    const probusPlatformFee = Number(entry.probusPlatformFee || 0);
+
+    const totalSavings = rawSavings - totalProltMarginCost - consultancyFee - probusPlatformFee;
     
     // Ensure savings are never negative - if they would be, set to 0
     const finalSavings = Math.max(0, totalSavings);
@@ -1733,6 +1759,8 @@ export class SavingsCalculatorService {
           traderMargin: globalTraderMargin,
           traderMarginGst: globalTraderMarginGst,
           proltMarginCost: totalProltMarginCost,
+          consultancyFee,
+          probusPlatformFee,
         }
       }
     };

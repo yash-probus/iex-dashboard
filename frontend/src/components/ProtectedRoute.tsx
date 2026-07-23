@@ -5,10 +5,11 @@ import { Box, CircularProgress } from '@mui/material';
 
 interface ProtectedRouteProps {
   requireAdmin?: boolean;
+  requireSuperAdmin?: boolean;
 }
 
-export default function ProtectedRoute({ requireAdmin = false }: ProtectedRouteProps) {
-  const { isAuthenticated, isAdmin, authLoading } = useAuth();
+export default function ProtectedRoute({ requireAdmin = false, requireSuperAdmin = false }: ProtectedRouteProps) {
+  const { isAuthenticated, isAdmin, isSuperAdmin, authLoading } = useAuth();
 
   // Deliverable A1: Wait for bootstrap to avoid redirect flicker
   if (authLoading) {
@@ -24,6 +25,10 @@ export default function ProtectedRoute({ requireAdmin = false }: ProtectedRouteP
   }
 
   if (requireAdmin && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (requireSuperAdmin && !isSuperAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 

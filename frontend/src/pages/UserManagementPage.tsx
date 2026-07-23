@@ -145,11 +145,12 @@ export default function UserManagementPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={(v: 'ADMIN'|'CLIENT') => setRole(v)}>
+              <Select value={role} onValueChange={(v: 'SUPER_ADMIN'|'ADMIN'|'CLIENT') => setRole(v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="SUPER_ADMIN">SUPER_ADMIN</SelectItem>
                   <SelectItem value="ADMIN">ADMIN</SelectItem>
                   <SelectItem value="CLIENT">CLIENT</SelectItem>
                 </SelectContent>

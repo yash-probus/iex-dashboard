@@ -93,8 +93,11 @@ export default function AppRoutes() {
               <Route path="resource-center" element={<ResourceCenterAdminPage />} />
               <Route path="resource-center/:resourceType" element={<AdminResourcePage />} />
               <Route path="api-logs" element={<ApiLogsAdminPage />} />
-              <Route path="users" element={<UserManagementPage />} />
             </Route>
+          </Route>
+          
+          <Route element={<ProtectedRoute requireSuperAdmin />}>
+            <Route path="admin/users" element={<UserManagementPage />} />
           </Route>
         </Route>
       </Route>

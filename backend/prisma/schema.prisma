@@ -535,6 +535,8 @@ model SavingsCalculatorEntry {
   sanctionedLoadKw Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
   proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
   traderMargin     Decimal? @map("trader_margin") @db.Decimal(12, 4)
+  consultancyFee   Decimal? @map("consultancy_fee") @db.Decimal(12, 4)
+  probusPlatformFee Decimal? @map("probus_platform_fee") @db.Decimal(12, 4)
 
   stateCode        String? @map("state_code") @db.VarChar(100)
   discom           String? @map("discom") @db.VarChar(100)
@@ -568,6 +570,8 @@ model SavingsCalculatorEntryHistory {
   sanctionedLoadKw Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
   proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
   traderMargin     Decimal? @map("trader_margin") @db.Decimal(12, 4)
+  consultancyFee   Decimal? @map("consultancy_fee") @db.Decimal(12, 4)
+  probusPlatformFee Decimal? @map("probus_platform_fee") @db.Decimal(12, 4)
   stateCode        String?  @map("state_code") @db.VarChar(100)
   discom           String?  @map("discom") @db.VarChar(100)
   consumerCategory String?  @map("consumer_category") @db.VarChar(100)

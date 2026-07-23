@@ -245,6 +245,11 @@ export const ClientOverviewDashboard: React.FC<ClientOverviewDashboardProps> = (
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 800, bgcolor: '#F8FAFC' }}>Month</TableCell>
+                        <TableCell sx={{ fontWeight: 800, textAlign: 'right', bgcolor: '#F8FAFC' }}>Saving for your business</TableCell>
+                        <TableCell sx={{ fontWeight: 800, textAlign: 'right', bgcolor: '#F8FAFC' }}>Prolt Margin</TableCell>
+                        <TableCell sx={{ fontWeight: 800, textAlign: 'right', bgcolor: '#F8FAFC' }}>Trader Margin</TableCell>
+                        <TableCell sx={{ fontWeight: 800, textAlign: 'right', bgcolor: '#F8FAFC' }}>Consultancy Fee</TableCell>
+                        <TableCell sx={{ fontWeight: 800, textAlign: 'right', bgcolor: '#F8FAFC' }}>Probus Platform Fee</TableCell>
                         <TableCell sx={{ fontWeight: 800, textAlign: 'right', bgcolor: '#F8FAFC' }}>Net Savings</TableCell>
                       </TableRow>
                     </TableHead>
@@ -252,6 +257,21 @@ export const ClientOverviewDashboard: React.FC<ClientOverviewDashboardProps> = (
                       {clientOverview.months.map((m) => (
                         <TableRow key={m.month} hover>
                           <TableCell sx={{ fontWeight: 500 }}>{m.month}</TableCell>
+                          <TableCell sx={{ textAlign: 'right', color: '#6366F1', fontWeight: 600 }}>
+                            ₹{m.grossSavings ? m.grossSavings.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 0}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: 'right' }}>
+                            ₹{m.proltMarginCost ? m.proltMarginCost.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 0}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: 'right' }}>
+                            ₹{m.traderMargin ? m.traderMargin.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 0}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: 'right' }}>
+                            ₹{m.consultancyFee ? m.consultancyFee.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 0}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: 'right' }}>
+                            ₹{m.probusPlatformFee ? m.probusPlatformFee.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 0}
+                          </TableCell>
                           <TableCell sx={{ textAlign: 'right' }}>
                             {m.savings <= 0 ? (
                               <Typography variant="body2" color="error" fontWeight={700}>Not Eligible (₹0)</Typography>

@@ -96,6 +96,8 @@ export default function SavingsCalculatorPage() {
   const [supplyVoltageValue, setSupplyVoltageValue] = useState('');
   const [proltMargin, setProltMargin] = useState<string>('');
   const [traderMargin, setTraderMargin] = useState('');
+  const [consultancyFee, setConsultancyFee] = useState('');
+  const [probusPlatformFee, setProbusPlatformFee] = useState('');
   
   const [todConsumptions, setTodConsumptions] = useState<Record<string, Record<string, string>>>({});
   
@@ -381,6 +383,8 @@ export default function SavingsCalculatorPage() {
     setSupplyVoltageValue('');
     setProltMargin('');
     setTraderMargin('');
+    setConsultancyFee('');
+    setProbusPlatformFee('');
     setTodConsumptions({});
     setFormErrors({});
     setBilledDemandKv('');
@@ -444,6 +448,8 @@ export default function SavingsCalculatorPage() {
       
       setProltMargin(entry.proltMargin ? String(entry.proltMargin) : '');
       setTraderMargin(entry.traderMargin ? String(entry.traderMargin) : '');
+      setConsultancyFee(entry.consultancyFee ? String(entry.consultancyFee) : '');
+      setProbusPlatformFee(entry.probusPlatformFee ? String(entry.probusPlatformFee) : '');
       
       const tc: Record<string, Record<string, string>> = {};
       if (entry.todConsumptions) {
@@ -556,6 +562,8 @@ export default function SavingsCalculatorPage() {
         voltageLevel: (voltageLevel.trim() ? (supplyVoltageValue.trim() ? `${voltageLevel.trim()} - ${supplyVoltageValue.trim()}` : voltageLevel.trim()) : undefined),
         proltMargin: proltMargin ? Number(proltMargin) : undefined,
         traderMargin: traderMargin ? Number(traderMargin) : undefined,
+        consultancyFee: consultancyFee ? Number(consultancyFee) : undefined,
+        probusPlatformFee: probusPlatformFee ? Number(probusPlatformFee) : undefined,
         todConsumptions: Object.keys(todConsumptions).length > 0 ? 
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => [
@@ -1643,6 +1651,42 @@ export default function SavingsCalculatorPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <MuiTooltip title="The fixed fee per unit (kWh) paid to the exchange trader." placement="top">
+                      <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                    </MuiTooltip>
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
+              label="Prolt Consultancy Fee"
+              value={consultancyFee}
+              onChange={(e) => setConsultancyFee(e.target.value)}
+              fullWidth
+              type="number"
+              variant="outlined"
+              size="small"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <MuiTooltip title="PROLT Consultancy Fee for ST 11, NOC, Bill Adjustment (Monthly)" placement="top">
+                      <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                    </MuiTooltip>
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
+              label="Probus Platform Subscription Fees for Prolt Energy Platform (Rs 0.02/kWh)"
+              value={probusPlatformFee}
+              onChange={(e) => setProbusPlatformFee(e.target.value)}
+              fullWidth
+              type="number"
+              variant="outlined"
+              size="small"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <MuiTooltip title="Probus Platform Subscription Fees for Prolt Energy Platform" placement="top">
                       <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
                     </MuiTooltip>
                   </InputAdornment>

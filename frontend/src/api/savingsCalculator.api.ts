@@ -12,6 +12,8 @@ export interface SavingsCalculatorEntry {
   voltageLevel?: string;
   proltMargin?: number;
   traderMargin?: number;
+  consultancyFee?: number;
+  probusPlatformFee?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
   applyElectricityDuty?: boolean;
   billedDemandKv?: number;
@@ -40,6 +42,8 @@ export interface CreateSavingsEntryDto {
   voltageLevel?: string;
   proltMargin?: number;
   traderMargin?: number;
+  consultancyFee?: number;
+  probusPlatformFee?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
   applyElectricityDuty?: boolean;
   billedDemandKv?: number;
@@ -191,6 +195,10 @@ export interface ClientOverviewResult {
     grossSavings?: number;
     totalEnergyKwh?: number;
     totalMarketEnergyKwh?: number;
+    proltMarginCost?: number;
+    traderMargin?: number;
+    consultancyFee?: number;
+    probusPlatformFee?: number;
     error?: string;
   }[];
   totalSavings: number;
