@@ -2,18 +2,18 @@ import * as ExcelJS from 'exceljs';
 import { SavingsCalculatorService } from './savings-calculator.service';
 
 export class SavingsCalculatorExportService {
-  static async exportToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
-    const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version);
+  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any) {
     const { slotsData, todSummaries, oaDetailed } = result;
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Savings Analysis', {
+    // Remove invalid characters for worksheet names
+    const safeSheetName = monthName.replace(/[\/*?\[\]]/g, '').substring(0, 31);
+    const sheet = workbook.addWorksheet(safeSheetName, {
       views: [{ state: 'frozen', xSplit: 1, ySplit: 2 }]
     });
 
     // We need all unique days sorted
     const daysSet = new Set<string>();
-    slotsData.forEach(s => daysSet.add(s.date));
+    slotsData.forEach((s: any) => daysSet.add(s.date));
     const days = Array.from(daysSet).sort();
 
     // Headers
@@ -60,7 +60,7 @@ export class SavingsCalculatorExportService {
     for (let b = 1; b <= 96; b++) {
       const row = [formatBlock(b)];
       days.forEach(day => {
-        const slot = slotsData.find(s => s.date === day && s.timeblock === b) as any;
+        const slot = slotsData.find((s: any) => s.date === day && s.timeblock === b) as any;
         if (slot && slot.shouldBuyFromMarket) {
           // If won, show the MCP (base price) of the selected market
           let mcp = 0;
@@ -106,7 +106,7 @@ export class SavingsCalculatorExportService {
 
     let totalDiscomU = 0, totalOaU = 0, totalDiscomB = 0, totalNetB = 0, totalConsumerU = 0, totalOaB = 0;
 
-    oaDetailed.breakdown.forEach(b => {
+    oaDetailed.breakdown.forEach((b: any) => {
       sheet.addRow([
         b.slabName,
         Math.round(b.discomUnits),
@@ -206,7 +206,7 @@ export class SavingsCalculatorExportService {
     
     // Calculate SLDC breakdown by market
     const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
-    slotsData.forEach(s => {
+    slotsData.forEach((s: any) => {
       if (s.shouldBuyFromMarket && s.marketSource) {
         if (s.marketSource === 'DAM') tradedDays.DAM.add(s.date);
         else if (s.marketSource === 'GDAM') tradedDays.GDAM.add(s.date);
@@ -253,22 +253,40 @@ export class SavingsCalculatorExportService {
     // Auto-fit column A
     sheet.getColumn(1).width = 40;
 
+  }
+
+  static async exportToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    
+    if (monthStr === 'all') {
+      const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
+      const months = Object.keys(entry?.todConsumptions || {}).sort();
+      for (const m of months) {
+        const result = await SavingsCalculatorService.calculateMarketDecision(id, m, version);
+        const monthName = new Date(`${m}-01`).toLocaleString('default', { month: 'long', year: 'numeric' });
+        await SavingsCalculatorExportService.addSavingsSheet(workbook, monthName, result);
+      }
+    } else {
+      const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version);
+      const sheetName = monthStr ? new Date(`${monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Savings Analysis';
+      await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, result);
+    }
+
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
   }
 
-  static async exportDemandShiftToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
-    const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr, version);
+  private static async addDemandShiftSheet(workbook: ExcelJS.Workbook, monthName: string, result: any) {
     const { slotsData } = result;
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Demand Shift Insights', {
+    const safeSheetName = monthName.replace(/[\/*?\[\]]/g, '').substring(0, 31);
+    const sheet = workbook.addWorksheet(safeSheetName, {
       views: [{ state: 'frozen', xSplit: 1, ySplit: 2 }]
     });
 
     // We need all unique days sorted
     const daysSet = new Set<string>();
-    slotsData.forEach(s => daysSet.add(s.date));
+    slotsData.forEach((s: any) => daysSet.add(s.date));
     const days = Array.from(daysSet).sort();
 
     // Headers
@@ -311,7 +329,7 @@ export class SavingsCalculatorExportService {
     for (let b = 1; b <= 96; b++) {
       const row = [formatBlock(b)];
       days.forEach(day => {
-        const slot = slotsData.find(s => s.date === day && s.timeblock === b) as any;
+        const slot = slotsData.find((s: any) => s.date === day && s.timeblock === b) as any;
         if (slot && slot.shouldBuyFromMarket && slot.marketEnergy > 0) {
           let mcp = 0;
           if (slot.marketSource === 'DAM') mcp = slot.damMcp || 0;
@@ -346,6 +364,24 @@ export class SavingsCalculatorExportService {
     }
 
     sheet.getColumn(1).width = 40;
+  }
+
+  static async exportDemandShiftToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    
+    if (monthStr === 'all') {
+      const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
+      const months = Object.keys(entry?.todConsumptions || {}).sort();
+      for (const m of months) {
+        const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, m, version);
+        const monthName = new Date(`${m}-01`).toLocaleString('default', { month: 'long', year: 'numeric' });
+        await SavingsCalculatorExportService.addDemandShiftSheet(workbook, monthName, result);
+      }
+    } else {
+      const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr, version);
+      const sheetName = monthStr ? new Date(`${monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Demand Shift';
+      await SavingsCalculatorExportService.addDemandShiftSheet(workbook, sheetName, result);
+    }
 
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
