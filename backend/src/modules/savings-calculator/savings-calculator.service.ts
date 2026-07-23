@@ -1713,8 +1713,8 @@ export class SavingsCalculatorService {
     const grossSavings = Math.max(0, rawSavings);
     const totalProltMarginCost = grossSavings * (proltMarginInput / 100);
     
-    const consultancyFee = Number(entry.consultancyFee || 0);
-    const probusPlatformFee = Number(entry.probusPlatformFee || 0);
+    const consultancyFee = Number((entry as any).consultancyFee || 0);
+    const probusPlatformFee = Number((entry as any).probusPlatformFee || 0);
 
     const totalSavings = rawSavings - totalProltMarginCost - consultancyFee - probusPlatformFee;
     
