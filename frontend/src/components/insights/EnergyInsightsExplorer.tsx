@@ -1,17 +1,64 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, IconButton, Tabs, Tab, Avatar, Chip, AppBar, Toolbar, Divider } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Button, IconButton, Tabs, Tab, Avatar, Chip, AppBar, Toolbar, Divider, CircularProgress } from '@mui/material';
 import { ArrowBack, LightbulbOutlined, ChevronLeft, ChevronRight, Notifications, Settings, Person } from '@mui/icons-material';
 import WithoutProltTab from './WithoutProltTab';
 import WithProltTab from './WithProltTab';
+import { SavingsCalculatorEntry, ClientOverviewResult, fetchClientOverview } from '../../api/savingsCalculator.api';
 
 interface EnergyInsightsExplorerProps {
+  entry: SavingsCalculatorEntry;
   onBack: () => void;
 }
 
-export default function EnergyInsightsExplorer({ onBack }: EnergyInsightsExplorerProps) {
+export default function EnergyInsightsExplorer({ entry, onBack }: EnergyInsightsExplorerProps) {
   const [onboardState, setOnboardState] = useState<'not_onboarded' | 'onboarded' | 'industry'>('not_onboarded');
   const [connectionState, setConnectionState] = useState<'HV-1' | 'HV-2'>('HV-1');
   const [currentMonth, setCurrentMonth] = useState('Jul 2026');
+
+  const [overview, setOverview] = useState<ClientOverviewResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    fetchClientOverview(entry.id)
+      .then(res => {
+        if (isMounted) {
+          setOverview(res);
+          setLoading(false);
+          // Set currentMonth to the most recent month if available
+          if (res.months && res.months.length > 0) {
+            setCurrentMonth(res.months[res.months.length - 1].month);
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch client overview for insights', err);
+        if (isMounted) setLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, [entry.id]);
+
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#F0FDF4' }}>
+        <CircularProgress color="success" />
+      </Box>
+    );
+  }
+
+  if (!overview) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#F0FDF4', flexDirection: 'column', gap: 2 }}>
+        <Typography variant="h6" color="text.secondary">Failed to load insights data.</Typography>
+        <Button variant="outlined" onClick={onBack}>Go Back</Button>
+      </Box>
+    );
+  }
+
+  // Format currency helpers for the banner
+  const formatCurrency = (val: number) => `₹${(val / 100000).toFixed(2)}L`; // Convert to Lakhs for banner
+  const formatFullCurrency = (val: number) => `₹${Math.round(val).toLocaleString('en-IN')}`;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#F0FDF4', display: 'flex', flexDirection: 'column' }}>
@@ -143,10 +190,10 @@ export default function EnergyInsightsExplorer({ onBack }: EnergyInsightsExplore
           </IconButton>
         </Box>
         
-        {onboardState === 'onboarded' && (
-          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-            <Chip label="Total Energy Cost: ₹3,560,000" sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }} />
-            <Chip label="Savings Achieved: ₹750,000 (21%)" sx={{ bgcolor: '#166534', color: 'white', fontWeight: 600, border: '1px solid #22C55E' }} />
+        {onboardState === 'onboarded' && overview && (
+          <Box sx={{ display: 'flex', gap: 2, mt: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Chip label={`Total Energy Cost: ${formatFullCurrency(overview.aggregatedCosts?.totalDiscomCost || 0)}`} sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }} />
+            <Chip label={`Savings Achieved: ${formatFullCurrency(overview.totalSavings)} (${overview.aggregatedCosts?.totalDiscomCost ? Math.round((overview.totalSavings / overview.aggregatedCosts.totalDiscomCost) * 100) : 0}%)`} sx={{ bgcolor: '#166534', color: 'white', fontWeight: 600, border: '1px solid #22C55E' }} />
             <Chip label="Optimization Efficiency: 97.5% adherence" sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }} />
           </Box>
         )}
@@ -164,8 +211,8 @@ export default function EnergyInsightsExplorer({ onBack }: EnergyInsightsExplore
             </Box>
           )}
 
-          {onboardState === 'not_onboarded' && <WithoutProltTab />}
-          {onboardState === 'onboarded' && <WithProltTab />}
+          {onboardState === 'not_onboarded' && <WithoutProltTab entry={entry} overview={overview} currentMonth={currentMonth} />}
+          {onboardState === 'onboarded' && <WithProltTab entry={entry} overview={overview} currentMonth={currentMonth} />}
           {onboardState === 'industry' && (
              <Box sx={{ textAlign: 'center', py: 10 }}>
                <Typography variant="h5" color="text.secondary" fontWeight={600}>Industry Insights coming soon...</Typography>

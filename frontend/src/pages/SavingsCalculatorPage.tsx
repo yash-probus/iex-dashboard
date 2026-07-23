@@ -10,6 +10,7 @@ import {
   Calculate as CalculateIcon, 
   Add as AddIcon,
   Visibility as VisibilityIcon,
+  LightbulbOutlined as LightbulbIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Close as CloseIcon,
@@ -68,7 +69,7 @@ export default function SavingsCalculatorPage() {
   const { isAdmin } = useAuth();
   
   // State variables
-  const [showInsightsExplorer, setShowInsightsExplorer] = useState(false);
+  const [selectedInsightsEntry, setSelectedInsightsEntry] = useState<SavingsCalculatorEntry | null>(null);
   const [entries, setEntries] = useState<SavingsCalculatorEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -972,6 +973,9 @@ export default function SavingsCalculatorPage() {
           <IconButton size="small" onClick={() => handleOpenDialog('view', row)} title="View Detail">
             <VisibilityIcon fontSize="small" sx={{ color: 'text.secondary' }} />
           </IconButton>
+          <IconButton size="small" onClick={() => setSelectedInsightsEntry(row)} title="Explore Insights">
+            <LightbulbIcon fontSize="small" sx={{ color: '#16A34A' }} />
+          </IconButton>
           {isAdmin && (
             <>
               <IconButton size="small" onClick={() => handleOpenDialog('edit', row)} title="Edit Entry">
@@ -990,8 +994,8 @@ export default function SavingsCalculatorPage() {
     }
   ];
 
-  if (showInsightsExplorer) {
-    return <EnergyInsightsExplorer onBack={() => setShowInsightsExplorer(false)} />;
+  if (selectedInsightsEntry) {
+    return <EnergyInsightsExplorer entry={selectedInsightsEntry} onBack={() => setSelectedInsightsEntry(null)} />;
   }
 
   return (
@@ -1028,45 +1032,24 @@ export default function SavingsCalculatorPage() {
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => setShowInsightsExplorer(true)}
-            sx={{ 
-              textTransform: 'none', 
-              borderRadius: 2.5, 
-              fontWeight: 600, 
-              color: '#8B5CF6',
-              borderColor: '#8B5CF6',
-              '&:hover': {
-                bgcolor: alpha('#8B5CF6', 0.1),
-                borderColor: '#7C3AED'
-              },
-              px: 2.5,
-              py: 1
-            }}
-          >
-            Explore Insights
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog('create')}
-            sx={{ 
-              textTransform: 'none', 
-              borderRadius: 2.5, 
-              fontWeight: 600, 
-              bgcolor: '#8B5CF6',
-              '&:hover': {
-                bgcolor: '#7C3AED'
-              },
-              px: 2.5,
-              py: 1
-            }}
-          >
-            Create New Entry
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog('create')}
+          sx={{ 
+            textTransform: 'none', 
+            borderRadius: 2.5, 
+            fontWeight: 600, 
+            bgcolor: '#8B5CF6',
+            '&:hover': {
+              bgcolor: '#7C3AED'
+            },
+            px: 2.5,
+            py: 1
+          }}
+        >
+          Create New Entry
+        </Button>
       </Box>
 
       {error && (

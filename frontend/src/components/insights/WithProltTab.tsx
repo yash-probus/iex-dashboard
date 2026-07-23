@@ -3,6 +3,8 @@ import { Box, Typography, Grid, Card, CardContent, LinearProgress, Alert, Table,
 import { BarChart as BarChartIcon, Timeline, ShowChart, AccountBalanceWallet, PictureAsPdf, Download } from '@mui/icons-material';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
+import { SavingsCalculatorEntry, ClientOverviewResult } from '../../api/savingsCalculator.api';
+
 const mockTodBreakdown = [
   { slot: 'ToD-1 (22:00-06:00)', discom: '50,000 kWh', discomPct: '40%', oa: '75,000 kWh', oaPct: '60%', total: '125,000 kWh' },
   { slot: 'ToD-2 (06:00-10:00)', discom: '80,000 kWh', discomPct: '40%', oa: '120,000 kWh', oaPct: '60%', total: '200,000 kWh' },
@@ -15,7 +17,28 @@ const mockDailyRates = Array.from({ length: 31 }, (_, i) => ({
   rate: 6.8 + Math.random() * 0.5
 }));
 
-export default function WithProltTab() {
+interface WithProltTabProps {
+  entry: SavingsCalculatorEntry;
+  overview: ClientOverviewResult;
+  currentMonth: string;
+}
+
+export default function WithProltTab({ entry, overview, currentMonth }: WithProltTabProps) {
+  // Compute dynamic aggregations based on overview data
+  const totalSavings = overview.totalSavings || 0;
+  
+  // Attempt to find the specific month's data, else fallback to aggregating all months
+  const monthData = overview.months.find(m => m.month === currentMonth);
+  const totalUnits = monthData ? (monthData.totalEnergyKwh || 0) : overview.months.reduce((acc, m) => acc + (m.totalEnergyKwh || 0), 0);
+  const oaUnits = monthData ? (monthData.totalMarketEnergyKwh || 0) : overview.months.reduce((acc, m) => acc + (m.totalMarketEnergyKwh || 0), 0);
+  const discomUnits = Math.max(0, totalUnits - oaUnits);
+  
+  const oaPct = totalUnits > 0 ? Math.round((oaUnits / totalUnits) * 100) : 0;
+  const discomPct = totalUnits > 0 ? 100 - oaPct : 0;
+
+  // Format Helpers
+  const formatLakhs = (val: number) => `₹${(val / 100000).toFixed(2)}L`;
+
   return (
     <Box sx={{ display: 'flex', gap: 3 }}>
       {/* Main Content (Left) */}
@@ -25,24 +48,24 @@ export default function WithProltTab() {
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <BarChartIcon color="error" />
-            <Typography variant="h6" fontWeight={700} color="text.primary">Monthly Performance Summary - Jul 2026</Typography>
+            <Typography variant="h6" fontWeight={700} color="text.primary">Monthly Performance Summary - {currentMonth}</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Procurement & cost performance for this month</Typography>
           
           <Grid container spacing={2}>
-            <Grid item xs={12} md={3}><StatCard label="Total Units Procured" value="500,000 kWh" /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="DISCOM Units" value="200,000 kWh" /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="OA Units" value="300,000 kWh" /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="Blended Effective Rate" value="₹7.00/kWh" highlight /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="Total Units Procured" value={`${totalUnits.toLocaleString('en-IN')} kWh`} /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="DISCOM Units" value={`${discomUnits.toLocaleString('en-IN')} kWh`} /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="OA Units" value={`${oaUnits.toLocaleString('en-IN')} kWh`} /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="Blended Effective Rate" value="₹7.00/kWh (Mock)" highlight /></Grid>
             
-            <Grid item xs={12} md={3}><StatCard label="DISCOM Only Effective Rate" value="₹8.50/kWh" /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="Total Cost" value="₹35.00L" /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="Savings Achieved" value="₹7.50L" color="success.main" /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="DISCOM Only Effective Rate" value="₹8.50/kWh (Mock)" /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="Total Cost (Discom)" value={overview.aggregatedCosts?.totalDiscomCost ? formatLakhs(overview.aggregatedCosts.totalDiscomCost) : 'N/A'} /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="Savings Achieved" value={formatLakhs(monthData?.savings || totalSavings)} color="success.main" /></Grid>
             <Grid item xs={12} md={3}><StatCard label="Contract Demand Utilization" value="75%" /></Grid>
           </Grid>
 
           <Alert severity="success" sx={{ mt: 2, borderRadius: 2, fontWeight: 600, bgcolor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0' }}>
-            Blended rate of <strong>₹7.00/kWh</strong> is 21.4% lower than DISCOM only baseline this month.
+            Blended rate of <strong>₹7.00/kWh (Mock)</strong> is 21.4% lower than DISCOM only baseline this month.
           </Alert>
         </Box>
 
@@ -61,13 +84,13 @@ export default function WithProltTab() {
                 <Box sx={{ width: 120, height: 120, mb: 2 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={[{ value: 60, fill: '#22C55E' }, { value: 40, fill: '#3B82F6' }]} innerRadius={40} outerRadius={60} dataKey="value" stroke="none" />
+                      <Pie data={[{ value: oaPct, fill: '#22C55E' }, { value: discomPct, fill: '#3B82F6' }]} innerRadius={40} outerRadius={60} dataKey="value" stroke="none" />
                     </PieChart>
                   </ResponsiveContainer>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Typography variant="caption" fontWeight={700} color="success.main">● OA 60.0%</Typography>
-                  <Typography variant="caption" fontWeight={700} color="primary.main">● DISCOM 40.0%</Typography>
+                  <Typography variant="caption" fontWeight={700} color="success.main">● OA {oaPct}%</Typography>
+                  <Typography variant="caption" fontWeight={700} color="primary.main">● DISCOM {discomPct}%</Typography>
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>How energy was actually procured</Typography>
               </Box>
@@ -77,13 +100,13 @@ export default function WithProltTab() {
                 <Box sx={{ width: 120, height: 120, mb: 2 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={[{ value: 63, fill: '#22C55E' }, { value: 37, fill: '#3B82F6' }]} innerRadius={40} outerRadius={60} dataKey="value" stroke="none" />
+                      <Pie data={[{ value: oaPct + 3, fill: '#22C55E' }, { value: Math.max(0, discomPct - 3), fill: '#3B82F6' }]} innerRadius={40} outerRadius={60} dataKey="value" stroke="none" />
                     </PieChart>
                   </ResponsiveContainer>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Typography variant="caption" fontWeight={700} color="success.main">● OA 63.0%</Typography>
-                  <Typography variant="caption" fontWeight={700} color="primary.main">● DISCOM 37.0%</Typography>
+                  <Typography variant="caption" fontWeight={700} color="success.main">● OA {Math.min(100, oaPct + 3)}% (Mock)</Typography>
+                  <Typography variant="caption" fontWeight={700} color="primary.main">● DISCOM {Math.max(0, discomPct - 3)}% (Mock)</Typography>
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>Optimized procurement strategy for this period</Typography>
               </Box>
@@ -218,7 +241,7 @@ export default function WithProltTab() {
                   <Card elevation={0} sx={{ bgcolor: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 2, height: '100%' }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="caption" color="primary.main" fontWeight={700}>Cumulative YTD Savings</Typography>
-                      <Typography variant="h6" color="primary.main" fontWeight={800}>₹39.00L</Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight={800}>{formatLakhs(totalSavings)}</Typography>
                       <Typography variant="caption" color="primary.main" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>Jan-present</Typography>
                     </CardContent>
                   </Card>

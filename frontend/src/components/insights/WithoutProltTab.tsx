@@ -3,14 +3,30 @@ import { Box, Typography, Grid, Card, CardContent, LinearProgress, Accordion, Ac
 import { PersonOutline, ReceiptLong, ShowChart, AccountBalanceWallet, Speed, ExpandMore } from '@mui/icons-material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const mockConsumptionData = [
-  { name: 'ToD1 (Off Peak, 05-10h)', value: 125000 },
-  { name: 'ToD2 (Normal, 10-17h)', value: 200000 },
-  { name: 'ToD3 (Peak, 17-22h)', value: 125000 },
-  { name: 'ToD4 (Normal, 22-05h)', value: 50000 },
-];
+import { SavingsCalculatorEntry, ClientOverviewResult } from '../../api/savingsCalculator.api';
 
-export default function WithoutProltTab() {
+interface WithoutProltTabProps {
+  entry: SavingsCalculatorEntry;
+  overview: ClientOverviewResult;
+  currentMonth: string;
+}
+
+export default function WithoutProltTab({ entry, overview, currentMonth }: WithoutProltTabProps) {
+  // Map ToD Consumptions for the current month if available
+  const monthData = entry.todConsumptions?.[currentMonth] || {};
+  const dynamicConsumptionData = Object.entries(monthData).map(([slab, val]) => ({
+    name: slab,
+    value: Number(val) || 0
+  })).filter(d => d.value > 0);
+
+  // Fallback to mock data if no ToD consumption data exists
+  const chartData = dynamicConsumptionData.length > 0 ? dynamicConsumptionData : [
+    { name: 'ToD1 (Off Peak)', value: 125000 },
+    { name: 'ToD2 (Normal)', value: 200000 },
+    { name: 'ToD3 (Peak)', value: 125000 },
+    { name: 'ToD4 (Normal)', value: 50000 },
+  ];
+
   return (
     <Box sx={{ display: 'flex', gap: 3 }}>
       
@@ -26,16 +42,16 @@ export default function WithoutProltTab() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Who is this consumer and what is their connection?</Typography>
           
           <Grid container spacing={2}>
-            <Grid item xs={6} md={3}><DetailCard label="Account Number" value="7802-986-000" icon="tag" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Consumer Name" value="Bhawani Roller Flour Mills Pvt. Ltd." icon="person" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Address" value="Patel Nagar, Ghaziabad, UP" icon="location" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Tariff" value="HV-2 Industrial" icon="receipt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Supply Type" value="H21T" icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Meter Type" value="Postpaid" icon="speed" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Meter Number" value="UPP71470" icon="tag" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Sanctioned Load" value="1150 kVA" icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Billed Demand" value="960 kVA" icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Power Factor" value="0.98" icon="show_chart" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Account Number" value={entry.id.substring(0, 8).toUpperCase()} icon="tag" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Consumer Name" value={entry.clientName} icon="person" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Address" value={entry.address || "N/A"} icon="location" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Tariff" value={entry.consumerCategory || "N/A"} icon="receipt" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="State Code" value={entry.stateCode || "N/A"} icon="bolt" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="DISCOM" value={entry.discom || "N/A"} icon="speed" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Industry" value={entry.industryName || "N/A"} icon="tag" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Sanctioned Load" value={entry.sanctionedLoadKw ? `${entry.sanctionedLoadKw} kW` : "N/A"} icon="bolt" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Billed Demand" value="N/A (Mock)" icon="bolt" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Power Factor" value="N/A (Mock)" icon="show_chart" /></Grid>
           </Grid>
         </Box>
 
@@ -48,10 +64,10 @@ export default function WithoutProltTab() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>What is the bill and what are its components?</Typography>
           
           <Grid container spacing={2}>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Month" value="Jul 2026" /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Date" value="06-Dec-2025" /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Billed Units" value="500,000 kWh" /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Amount Payable" value="₹3,500,000" highlight /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Month" value={currentMonth} /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Date" value="N/A" /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Billed Units" value={`${chartData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString()} kWh`} /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Amount Payable (Mock)" value="₹3,500,000" highlight /></Grid>
             <Grid item xs={12} md={2.4}><SummaryCard label="Energy Charges" value="₹2,389,231" /></Grid>
             <Grid item xs={12} md={2.4}><SummaryCard label="Misc Charges" value="₹148,854" /></Grid>
             <Grid item xs={12} md={4.8}><SummaryCard label="Net Current Bill" value="₹1,330,000" /></Grid>
@@ -71,7 +87,7 @@ export default function WithoutProltTab() {
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
             <CardContent sx={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockConsumptionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                   <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
@@ -130,7 +146,7 @@ export default function WithoutProltTab() {
                     <Grid item xs={6}>
                       <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>Sanctioned Load</Typography>
-                        <Typography variant="body1" fontWeight={800}>2500 kVA</Typography>
+                        <Typography variant="body1" fontWeight={800}>{entry.sanctionedLoadKw ? `${entry.sanctionedLoadKw} kW` : 'N/A'}</Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={6}>
