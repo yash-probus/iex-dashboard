@@ -2,7 +2,7 @@ import * as ExcelJS from 'exceljs';
 import { SavingsCalculatorService } from './savings-calculator.service';
 
 export class SavingsCalculatorExportService {
-  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any) {
+  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any) {
     const { slotsData, todSummaries, oaDetailed } = result;
 
     // Remove invalid characters for worksheet names
@@ -337,10 +337,21 @@ export class SavingsCalculatorExportService {
     
     sheet.addRow(['Net Savings', Math.round(netSavings)]);
     
+    const nocFee = 7000;
+    const regFee = 8333;
+    const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
+    const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
+    const probusPlatformFee = Math.round(result.totalMarketEnergyKwh * platformFeeRate);
     const proltMarginVal = (t as any).proltMarginCost || 0;
+
+    sheet.addRow(['Monthly NOC Fee', nocFee]);
+    sheet.addRow(['IEX Registration Fee', regFee]);
+    sheet.addRow(['Prolt Consultancy Fee', consultancyFeeVal]);
+    sheet.addRow(['Probus Platform Fee', probusPlatformFee]);
     sheet.addRow(['PROLT Margin', Math.round(proltMarginVal)]);
     
-    sheet.addRow(['Final Client Savings', Math.round(netSavings - proltMarginVal)]);
+    const finalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - proltMarginVal;
+    sheet.addRow(['Final Client Savings', Math.round(finalSavings)]);
     
     if (sheet.lastRow) {
       sheet.lastRow.font = { bold: true, color: { argb: 'FF008000' } };
@@ -369,13 +380,14 @@ export class SavingsCalculatorExportService {
       }
       
       for (const r of allResults) {
-        const monthName = new Date(`${r.monthStr}-01`).toLocaleString('default', { month: 'long', year: 'numeric' });
-        await SavingsCalculatorExportService.addSavingsSheet(workbook, monthName, r.result);
+        const sheetName = r.monthStr ? new Date(`${r.monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Savings Analysis';
+        await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, r.result, entry);
       }
     } else {
+      const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
       const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version);
       const sheetName = monthStr ? new Date(`${monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Savings Analysis';
-      await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, result);
+      await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, result, entry);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -481,7 +493,8 @@ export class SavingsCalculatorExportService {
     ppcProltRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) ppcProltRow.getCell(i).numFmt = '₹0.00';
 
-    const totalSaving = allResults.map(r => Math.round(r.result.totalSavings));
+    // Total Saving = Gross Saving (Discom - Power Cost OA)
+    const totalSaving = allResults.map((r, i) => discomCost[i] - totalPowerCostOA[i]);
     const totalSavingRow = sheet.addRow(['Total Saving', ...totalSaving]);
     totalSavingRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     totalSavingRow.font = { bold: true };
@@ -524,7 +537,11 @@ export class SavingsCalculatorExportService {
 
     sheet.addRow([]);
 
-    const savingForBiz = allResults.map((r, i) => totalSaving[i] - totalAmount[i]);
+    const nocFee = 7000;
+    const regFee = 8333;
+    // We only deduct Platform Fee, Value Share, NOC, Reg, and Consultancy.
+    // Trading Margin is already deducted inside totalPowerCostOA, so we do not deduct it again!
+    const savingForBiz = allResults.map((r, i) => totalSaving[i] - nocFee - regFee - consultancyFeeVal - probusPlatformFee[i] - probusValueShare[i]);
     const savingForBizRow = sheet.addRow(['Saving for your business', ...savingForBiz]);
     savingForBizRow.font = { bold: true };
     savingForBizRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
