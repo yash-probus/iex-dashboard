@@ -82,35 +82,35 @@ model DamRecord {
 }
 
 model GdamRecord {
-  id              String  @id @default(uuid())
+  id              String   @id @default(uuid())
   datasetId       String
-  date            String? @db.VarChar(10)
-  intervalNumber  Int     @db.SmallInt
-  intervalTime    String  @db.VarChar(15)
-  purchaseBid     Decimal @db.Decimal(18, 4)
-  sellBidTotal    Decimal @db.Decimal(18, 4)
+  date            String?  @db.VarChar(10)
+  intervalNumber  Int      @db.SmallInt
+  intervalTime    String   @db.VarChar(15)
+  purchaseBid     Decimal  @db.Decimal(18, 4)
+  sellBidTotal    Decimal  @db.Decimal(18, 4)
   sellBidSolar    Decimal? @db.Decimal(18, 4)
   sellBidNonSolar Decimal? @db.Decimal(18, 4)
-  sellBidHydro    Decimal @db.Decimal(18, 4)
-  sellBidWind     Decimal @default(0) @db.Decimal(18, 4)
-  sellBidOtherRE  Decimal @default(0) @db.Decimal(18, 4)
-  sellBidORE      Decimal @default(0) @db.Decimal(18, 4)
-  mcvTotal        Decimal @db.Decimal(18, 4)
+  sellBidHydro    Decimal  @db.Decimal(18, 4)
+  sellBidWind     Decimal  @default(0) @db.Decimal(18, 4)
+  sellBidOtherRE  Decimal  @default(0) @db.Decimal(18, 4)
+  sellBidORE      Decimal  @default(0) @db.Decimal(18, 4)
+  mcvTotal        Decimal  @db.Decimal(18, 4)
   mcvSolar        Decimal? @db.Decimal(18, 4)
   mcvNonSolar     Decimal? @db.Decimal(18, 4)
-  mcvHydro        Decimal @db.Decimal(18, 4)
-  mcvWind         Decimal @default(0) @db.Decimal(18, 4)
-  mcvOtherRE      Decimal @default(0) @db.Decimal(18, 4)
-  mcvORE          Decimal @default(0) @db.Decimal(18, 4)
-  fsvTotal        Decimal @db.Decimal(18, 4)
+  mcvHydro        Decimal  @db.Decimal(18, 4)
+  mcvWind         Decimal  @default(0) @db.Decimal(18, 4)
+  mcvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
+  mcvORE          Decimal  @default(0) @db.Decimal(18, 4)
+  fsvTotal        Decimal  @db.Decimal(18, 4)
   fsvSolar        Decimal? @db.Decimal(18, 4)
   fsvNonSolar     Decimal? @db.Decimal(18, 4)
-  fsvHydro        Decimal @db.Decimal(18, 4)
-  fsvWind         Decimal @default(0) @db.Decimal(18, 4)
-  fsvOtherRE      Decimal @default(0) @db.Decimal(18, 4)
-  fsvORE          Decimal @default(0) @db.Decimal(18, 4)
-  mcp             Decimal @db.Decimal(18, 4)
-  dataset         Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  fsvHydro        Decimal  @db.Decimal(18, 4)
+  fsvWind         Decimal  @default(0) @db.Decimal(18, 4)
+  fsvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
+  fsvORE          Decimal  @default(0) @db.Decimal(18, 4)
+  mcp             Decimal  @db.Decimal(18, 4)
+  dataset         Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
   @@unique([datasetId, intervalNumber])
   @@index([datasetId])
@@ -443,29 +443,29 @@ model NppRawGenerationData {
 }
 
 model NppAdjustedDemandData {
-  id            String   @id @default(uuid())
-  date          String
-  timeStr       String
-  demandMet     Float
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now()) @updatedAt
+  id        String   @id @default(uuid())
+  date      String
+  timeStr   String
+  demandMet Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([date, timeStr], map: "uq_npp_adj_demand")
   @@index([date])
 }
 
 model NppAdjustedGenerationData {
-  id            String   @id @default(uuid())
-  date          String
-  timeStr       String
-  thermal       Float?
-  gas           Float?
-  nuclear       Float?
-  hydro         Float?
-  wind          Float?
-  solar         Float?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now()) @updatedAt
+  id        String   @id @default(uuid())
+  date      String
+  timeStr   String
+  thermal   Float?
+  gas       Float?
+  nuclear   Float?
+  hydro     Float?
+  wind      Float?
+  solar     Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([date, timeStr], map: "uq_npp_adj_gen")
   @@index([date])
@@ -535,25 +535,31 @@ model SavingsCalculatorEntry {
   proltMargin      Decimal? @map("prolt_margin") @db.Decimal(12, 4)
   traderMargin     Decimal? @map("trader_margin") @db.Decimal(12, 4)
 
-  stateCode        String?  @map("state_code") @db.VarChar(100)
-  discom           String?  @map("discom") @db.VarChar(100)
-  consumerCategory String?  @map("consumer_category") @db.VarChar(100)
-  voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
-  todConsumptions  Json?    @map("tod_consumptions")
-  applyElectricityDuty Boolean @default(true) @map("apply_electricity_duty")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  stateCode        String? @map("state_code") @db.VarChar(100)
+  discom           String? @map("discom") @db.VarChar(100)
+  consumerCategory String? @map("consumer_category") @db.VarChar(100)
+  voltageLevel     String? @map("voltage_level") @db.VarChar(50)
+  todConsumptions  Json?   @map("tod_consumptions")
 
-  history          SavingsCalculatorEntryHistory[]
+  billedDemandKv       Decimal? @map("billed_demand_kv") @db.Decimal(12, 4)
+  powerFactor          Decimal? @map("power_factor") @db.Decimal(5, 4)
+  arrearAmount         Decimal? @map("arrear_amount") @db.Decimal(15, 2)
+  currentLpsc          Decimal? @map("current_lpsc") @db.Decimal(15, 2)
+  billDate             String?  @map("bill_date") @db.VarChar(50)
+  applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  history SavingsCalculatorEntryHistory[]
 
   @@map("savings_calculator_entries")
 }
 
 model SavingsCalculatorEntryHistory {
-  id               String   @id @default(uuid())
-  entryId          String   @map("entry_id") @db.VarChar(36)
-  version          Int
-  
+  id      String @id @default(uuid())
+  entryId String @map("entry_id") @db.VarChar(36)
+  version Int
+
   // Snapshot of data
   clientName       String   @map("client_name") @db.VarChar(255)
   industryName     String   @map("industry_name") @db.VarChar(255)
@@ -566,11 +572,17 @@ model SavingsCalculatorEntryHistory {
   consumerCategory String?  @map("consumer_category") @db.VarChar(100)
   voltageLevel     String?  @map("voltage_level") @db.VarChar(50)
   todConsumptions  Json?    @map("tod_consumptions")
-  applyElectricityDuty Boolean @default(true) @map("apply_electricity_duty")
-  
-  changedAt        DateTime @default(now()) @map("changed_at")
-  
-  entry            SavingsCalculatorEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  billedDemandKv       Decimal? @map("billed_demand_kv") @db.Decimal(12, 4)
+  powerFactor          Decimal? @map("power_factor") @db.Decimal(5, 4)
+  arrearAmount         Decimal? @map("arrear_amount") @db.Decimal(15, 2)
+  currentLpsc          Decimal? @map("current_lpsc") @db.Decimal(15, 2)
+  billDate             String?  @map("bill_date") @db.VarChar(50)
+  applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
+
+  changedAt DateTime @default(now()) @map("changed_at")
+
+  entry SavingsCalculatorEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@index([entryId])
   @@map("savings_calculator_entry_histories")
@@ -597,11 +609,11 @@ model StateMarketRecord {
 }
 
 model FppaCharges {
-  id                  Int      @id @default(autoincrement())
-  state               String   @db.VarChar(100)
-  month               Int
-  fppaChargePercent   Decimal? @map("fppa_charge_percent") @db.Decimal(12, 6)
-  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
+  id                Int      @id @default(autoincrement())
+  state             String   @db.VarChar(100)
+  month             Int
+  fppaChargePercent Decimal? @map("fppa_charge_percent") @db.Decimal(12, 6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([state, month], map: "uq_fppa_charges_state_month")
   @@map("fppa_charges")

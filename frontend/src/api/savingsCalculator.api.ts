@@ -13,6 +13,12 @@ export interface SavingsCalculatorEntry {
   proltMargin?: number;
   traderMargin?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
+  applyElectricityDuty?: boolean;
+  billedDemandKv?: number;
+  powerFactor?: number;
+  arrearAmount?: number;
+  currentLpsc?: number;
+  billDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +41,12 @@ export interface CreateSavingsEntryDto {
   proltMargin?: number;
   traderMargin?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
+  applyElectricityDuty?: boolean;
+  billedDemandKv?: number;
+  powerFactor?: number;
+  arrearAmount?: number;
+  currentLpsc?: number;
+  billDate?: string;
 }
 
 export interface CalculationSlotDetail {

@@ -43,6 +43,11 @@ export class SavingsCalculatorService {
     traderMargin?: number;
     todConsumptions?: any;
     applyElectricityDuty?: boolean;
+    billedDemandKv?: number | null;
+    powerFactor?: number | null;
+    arrearAmount?: number | null;
+    currentLpsc?: number | null;
+    billDate?: string | null;
   }) {
     return prisma.$transaction(async (tx) => {
       const entry = await tx.savingsCalculatorEntry.create({
@@ -58,7 +63,12 @@ export class SavingsCalculatorService {
           proltMargin: data.proltMargin,
           traderMargin: data.traderMargin,
           todConsumptions: data.todConsumptions,
-          applyElectricityDuty: data.applyElectricityDuty
+          applyElectricityDuty: data.applyElectricityDuty,
+          billedDemandKv: data.billedDemandKv,
+          powerFactor: data.powerFactor,
+          arrearAmount: data.arrearAmount,
+          currentLpsc: data.currentLpsc,
+          billDate: data.billDate
         }
       });
 
@@ -77,7 +87,12 @@ export class SavingsCalculatorService {
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
           todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,
-          applyElectricityDuty: entry.applyElectricityDuty
+          applyElectricityDuty: entry.applyElectricityDuty,
+          billedDemandKv: entry.billedDemandKv,
+          powerFactor: entry.powerFactor,
+          arrearAmount: entry.arrearAmount,
+          currentLpsc: entry.currentLpsc,
+          billDate: entry.billDate
         }
       });
 
@@ -98,6 +113,11 @@ export class SavingsCalculatorService {
     traderMargin?: number;
     todConsumptions?: any;
     applyElectricityDuty?: boolean;
+    billedDemandKv?: number | null;
+    powerFactor?: number | null;
+    arrearAmount?: number | null;
+    currentLpsc?: number | null;
+    billDate?: string | null;
   }) {
     return prisma.$transaction(async (tx) => {
       const entry = await tx.savingsCalculatorEntry.update({
@@ -114,7 +134,12 @@ export class SavingsCalculatorService {
           proltMargin: data.proltMargin,
           traderMargin: data.traderMargin,
           todConsumptions: data.todConsumptions,
-          ...(data.applyElectricityDuty !== undefined && { applyElectricityDuty: data.applyElectricityDuty })
+          ...(data.applyElectricityDuty !== undefined && { applyElectricityDuty: data.applyElectricityDuty }),
+          billedDemandKv: data.billedDemandKv,
+          powerFactor: data.powerFactor,
+          arrearAmount: data.arrearAmount,
+          currentLpsc: data.currentLpsc,
+          billDate: data.billDate
         }
       });
 
@@ -140,7 +165,12 @@ export class SavingsCalculatorService {
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
           todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,
-          applyElectricityDuty: entry.applyElectricityDuty
+          applyElectricityDuty: entry.applyElectricityDuty,
+          billedDemandKv: entry.billedDemandKv,
+          powerFactor: entry.powerFactor,
+          arrearAmount: entry.arrearAmount,
+          currentLpsc: entry.currentLpsc,
+          billDate: entry.billDate
         }
       });
 

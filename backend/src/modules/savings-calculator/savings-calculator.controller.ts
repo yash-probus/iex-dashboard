@@ -51,7 +51,12 @@ export class SavingsCalculatorController {
         proltMargin,
         traderMargin,
         todConsumptions,
-        applyElectricityDuty
+        applyElectricityDuty,
+        billedDemandKv,
+        powerFactor,
+        arrearAmount,
+        currentLpsc,
+        billDate
       } = req.body;
 
       if (!clientName || !industryName || !address) {
@@ -70,7 +75,12 @@ export class SavingsCalculatorController {
         proltMargin: proltMargin ? parseFloat(proltMargin) : undefined,
         traderMargin: traderMargin ? parseFloat(traderMargin) : undefined,
         todConsumptions,
-        applyElectricityDuty: applyElectricityDuty !== undefined ? applyElectricityDuty : true
+        applyElectricityDuty: applyElectricityDuty !== undefined ? applyElectricityDuty : true,
+        billedDemandKv: billedDemandKv ? parseFloat(billedDemandKv) : undefined,
+        powerFactor: powerFactor ? parseFloat(powerFactor) : undefined,
+        arrearAmount: arrearAmount ? parseFloat(arrearAmount) : undefined,
+        currentLpsc: currentLpsc ? parseFloat(currentLpsc) : undefined,
+        billDate
       });
 
       res.status(201).json(entry);
@@ -95,7 +105,12 @@ export class SavingsCalculatorController {
         proltMargin,
         traderMargin,
         todConsumptions,
-        applyElectricityDuty
+        applyElectricityDuty,
+        billedDemandKv,
+        powerFactor,
+        arrearAmount,
+        currentLpsc,
+        billDate
       } = req.body;
 
       if (!clientName || !industryName || !address) {
@@ -113,7 +128,13 @@ export class SavingsCalculatorController {
         voltageLevel,
         proltMargin: proltMargin ? parseFloat(proltMargin) : undefined,
         traderMargin: traderMargin ? parseFloat(traderMargin) : undefined,
-        todConsumptions
+        todConsumptions,
+        applyElectricityDuty: applyElectricityDuty !== undefined ? applyElectricityDuty : undefined,
+        billedDemandKv: billedDemandKv !== undefined ? (billedDemandKv ? parseFloat(billedDemandKv) : null) : undefined,
+        powerFactor: powerFactor !== undefined ? (powerFactor ? parseFloat(powerFactor) : null) : undefined,
+        arrearAmount: arrearAmount !== undefined ? (arrearAmount ? parseFloat(arrearAmount) : null) : undefined,
+        currentLpsc: currentLpsc !== undefined ? (currentLpsc ? parseFloat(currentLpsc) : null) : undefined,
+        billDate: billDate !== undefined ? (billDate ? billDate : null) : undefined
       });
 
       res.json(entry);

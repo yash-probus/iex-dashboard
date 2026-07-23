@@ -99,6 +99,13 @@ export default function SavingsCalculatorPage() {
   
   const [todConsumptions, setTodConsumptions] = useState<Record<string, Record<string, string>>>({});
   
+  // Additional Billing Fields
+  const [billedDemandKv, setBilledDemandKv] = useState('');
+  const [powerFactor, setPowerFactor] = useState('');
+  const [arrearAmount, setArrearAmount] = useState('');
+  const [currentLpsc, setCurrentLpsc] = useState('');
+  const [billDate, setBillDate] = useState('');
+
   // Validation Errors
   const [formErrors, setFormErrors] = useState<{ 
     clientName?: string; 
@@ -376,6 +383,11 @@ export default function SavingsCalculatorPage() {
     setTraderMargin('');
     setTodConsumptions({});
     setFormErrors({});
+    setBilledDemandKv('');
+    setPowerFactor('');
+    setArrearAmount('');
+    setCurrentLpsc('');
+    setBillDate('');
   };
 
   const handleOpenHistory = async (entry: SavingsCalculatorEntry) => {
@@ -444,7 +456,13 @@ export default function SavingsCalculatorPage() {
       }
       setTodConsumptions(tc);
       
-      setActiveStep(7); 
+      setBilledDemandKv(entry.billedDemandKv !== undefined && entry.billedDemandKv !== null ? String(entry.billedDemandKv) : '');
+      setPowerFactor(entry.powerFactor !== undefined && entry.powerFactor !== null ? String(entry.powerFactor) : '');
+      setArrearAmount(entry.arrearAmount !== undefined && entry.arrearAmount !== null ? String(entry.arrearAmount) : '');
+      setCurrentLpsc(entry.currentLpsc !== undefined && entry.currentLpsc !== null ? String(entry.currentLpsc) : '');
+      setBillDate(entry.billDate || '');
+
+      setActiveStep(8); 
     } else {
       setSelectedEntry(null);
       resetForm();
@@ -483,6 +501,8 @@ export default function SavingsCalculatorPage() {
           });
         });
         return isValid;
+      case 8:
+        return true; // Additional Billing Details are optional
       default:
         return false;
     }
@@ -544,6 +564,11 @@ export default function SavingsCalculatorPage() {
             ])
           )
           : undefined,
+        billedDemandKv: billedDemandKv.trim() ? parseFloat(billedDemandKv) : undefined,
+        powerFactor: powerFactor.trim() ? parseFloat(powerFactor) : undefined,
+        arrearAmount: arrearAmount.trim() ? parseFloat(arrearAmount) : undefined,
+        currentLpsc: currentLpsc.trim() ? parseFloat(currentLpsc) : undefined,
+        billDate: billDate.trim() || undefined
       };
 
       if (dialogMode === 'create') {
@@ -899,7 +924,7 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 7) {
+                  if (stepIndex < 8) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     setProltDialogOpen(true);
@@ -914,7 +939,7 @@ export default function SavingsCalculatorPage() {
                   }
                 }
               }}
-              endIcon={stepIndex === 6 ? undefined : <ArrowForwardIcon />}
+              endIcon={stepIndex === 7 || stepIndex === 8 ? undefined : <ArrowForwardIcon />}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2.5, 
@@ -925,7 +950,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {stepIndex === 6 ? 'Next' : 'Continue'}
+              {stepIndex === 8 ? 'Next' : 'Continue'}
             </Button>
           </Box>
         </Card>
@@ -1490,6 +1515,62 @@ export default function SavingsCalculatorPage() {
 
                   );
                 })}
+              </Box>
+            )
+          })}
+
+          {renderStep(8, {
+            icon: <CalculateIcon />,
+            title: "Additional Billing Details",
+            question: "Enter specific billing parameters to improve insights accuracy (optional).",
+            summary: "Additional details provided",
+            content: (
+              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <TextField
+                  label="Billed Demand (kVA)"
+                  value={billedDemandKv}
+                  onChange={(e) => setBilledDemandKv(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  type="number"
+                />
+                <TextField
+                  label="Power Factor (e.g., 0.95)"
+                  value={powerFactor}
+                  onChange={(e) => setPowerFactor(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  type="number"
+                  inputProps={{ step: 0.01 }}
+                />
+                <TextField
+                  label="Arrear Amount (₹)"
+                  value={arrearAmount}
+                  onChange={(e) => setArrearAmount(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  type="number"
+                />
+                <TextField
+                  label="Current LPSC (₹)"
+                  value={currentLpsc}
+                  onChange={(e) => setCurrentLpsc(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  type="number"
+                />
+                <TextField
+                  label="Bill Date (e.g., 06-Dec-2025)"
+                  value={billDate}
+                  onChange={(e) => setBillDate(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                />
               </Box>
             )
           })}

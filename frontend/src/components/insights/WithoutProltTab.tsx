@@ -11,6 +11,11 @@ interface WithoutProltTabProps {
   currentMonth: string;
 }
 
+const formatCurrency = (val?: number) => {
+  if (val === undefined || val === null) return "N/A";
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+};
+
 export default function WithoutProltTab({ entry, overview, currentMonth }: WithoutProltTabProps) {
   // Map ToD Consumptions for the current month if available
   const monthData = entry.todConsumptions?.[currentMonth] || {};
@@ -26,6 +31,11 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
     { name: 'ToD3 (Peak)', value: 125000 },
     { name: 'ToD4 (Normal)', value: 50000 },
   ];
+
+  const netCurrentBill = overview?.aggregatedCosts?.totalDiscomCost || 0;
+  const arrearAmount = entry.arrearAmount || 0;
+  const currentLpsc = entry.currentLpsc || 0;
+  const totalBill = netCurrentBill + arrearAmount + currentLpsc;
 
   return (
     <Box sx={{ display: 'flex', gap: 3 }}>
@@ -50,8 +60,8 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
             <Grid item xs={6} md={3}><DetailCard label="DISCOM" value={entry.discom || "N/A"} icon="speed" /></Grid>
             <Grid item xs={6} md={3}><DetailCard label="Industry" value={entry.industryName || "N/A"} icon="tag" /></Grid>
             <Grid item xs={6} md={3}><DetailCard label="Sanctioned Load" value={entry.sanctionedLoadKw ? `${entry.sanctionedLoadKw} kW` : "N/A"} icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Billed Demand" value="N/A (Mock)" icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Power Factor" value="N/A (Mock)" icon="show_chart" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Billed Demand" value={entry.billedDemandKv ? `${entry.billedDemandKv} kVA` : "N/A"} icon="bolt" /></Grid>
+            <Grid item xs={6} md={3}><DetailCard label="Power Factor" value={entry.powerFactor ? `${entry.powerFactor}` : "N/A"} icon="show_chart" /></Grid>
           </Grid>
         </Box>
 
@@ -65,14 +75,14 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
           
           <Grid container spacing={2}>
             <Grid item xs={12} md={2.4}><SummaryCard label="Bill Month" value={currentMonth} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Date" value="N/A" /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Date" value={entry.billDate || "N/A"} /></Grid>
             <Grid item xs={12} md={2.4}><SummaryCard label="Billed Units" value={`${chartData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString()} kWh`} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Amount Payable (Mock)" value="₹3,500,000" highlight /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Energy Charges" value="₹2,389,231" /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Misc Charges" value="₹148,854" /></Grid>
-            <Grid item xs={12} md={4.8}><SummaryCard label="Net Current Bill" value="₹1,330,000" /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Arrear Amount" value="₹2,170,000" /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Current LPSC" value="₹14,000" /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Amount Payable" value={formatCurrency(totalBill)} highlight /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Energy Charges" value="View Breakdown" /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Misc Charges" value="View Breakdown" /></Grid>
+            <Grid item xs={12} md={4.8}><SummaryCard label="Net Current Bill" value={formatCurrency(netCurrentBill)} /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Arrear Amount" value={formatCurrency(entry.arrearAmount)} /></Grid>
+            <Grid item xs={12} md={2.4}><SummaryCard label="Current LPSC" value={formatCurrency(entry.currentLpsc)} /></Grid>
           </Grid>
         </Box>
 
@@ -119,7 +129,7 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
                   </Box>
                   <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body1" fontWeight={700}>Total Bill</Typography>
-                    <Typography variant="h6" fontWeight={800}>₹35.00L</Typography>
+                    <Typography variant="h6" fontWeight={800}>{formatCurrency(totalBill)}</Typography>
                   </Box>
                 </CardContent>
               </Card>
