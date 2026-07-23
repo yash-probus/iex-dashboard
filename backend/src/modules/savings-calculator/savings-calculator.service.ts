@@ -1633,8 +1633,8 @@ export class SavingsCalculatorService {
       const proltDiscomBillTotal = discountedProltBill + slabED;
       totalDiscomAfterProlt += proltDiscomBillTotal;
 
-      const nonGdamMarketSlots = marketSlots.filter(s => s.marketSource !== 'GDAM').length;
-      const nonGdamFraction = marketSlots.length > 0 ? nonGdamMarketSlots / marketSlots.length : 0;
+      const nonGdamMarketEnergy = marketSlots.filter(s => s.marketSource !== 'GDAM').reduce((sum, s: any) => sum + (s.marketEnergy || 0), 0);
+      const nonGdamFraction = finalMarketEnergy > 0 ? nonGdamMarketEnergy / finalMarketEnergy : 0;
       const nonGdamConsumerBusUnits = consumerBusUnits * nonGdamFraction;
       
       const rpoCharge = nonGdamConsumerBusUnits * RPO_FLAT_RATE;

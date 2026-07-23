@@ -89,7 +89,7 @@ const FORECAST_ROUTES = [
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isSuperAdmin, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery('(max-width:767px)');
 
@@ -449,7 +449,7 @@ export default function Navbar() {
       <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider' }}>
         {isAuthenticated ? (
           <>
-            {isAdmin && (
+            {isSuperAdmin && (
               <Button
                 fullWidth
                 variant="text"
@@ -552,7 +552,7 @@ export default function Navbar() {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexShrink: 0, gap: 2, alignItems: 'center' }}>
               {isAuthenticated ? (
                 <>
-                  {isAdmin && (
+                  {isSuperAdmin && (
                     <Button
                       variant="text"
                       onClick={() => navigate('/admin/users')}

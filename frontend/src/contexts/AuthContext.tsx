@@ -6,6 +6,7 @@ import { AppUser } from '../api/auth.api';
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   token: string | null;
   user: AppUser | null;
   authLoading: boolean;
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AppUser | null>(null);
 
@@ -33,7 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(storedToken);
         setUser(parsedUser);
         setIsAuthenticated(true);
-        setIsAdmin(parsedUser.role === 'ADMIN');
+        setIsAdmin(parsedUser.role === 'ADMIN' || parsedUser.role === 'SUPER_ADMIN');
+        setIsSuperAdmin(parsedUser.role === 'SUPER_ADMIN');
       } catch (e) {
         // Invalid stored data, clear it
         localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -55,7 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(newToken);
     setUser(newUser);
     setIsAuthenticated(true);
-    setIsAdmin(newUser.role === 'ADMIN');
+    setIsAdmin(newUser.role === 'ADMIN' || newUser.role === 'SUPER_ADMIN');
+    setIsSuperAdmin(newUser.role === 'SUPER_ADMIN');
     localStorage.setItem(AUTH_TOKEN_KEY, newToken);
     localStorage.setItem('iex_user', JSON.stringify(newUser));
   };
@@ -65,12 +69,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
+    setIsSuperAdmin(false);
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem('iex_user');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, token, user, authLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, isSuperAdmin, token, user, authLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
