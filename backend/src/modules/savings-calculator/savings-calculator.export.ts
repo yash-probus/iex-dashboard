@@ -156,14 +156,34 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['DISCOM Baseline Breakdown']);
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
     
-    const energyCharges = (result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0);
-    const demandCharges = result.demandCharge || 0;
+    const isNpcl = result.discom === 'NPCL';
+    
+    let energyCharges = (result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0);
+    let demandCharges = result.demandCharge || 0;
     const ed = result.electricityDuty || 0;
     const arrear = result.arrearAmount || 0;
     const lpsc = result.currentLpsc || 0;
     
-    sheet.addRow(['Energy Charges', Math.round(energyCharges)]);
-    sheet.addRow(['Demand & Fixed Charges', Math.round(demandCharges)]);
+    if (isNpcl) {
+      const npclMultiplier = 0.90 * 0.99;
+      const grossEnergy = energyCharges / npclMultiplier;
+      const grossDemand = demandCharges / npclMultiplier;
+      
+      const energyRebate10 = grossEnergy * 0.10;
+      const energyRebate1 = (grossEnergy - energyRebate10) * 0.01;
+      const demandRebate10 = grossDemand * 0.10;
+      const demandRebate1 = (grossDemand - demandRebate10) * 0.01;
+      
+      sheet.addRow(['Gross Energy Charges', Math.round(grossEnergy)]);
+      sheet.addRow(['Gross Demand & Fixed Charges', Math.round(grossDemand)]);
+      sheet.addRow(['NPCL Rebate (10%)', -Math.round(energyRebate10 + demandRebate10)]);
+      sheet.addRow(['NPCL Prompt Payment Rebate (1%)', -Math.round(energyRebate1 + demandRebate1)]);
+      sheet.addRow(['Net Energy & Demand Charges', Math.round(energyCharges + demandCharges)]);
+    } else {
+      sheet.addRow(['Energy Charges', Math.round(energyCharges)]);
+      sheet.addRow(['Demand & Fixed Charges', Math.round(demandCharges)]);
+    }
+    
     sheet.addRow(['Electricity Duty', Math.round(ed)]);
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
