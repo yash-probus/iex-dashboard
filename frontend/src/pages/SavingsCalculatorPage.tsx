@@ -993,7 +993,7 @@ export default function SavingsCalculatorPage() {
               }
             }}
           >
-            Submit
+            View
           </Button>
           <IconButton size="small" onClick={() => handleOpenDialog('view', row)} title="View Detail">
             <VisibilityIcon fontSize="small" sx={{ color: 'text.secondary' }} />

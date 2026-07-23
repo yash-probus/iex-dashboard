@@ -21,6 +21,7 @@ import MarketDataAdminPage from '../pages/admin/MarketDataAdminPage';
 import ResourceCenterAdminPage from '../pages/admin/ResourceCenterAdminPage';
 import AdminResourcePage from '../pages/admin/resource-center/AdminResourcePage';
 import ApiLogsAdminPage from '../pages/admin/ApiLogsAdminPage';
+import UserManagementPage from '../pages/UserManagementPage';
 import DatabasePage from '../pages/DatabasePage';
 import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -92,6 +93,7 @@ export default function AppRoutes() {
               <Route path="resource-center" element={<ResourceCenterAdminPage />} />
               <Route path="resource-center/:resourceType" element={<AdminResourcePage />} />
               <Route path="api-logs" element={<ApiLogsAdminPage />} />
+              <Route path="users" element={<UserManagementPage />} />
             </Route>
           </Route>
         </Route>

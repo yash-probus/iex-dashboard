@@ -449,6 +449,16 @@ export default function Navbar() {
       <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider' }}>
         {isAuthenticated ? (
           <>
+            {isAdmin && (
+              <Button
+                fullWidth
+                variant="text"
+                onClick={() => { navigate('/admin/users'); setMobileOpen(false); }}
+                sx={{ borderRadius: '999px', fontWeight: 500, fontSize: '14px', mb: 1, color: 'text.primary' }}
+              >
+                User Management
+              </Button>
+            )}
             <Button
               fullWidth
               variant="outlined"
@@ -538,6 +548,15 @@ export default function Navbar() {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexShrink: 0, gap: 2, alignItems: 'center' }}>
               {isAuthenticated ? (
                 <>
+                  {isAdmin && (
+                    <Button
+                      variant="text"
+                      onClick={() => navigate('/admin/users')}
+                      sx={{ color: 'text.primary', fontWeight: 500, textTransform: 'none', px: 2 }}
+                    >
+                      User Management
+                    </Button>
+                  )}
                   <Button
                     variant="outlined"
                     onClick={() => {
