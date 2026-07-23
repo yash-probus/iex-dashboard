@@ -52,6 +52,7 @@ async function main() {
   // Validate expected columns
   const expectedCols = [
     'state',
+    'discom',
     'consumer_category',
     'sub-category',
     'supply_voltage_category',
@@ -86,6 +87,7 @@ async function main() {
   let skippedCount = 0;
   const records: {
     state: string;
+    discom: string | null;
     consumerCategory: string;
     subCategory: string;
     supplyVoltageCategory: string;
@@ -110,6 +112,8 @@ async function main() {
     }
 
     const state = cols[idx('state')].trim();
+    const discomRaw = idx('discom') >= 0 ? cols[idx('discom')].trim() : '';
+    const discom = discomRaw === '' ? null : discomRaw;
     const consumerCategory = cols[idx('consumer_category')].trim();
     const subCategory = cols[idx('sub-category')].trim();
     const supplyVoltageCategory = cols[idx('supply_voltage_category')].trim();
@@ -141,6 +145,7 @@ async function main() {
 
     records.push({
       state,
+      discom,
       consumerCategory,
       subCategory,
       supplyVoltageCategory,

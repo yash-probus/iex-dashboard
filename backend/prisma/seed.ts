@@ -56,6 +56,7 @@ async function seedStateCharges() {
   for (const record of records) {
     const {
       state,
+      discom,
       category,
       sub_category,
       supply_voltage_category,
@@ -74,6 +75,7 @@ async function seedStateCharges() {
     await prisma.stateCharges.create({
       data: {
         state: state || '',
+        discom: discom || null,
         category: category || null,
         subCategory: sub_category || null,
         supplyVoltageCategory: supply_voltage_category || null,

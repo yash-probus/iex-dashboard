@@ -548,6 +548,7 @@ export class SavingsCalculatorService {
 
       const whereClause: any = {
         state: stateName,
+        discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         consumerCategory: parsedCategory,
         supplyVoltageCategory: parsedSupplyVoltageCategory,
         month: yyyymmMonth
@@ -572,6 +573,7 @@ export class SavingsCalculatorService {
       const stateCharges = await prisma.stateCharges.findFirst({
         where: {
           state: stateName.toUpperCase().replace(/\s+/g, '_'),
+          discom: entry.discom === 'NPCL' ? 'NPCL' : null,
           category: parsedCategory,
           fromDate: { lte: new Date(startStr) },
           toDate: { gte: new Date(startStr) }
@@ -604,7 +606,7 @@ export class SavingsCalculatorService {
       });
 
       if (tariffs.length === 0) {
-        const fallbackWhere: any = { state: stateName, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+        const fallbackWhere: any = { state: stateName, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
         if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
         const allTariffs = await prisma.stateTariff.findMany({
           where: fallbackWhere,
@@ -980,6 +982,7 @@ export class SavingsCalculatorService {
     const stateCharges = await prisma.stateCharges.findFirst({
       where: {
         state: stateName.toUpperCase().replace(/\s+/g, '_'),
+        discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         category: parsedCategory,
         fromDate: { lte: new Date(startStr) },
         toDate: { gte: new Date(startStr) },
@@ -1018,14 +1021,20 @@ export class SavingsCalculatorService {
       where: { month: yyyymmMonth }
     });
 
-    let whereClauseTariff: any = { state: stateName, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory, month: yyyymmMonth };
+    const whereClauseTariff: any = {
+      state: stateName,
+      discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+      consumerCategory: parsedCategory,
+      supplyVoltageCategory: parsedSupplyVoltageCategory,
+      month: yyyymmMonth
+    };
     if (parsedSubCategory) {
       whereClauseTariff.subCategory = { contains: parsedSubCategory };
     }
     let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
 
     if (tariffs.length === 0) {
-      const fallbackWhere: any = { state: stateName, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+      const fallbackWhere: any = { state: stateName, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
       if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
       const allTariffs = await prisma.stateTariff.findMany({
         where: fallbackWhere,

@@ -1,49 +1,61 @@
-state,category,sub_category,supply_voltage_category,voltage_level,from_date,to_date,demand_fixed_charge_kva_per_month_Rs,cross_subsidy,distribution_wheeling_charges,stu_charges,stu_loss_percent,wheeling_loss_percent,additional_charge
-UTTAR_PRADESH,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),0.433,01-04-2024,31-03-2025,0,0.65,0.88,0.2631,3.22,8,0
-UTTAR_PRADESH,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),0.433,01-04-2025,31-03-2026,0,0.65,1.012,0.2326,3.18,8,0
-UTTAR_PRADESH,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),0.433,01-04-2026,31-03-2027,0,0.65,0.9985,0.3075,3.18,8,0
-UTTAR_PRADESH,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),"11,33",01-04-2024,31-03-2025,0,0.82,0.88,0.2631,3.22,3,0
-UTTAR_PRADESH,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),"11,33",01-04-2025,31-03-2026,0,0.82,1.012,0.2326,3.18,3,0
-UTTAR_PRADESH,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),"11,33",01-04-2026,31-03-2027,0,0.82,0.9985,0.3075,3.18,3,0
-UTTAR_PRADESH,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),0.433,01-04-2024,31-03-2025,0,0.65,0.88,0.2631,3.22,8,0
-UTTAR_PRADESH,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),0.433,01-04-2025,31-03-2026,0,0.65,1.012,0.2326,3.18,8,0
-UTTAR_PRADESH,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),0.433,01-04-2026,31-03-2027,0,0.65,0.9985,0.3075,3.18,8,0
-UTTAR_PRADESH,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),"11, 33",01-04-2024,31-03-2025,0,0.82,0.88,0.2631,3.22,3,0
-UTTAR_PRADESH,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),"11, 33",01-04-2025,31-03-2026,0,0.82,1.012,0.2326,3.18,3,0
-UTTAR_PRADESH,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),"11, 33",01-04-2026,31-03-2027,0,0.82,0.9985,0.3075,3.18,3,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,01-04-2024,31-03-2025,430,1.58,0.88,0.2631,3.22,8,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,01-04-2025,31-03-2026,430,1.57,1.012,0.2326,3.18,8,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,01-04-2026,31-03-2027,430,1.57,0.9985,0.3075,3.18,8,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,33,01-04-2024,31-03-2025,400,2.12,0.88,0.2631,3.22,3,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,33,01-04-2025,31-03-2026,400,1.36,1.012,0.2326,3.18,3,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,33,01-04-2026,31-03-2027,400,1.36,0.9985,0.3075,3.18,3,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,66,01-04-2024,31-03-2025,400,2.12,0.88,0.2631,3.22,1,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,66,01-04-2025,31-03-2026,400,1.36,1.012,0.2326,3.18,1,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,66,01-04-2026,31-03-2027,400,1.36,0.9985,0.3075,3.18,1,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"132,220, 400,765",01-04-2024,31-03-2025,400,2.12,0.88,0.2631,3.22,0,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"132,220, 400,765",01-04-2025,31-03-2026,400,1.36,1.012,0.2326,3.18,0,0
-UTTAR_PRADESH,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"132,220, 400,765",01-04-2026,31-03-2027,400,1.36,0.9985,0.3075,3.18,0,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,01-04-2024,31-03-2025,380,1.58,0.88,0.2631,3.22,8,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,01-04-2025,31-03-2026,380,1.57,1.012,0.2326,3.18,8,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,01-04-2026,31-03-2027,380,1.57,0.9985,0.3075,3.18,8,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,33,01-04-2024,31-03-2025,360,2.12,0.88,0.2631,3.22,3,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,33,01-04-2025,31-03-2026,360,1.36,1.012,0.2326,3.18,3,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,33,01-04-2026,31-03-2027,360,1.36,0.9985,0.3075,3.18,3,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,66,01-04-2024,31-03-2025,360,2.12,0.88,0.2631,3.22,1,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,66,01-04-2025,31-03-2026,360,1.36,1.012,0.2326,3.18,1,0
-UTTAR_PRADESH,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,66,01-04-2026,31-03-2027,360,1.36,0.9985,0.3075,3.18,1,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,01-04-2024,31-03-2025,300,0.43,0.88,0.2631,3.22,8,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,01-04-2025,31-03-2026,300,0.38,1.012,0.2326,3.18,8,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,01-04-2026,31-03-2027,300,0.38,0.9985,0.3075,3.18,8,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,33,01-04-2024,31-03-2025,290,0.49,0.88,0.2631,3.22,3,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,33,01-04-2025,31-03-2026,290,0.49,1.012,0.2326,3.18,3,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,33,01-04-2026,31-03-2027,290,0.49,0.9985,0.3075,3.18,3,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,66,01-04-2024,31-03-2025,290,0.49,0.88,0.2631,3.22,1,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,66,01-04-2025,31-03-2026,290,0.49,1.012,0.2326,3.18,1,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,66,01-04-2026,31-03-2027,290,0.49,0.9985,0.3075,3.18,1,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,01-04-2024,31-03-2025,270,0.49,0.88,0.2631,3.22,0,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,01-04-2025,31-03-2026,270,0.33,1.012,0.2326,3.18,0,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,01-04-2026,31-03-2027,270,0.33,0.9985,0.3075,3.18,0,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"220, 400, 765",01-04-2024,31-03-2025,270,0.49,0.88,0.2631,3.22,0,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"220, 400, 765",01-04-2025,31-03-2026,270,0.31,1.012,0.2326,3.18,0,0
-UTTAR_PRADESH,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"220, 400, 765",01-04-2026,31-03-2027,270,0.31,0.9985,0.3075,3.18,0,0
+state,discom,category,sub_category,supply_voltage_category,voltage_level,from_date,to_date,demand_fixed_charge_kva_per_month_Rs,cross_subsidy,distribution_wheeling_charges,stu_charges,stu_loss_percent,wheeling_loss_percent,additional_charge
+UTTAR_PRADESH,,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),0.433,01-04-2024,31-03-2025,0,0.65,0.88,0.2631,3.22,8,0
+UTTAR_PRADESH,,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),0.433,01-04-2025,31-03-2026,0,0.65,1.012,0.2326,3.18,8,0
+UTTAR_PRADESH,,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),0.433,01-04-2026,31-03-2027,0,0.65,0.9985,0.3075,3.18,8,0
+UTTAR_PRADESH,,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),"11,33",01-04-2024,31-03-2025,0,0.82,0.88,0.2631,3.22,3,0
+UTTAR_PRADESH,,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),"11,33",01-04-2025,31-03-2026,0,0.82,1.012,0.2326,3.18,3,0
+UTTAR_PRADESH,,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),"11,33",01-04-2026,31-03-2027,0,0.82,0.9985,0.3075,3.18,3,0
+UTTAR_PRADESH,,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),0.433,01-04-2024,31-03-2025,0,0.65,0.88,0.2631,3.22,8,0
+UTTAR_PRADESH,,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),0.433,01-04-2025,31-03-2026,0,0.65,1.012,0.2326,3.18,8,0
+UTTAR_PRADESH,,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),0.433,01-04-2026,31-03-2027,0,0.65,0.9985,0.3075,3.18,8,0
+UTTAR_PRADESH,,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),"11, 33",01-04-2024,31-03-2025,0,0.82,0.88,0.2631,3.22,3,0
+UTTAR_PRADESH,,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),"11, 33",01-04-2025,31-03-2026,0,0.82,1.012,0.2326,3.18,3,0
+UTTAR_PRADESH,,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),"11, 33",01-04-2026,31-03-2027,0,0.82,0.9985,0.3075,3.18,3,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,01-04-2024,31-03-2025,430,1.58,0.88,0.2631,3.22,8,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,01-04-2025,31-03-2026,430,1.57,1.012,0.2326,3.18,8,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,01-04-2026,31-03-2027,430,1.57,0.9985,0.3075,3.18,8,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,33,01-04-2024,31-03-2025,400,2.12,0.88,0.2631,3.22,3,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,33,01-04-2025,31-03-2026,400,1.36,1.012,0.2326,3.18,3,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,33,01-04-2026,31-03-2027,400,1.36,0.9985,0.3075,3.18,3,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,66,01-04-2024,31-03-2025,400,2.12,0.88,0.2631,3.22,1,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,66,01-04-2025,31-03-2026,400,1.36,1.012,0.2326,3.18,1,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,66,01-04-2026,31-03-2027,400,1.36,0.9985,0.3075,3.18,1,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"132,220, 400,765",01-04-2024,31-03-2025,400,2.12,0.88,0.2631,3.22,0,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"132,220, 400,765",01-04-2025,31-03-2026,400,1.36,1.012,0.2326,3.18,0,0
+UTTAR_PRADESH,,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"132,220, 400,765",01-04-2026,31-03-2027,400,1.36,0.9985,0.3075,3.18,0,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,01-04-2024,31-03-2025,380,1.58,0.88,0.2631,3.22,8,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,01-04-2025,31-03-2026,380,1.57,1.012,0.2326,3.18,8,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,01-04-2026,31-03-2027,380,1.57,0.9985,0.3075,3.18,8,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,33,01-04-2024,31-03-2025,360,2.12,0.88,0.2631,3.22,3,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,33,01-04-2025,31-03-2026,360,1.36,1.012,0.2326,3.18,3,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,33,01-04-2026,31-03-2027,360,1.36,0.9985,0.3075,3.18,3,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,66,01-04-2024,31-03-2025,360,2.12,0.88,0.2631,3.22,1,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,66,01-04-2025,31-03-2026,360,1.36,1.012,0.2326,3.18,1,0
+UTTAR_PRADESH,,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,66,01-04-2026,31-03-2027,360,1.36,0.9985,0.3075,3.18,1,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,01-04-2024,31-03-2025,300,0.43,0.88,0.2631,3.22,8,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,01-04-2025,31-03-2026,300,0.38,1.012,0.2326,3.18,8,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,01-04-2026,31-03-2027,300,0.38,0.9985,0.3075,3.18,8,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,33,01-04-2024,31-03-2025,290,0.49,0.88,0.2631,3.22,3,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,33,01-04-2025,31-03-2026,290,0.49,1.012,0.2326,3.18,3,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,33,01-04-2026,31-03-2027,290,0.49,0.9985,0.3075,3.18,3,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,66,01-04-2024,31-03-2025,290,0.49,0.88,0.2631,3.22,1,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,66,01-04-2025,31-03-2026,290,0.49,1.012,0.2326,3.18,1,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,66,01-04-2026,31-03-2027,290,0.49,0.9985,0.3075,3.18,1,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,01-04-2024,31-03-2025,270,0.49,0.88,0.2631,3.22,0,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,01-04-2025,31-03-2026,270,0.33,1.012,0.2326,3.18,0,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,01-04-2026,31-03-2027,270,0.33,0.9985,0.3075,3.18,0,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"220, 400, 765",01-04-2024,31-03-2025,270,0.49,0.88,0.2631,3.22,0,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"220, 400, 765",01-04-2025,31-03-2026,270,0.31,1.012,0.2326,3.18,0,0
+UTTAR_PRADESH,,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"220, 400, 765",01-04-2026,31-03-2027,270,0.31,0.9985,0.3075,3.18,0,0
+UTTAR_PRADESH,NPCL,HV-1,,High Tension (HT),11,01-04-2024,31-03-2025,430,1.33,1.012,0.2326,3.18,5.66,0
+UTTAR_PRADESH,NPCL,HV-1,,High Tension (HT),33,01-04-2024,31-03-2025,400,1.4,1.012,0.2326,3.18,2.15,0
+UTTAR_PRADESH,NPCL,HV-2,,High Tension (HT),11,01-04-2024,31-03-2025,300,0.57,1.012,0.2326,3.18,5.66,0
+UTTAR_PRADESH,NPCL,HV-2,,High Tension (HT),33,01-04-2024,31-03-2025,290,0.59,1.012,0.2326,3.18,2.15,0
+UTTAR_PRADESH,NPCL,HV-1,,High Tension (HT),11,01-04-2025,31-03-2026,430,1.33,0.9985,0.3075,3.18,5.47,0
+UTTAR_PRADESH,NPCL,HV-1,,High Tension (HT),33,01-04-2025,31-03-2026,400,1.4,0.9985,0.3075,3.18,0.88,0
+UTTAR_PRADESH,NPCL,HV-2,,High Tension (HT),11,01-04-2025,31-03-2026,300,0.57,0.9985,0.3075,3.18,5.47,0
+UTTAR_PRADESH,NPCL,HV-2,,High Tension (HT),33,01-04-2025,31-03-2026,290,0.59,0.9985,0.3075,3.18,0.88,0
+UTTAR_PRADESH,NPCL,HV-1,,High Tension (HT),11,01-04-2026,31-03-2027,430,1.33,1.03,0.3075,3.18,2.58,0
+UTTAR_PRADESH,NPCL,HV-1,,High Tension (HT),33,01-04-2026,31-03-2027,400,1.4,1.03,0.3075,3.18,0.79,0
+UTTAR_PRADESH,NPCL,HV-2,,High Tension (HT),11,01-04-2026,31-03-2027,300,0.57,1.03,0.3075,3.18,2.58,0
+UTTAR_PRADESH,NPCL,HV-2,,High Tension (HT),33,01-04-2026,31-03-2027,290,0.59,1.03,0.3075,3.18,0.79,0

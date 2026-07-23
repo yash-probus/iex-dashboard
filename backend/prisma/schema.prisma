@@ -248,6 +248,7 @@ model IstsChargeDocs {
 model StateCharges {
   id                             Int      @id @default(autoincrement())
   state                          String   @db.VarChar(100)
+  discom                         String?  @db.VarChar(100)
   category                       String?  @db.VarChar(100)
   subCategory                    String?  @map("sub_category") @db.VarChar(255)
   supplyVoltageCategory          String?  @map("supply_voltage_category") @db.VarChar(100)
@@ -269,6 +270,7 @@ model StateCharges {
 model StateTariff {
   id                    Int      @id @default(autoincrement())
   state                 String   @db.VarChar(100)
+  discom                String?  @db.VarChar(100)
   consumerCategory      String   @map("consumer_category") @db.VarChar(50)
   subCategory           String   @map("sub_category") @db.VarChar(255)
   supplyVoltageCategory String   @map("supply_voltage_category") @db.VarChar(100)
