@@ -1674,7 +1674,65 @@ export class SavingsCalculatorService {
     };
   }
 
+  static async calculateDemandShiftInsightsAllMonths(id: string, version?: number) {
+    const entry = await this.getEntryOrVersion(id, version);
+    if (!entry) throw new Error('Entry not found');
+    const todConsumptions = entry.todConsumptions as any;
+    if (!todConsumptions) throw new Error('No consumption data found');
+    
+    const months = Object.keys(todConsumptions).sort();
+    
+    let originalTotalCost = 0;
+    let newTotalCost = 0;
+    let savingsAchieved = 0;
+    let shiftedEnergy = 0;
+    const aggregatedTodSummary: Record<string, any> = {};
+    
+    for (const month of months) {
+      try {
+        const res = await this.calculateDemandShiftInsights(id, month, version);
+        originalTotalCost += res.originalTotalCost;
+        newTotalCost += res.newTotalCost;
+        savingsAchieved += res.savingsAchieved;
+        shiftedEnergy += res.shiftedEnergy;
+        
+        for (const todSum of res.todShiftSummary) {
+          if (!aggregatedTodSummary[todSum.tod]) {
+            aggregatedTodSummary[todSum.tod] = { originalEnergy: 0, newEnergy: 0, diff: 0, originalMarketEnergy: 0, newMarketEnergy: 0 };
+          }
+          aggregatedTodSummary[todSum.tod].originalEnergy += todSum.originalEnergy;
+          aggregatedTodSummary[todSum.tod].newEnergy += todSum.newEnergy;
+          aggregatedTodSummary[todSum.tod].diff += todSum.diff;
+          aggregatedTodSummary[todSum.tod].originalMarketEnergy += todSum.originalMarketEnergy;
+          aggregatedTodSummary[todSum.tod].newMarketEnergy += todSum.newMarketEnergy;
+        }
+      } catch (e) {
+        console.error("Error calculating demand shift for month", month, e);
+      }
+    }
+    
+    return {
+      clientId: id,
+      clientName: entry.clientName,
+      sanctionedLoadKw: entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100,
+      maxEnergyPerSlot: (entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100) * 0.25,
+      originalTotalCost,
+      newTotalCost,
+      savingsAchieved,
+      shiftedEnergy,
+      todShiftSummary: Object.entries(aggregatedTodSummary).map(([tod, data]) => ({
+        tod,
+        ...data
+      })),
+      slotsData: []
+    };
+  }
+
   static async calculateDemandShiftInsights(id: string, targetMonth?: string, version?: number) {
+    if (targetMonth === 'all') {
+      return this.calculateDemandShiftInsightsAllMonths(id, version);
+    }
+    
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
     
