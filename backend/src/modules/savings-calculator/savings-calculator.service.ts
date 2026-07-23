@@ -299,6 +299,8 @@ export class SavingsCalculatorService {
     let totalLandedExchangeCost = 0;
     let demandCharge = 0;
     let electricityDuty = 0;
+    let peakDemand = 0;
+    let demandChargeRate = 0;
     
     const aggregatedTotals = {
       cssCharge: 0, cssRate: 0, rpoCharge: 0, pocCharge: 0, stuCharge: 0,
@@ -321,6 +323,8 @@ export class SavingsCalculatorService {
           totalLandedExchangeCost += res.totalLandedExchangeCost;
           demandCharge += res.demandCharge;
           electricityDuty += res.electricityDuty;
+          peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
+          demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
           
           if (res.oaDetailed) {
             const t = res.oaDetailed.totals;
@@ -357,6 +361,8 @@ export class SavingsCalculatorService {
       totalSavings,
       demandCharge,
       electricityDuty,
+      peakDemand,
+      demandChargeRate,
       todSummaries: [],
       oaDetailed: {
         breakdown: [],
