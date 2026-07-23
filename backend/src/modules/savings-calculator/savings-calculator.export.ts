@@ -136,9 +136,25 @@ export class SavingsCalculatorExportService {
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
 
     sheet.addRow([]);
+
+    // --- NEW: DISCOM Baseline Breakdown ---
+    sheet.addRow(['DISCOM Baseline Breakdown']);
+    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    
+    const energyCharges = (result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0);
+    const demandCharges = result.demandCharge || 0;
+    const miscCharges = result.electricityDuty || 0;
+    
+    sheet.addRow(['Energy Charges', Math.round(energyCharges)]);
+    sheet.addRow(['Demand & Fixed Charges', Math.round(demandCharges)]);
+    sheet.addRow(['Miscellaneous Charges (Electricity Duty, etc.)', Math.round(miscCharges)]);
+    sheet.addRow(['Total DISCOM Baseline Bill', Math.round(result.totalBaselineCost || 0)]);
+    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+
+    sheet.addRow([]);
     
     // Add charges header with rate/kWh information
-    const chargesHeader = ['Charge Type', 'Total Amount (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
+    const chargesHeader = ['Open Access Charge Type', 'Total Amount (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
     sheet.addRow(chargesHeader);
     if (sheet.lastRow) sheet.lastRow.font = { bold: true };
     
