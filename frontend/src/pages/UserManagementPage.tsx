@@ -19,7 +19,7 @@ export default function UserManagementPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'ADMIN' | 'CLIENT'>('CLIENT');
+  const [role, setRole] = useState<'ADMIN' | 'CLIENT' | 'SUPER_ADMIN'>('CLIENT');
 
   const fetchUsers = async () => {
     try {

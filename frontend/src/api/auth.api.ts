@@ -4,7 +4,7 @@ export interface AppUser {
   id: string;
   username: string;
   email: string;
-  role: 'ADMIN' | 'CLIENT';
+  role: 'ADMIN' | 'CLIENT' | 'SUPER_ADMIN';
   createdAt?: string;
   updatedAt?: string;
 }
