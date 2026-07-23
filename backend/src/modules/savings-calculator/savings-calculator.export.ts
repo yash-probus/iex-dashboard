@@ -357,10 +357,20 @@ export class SavingsCalculatorExportService {
     if (monthStr === 'all') {
       const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
       const months = Object.keys(entry?.todConsumptions || {}).sort();
+      const allResults = [];
+      
       for (const m of months) {
         const result = await SavingsCalculatorService.calculateMarketDecision(id, m, version);
-        const monthName = new Date(`${m}-01`).toLocaleString('default', { month: 'long', year: 'numeric' });
-        await SavingsCalculatorExportService.addSavingsSheet(workbook, monthName, result);
+        allResults.push({ monthStr: m, result });
+      }
+      
+      if (allResults.length > 0) {
+        await SavingsCalculatorExportService.addSummarySheet(workbook, entry, allResults);
+      }
+      
+      for (const r of allResults) {
+        const monthName = new Date(`${r.monthStr}-01`).toLocaleString('default', { month: 'long', year: 'numeric' });
+        await SavingsCalculatorExportService.addSavingsSheet(workbook, monthName, r.result);
       }
     } else {
       const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version);
@@ -370,6 +380,188 @@ export class SavingsCalculatorExportService {
 
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
+  }
+
+  private static async addSummarySheet(workbook: ExcelJS.Workbook, entry: any, allResults: any[]) {
+    const sheet = workbook.addWorksheet('Summary');
+    
+    // Header
+    sheet.addRow([`Industry Name: ${entry.industryName || entry.clientName || ''}`]);
+    sheet.addRow([`Location / Address: ${entry.address || ''}`]);
+    sheet.addRow([`Connectivity: ${entry.voltageLevel || ''}`]);
+    
+    // Make headers bold
+    for (let i = 1; i <= 3; i++) {
+      if (sheet.getCell(`A${i}`)) sheet.getCell(`A${i}`).font = { bold: true };
+    }
+    sheet.addRow([]);
+
+    // Sort results chronologically
+    allResults.sort((a, b) => a.monthStr.localeCompare(b.monthStr));
+
+    const monthHeaders = allResults.map(r => {
+      const date = new Date(`${r.monthStr}-01`);
+      return date.toLocaleString('default', { month: 'short', year: '2-digit' }).replace(' ', '-');
+    });
+
+    const numMonths = allResults.length;
+
+    // Calculation Base
+    const calcBaseRow = sheet.addRow(['Calculation Base:', 'Demand (MW)', ...Array(numMonths).fill('')]);
+    calcBaseRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6E0B4' } };
+    calcBaseRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6E0B4' } };
+    calcBaseRow.getCell(1).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    calcBaseRow.getCell(2).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    
+    sheet.addRow([]);
+
+    // TOD Header
+    const todHeaderRow = sheet.addRow(['TOD', ...monthHeaders]);
+    todHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    todHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+    
+    const uniqueTods = new Set<string>();
+    allResults.forEach(r => {
+      r.result.todSummaries.forEach((t: any) => uniqueTods.add(t.slabName));
+    });
+    const todSlabs = Array.from(uniqueTods).sort();
+
+    const demandMw = (entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 0) / 1000;
+    
+    todSlabs.forEach(tod => {
+      sheet.addRow([tod, ...Array(numMonths).fill(demandMw)]);
+    });
+
+    sheet.addRow([]);
+
+    // Savings section
+    const savingsHeaderRow = sheet.addRow(['Savings', ...monthHeaders]);
+    savingsHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    savingsHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } };
+
+    todSlabs.forEach(tod => {
+      const todUnits = allResults.map(r => {
+        const found = r.result.todSummaries.find((t: any) => t.slabName === tod);
+        return found ? Math.round(found.marketEnergyKwh) : 0;
+      });
+      sheet.addRow([`Cleared Units@Consumer bus ${tod}`, ...todUnits]);
+    });
+
+    const totalClearedUnits = allResults.map(r => Math.round(r.result.totalMarketEnergyKwh));
+    const totalClearedRow = sheet.addRow(['Total Cleared Units@Consumer bus', ...totalClearedUnits]);
+    totalClearedRow.font = { bold: true };
+
+    const totalConsumption = allResults.map(r => Math.round(r.result.totalEnergyKwh));
+    const totalConsumptionRow = sheet.addRow(['Total Consumption As per Ebill', ...totalConsumption]);
+    totalConsumptionRow.font = { bold: true };
+
+    const clearedVsActual = allResults.map((r, i) => totalConsumption[i] > 0 ? (totalClearedUnits[i] / totalConsumption[i]) : 0);
+    const clearedVsActualRow = sheet.addRow(['Cleared vs Actual consumption %', ...clearedVsActual]);
+    for (let i = 2; i <= numMonths + 1; i++) clearedVsActualRow.getCell(i).numFmt = '0%';
+
+    const totalPowerCostOA = allResults.map(r => Math.round(r.result.totalLandedExchangeCost + r.result.oaDetailed.dailyFixedOverhead + r.result.oaDetailed.bidApplicationFees));
+    const totalPowerCostOARow = sheet.addRow(['Total Power Cost through Open Access', ...totalPowerCostOA]);
+    totalPowerCostOARow.font = { bold: true };
+
+    const discomCost = allResults.map(r => Math.round(r.result.totalBaselineCost));
+    const discomCostRow = sheet.addRow(['Discom Cost', ...discomCost]);
+    discomCostRow.font = { bold: true };
+
+    sheet.addRow([]);
+
+    const ppcDiscom = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (discomCost[i] / totalClearedUnits[i]) : 0);
+    const ppcDiscomRow = sheet.addRow(['Power Purchase Cost (Discom Only)', ...ppcDiscom]);
+    ppcDiscomRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    ppcDiscomRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) ppcDiscomRow.getCell(i).numFmt = '₹0.00';
+
+    const ppcProlt = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalPowerCostOA[i] / totalClearedUnits[i]) : 0);
+    const ppcProltRow = sheet.addRow(['Power Purchase Cost (With Prolt)', ...ppcProlt]);
+    ppcProltRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+    ppcProltRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) ppcProltRow.getCell(i).numFmt = '₹0.00';
+
+    const totalSaving = allResults.map(r => Math.round(r.result.totalSavings));
+    const totalSavingRow = sheet.addRow(['Total Saving', ...totalSaving]);
+    totalSavingRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+    totalSavingRow.font = { bold: true };
+
+    const savingUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalSaving[i] / totalClearedUnits[i]) : 0);
+    const savingUnitRow = sheet.addRow(['Saving/Unit', ...savingUnit]);
+    savingUnitRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+    savingUnitRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) savingUnitRow.getCell(i).numFmt = '₹0.00';
+
+    sheet.addRow(['Monthly Noc Fee/Monthly', ...Array(numMonths).fill(7000)]);
+    sheet.addRow(['IEX Registration Fee /Yearly', ...Array(numMonths).fill(8333)]);
+    sheet.addRow(['Prolt (Consultancy Fee of issuance of ST 11, NOC, Bill Adjustment)', ...Array(numMonths).fill(20000)]);
+
+    sheet.addRow([]);
+
+    const probusHeaderRow = sheet.addRow(['Probus Margin', ...monthHeaders]);
+    probusHeaderRow.font = { bold: true };
+    probusHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } };
+
+    const probusTradingMargin = allResults.map(r => Math.round(r.result.oaDetailed.totals.traderMargin));
+    sheet.addRow(['Probus\' Trading Margin (Rs 0.02/kWh)', ...probusTradingMargin]);
+
+    const probusPlatformFee = allResults.map(r => Math.round(r.result.oaDetailed.totals.traderMargin));
+    sheet.addRow(['Probus Platform Subscription Fees for Prolt Energy Platform (Rs 0.02/kWh)', ...probusPlatformFee]);
+
+    const probusValueShare = allResults.map(r => Math.round(r.result.oaDetailed.totals.proltMarginCost));
+    sheet.addRow(['Probus Value-Share for Prolt Energy Platform (15% of Saving)', ...probusValueShare]);
+
+    const totalAmount = allResults.map((r, i) => probusTradingMargin[i] + probusPlatformFee[i] + probusValueShare[i]);
+    const totalAmountRow = sheet.addRow(['Total Amount', ...totalAmount]);
+    totalAmountRow.font = { bold: true };
+    totalAmountRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+
+    const probusRevUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalAmount[i] / totalClearedUnits[i]) : 0);
+    const probusRevUnitRow = sheet.addRow(['Probus Revenue /Unit', ...probusRevUnit]);
+    for (let i = 2; i <= numMonths + 1; i++) probusRevUnitRow.getCell(i).numFmt = '0.00';
+
+    sheet.addRow([]);
+
+    const savingForBiz = allResults.map((r, i) => totalSaving[i] - totalAmount[i]);
+    const savingForBizRow = sheet.addRow(['Saving for your business', ...savingForBiz]);
+    savingForBizRow.font = { bold: true };
+    savingForBizRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+
+    const savingForBizUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (savingForBiz[i] / totalClearedUnits[i]) : 0);
+    const savingForBizUnitRow = sheet.addRow(['Saving/Unit', ...savingForBizUnit]);
+    savingForBizUnitRow.font = { bold: true };
+    savingForBizUnitRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+    for (let i = 2; i <= numMonths + 1; i++) savingForBizUnitRow.getCell(i).numFmt = '₹0.00';
+
+    sheet.addRow([]);
+
+    const totalSavingSum = totalSaving.reduce((sum, val) => sum + val, 0);
+    const avgMonthlySavingRow = sheet.addRow(['Average Monthly Saving', Math.round(totalSavingSum / numMonths)]);
+    avgMonthlySavingRow.font = { bold: true };
+    avgMonthlySavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    avgMonthlySavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+
+    const avgAnnualSavingRow = sheet.addRow(['Average Annual Saving', Math.round(totalSavingSum / numMonths) * 12]);
+    avgAnnualSavingRow.font = { bold: true };
+    avgAnnualSavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    avgAnnualSavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+
+    // Set column width for A
+    sheet.getColumn(1).width = 50;
+
+    // Add borders to all populated cells
+    sheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        if (cell.value !== null && cell.value !== '') {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        }
+      });
+    });
   }
 
   private static async addDemandShiftSheet(workbook: ExcelJS.Workbook, monthName: string, result: any) {
