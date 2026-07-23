@@ -115,10 +115,10 @@ export default function SavingsCalculatorPage() {
   // Calculation Dialog States
   const [calcDialogOpen, setCalcDialogOpen] = useState(false);
   const [calcEntry, setCalcEntry] = useState<SavingsCalculatorEntry | null>(null);
-  const [calcResult, setCalcResult] = useState<CalculationResult | null>(null);
+  const [cachedResults, setCachedResults] = useState<Record<string, { calc: CalculationResult | null, market: MarketDecisionResult | null, insights: DemandShiftInsightsResult | null }>>({});
+
+  
   const [calculating, setCalculating] = useState(false);
-  const [marketDecisionResult, setMarketDecisionResult] = useState<MarketDecisionResult | null>(null);
-  const [demandShiftInsights, setDemandShiftInsights] = useState<DemandShiftInsightsResult | null>(null);
   const [calculatingInsights, setCalculatingInsights] = useState(false);
   const [calcVersions, setCalcVersions] = useState<number[]>([]);
   const [selectedCalcVersion, setSelectedCalcVersion] = useState<number | ''>('');
@@ -209,6 +209,10 @@ export default function SavingsCalculatorPage() {
   const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1);
 
   const [selectedSimMonth, setSelectedSimMonth] = useState<string>('');
+  const calcResult = cachedResults[selectedSimMonth]?.calc || null;
+  const marketDecisionResult = cachedResults[selectedSimMonth]?.market || null;
+  const demandShiftInsights = cachedResults[selectedSimMonth]?.insights || null;
+
 
   const uniqueStates = React.useMemo(() => {
     const statesMap = new Map<string, string>();
@@ -591,8 +595,8 @@ export default function SavingsCalculatorPage() {
 
   const handleOpenCalc = async (entry: SavingsCalculatorEntry) => {
     setCalcEntry(entry);
-    setCalcResult(null);
-    setMarketDecisionResult(null);
+    
+    
     setCalcDialogOpen(true);
     setCalcTab(0);
     
@@ -619,20 +623,29 @@ export default function SavingsCalculatorPage() {
     if (reason && (reason === 'backdropClick' || reason === 'escapeKeyDown')) return;
     setCalcDialogOpen(false);
     setCalcEntry(null);
-    setCalcResult(null);
-    setMarketDecisionResult(null);
+    
+    
   };
 
   const executeCalculation = async () => {
     if (!calcEntry) return;
     try {
       setCalculating(true);
-      const [savingsRes, marketRes] = await Promise.all([
-        calculateSavings(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined),
-        calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined)
-      ]);
-      setCalcResult(savingsRes);
-      setMarketDecisionResult(marketRes);
+      const months = ['all', ...Object.keys(calcEntry.todConsumptions || {}).sort()];
+      
+      const newCache: Record<string, any> = { ...cachedResults };
+      
+      await Promise.all(months.map(async (m) => {
+        const [savingsRes, marketRes] = await Promise.all([
+          calculateSavings(calcEntry.id, m, selectedCalcVersion || undefined),
+          calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined)
+        ]);
+        if (!newCache[m]) newCache[m] = { calc: null, market: null, insights: null };
+        newCache[m].calc = savingsRes;
+        newCache[m].market = marketRes;
+      }));
+      
+      setCachedResults(newCache);
       setCalcTab(0);
     } catch (err: any) {
       console.error('Calculation failed:', err);
@@ -651,7 +664,13 @@ export default function SavingsCalculatorPage() {
     try {
       setCalculating(true);
       const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
-      setMarketDecisionResult(res);
+      setCachedResults(prev => ({
+        ...prev,
+        [selectedSimMonth]: {
+          ...prev[selectedSimMonth],
+          market: res
+        }
+      }));
       setGraphDialogOpen(true);
     } catch (err: any) {
       console.error('Graph Simulation failed:', err);
@@ -669,9 +688,18 @@ export default function SavingsCalculatorPage() {
     if (!calcEntry) return;
     try {
       setCalculatingInsights(true);
-      const res = await fetchDemandShiftInsights(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
-      setDemandShiftInsights(res);
-      setCalcTab(4); // New tab for insights
+      const months = ['all', ...Object.keys(calcEntry.todConsumptions || {}).sort()];
+      
+      const newCache: Record<string, any> = { ...cachedResults };
+      
+      await Promise.all(months.map(async (m) => {
+        const res = await fetchDemandShiftInsights(calcEntry.id, m, selectedCalcVersion || undefined);
+        if (!newCache[m]) newCache[m] = { calc: null, market: null, insights: null };
+        newCache[m].insights = res;
+      }));
+      
+      setCachedResults(newCache);
+      setCalcTab(4);
     } catch (err: any) {
       console.error('Insights calculation failed:', err);
       setSnackbar({
@@ -1831,27 +1859,26 @@ export default function SavingsCalculatorPage() {
         <DialogContent sx={{ minHeight: '500px' }}>
           <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
 
-            <TextField
-              select
-              label="Simulation Month"
-              value={selectedSimMonth}
-              onChange={(e) => {
-                setSelectedSimMonth(e.target.value);
-                setCalcResult(null);
-                setMarketDecisionResult(null);
-              }}
-              size="small"
-              sx={{ width: 220, bgcolor: 'background.paper' }}
-            >
-              <MenuItem value="all">
-                All Months (Yearly Summary)
-              </MenuItem>
-              {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
-                <MenuItem key={ym} value={ym}>
-                  {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
-                </MenuItem>
-              ))}
-            </TextField>
+            {Object.keys(cachedResults).length > 0 && (
+              <Box sx={{ width: '100%', mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs 
+                  value={selectedSimMonth} 
+                  onChange={(e, v) => setSelectedSimMonth(v)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
+                >
+                  <Tab label="All Months (Yearly Summary)" value="all" />
+                  {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
+                    <Tab 
+                      key={ym} 
+                      label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} 
+                      value={ym} 
+                    />
+                  ))}
+                </Tabs>
+              </Box>
+            )}
 
             <TextField
               select
@@ -1859,8 +1886,8 @@ export default function SavingsCalculatorPage() {
               value={selectedCalcVersion}
               onChange={(e) => {
                 setSelectedCalcVersion(Number(e.target.value));
-                setCalcResult(null);
-                setMarketDecisionResult(null);
+                
+                
               }}
               size="small"
               sx={{ width: 120, bgcolor: 'background.paper' }}
