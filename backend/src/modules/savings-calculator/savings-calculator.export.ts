@@ -265,9 +265,24 @@ export class SavingsCalculatorExportService {
     const stuLoss = slotsData.length > 0 ? (slotsData[0] as any).stuLoss || 0 : 0;
     const wheelingLoss = slotsData.length > 0 ? (slotsData[0] as any).wheelingLoss || 0 : 0;
     
-    addChargeRow('ISTS Loss', 0, 0, 0, istsLoss);
-    addChargeRow('STU Loss', 0, 0, 0, stuLoss);
-    addChargeRow('Wheeling Loss', 0, 0, 0, wheelingLoss);
+    const totalMarketEnergyCost = todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
+    const avgMarketPrice = totalMarketEnergy > 0 ? totalMarketEnergyCost / totalMarketEnergy : 0;
+    
+    const istsBasis = totalMarketEnergy;
+    const istsLostUnits = istsBasis * (istsLoss / 100);
+    const istsLossAmount = istsLostUnits * avgMarketPrice;
+    
+    const stuBasis = istsBasis - istsLostUnits;
+    const stuLostUnits = stuBasis * (stuLoss / 100);
+    const stuLossAmount = stuLostUnits * avgMarketPrice;
+    
+    const wheelingBasis = stuBasis - stuLostUnits;
+    const wheelingLostUnits = wheelingBasis * (wheelingLoss / 100);
+    const wheelingLossAmount = wheelingLostUnits * avgMarketPrice;
+
+    addChargeRow('ISTS Loss', istsLossAmount, avgMarketPrice, istsBasis, istsLoss);
+    addChargeRow('STU Loss', stuLossAmount, avgMarketPrice, stuBasis, stuLoss);
+    addChargeRow('Wheeling Loss', wheelingLossAmount, avgMarketPrice, wheelingBasis, wheelingLoss);
 
     // POC charges (CTU charges)
     const pocRate = totalMarketEnergy > 0 ? t.pocCharge / totalMarketEnergy : 0;
