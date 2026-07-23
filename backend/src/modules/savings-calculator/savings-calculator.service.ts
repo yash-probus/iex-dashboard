@@ -241,8 +241,139 @@ export class SavingsCalculatorService {
     };
   }
 
+  static async calculateMarketDecisionAllMonths(id: string, version?: number) {
+    const entry = await this.getEntryOrVersion(id, version);
+    if (!entry) throw new Error('Entry not found');
+    const todConsumptions = entry.todConsumptions as any;
+    if (!todConsumptions) throw new Error('No consumption data found');
+    
+    const months = Object.keys(todConsumptions).sort();
+    let totalSavings = 0;
+    let totalBaselineCost = 0;
+    let totalEnergyKwh = 0;
+    let totalMarketEnergyKwh = 0;
+    let totalLandedExchangeCost = 0;
+    let demandCharge = 0;
+    let electricityDuty = 0;
+    
+    const aggregatedTotals = {
+      cssCharge: 0, cssRate: 0, rpoCharge: 0, pocCharge: 0, stuCharge: 0,
+      dcCharge: 0, iexFee: 0, traderMargin: 0, traderMarginGst: 0, proltMarginCost: 0
+    };
+    let aggregatedDailyOverhead = 0;
+    let aggregatedNldc = 0;
+    let aggregatedSldc = 0;
+    let aggregatedBidFees = 0;
+    let aggregatedTotalDaysTraded = 0;
+    
+    for (const month of months) {
+      try {
+        const res = await this.calculateMarketDecision(id, month, version);
+        if (res) {
+          totalSavings += res.totalSavings;
+          totalBaselineCost += res.totalBaselineCost;
+          totalEnergyKwh += res.totalEnergyKwh;
+          totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+          totalLandedExchangeCost += res.totalLandedExchangeCost;
+          demandCharge += res.demandCharge;
+          electricityDuty += res.electricityDuty;
+          
+          if (res.oaDetailed) {
+            const t = res.oaDetailed.totals;
+            aggregatedTotals.cssCharge += t.cssCharge;
+            aggregatedTotals.rpoCharge += t.rpoCharge;
+            aggregatedTotals.pocCharge += t.pocCharge;
+            aggregatedTotals.stuCharge += t.stuCharge;
+            aggregatedTotals.dcCharge += t.dcCharge;
+            aggregatedTotals.iexFee += t.iexFee;
+            aggregatedTotals.traderMargin += t.traderMargin;
+            aggregatedTotals.traderMarginGst += t.traderMarginGst;
+            aggregatedTotals.proltMarginCost += t.proltMarginCost;
+            
+            aggregatedDailyOverhead += res.oaDetailed.dailyFixedOverhead;
+            aggregatedNldc += res.oaDetailed.nldcSchedulingCost;
+            aggregatedSldc += res.oaDetailed.sldcSchedulingCost;
+            aggregatedBidFees += res.oaDetailed.bidApplicationFees;
+            aggregatedTotalDaysTraded += res.oaDetailed.totalDaysTraded;
+          }
+        }
+      } catch (e) {
+        console.error("Error calculating month", month, e);
+      }
+    }
+    
+    return {
+      clientId: entry.id,
+      clientName: entry.clientName,
+      slotsData: [],
+      totalEnergyKwh,
+      totalMarketEnergyKwh,
+      totalBaselineCost,
+      totalLandedExchangeCost,
+      totalSavings,
+      demandCharge,
+      electricityDuty,
+      todSummaries: [],
+      oaDetailed: {
+        breakdown: [],
+        dailyFixedOverhead: aggregatedDailyOverhead,
+        nldcSchedulingCost: aggregatedNldc,
+        sldcSchedulingCost: aggregatedSldc,
+        bidApplicationFees: aggregatedBidFees,
+        totalDaysTraded: aggregatedTotalDaysTraded,
+        totals: aggregatedTotals
+      }
+    };
+  }
+
+  static async calculateSavingsAllMonths(id: string, version?: number) {
+    const entry = await this.getEntryOrVersion(id, version);
+    if (!entry) throw new Error('Entry not found');
+    const todConsumptions = entry.todConsumptions as any;
+    if (!todConsumptions) throw new Error('No consumption data found');
+    
+    const months = Object.keys(todConsumptions).sort();
+    let totalSavings = 0;
+    let totalOptimizedCost = 0;
+    let totalBaselineCost = 0;
+    let totalEnergyKwh = 0;
+    let totalMarketEnergyKwh = 0;
+    
+    for (const month of months) {
+      try {
+        const res = await this.calculateSavings(id, month, version);
+        if (res) {
+          totalSavings += res.totalSavings;
+          totalOptimizedCost += res.totalOptimizedCost;
+          totalBaselineCost += res.totalBaselineCost;
+          totalEnergyKwh += res.totalEnergyKwh;
+          totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+        }
+      } catch (e) {
+        console.error("Error calculating month", month, e);
+      }
+    }
+    
+    return {
+      clientId: entry.id,
+      clientName: entry.clientName,
+      sanctionedLoad: Number(entry.sanctionedLoadKw) || 0,
+      maxEnergyPerSlot: (Number(entry.sanctionedLoadKw) || 0) * 0.9 * 0.25,
+      totalEnergyKwh,
+      totalMarketEnergyKwh,
+      totalBaselineCost,
+      totalOptimizedCost,
+      totalSavings,
+      todGroups: {},
+      sortedMonthlyList: []
+    };
+  }
+
   // Savings calculation logic
   static async calculateSavings(id: string, targetMonth?: string, version?: number) {
+    if (targetMonth === 'all') {
+      return this.calculateSavingsAllMonths(id, version);
+    }
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) {
       throw new Error('Entry not found');
@@ -690,6 +821,9 @@ export class SavingsCalculatorService {
   }
 
   static async calculateMarketDecision(id: string, targetMonthStr?: string, version?: number) {
+    if (targetMonthStr === 'all') {
+      return this.calculateMarketDecisionAllMonths(id, version);
+    }
     const entry = await this.getEntryOrVersion(id, version);
 
     if (!entry) {

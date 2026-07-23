@@ -2091,7 +2091,7 @@ export default function SavingsCalculatorPage() {
                 </Tabs>
               </Box>
 
-              {calcTab === 0 && calcResult && (
+              {calcTab === 0 && calcResult && selectedSimMonth !== 'all' && (
                 <Grid container spacing={3}>
                   {Object.entries(calcResult.todGroups).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]) => {
                     const groupCount = Object.keys(calcResult.todGroups).length;
@@ -2150,7 +2150,7 @@ export default function SavingsCalculatorPage() {
                 </Grid>
               )}
 
-              {calcTab === 1 && calcResult && (
+              {calcTab === 1 && calcResult && selectedSimMonth !== 'all' && (
                 <Box sx={{ maxHeight: 400, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
@@ -2221,10 +2221,12 @@ export default function SavingsCalculatorPage() {
                 <Box>
                   <SavingsDashboard result={marketDecisionResult} monthStr={selectedSimMonth} />
                   
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                      Slot-wise Market Simulation
-                    </Typography>
+                  {selectedSimMonth !== 'all' ? (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                          Slot-wise Market Simulation
+                        </Typography>
                     <Button
                       variant="outlined"
                       startIcon={<BarChartIcon />}
@@ -2300,6 +2302,15 @@ export default function SavingsCalculatorPage() {
                     </TableBody>
                     </Table>
                   </Box>
+                  </>
+                  ) : (
+                    <Box sx={{ mt: 4, p: 3, bgcolor: '#F0FDF4', borderRadius: 3, border: '1px dashed #22C55E', textAlign: 'center' }}>
+                      <Typography variant="h6" color="#166534" fontWeight={700}>Yearly Aggregation Active</Typography>
+                      <Typography variant="body2" color="#15803D" sx={{ mt: 1 }}>
+                        Detailed 15-minute slot tables and daily graphs are hidden while viewing the aggregated yearly summary. Select an individual month to view slot-level data and analysis.
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               )}
 
