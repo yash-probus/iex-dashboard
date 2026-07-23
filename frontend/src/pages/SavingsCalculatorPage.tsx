@@ -968,6 +968,20 @@ export default function SavingsCalculatorPage() {
     { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120 },
     { field: 'consumerCategory', headerName: 'Category', align: 'left', width: 110 },
     { field: 'voltageLevel', headerName: 'Voltage', align: 'center', width: 100 },
+    { 
+      field: 'createdAt', 
+      headerName: 'Created At', 
+      align: 'center', 
+      width: 110,
+      valueFormatter: (v) => v ? new Date(v as string).toLocaleDateString() : '-'
+    },
+    { 
+      field: 'updatedAt', 
+      headerName: 'Updated At', 
+      align: 'center', 
+      width: 110,
+      valueFormatter: (v) => v ? new Date(v as string).toLocaleDateString() : '-'
+    },
     {
       field: 'actions',
       headerName: 'Actions',
