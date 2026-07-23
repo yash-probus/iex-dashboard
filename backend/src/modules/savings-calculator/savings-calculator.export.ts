@@ -39,10 +39,10 @@ export class SavingsCalculatorExportService {
     });
 
     hr1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    hr1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+    hr1.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
     hr2.font = { bold: true };
-    hr2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } };
+    hr2.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } });
 
     // Create 96 blocks
     // Helper to format block time (e.g., '00:00 - 00:15')
@@ -90,7 +90,7 @@ export class SavingsCalculatorExportService {
     });
     const tr = sheet.addRow(totalRow);
     tr.font = { bold: true };
-    tr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } };
+    tr.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
     // Add empty rows before summary
     sheet.addRow([]);
@@ -418,7 +418,7 @@ export class SavingsCalculatorExportService {
     // TOD Header
     const todHeaderRow = sheet.addRow(['TOD', ...monthHeaders]);
     todHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    todHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+    todHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } });
     
     const uniqueTods = new Set<string>();
     allResults.forEach(r => {
@@ -437,7 +437,7 @@ export class SavingsCalculatorExportService {
     // Savings section
     const savingsHeaderRow = sheet.addRow(['Savings', ...monthHeaders]);
     savingsHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    savingsHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } };
+    savingsHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } });
 
     todSlabs.forEach(tod => {
       const todUnits = allResults.map(r => {
@@ -471,24 +471,24 @@ export class SavingsCalculatorExportService {
 
     const ppcDiscom = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (discomCost[i] / totalClearedUnits[i]) : 0);
     const ppcDiscomRow = sheet.addRow(['Power Purchase Cost (Discom Only)', ...ppcDiscom]);
-    ppcDiscomRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    ppcDiscomRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } });
     ppcDiscomRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) ppcDiscomRow.getCell(i).numFmt = '₹0.00';
 
     const ppcProlt = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalPowerCostOA[i] / totalClearedUnits[i]) : 0);
     const ppcProltRow = sheet.addRow(['Power Purchase Cost (With Prolt)', ...ppcProlt]);
-    ppcProltRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+    ppcProltRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
     ppcProltRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) ppcProltRow.getCell(i).numFmt = '₹0.00';
 
     const totalSaving = allResults.map(r => Math.round(r.result.totalSavings));
     const totalSavingRow = sheet.addRow(['Total Saving', ...totalSaving]);
-    totalSavingRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+    totalSavingRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     totalSavingRow.font = { bold: true };
 
     const savingUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalSaving[i] / totalClearedUnits[i]) : 0);
     const savingUnitRow = sheet.addRow(['Saving/Unit', ...savingUnit]);
-    savingUnitRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+    savingUnitRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     savingUnitRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) savingUnitRow.getCell(i).numFmt = '₹0.00';
 
@@ -500,7 +500,7 @@ export class SavingsCalculatorExportService {
 
     const probusHeaderRow = sheet.addRow(['Probus Margin', ...monthHeaders]);
     probusHeaderRow.font = { bold: true };
-    probusHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } };
+    probusHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } });
 
     const probusTradingMargin = allResults.map(r => Math.round(r.result.oaDetailed.totals.traderMargin));
     sheet.addRow(['Probus\' Trading Margin (Rs 0.02/kWh)', ...probusTradingMargin]);
@@ -514,7 +514,7 @@ export class SavingsCalculatorExportService {
     const totalAmount = allResults.map((r, i) => probusTradingMargin[i] + probusPlatformFee[i] + probusValueShare[i]);
     const totalAmountRow = sheet.addRow(['Total Amount', ...totalAmount]);
     totalAmountRow.font = { bold: true };
-    totalAmountRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+    totalAmountRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
 
     const probusRevUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalAmount[i] / totalClearedUnits[i]) : 0);
     const probusRevUnitRow = sheet.addRow(['Probus Revenue /Unit', ...probusRevUnit]);
@@ -525,12 +525,12 @@ export class SavingsCalculatorExportService {
     const savingForBiz = allResults.map((r, i) => totalSaving[i] - totalAmount[i]);
     const savingForBizRow = sheet.addRow(['Saving for your business', ...savingForBiz]);
     savingForBizRow.font = { bold: true };
-    savingForBizRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+    savingForBizRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
 
     const savingForBizUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (savingForBiz[i] / totalClearedUnits[i]) : 0);
     const savingForBizUnitRow = sheet.addRow(['Saving/Unit', ...savingForBizUnit]);
     savingForBizUnitRow.font = { bold: true };
-    savingForBizUnitRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+    savingForBizUnitRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     for (let i = 2; i <= numMonths + 1; i++) savingForBizUnitRow.getCell(i).numFmt = '₹0.00';
 
     sheet.addRow([]);
@@ -599,10 +599,10 @@ export class SavingsCalculatorExportService {
     });
 
     hr1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    hr1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+    hr1.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
     hr2.font = { bold: true };
-    hr2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } };
+    hr2.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } });
 
     const formatBlock = (blockIdx: number) => {
       const startMin = (blockIdx - 1) * 15;
