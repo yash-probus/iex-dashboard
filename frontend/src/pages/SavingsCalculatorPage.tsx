@@ -54,6 +54,7 @@ import {
   ClientOverviewResult
 } from '../api/savingsCalculator.api';
 import { VisualAnalyticsCharts } from '../components/insights/VisualAnalyticsCharts';
+import EnergyInsightsExplorer from '../components/insights/EnergyInsightsExplorer';
 import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
 import { STATE_TARIFF_MOCK_DATA } from './resource-center/mockData/stateTariff.mock';
@@ -67,6 +68,7 @@ export default function SavingsCalculatorPage() {
   const { isAdmin } = useAuth();
   
   // State variables
+  const [showInsightsExplorer, setShowInsightsExplorer] = useState(false);
   const [entries, setEntries] = useState<SavingsCalculatorEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -988,6 +990,10 @@ export default function SavingsCalculatorPage() {
     }
   ];
 
+  if (showInsightsExplorer) {
+    return <EnergyInsightsExplorer onBack={() => setShowInsightsExplorer(false)} />;
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pt: 3 }}>
       <Box sx={{
@@ -1022,24 +1028,45 @@ export default function SavingsCalculatorPage() {
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog('create')}
-          sx={{ 
-            textTransform: 'none', 
-            borderRadius: 2.5, 
-            fontWeight: 600, 
-            bgcolor: '#8B5CF6',
-            '&:hover': {
-              bgcolor: '#7C3AED'
-            },
-            px: 2.5,
-            py: 1
-          }}
-        >
-          Create New Entry
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setShowInsightsExplorer(true)}
+            sx={{ 
+              textTransform: 'none', 
+              borderRadius: 2.5, 
+              fontWeight: 600, 
+              color: '#8B5CF6',
+              borderColor: '#8B5CF6',
+              '&:hover': {
+                bgcolor: alpha('#8B5CF6', 0.1),
+                borderColor: '#7C3AED'
+              },
+              px: 2.5,
+              py: 1
+            }}
+          >
+            Explore Insights
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog('create')}
+            sx={{ 
+              textTransform: 'none', 
+              borderRadius: 2.5, 
+              fontWeight: 600, 
+              bgcolor: '#8B5CF6',
+              '&:hover': {
+                bgcolor: '#7C3AED'
+              },
+              px: 2.5,
+              py: 1
+            }}
+          >
+            Create New Entry
+          </Button>
+        </Box>
       </Box>
 
       {error && (
