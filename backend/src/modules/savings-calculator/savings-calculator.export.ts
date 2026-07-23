@@ -58,7 +58,7 @@ export class SavingsCalculatorExportService {
 
     // Matrix [96][days.length]
     for (let b = 1; b <= 96; b++) {
-      const row = [formatBlock(b)];
+      const row: any[] = [formatBlock(b)];
       days.forEach(day => {
         const slot = slotsData.find((s: any) => s.date === day && s.timeblock === b) as any;
         if (slot && slot.shouldBuyFromMarket) {
@@ -67,8 +67,8 @@ export class SavingsCalculatorExportService {
           if (slot.marketSource === 'DAM') mcp = slot.damMcp || 0;
           else if (slot.marketSource === 'RTM') mcp = slot.rtmMcp || 0;
           else if (slot.marketSource === 'GDAM') mcp = slot.gdamMcp || 0;
-          row.push(mcp.toFixed(2));
-          row.push(Math.round(slot.marketEnergy || 0).toString());
+          row.push(Number(mcp.toFixed(2)));
+          row.push(Math.round(slot.marketEnergy || 0));
           row.push(slot.marketSource || '-');
         } else {
           row.push('-', '-', '-');
@@ -76,6 +76,21 @@ export class SavingsCalculatorExportService {
       });
       sheet.addRow(row);
     }
+
+
+
+    // Add Total Quantity Row
+    const totalRow: any[] = ['Total Quantity (kWh)'];
+    days.forEach(day => {
+      let dayTotal = 0;
+      slotsData.filter((s: any) => s.date === day && s.shouldBuyFromMarket).forEach((s: any) => {
+        dayTotal += (s.marketEnergy || 0);
+      });
+      totalRow.push('-', Math.round(dayTotal), '-');
+    });
+    const tr = sheet.addRow(totalRow);
+    tr.font = { bold: true };
+    tr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } };
 
     // Add empty rows before summary
     sheet.addRow([]);
@@ -170,9 +185,9 @@ export class SavingsCalculatorExportService {
       sheet.addRow([
         name,
         Math.round(amount),
-        ratePerKwh > 0 ? ratePerKwh.toFixed(4) : '-',
+        ratePerKwh > 0 ? Number(ratePerKwh.toFixed(4)) : '-',
         basisKwh > 0 ? Math.round(basisKwh) : '-',
-        percentage > 0 ? percentage.toFixed(2) : '-'
+        percentage > 0 ? Number(percentage.toFixed(2)) : '-'
       ]);
     };
     
