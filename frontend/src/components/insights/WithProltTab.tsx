@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Grid, Card, CardContent, LinearProgress, Alert, Table, TableBody, TableCell, TableHead, TableRow, IconButton } from '@mui/material';
 import { BarChart as BarChartIcon, Timeline, ShowChart, AccountBalanceWallet, PictureAsPdf, Download } from '@mui/icons-material';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import html2pdf from 'html2pdf.js';
 
 import { SavingsCalculatorEntry, ClientOverviewResult } from '../../api/savingsCalculator.api';
 
@@ -39,10 +40,23 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
   // Format Helpers
   const formatLakhs = (val: number) => `₹${(val / 100000).toFixed(2)}L`;
 
+  const handlePdfDownload = (title: string) => {
+    const element = document.getElementById('report-content-to-download');
+    if (!element) return;
+    const opt: any = {
+      margin:       10,
+      filename:     `${title} - ${currentMonth}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  };
+
   return (
     <Box sx={{ display: 'flex', gap: 3 }}>
       {/* Main Content (Left) */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box id="report-content-to-download" sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
         
         {/* Monthly Performance Summary */}
         <Box>
@@ -269,29 +283,29 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
                 <PictureAsPdf color="error" />
                 <Typography variant="h6" fontWeight={700} color="text.primary">Download Reports</Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Export analysis and settlement reports for Jul 2026</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Export analysis and settlement reports for {currentMonth}</Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#F8FAFC', cursor: 'pointer', '&:hover': { bgcolor: '#F1F5F9' } }}>
+                <Card onClick={() => handlePdfDownload('Reconciliation Summary')} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#F8FAFC', cursor: 'pointer', '&:hover': { bgcolor: '#F1F5F9' } }}>
                   <CardContent sx={{ p: '16px !important', display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Box sx={{ bgcolor: '#DCFCE7', p: 1, borderRadius: 1.5, color: '#16A34A' }}>
                       <PictureAsPdf />
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" fontWeight={700}>Reconciliation Summary - Jul 2026 (PDF)</Typography>
+                      <Typography variant="subtitle2" fontWeight={700}>Reconciliation Summary - {currentMonth} (PDF)</Typography>
                       <Typography variant="caption" color="text.secondary">OA + DISCOM settlement reconciliation</Typography>
                     </Box>
                     <IconButton size="small"><Download /></IconButton>
                   </CardContent>
                 </Card>
                 
-                <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#F8FAFC', cursor: 'pointer', '&:hover': { bgcolor: '#F1F5F9' } }}>
+                <Card onClick={() => handlePdfDownload('Energy Purchase Monthly Report')} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#F8FAFC', cursor: 'pointer', '&:hover': { bgcolor: '#F1F5F9' } }}>
                   <CardContent sx={{ p: '16px !important', display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Box sx={{ bgcolor: '#EFF6FF', p: 1, borderRadius: 1.5, color: '#2563EB' }}>
                       <PictureAsPdf />
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" fontWeight={700}>Energy Purchase Monthly Report - Jul 2026 (PDF)</Typography>
+                      <Typography variant="subtitle2" fontWeight={700}>Energy Purchase Monthly Report - {currentMonth} (PDF)</Typography>
                       <Typography variant="caption" color="text.secondary">Monthly procurement + cost breakdown</Typography>
                     </Box>
                     <IconButton size="small"><Download /></IconButton>

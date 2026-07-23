@@ -513,22 +513,6 @@ export default function Navbar() {
             onClick={() => navigate('/dashboard')}
             aria-label="Home"
           >
-            {!logoError ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center' }}>
-                <Box
-                  component="img"
-                  src="/assets/logo.png"
-                  alt="Prolt Energy"
-                  onError={() => setLogoError(true)}
-                  sx={{
-                    maxHeight: { xs: '24px', sm: '36px' },
-                    height: 'auto',
-                    width: 'auto',
-                    objectFit: 'contain',
-                  }}
-                />
-              </Box>
-            ) : (
               <Typography
                 variant="h6"
                 noWrap
@@ -536,7 +520,6 @@ export default function Navbar() {
               >
                 IEX Analytics
               </Typography>
-            )}
           </Box>
 
 

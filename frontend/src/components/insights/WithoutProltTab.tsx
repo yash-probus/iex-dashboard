@@ -219,28 +219,6 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
         </Box>
 
       </Box>
-
-      {/* Side Column (Right) */}
-      <Box sx={{ width: 320, display: { xs: 'none', lg: 'block' } }}>
-        <Card elevation={0} sx={{ border: '1px solid', borderColor: '#E2E8F0', borderRadius: 3, bgcolor: '#F8FAFC' }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <Typography variant="caption" color="primary" fontWeight={700}>ONBOARDING IN PROGRESS</Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              <Box sx={{ bgcolor: '#CBD5E1', color: 'white', px: 1, py: 0.25, borderRadius: 4, fontSize: '0.65rem', fontWeight: 800 }}>Step 3/8</Box>
-            </Box>
-            <Typography variant="subtitle2" fontWeight={800}>Document Collecti...</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>Upload your KYC documents to proceed.</Typography>
-            <LinearProgress variant="determinate" value={37.5} sx={{ height: 6, borderRadius: 3, mb: 2 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={500}>Immediate — upl...</Typography>
-              <Typography variant="caption" color="primary" fontWeight={600} sx={{ cursor: 'pointer' }}>View Details →</Typography>
-            </Box>
-            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 2, fontSize: '0.65rem' }}>Ticket: PROLT-ONBD-2305</Typography>
-          </CardContent>
-        </Card>
-      </Box>
-
     </Box>
   );
 }
