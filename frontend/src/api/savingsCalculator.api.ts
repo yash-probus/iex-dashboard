@@ -191,6 +191,7 @@ export interface ClientOverviewResult {
     dailyFixedOverhead: number;
     bidApplicationFees: number;
     proltMarginCost: number;
+    totalDiscomCost?: number;
   };
 }
 
