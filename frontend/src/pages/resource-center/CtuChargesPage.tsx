@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, FormControl, Select, MenuItem, InputLabel } from '@mui/material';
 import { AccountTree as AccountTreeIcon } from '@mui/icons-material';
 import ResourcePageLayout from '../../components/dashboard/ResourcePageLayout';
 import EmptyTableState from '../../components/dashboard/EmptyTableState';
@@ -18,17 +18,30 @@ const formatMonth = (m: any) => {
 export default function CtuChargesPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<CtuCharges>('ctu-charges');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedState, setSelectedState] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
   const config = RESOURCE_CENTER_PAGES.CTU_CHARGES;
 
+  // Extract unique states for the filter
+  const uniqueStates = Array.from(new Set(data.map((r: CtuCharges) => r.state))).sort();
+  // Generate some years for the filter (CTU charges typically have 2026, 2025, etc.)
+  // If month is just 1-12, the system currently formats it as 2026.
+  const uniqueYears = ['2026', '2025', '2024'];
+
   const filteredData = data.filter((row: CtuCharges) => {
-    if (!searchQuery) return true;
+    // Search query filter
     const lowerQuery = searchQuery.toLowerCase();
     const monthStr = formatMonth(row.month).toLowerCase();
     const stateStr = String(row.state).toLowerCase();
-    return (
-      monthStr.includes(lowerQuery) ||
-      stateStr.includes(lowerQuery)
-    );
+    const matchesSearch = !searchQuery || monthStr.includes(lowerQuery) || stateStr.includes(lowerQuery);
+
+    // State filter
+    const matchesState = selectedState === 'all' || row.state === selectedState;
+    
+    // Year filter (since we format month as 2026, we check the formatted string)
+    const matchesYear = selectedYear === 'all' || monthStr.includes(selectedYear);
+
+    return matchesSearch && matchesState && matchesYear;
   });
 
   const formatNum = (v: any) => v != null ? Number(v).toFixed(2) : '-';
@@ -72,6 +85,39 @@ export default function CtuChargesPage() {
       }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
+      customFilters={
+        <>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>State</InputLabel>
+            <Select
+              value={selectedState}
+              label="State"
+              onChange={(e) => setSelectedState(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All States</MenuItem>
+              {uniqueStates.map((state) => (
+                <MenuItem key={state as string} value={state as string}>{state as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Year</InputLabel>
+            <Select
+              value={selectedYear}
+              label="Year"
+              onChange={(e) => setSelectedYear(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All Years</MenuItem>
+              {uniqueYears.map((year) => (
+                <MenuItem key={year} value={year}>{year}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </>
+      }
     >
       <TableContainer 
         data={filteredData}

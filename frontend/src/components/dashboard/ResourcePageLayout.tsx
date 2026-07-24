@@ -24,6 +24,7 @@ interface ResourcePageLayoutProps {
   isExportDisabled?: boolean;
   resourceType?: string;
   lastUpdated?: string | null;
+  customFilters?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -42,6 +43,7 @@ export default function ResourcePageLayout({
   isExportDisabled = false,
   resourceType,
   lastUpdated,
+  customFilters,
   children
 }: ResourcePageLayoutProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -169,14 +171,17 @@ export default function ResourcePageLayout({
       </Typography>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder={searchPlaceholder}
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          sx={{ width: { xs: '100%', sm: 380 }, backgroundColor: 'background.paper', borderRadius: 1 }}
-          InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment> }}
-        />
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', flexGrow: 1 }}>
+          <TextField
+            size="small"
+            placeholder={searchPlaceholder}
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            sx={{ width: { xs: '100%', sm: 380 }, backgroundColor: 'background.paper', borderRadius: 1 }}
+            InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment> }}
+          />
+          {customFilters}
+        </Box>
         <Box sx={{ display: 'flex', gap: 1.5 }}>
           <input
             type="file"
