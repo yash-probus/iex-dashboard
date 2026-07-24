@@ -12,7 +12,8 @@ import {
 import { 
   ChevronLeft as ChevronLeftIcon, 
   ChevronRight as ChevronRightIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  WarningAmber as WarningAmberIcon
 } from '@mui/icons-material';
 
 interface DateRangePickerProps {
@@ -336,8 +337,8 @@ export default function DateRangePicker({
 
         {/* Footer info/controls */}
         <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="caption" color="text.secondary">
-            Max range: 31 days
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <WarningAmberIcon sx={{ fontSize: 14 }} /> Max range: 31 days
           </Typography>
           {tempStart && !tempEnd && (
             <Typography variant="caption" color="primary" fontWeight="600">
