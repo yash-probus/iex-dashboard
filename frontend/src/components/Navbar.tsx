@@ -11,7 +11,7 @@ import {
   Business as BusinessIcon, EvStation as EvStationIcon, Receipt as ReceiptIcon,
   ShowChart as ShowChartIcon, AccountTree as AccountTreeIcon, DeviceHub as DeviceHubIcon,
   PriceCheck as PriceCheckIcon, Timeline as TimelineIcon, Cloud as CloudIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon, ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -510,15 +510,28 @@ export default function Navbar() {
 
           {/* Left: Logo */}
           <Box
-            sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0, gap: 1 }}
-            onClick={() => navigate('/dashboard')}
+            sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: 1 }}
             aria-label="Home"
           >
+            {location.pathname !== '/dashboard' && location.pathname !== '/' && (
+              <IconButton 
+                onClick={() => navigate(-1)} 
+                sx={{ 
+                  color: '#1a237e', 
+                  '&:hover': { backgroundColor: alpha('#1a237e', 0.1) },
+                  padding: '4px'
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+            )}
             <Box
               component="img"
               src="/assets/logo.png"
               alt="IEX Analytics"
+              onClick={() => navigate('/dashboard')}
               sx={{
+                cursor: 'pointer',
                 maxHeight: { xs: '32px', sm: '44px' },
                 height: 'auto',
                 width: 'auto',
