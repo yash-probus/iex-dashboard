@@ -55,7 +55,7 @@ export default function SummaryCard({ title, value, change, isPositive = true, a
             {icon}
           </Box>
         )}
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1.2 }}>
+        <Typography variant="subtitle1" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1.2 }}>
           {title}
         </Typography>
       </Box>
