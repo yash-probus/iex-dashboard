@@ -191,16 +191,13 @@ export default function RECPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: 2.5,
-        mb: 1,
-        pb: 3,
-        borderBottom: '1px solid',
-        borderColor: 'divider'
+        mb: 1
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
           <Box sx={{

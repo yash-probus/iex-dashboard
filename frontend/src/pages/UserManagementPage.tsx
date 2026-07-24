@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
+import { Group as GroupIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material';
+import ActionButton from '../components/common/ActionButton';
 import { usersApi } from '@/api/users.api';
 import { AppUser } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
@@ -103,23 +106,47 @@ export default function UserManagementPage() {
 
   return (
     <div className="container mx-auto py-10 px-4 md:px-8 max-w-6xl">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg dark:bg-blue-900/30 dark:text-blue-400">
-              <Users className="w-6 h-6" />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          </div>
-          <p className="text-muted-foreground ml-11">Manage system access, assign administrative roles, and configure user permissions.</p>
-        </div>
-        <Button 
-          onClick={openAddModal} 
-          className="rounded-full px-6 shadow-sm font-medium transition-all hover:shadow-md"
-        >
-          <UserPlus className="mr-2 h-4 w-4" /> Add New User
-        </Button>
-      </div>
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 2.5,
+        mb: 3
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+          <Box sx={{ 
+            color: '#3B8FF3', 
+            backgroundColor: '#3B8FF315',
+            p: 2,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <GroupIcon fontSize="large" />
+          </Box>
+          <Box>
+            <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
+              User Management
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              Manage system access, assign administrative roles, and configure user permissions.
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <ActionButton 
+            variant="secondary" 
+            startIcon={<PersonAddIcon fontSize="small" />} 
+            onClick={openAddModal}
+            accentColor="#3B8FF3"
+          >
+            Add New User
+          </ActionButton>
+        </Box>
+      </Box>
 
       <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
         <Table>
