@@ -23,7 +23,7 @@ const chartMetrics: ChartMetric[] = [
   { key: 'sellBidTotal', name: 'Sell Bid', color: '#34B1AA', type: 'area', yAxisId: 'left', unit: 'MW' },
   { key: 'mcvTotal', name: 'MCV', color: '#F29F67', type: 'area', yAxisId: 'left', unit: 'MW' },
   { key: 'fsvTotal', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left', unit: 'MW' },
-  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right', unit: '₹/kWh' },
+  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right', unit: '₹/MWh' },
 ];
 
 export default function GDAMPage() {
@@ -71,7 +71,7 @@ export default function GDAMPage() {
       { field: 'fsvWind', headerName: 'FSV Wind', width: 100, align: 'right', valueFormatter: formatNum },
       { field: 'fsvOtherRE', headerName: 'FSV Other RE', width: 120, align: 'right', valueFormatter: formatNum },
       { field: 'fsvORE', headerName: 'FSV ORE', width: 100, align: 'right', valueFormatter: formatNum },
-      { field: 'mcp', headerName: 'MCP (₹/kWh)', width: 120, align: 'right', valueFormatter: (v) => v !== undefined ? `₹${formatNum(v)}` : '-' },
+      { field: 'mcp', headerName: 'MCP (₹/MWh)', width: 120, align: 'right', valueFormatter: (v) => v !== undefined ? `₹${formatNum(v)}` : '-' },
     ];
 
     return [...baseColumns, ...metricColumns];

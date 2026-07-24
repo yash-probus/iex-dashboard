@@ -157,8 +157,8 @@ export default function ForecastPage() {
 
     return [
       ...baseColumns,
-      { field: 'mcp', headerName: 'Forecasted MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
-      { field: 'actualMcp', headerName: 'Actual MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+      { field: 'mcp', headerName: 'Forecasted MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
+      { field: 'actualMcp', headerName: 'Actual MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
       { field: 'confidence', headerName: 'Confidence', align: 'center' },
     ];
   };
@@ -168,14 +168,14 @@ export default function ForecastPage() {
   // Define chart metrics
   const getChartMetrics = (): ChartMetric[] => {
     const metrics: ChartMetric[] = [
-      {key: 'mcp', name: 'Forecasted MCP (₹/kWh)', color: accentColor, type: 'area', yAxisId: 'right'},
+      {key: 'mcp', name: 'Forecasted MCP (₹/MWh)', color: accentColor, type: 'area', yAxisId: 'right'},
     ];
 
     const hasActual = data.some(d => d.actualMcp !== null && d.actualMcp !== undefined);
     if (hasActual) {
       metrics.push({
         key: 'actualMcp',
-        name: 'Actual MCP (₹/kWh)',
+        name: 'Actual MCP (₹/MWh)',
         color: '#10B981', // green for actual
         type: 'line',
         yAxisId: 'right'

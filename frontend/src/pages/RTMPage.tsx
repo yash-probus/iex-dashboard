@@ -23,7 +23,7 @@ const chartMetrics: ChartMetric[] = [
   { key: 'sellBid', name: 'Sell Bid', color: '#F29F67', type: 'area', yAxisId: 'left', unit: 'MW' },
   { key: 'mcv', name: 'MCV', color: '#34B1AA', type: 'area', yAxisId: 'left', unit: 'MW' },
   { key: 'fsv', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left', unit: 'MW' },
-  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right', unit: '₹/kWh' },
+  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right', unit: '₹/MWh' },
 ];
 
 export default function RTMPage() {
@@ -54,7 +54,7 @@ export default function RTMPage() {
       { field: 'sellBid', headerName: 'Sell Bid (MW)', width: 140, align: 'right', valueFormatter: formatNum },
       { field: 'mcv', headerName: 'MCV (MW)', width: 140, align: 'right', valueFormatter: formatNum },
       { field: 'fsv', headerName: 'FSV (MW)', width: 140, align: 'right', valueFormatter: formatNum },
-      { field: 'mcp', headerName: 'MCP (₹/kWh)', width: 140, align: 'right', valueFormatter: (v) => v !== undefined ? `₹${formatNum(v)}` : '-' },
+      { field: 'mcp', headerName: 'MCP (₹/MWh)', width: 140, align: 'right', valueFormatter: (v) => v !== undefined ? `₹${formatNum(v)}` : '-' },
     ];
 
     return [...baseColumns, ...metricColumns];
