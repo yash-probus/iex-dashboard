@@ -90,11 +90,11 @@ export default function DashboardPage() {
     <Box sx={{
       display: 'flex',
       flexDirection: 'column',
-      pb: 4,
+      pb: 2,
       px: { xs: 0, sm: 2 }
     }}>
-      <Box sx={{ mb: 8, pt: { xs: 2, md: 4 } }}>
-        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 3, fontSize: '1.15rem', fontWeight: 500 }}>
+      <Box sx={{ mb: 4, pt: { xs: 1, md: 2 } }}>
+        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1, fontSize: '1.15rem', fontWeight: 500 }}>
           Welcome back, <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>{displayName}</Box>
         </Typography>
         <Typography variant="h4" sx={{ color: 'text.primary', fontWeight: 700, mb: 1.5, letterSpacing: '-0.5px' }}>
@@ -105,13 +105,13 @@ export default function DashboardPage() {
         </Typography>
       </Box>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={2}>
         {MODULES.filter(mod => !(user as any)?.hiddenModules?.includes(mod.key)).map((mod) => (
           <Grid item xs={12} sm={6} md={4} key={mod.key}>
             <Paper
               elevation={0}
               sx={{
-                p: 3.5,
+                p: 2.5,
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
@@ -130,16 +130,16 @@ export default function DashboardPage() {
               }}
               onClick={() => navigate(mod.path)}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', mb: 2, gap: 2 }}>
-                <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 2, bgcolor: alpha(mod.color, 0.1), borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', mb: 1.5, gap: 1.5 }}>
+                <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 1.5, bgcolor: alpha(mod.color, 0.1), borderRadius: 2 }}>
                   {mod.icon}
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.25rem', letterSpacing: '-0.5px', textAlign: 'left', lineHeight: 1.2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.15rem', letterSpacing: '-0.5px', textAlign: 'left', lineHeight: 1.2 }}>
                   {mod.title}
                 </Typography>
               </Box>
 
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4, flexGrow: 1, lineHeight: 1.6, fontSize: '0.9rem', textAlign: 'left', width: '100%' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, flexGrow: 1, lineHeight: 1.4, fontSize: '0.85rem', textAlign: 'left', width: '100%' }}>
                 {mod.description}
               </Typography>
 
