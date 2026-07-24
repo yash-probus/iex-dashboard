@@ -171,45 +171,10 @@ export default function EnergyInsightsExplorer({ entry, onBack }: EnergyInsights
         </Toolbar>
       </AppBar>
 
-      {/* Dark Green Banner */}
-      <Box sx={{ bgcolor: '#0F5132', color: 'white', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-          <LightbulbOutlined sx={{ color: '#EF4444' }} />
-          <Typography variant="h4" fontWeight={700}>Energy Insights Explorer</Typography>
-        </Box>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-            <ChevronLeft />
-          </IconButton>
-          <Box sx={{ bgcolor: '#DC2626', color: 'white', px: 3, py: 0.5, borderRadius: 1.5, fontWeight: 700 }}>
-            {currentMonth}
-          </Box>
-          <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-            <ChevronRight />
-          </IconButton>
-        </Box>
-        
-        {onboardState === 'onboarded' && overview && (
-          <Box sx={{ display: 'flex', gap: 2, mt: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Chip label={`Total Energy Cost: ${formatFullCurrency(overview.aggregatedCosts?.totalDiscomCost || 0)}`} sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }} />
-            <Chip label={`Savings Achieved: ${formatFullCurrency(overview.totalSavings)} (${overview.aggregatedCosts?.totalDiscomCost ? Math.round((overview.totalSavings / overview.aggregatedCosts.totalDiscomCost) * 100) : 0}%)`} sx={{ bgcolor: '#166534', color: 'white', fontWeight: 600, border: '1px solid #22C55E' }} />
-            <Chip label="Optimization Efficiency: 97.5% adherence" sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }} />
-          </Box>
-        )}
-      </Box>
-
       {/* Content Area */}
       <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 } }}>
         <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
-          
-          {onboardState === 'not_onboarded' && (
-            <Box sx={{ mb: 4, textAlign: 'center' }}>
-              <Typography variant="body1" color="text.secondary" fontWeight={500}>
-                Transparent breakdown of your DISCOM electricity bill — showing exactly where your money is going.
-              </Typography>
-            </Box>
-          )}
+
 
           {onboardState === 'not_onboarded' && <WithoutProltTab entry={entry} overview={overview} currentMonth={currentMonth} />}
           {onboardState === 'onboarded' && <WithProltTab entry={entry} overview={overview} currentMonth={currentMonth} />}

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Box, Typography, Grid, Card, CardContent, LinearProgress, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, LinearProgress, Accordion, AccordionSummary, AccordionDetails, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { PersonOutline, ReceiptLong, ShowChart, AccountBalanceWallet, Speed, ExpandMore } from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 import { SavingsCalculatorEntry, ClientOverviewResult } from '../../api/savingsCalculator.api';
 
@@ -59,48 +59,151 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
       {/* Main Content (Left) */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
         
-        {/* Consumer & Connection Details */}
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-            <PersonOutline color="primary" />
-            <Typography variant="h6" fontWeight={700} color="text.primary">Consumer & Connection Details</Typography>
+        {/* Blue Grid Header Banner */}
+        <Box sx={{ 
+          position: 'relative', 
+          bgcolor: '#EBF4FF', 
+          borderRadius: 4, 
+          overflow: 'hidden',
+          backgroundImage: 'linear-gradient(#DBEAFE 1px, transparent 1px), linear-gradient(90deg, #DBEAFE 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          border: '1px solid #BFDBFE',
+          mb: 6 // margin bottom for overlapping cards
+        }}>
+          <Box sx={{ p: { xs: 3, md: 5 }, pb: { xs: 8, md: 10 } }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', px: 2, py: 0.5, borderRadius: 5, border: '1px solid #E5E7EB' }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22C55E', mr: 1 }} />
+                <Typography variant="caption" fontWeight={700} color="text.secondary">ENERGY INSIGHTS EXPLORER</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#000', color: 'white', borderRadius: 5, px: 2, py: 0.5, cursor: 'pointer' }}>
+                <Typography variant="caption" sx={{ mx: 1 }}>{currentMonth}</Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 3 }}>
+              <Box>
+                <Typography variant="overline" color="text.secondary" fontWeight={700}>YOUR {currentMonth.toUpperCase()} BILL</Typography>
+                <Typography variant="h4" fontWeight={800} color="#0F172A" sx={{ mt: 0.5, mb: 2, maxWidth: 800, textTransform: 'uppercase' }}>
+                  {entry.clientName}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Month :</Typography>
+                    <Typography variant="caption" fontWeight={700}>{currentMonth.split(' ')[0].toUpperCase()}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Billed on :</Typography>
+                    <Typography variant="caption" fontWeight={700}>{entry.billDate?.toUpperCase() || "N/A"}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Billed Units :</Typography>
+                    <Typography variant="caption" fontWeight={700}>{totalBilledUnits.toLocaleString()} kWh</Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 4, border: '1px solid #E5E7EB', minWidth: 250, textAlign: 'center', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700}>AMOUNT PAYABLE</Typography>
+                <Typography variant="h3" fontWeight={800} color="#2563EB" sx={{ my: 1 }}>₹{formatLakhs(totalBill)}</Typography>
+                <Box sx={{ bgcolor: '#F0FDF4', px: 2, py: 1, borderRadius: 2, display: 'inline-block' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600}>Includes ₹{formatLakhs(arrearAmount)} in arrears amount</Typography>
+                </Box>
+              </Box>
+            </Box>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Who is this consumer and what is their connection?</Typography>
           
-          <Grid container spacing={2}>
-            <Grid item xs={6} md={3}><DetailCard label="Account Number" value={entry.id.substring(0, 8).toUpperCase()} icon="tag" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Consumer Name" value={entry.clientName} icon="person" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Address" value={entry.address || "N/A"} icon="location" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Tariff" value={entry.consumerCategory || "N/A"} icon="receipt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="State Code" value={entry.stateCode || "N/A"} icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="DISCOM" value={entry.discom || "N/A"} icon="speed" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Industry" value={entry.industryName || "N/A"} icon="tag" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Sanctioned Load" value={entry.sanctionedLoadKw ? `${entry.sanctionedLoadKw} kW` : "N/A"} icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Billed Demand" value={entry.billedDemandKv ? `${entry.billedDemandKv} kVA` : "N/A"} icon="bolt" /></Grid>
-            <Grid item xs={6} md={3}><DetailCard label="Power Factor" value={entry.powerFactor ? `${entry.powerFactor}` : "N/A"} icon="show_chart" /></Grid>
-          </Grid>
+          {/* Overlapping Summary Cards */}
+          <Box sx={{ 
+            position: 'absolute', 
+            bottom: '-40px', 
+            left: '5%', 
+            right: '5%',
+            display: 'flex', 
+            justifyContent: 'center'
+          }}>
+            <Card elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 4, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}>
+              <CardContent sx={{ p: '0 !important', display: 'flex' }}>
+                <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3B82F6' }} /> ENERGY CHARGES</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(energyCharges)}</Typography>
+                  <Typography variant="caption" color="text.secondary">{energyPct.toFixed(2)}% of your bill</Typography>
+                </Box>
+                <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#8B5CF6' }} /> MISC CHARGES</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(miscCharges)}</Typography>
+                  <Typography variant="caption" color="text.secondary">Extra Cost Additions</Typography>
+                </Box>
+                <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10B981' }} /> NET CURRENT BILL</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(netCurrentBill)}</Typography>
+                  <Typography variant="caption" color="text.secondary">Current month charges</Typography>
+                </Box>
+                <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#F59E0B' }} /> ARREARS CARRIED</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(arrearAmount)}</Typography>
+                  <Typography variant="caption" color="text.secondary">Pay by {entry.billDate || 'due date'} to avoid penalty</Typography>
+                </Box>
+                <Box sx={{ p: 2, minWidth: 160 }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#EF4444' }} /> CURRENT LPSC</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ mt: 1, color: '#EF4444' }}>₹{formatCurrency(currentLpsc)}</Typography>
+                  <Typography variant="caption" color="text.secondary">Late payment surcharge</Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
         </Box>
 
-        {/* Billing Summary */}
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-            <ReceiptLong color="primary" />
-            <Typography variant="h6" fontWeight={700} color="text.primary">Billing Summary</Typography>
-          </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>What is the bill and what are its components?</Typography>
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Month" value={currentMonth} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Bill Date" value={entry.billDate || "N/A"} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Billed Units" value={`${totalBilledUnits.toLocaleString()} kWh`} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Amount Payable" value={formatCurrency(totalBill)} highlight /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Energy Charges" value="View Breakdown" /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Misc Charges" value="View Breakdown" /></Grid>
-            <Grid item xs={12} md={4.8}><SummaryCard label="Net Current Bill" value={formatCurrency(netCurrentBill)} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Arrear Amount" value={formatCurrency(entry.arrearAmount)} /></Grid>
-            <Grid item xs={12} md={2.4}><SummaryCard label="Current LPSC" value={formatCurrency(entry.currentLpsc)} /></Grid>
-          </Grid>
-        </Box>
+        {/* Account Details Component */}
+        <Card elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 4, mb: 1 }}>
+          <CardContent sx={{ p: 0 }}>
+            {/* Header part of card */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 3, borderBottom: '1px solid #E5E7EB' }}>
+              <Box>
+                <Typography variant="h6" fontWeight={800} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PersonOutline color="primary" /> {entry.clientName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
+                  {entry.address || "N/A"}
+                </Typography>
+              </Box>
+              <Box sx={{ border: '1px solid #22C55E', color: '#166534', bgcolor: '#F0FDF4', px: 2, py: 0.5, borderRadius: 1 }}>
+                <Typography variant="caption" fontWeight={700}>TYPE: UNKNOWN</Typography>
+              </Box>
+            </Box>
+            {/* Grid part of card */}
+            <Grid container sx={{ p: 3 }}>
+              <Grid item xs={12} sm={4} sx={{ mb: 3 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><ReceiptLong fontSize="small" color="primary" /> ACCOUNT NO.</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 1, ml: 3.5 }}>{entry.id.substring(0, 11).toUpperCase()}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4} sx={{ mb: 3 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Speed fontSize="small" color="primary" /> SANCTIONED LOAD</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 1, ml: 3.5 }}>{entry.sanctionedLoadKw ? `${entry.sanctionedLoadKw} kVA` : "N/A"}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4} sx={{ mb: 3 }} />
+              
+              <Grid item xs={12} sm={4}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><ShowChart fontSize="small" color="primary" /> BILLED DEMAND</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 1, ml: 3.5 }}>{entry.billedDemandKv ? `${entry.billedDemandKv}` : "N/A"}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><ShowChart fontSize="small" color="primary" /> POWER FACTOR</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 1, ml: 3.5 }}>{entry.powerFactor ? `${entry.powerFactor}` : "-"}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4} />
+
+              <Grid item xs={12} sm={4} sx={{ mt: 3 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><PersonOutline fontSize="small" color="primary" /> SUPPLY TYPE</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 1, ml: 3.5 }}>{entry.voltageLevel || "N/A"}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4} sx={{ mt: 3 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><ReceiptLong fontSize="small" color="primary" /> TARIFF</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 1, ml: 3.5 }}>{entry.consumerCategory || "N/A"}</Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
         {/* DISCOM Consumption Breakdown */}
         <Box>
@@ -110,17 +213,31 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Where is consumption happening?</Typography>
           
-          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-            <CardContent sx={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <Card elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 4 }}>
+            <CardContent sx={{ height: 350, p: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Box sx={{ border: '1px solid #3B82F6', color: '#3B82F6', px: 2, py: 0.5, borderRadius: 1 }}>
+                  <Typography variant="caption" fontWeight={700}>PEAK USAGE: TOD-4 SLOT 4 (23-24H / 0-5H) : 29%</Typography>
+                </Box>
+              </Box>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={{ stroke: '#E5E7EB' }} tickLine={false} />
+                  <YAxis tickFormatter={(value) => `${value >= 1000 ? (value / 1000) + 'k' : value}`} tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                   <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} maxBarSize={60} />
                 </BarChart>
               </ResponsiveContainer>
+              {/* Custom Legend */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, mt: 3 }}>
+                {chartData.map((d, i) => (
+                  <Box key={d.name} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#3B82F6' }} />
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>{d.name} ({totalBilledUnits > 0 ? ((d.value / totalBilledUnits) * 100).toFixed(2) : 0}%)</Typography>
+                  </Box>
+                ))}
+              </Box>
             </CardContent>
           </Card>
         </Box>
@@ -130,22 +247,47 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
           <Grid item xs={12} md={6}>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <AccountBalanceWallet color="error" />
-                <Typography variant="h6" fontWeight={700} color="text.primary">Where Your Money Went This Month</Typography>
+                <AccountBalanceWallet color="primary" />
+                <Typography variant="h6" fontWeight={700} color="text.primary">Where your money went?</Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Breakdown of all charges in your DISCOM bill</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>A clear split of the ₹{totalDiscomCost.toLocaleString()} of your DISCOM bill</Typography>
               
-              <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <BreakdownRow label="Energy Charges" percentage={energyPct} amount={formatLakhs(energyCharges)} color="#3B82F6" />
-                    <BreakdownRow label="Demand & Fixed" percentage={demandPct} amount={formatLakhs(demandAndFixed)} color="#3B82F6" />
-                    <BreakdownRow label="Penalties & Adjustments" percentage={penaltiesPct} amount={formatLakhs(penalties)} color="#3B82F6" />
-                    <BreakdownRow label="Miscellaneous" percentage={miscPct} amount={formatLakhs(miscCharges)} color="#3B82F6" />
+              <Card elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 4, height: 350 }}>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', height: '100%', p: 4 }}>
+                  <Box sx={{ position: 'relative', width: 200, height: 200 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Energy', value: energyCharges },
+                            { name: 'Demand', value: demandAndFixed },
+                            { name: 'Misc', value: miscCharges },
+                            { name: 'Penalty', value: penalties }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={70}
+                          outerRadius={90}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          <Cell fill="#3B82F6" />
+                          <Cell fill="#F59E0B" />
+                          <Cell fill="#10B981" />
+                          <Cell fill="#EF4444" />
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <Typography variant="caption" color="text.secondary" fontWeight={700}>TOTAL BILL</Typography>
+                      <Typography variant="h5" fontWeight={800}>₹{formatLakhs(totalDiscomCost)}</Typography>
+                    </Box>
                   </Box>
-                  <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body1" fontWeight={700}>Total Bill</Typography>
-                    <Typography variant="h6" fontWeight={800}>{formatCurrency(totalDiscomCost)}</Typography>
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, ml: 4 }}>
+                    <LegendRow label="Energy Charges" percentage={energyPct} amount={energyCharges} color="#3B82F6" />
+                    <LegendRow label="Demand & Fixed" percentage={demandPct} amount={demandAndFixed} color="#F59E0B" />
+                    <LegendRow label="Miscellaneous" percentage={miscPct} amount={miscCharges} color="#10B981" />
+                    <LegendRow label="Penalties & Adjustments" percentage={penaltiesPct} amount={penalties} color="#EF4444" />
                   </Box>
                 </CardContent>
               </Card>
@@ -154,38 +296,61 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
           <Grid item xs={12} md={6}>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <Speed color="error" />
-                <Typography variant="h6" fontWeight={700} color="text.primary">Are You Paying Too Much Fixed Charge?</Typography>
+                <Speed color="primary" />
+                <Typography variant="h6" fontWeight={700} color="text.primary">Is your sanctioned load optimized?</Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Sanctioned load utilization analysis</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Identify fixed cost inefficiencies.</Typography>
               
-              <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, height: '100%' }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 4 }}>
-                  {/* Gauge Mockup */}
-                  <Box sx={{ width: 200, height: 100, position: 'relative', overflow: 'hidden', mb: 2 }}>
-                    <Box sx={{ width: 200, height: 200, borderRadius: '50%', border: '20px solid #E5E7EB', borderTopColor: '#22C55E', borderLeftColor: '#22C55E', transform: 'rotate(45deg)', position: 'absolute', top: 0, left: 0 }} />
-                    <Typography variant="h4" fontWeight={800} color="success.main" sx={{ position: 'absolute', bottom: 0, width: '100%', textAlign: 'center' }}>{utilizationPct}%</Typography>
-                    <Typography variant="caption" fontWeight={700} color="success.main" sx={{ position: 'absolute', bottom: -20, width: '100%', textAlign: 'center' }}>Optimal</Typography>
+              <Card elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 4, height: 350 }}>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', height: '100%', p: 4, gap: 4 }}>
+                  {/* Semi-circle Gauge */}
+                  <Box sx={{ width: 250, height: 180, position: 'relative' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[{ value: utilizationPct }, { value: 100 - utilizationPct }]}
+                          cx="50%"
+                          cy="80%"
+                          startAngle={180}
+                          endAngle={0}
+                          innerRadius={80}
+                          outerRadius={100}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          <Cell fill="#22C55E" />
+                          <Cell fill="#E5E7EB" />
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <Box sx={{ position: 'absolute', bottom: 10, left: 0, width: '100%', textAlign: 'center' }}>
+                      <Typography variant="h4" fontWeight={800}>{utilizationPct}%</Typography>
+                      <Typography variant="caption" fontWeight={700} color="success.main" sx={{ bgcolor: '#F0FDF4', px: 1, py: 0.2, borderRadius: 1, mt: 0.5, display: 'inline-block' }}>OPTIMAL</Typography>
+                    </Box>
                   </Box>
                   
-                  <Grid container spacing={2} sx={{ mt: 2 }}>
-                    <Grid item xs={6}>
-                      <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600}>Sanctioned Load</Typography>
-                        <Typography variant="body1" fontWeight={800}>{sanctionedLoad ? `${sanctionedLoad} kW` : 'N/A'}</Typography>
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ border: '1px solid #E5E7EB', borderRadius: 2, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} display="block" mb={0.5}>SANCTIONED LOAD</Typography>
+                        <Typography variant="h6" fontWeight={800}>{sanctionedLoad ? sanctionedLoad.toLocaleString() : 'N/A'}</Typography>
                       </Box>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600}>Est. Max Demand</Typography>
-                        <Typography variant="body1" fontWeight={800}>{peakDemand ? `${peakDemand.toFixed(2)} kVA` : 'N/A'}</Typography>
+                      <Typography variant="caption" color="text.secondary" fontWeight={700}>kVA</Typography>
+                    </Box>
+                    <Box sx={{ border: '1px solid #E5E7EB', borderRadius: 2, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} display="block" mb={0.5}>MAX DEMAND</Typography>
+                        <Typography variant="h6" fontWeight={800}>{peakDemand ? peakDemand.toLocaleString() : 'N/A'}</Typography>
                       </Box>
-                    </Grid>
-                  </Grid>
-                  <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center', width: '100%', mt: 2 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Monthly Fixed Charge</Typography>
-                    <Typography variant="body1" fontWeight={800}>₹{formatLakhs(demandAndFixed)}</Typography>
-                    <Typography variant="caption" color="text.secondary">@ ₹{demandChargeRate}/kVA</Typography>
+                      <Typography variant="caption" color="text.secondary" fontWeight={700}>kVA</Typography>
+                    </Box>
+                    <Box sx={{ border: '1px solid #E5E7EB', borderRadius: 2, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} display="block" mb={0.5}>DEMAND CHARGE</Typography>
+                        <Typography variant="h6" fontWeight={800}>₹{formatLakhs(demandAndFixed)}</Typography>
+                      </Box>
+                      <Typography variant="caption" color="text.secondary" fontWeight={700}>@ ₹{demandChargeRate}/kVA</Typography>
+                    </Box>
                   </Box>
                 </CardContent>
               </Card>
@@ -194,26 +359,115 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
         </Grid>
 
         {/* Detailed Bill Information */}
+        {/* Detailed Bill Information */}
         <Box sx={{ mt: 2 }}>
-          <Typography variant="h6" fontWeight={700} color="text.primary" sx={{ mb: 1 }}>Detailed Bill Information</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Expand sections for meter readings, calculations, and charges</Typography>
-          
-          <Accordion elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', mb: 2, '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMore />} sx={{ fontWeight: 600 }}>Meter Details</AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body2" color="text.secondary">Detailed breakdown of meter readings goes here...</Typography>
+          <Accordion elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: '12px !important', mb: 2, '&:before': { display: 'none' }, bgcolor: '#F8FAFC' }}>
+            <AccordionSummary expandIcon={<ExpandMore />} sx={{ fontWeight: 700, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ bgcolor: '#DBEAFE', color: '#2563EB', p: 1, borderRadius: 2, display: 'flex' }}><ReceiptLong fontSize="small" /></Box>
+                <Box>
+                  <Typography variant="body1" fontWeight={700}>Meter Details</Typography>
+                  <Typography variant="caption" color="text.secondary">Readings, multipliers and demand</Typography>
+                </Box>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0 }}>
+              <Box sx={{ bgcolor: 'white', borderTop: '1px solid #E5E7EB', p: 3, borderBottomLeftRadius: 12, borderBottomRightRadius: 12 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>METER NUMBER</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{'4006362'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' }, pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>ENERGY TYPE</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>KVAH</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' }, pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>MULTIPLICATION FACTOR</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{'30'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' }, pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>METER UNITS</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{totalBilledUnits.toLocaleString()}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>RECORDED DEMAND</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{peakDemand ? `${peakDemand} kVA` : 'N/A'}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
             </AccordionDetails>
           </Accordion>
-          <Accordion elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', mb: 2, '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMore />} sx={{ fontWeight: 600 }}>ToD Calculation Details</AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body2" color="text.secondary">Time of day calculation breakdown goes here...</Typography>
+
+          <Accordion elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: '12px !important', mb: 2, '&:before': { display: 'none' }, bgcolor: '#F8FAFC' }}>
+            <AccordionSummary expandIcon={<ExpandMore />} sx={{ fontWeight: 700, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ bgcolor: '#DBEAFE', color: '#2563EB', p: 1, borderRadius: 2, display: 'flex' }}><ShowChart fontSize="small" /></Box>
+                <Box>
+                  <Typography variant="body1" fontWeight={700}>ToD Calculation Details</Typography>
+                  <Typography variant="caption" color="text.secondary">Slot-wise units, tariff and energy charge</Typography>
+                </Box>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0 }}>
+              <Box sx={{ bgcolor: 'white', borderTop: '1px solid #E5E7EB', borderBottomLeftRadius: 12, borderBottomRightRadius: 12, overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 650 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ color: 'text.secondary', fontWeight: 700, borderBottom: '1px solid #E5E7EB' }}>TOD SLOT</TableCell>
+                      <TableCell sx={{ color: 'text.secondary', fontWeight: 700, borderBottom: '1px solid #E5E7EB' }}>Difference (kWh)</TableCell>
+                      <TableCell sx={{ color: 'text.secondary', fontWeight: 700, borderBottom: '1px solid #E5E7EB' }}>AMOUNT (₹)</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {chartData.map((d, i) => (
+                      <TableRow key={d.name} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                        <TableCell sx={{ fontWeight: 800 }}>{d.name}</TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>{d.value.toLocaleString()}</TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>-</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
             </AccordionDetails>
           </Accordion>
-          <Accordion elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', mb: 2, '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMore />} sx={{ fontWeight: 600 }}>Connection Details</AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body2" color="text.secondary">Additional connection parameters go here...</Typography>
+
+          <Accordion elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: '12px !important', mb: 2, '&:before': { display: 'none' }, bgcolor: '#F8FAFC' }}>
+            <AccordionSummary expandIcon={<ExpandMore />} sx={{ fontWeight: 700, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ bgcolor: '#DBEAFE', color: '#2563EB', p: 1, borderRadius: 2, display: 'flex' }}><AccountBalanceWallet fontSize="small" /></Box>
+                <Box>
+                  <Typography variant="body1" fontWeight={700}>Connection Details</Typography>
+                  <Typography variant="caption" color="text.secondary">Tariff, supply and contracted load</Typography>
+                </Box>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0 }}>
+              <Box sx={{ bgcolor: 'white', borderTop: '1px solid #E5E7EB', p: 3, borderBottomLeftRadius: 12, borderBottomRightRadius: 12 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>DIVISION</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{entry.discom || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' }, pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>SUBDIVISION</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{entry.stateCode || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' }, pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>VOLTAGE LEVEL</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{entry.voltageLevel || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ borderRight: { sm: '1px solid #E5E7EB' }, pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>CATEGORY</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>{entry.industryName || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2.4} sx={{ pl: { sm: 2 } }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700}>CONNECTION DATE</Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ mt: 0.5 }}>N/A</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
             </AccordionDetails>
           </Accordion>
         </Box>
@@ -246,7 +500,7 @@ const SummaryCard = ({ label, value, highlight = false }: { label: string, value
   </Card>
 );
 
-const BreakdownRow = ({ label, percentage, amount, color }: { label: string, percentage: number, amount: string, color: string }) => (
+const LegendRow = ({ label, percentage, amount, color }: { label: string, percentage: number, amount: number, color: string }) => (
   <Box>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -255,9 +509,8 @@ const BreakdownRow = ({ label, percentage, amount, color }: { label: string, per
       </Box>
       <Box sx={{ display: 'flex', gap: 3 }}>
         <Typography variant="body2" fontWeight={600} color="text.secondary">{percentage.toFixed(1)}%</Typography>
-        <Typography variant="body2" fontWeight={800}>₹{amount}</Typography>
+        <Typography variant="body2" fontWeight={800}>₹{(amount / 100000).toFixed(2)}L</Typography>
       </Box>
     </Box>
-    <LinearProgress variant="determinate" value={percentage} sx={{ height: 6, borderRadius: 3, bgcolor: '#F1F5F9', '& .MuiLinearProgress-bar': { bgcolor: color } }} />
   </Box>
 );
