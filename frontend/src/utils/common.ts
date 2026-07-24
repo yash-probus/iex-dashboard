@@ -18,16 +18,43 @@ import MapPinSimpleSvg from "@/assets/svgIcons/plot-meter-insights/MapPinSimple.
 import { isAuthenticated } from "@/lib/auth";
 
 export function getStateAndDiscomList(respone = []) {
-  const getStateList = respone
-    ?.filter((d: any) => d?.discomList?.length > 0)
-    .map((d) => ({
-      label: d.state,
-      value: d.displayName,
+  const stateMap = new Map(); // normalized state -> { label, value, discoms }
+
+  respone?.forEach((d: any) => {
+    if (!d || !d.state) return;
+    
+    const normalized = d.state.toUpperCase().replace(/_/g, ' ');
+    const discoms = d.discomList || [];
+    
+    if (stateMap.has(normalized)) {
+      const existing = stateMap.get(normalized);
+      // Merge unique discoms based on 'discom' identifier
+      const existingDiscomIds = new Set(existing.discoms.map((dc: any) => dc.discom));
+      const newDiscoms = discoms.filter((dc: any) => !existingDiscomIds.has(dc.discom));
+      existing.discoms = [...existing.discoms, ...newDiscoms];
+      // Keep the nicer display name (prefer "Uttar Pradesh" over "UTTAR_PRADESH")
+      if (d.displayName && !d.displayName.includes('_') && existing.value.includes('_')) {
+         existing.value = d.displayName;
+         existing.label = d.state;
+      }
+    } else {
+      stateMap.set(normalized, {
+        label: d.state,
+        value: d.displayName || d.state,
+        discoms: [...discoms]
+      });
+    }
+  });
+
+  const getStateList = Array.from(stateMap.values())
+    .filter((entry: any) => entry.discoms.length > 0)
+    .map((entry: any) => ({
+      label: entry.label,
+      value: entry.value,
     }));
 
-  const getDiscomList = respone.reduce((acc, { state, discomList }) => {
-    acc[state] = discomList;
-
+  const getDiscomList = Array.from(stateMap.values()).reduce((acc: any, entry: any) => {
+    acc[entry.label] = entry.discoms;
     return acc;
   }, {});
 
