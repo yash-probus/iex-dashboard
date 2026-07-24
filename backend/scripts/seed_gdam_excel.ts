@@ -4,7 +4,9 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function run() {
-  const filePath = '/Users/yashgupta/IEX-Dashboard/GDAM_Market Snapshot.xlsx';
+  // Take file path from command line arg, or default to a relative path
+  const filePath = process.argv[2] || 'GDAM_Market Snapshot.xlsx';
+  console.log(`Reading Excel file from: ${filePath}`);
   const workbook = XLSX.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
