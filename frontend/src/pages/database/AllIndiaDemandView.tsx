@@ -78,7 +78,7 @@ export default function AllIndiaDemandView({
             <Card elevation={0} sx={{ bgcolor: alpha('#3B8FF3', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B8FF3', 0.2) }}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
-                <Typography variant="h6" color="#3B8FF3" sx={{ fontSize: '1rem', fontWeight: 700 }}>
+                <Typography variant="h6" color="#3B8FF3">
                   {latestSnapshot?.timeStr
                     ? latestSnapshot.timeStr.length > 16
                       ? latestSnapshot.timeStr.slice(0, 16)

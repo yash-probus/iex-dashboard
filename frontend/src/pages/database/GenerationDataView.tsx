@@ -110,7 +110,7 @@ export default function GenerationDataView({
             <Card elevation={0} sx={{ bgcolor: alpha('#3B82F6', 0.08), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B82F6', 0.2) }}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
-                <Typography variant="h6" color="#3B82F6" sx={{ fontSize: '1rem', fontWeight: 700 }}>
+                <Typography variant="h6" color="#3B82F6">
                   {latestSnapshot?.timeStr
                     ? latestSnapshot.timeStr.length > 16
                       ? latestSnapshot.timeStr.slice(0, 16)
