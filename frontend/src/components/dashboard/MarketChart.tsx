@@ -46,7 +46,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
     if (typeof tickItem === 'string' && tickItem.split('-').length === 3) {
       const parts = tickItem.split('-');
       let d = new Date(tickItem); // Try default parsing first
-      
+
       // If it looks like DD-MM-YYYY (e.g. 14-01-2026)
       if (parts[0].length <= 2 && parts[2].length === 4) {
         const day = parseInt(parts[0], 10);
@@ -129,25 +129,25 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
             <defs>
               {metrics.map(metric => (
                 <linearGradient key={`grad-${metric.key}`} id={`grad-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={metric.color} stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor={metric.color} stopOpacity={0.0}/>
+                  <stop offset="5%" stopColor={metric.color} stopOpacity={0.4} />
+                  <stop offset="95%" stopColor={metric.color} stopOpacity={0.0} />
                 </linearGradient>
               ))}
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
-            <XAxis 
-              dataKey={xAxisKey} 
-              tickFormatter={formatXAxis} 
-              tick={{ fontSize: 11, fill: '#6B7280', fontWeight: 500 }} 
+            <XAxis
+              dataKey={xAxisKey}
+              tickFormatter={formatXAxis}
+              tick={{ fontSize: 11, fill: '#6B7280', fontWeight: 500 }}
               axisLine={{ stroke: '#F0F0F0' }}
               tickLine={false}
               dy={10}
             />
             {/* Left Y Axis for Volume */}
             {hasLeftAxis && (
-              <YAxis 
-                yAxisId="left" 
-                tick={{ fontSize: 11, fill: '#6B7280' }} 
+              <YAxis
+                yAxisId="left"
+                tick={{ fontSize: 11, fill: '#6B7280' }}
                 axisLine={false}
                 tickLine={false}
                 width={60}
@@ -160,10 +160,10 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
             )}
             {/* Right Y Axis for Price */}
             {hasRightAxis && (
-              <YAxis 
-                yAxisId="right" 
+              <YAxis
+                yAxisId="right"
                 orientation={hasLeftAxis ? "right" : "left"}
-                tick={{ fontSize: 11, fill: '#6B7280' }} 
+                tick={{ fontSize: 11, fill: '#6B7280' }}
                 axisLine={false}
                 tickLine={false}
                 width={55}
@@ -174,47 +174,47 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                 }
               />
             )}
-            
-            <Tooltip 
+
+            <Tooltip
               contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '13px', padding: '12px' }}
               labelStyle={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px', borderBottom: '1px solid #F0F0F0', paddingBottom: '4px' }}
               itemStyle={{ padding: '3px 0', fontWeight: 600 }}
               formatter={(value: any) => typeof value === 'number' ? Number(value.toFixed(2)).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : value}
             />
-            
-            <Legend 
+
+            <Legend
               verticalAlign="bottom"
-              wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '16px' }} 
-              onClick={handleLegendClick} 
+              wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '16px' }}
+              onClick={handleLegendClick}
               iconType="circle"
             />
 
             {metrics.map(metric => {
               if (hiddenMetrics[metric.key]) return null;
-              
+
               if (metric.type === 'area') {
                 return (
-                  <Area 
+                  <Area
                     key={metric.key}
                     yAxisId={metric.yAxisId}
-                    type="monotone" 
-                    dataKey={metric.key} 
+                    type="monotone"
+                    dataKey={metric.key}
                     name={metric.name}
-                    fill={`url(#grad-${metric.key})`} 
-                    stroke={metric.color} 
+                    fill={`url(#grad-${metric.key})`}
+                    stroke={metric.color}
                     fillOpacity={1}
                     activeDot={{ r: 4, strokeWidth: 0 }}
                   />
                 );
               }
               return (
-                <Line 
+                <Line
                   key={metric.key}
                   yAxisId={metric.yAxisId}
-                  type="monotone" 
-                  dataKey={metric.key} 
+                  type="monotone"
+                  dataKey={metric.key}
                   name={metric.name}
-                  stroke={metric.color} 
+                  stroke={metric.color}
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 0 }}
