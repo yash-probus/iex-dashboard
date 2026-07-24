@@ -167,6 +167,7 @@ export default function DatabasePage() {
     return d.toISOString().split('T')[0];
   });
   const [genEndDate, setGenEndDate] = useState<string>(getTodayDateString());
+  const [genSelectedSource, setGenSelectedSource] = useState<string>('all');
 
   // Weather view date range
   const [weatherStartDate, setWeatherStartDate] = useState<string>(() => {
@@ -612,6 +613,30 @@ export default function DatabasePage() {
                     </Box>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                       <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase', opacity: 0 }}>Select Source</Typography>
+                        <FormControl size="small" sx={{ minWidth: 200 }}>
+                          <Select
+                            value={genSelectedSource}
+                            onChange={(e) => setGenSelectedSource(e.target.value)}
+                            sx={{
+                              borderRadius: '8px',
+                              height: '42px',
+                              bgcolor: '#FFF',
+                              fontSize: '0.875rem',
+                              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
+                            }}
+                          >
+                            <MenuItem value="all">All Sources</MenuItem>
+                            <MenuItem value="thermal">Thermal</MenuItem>
+                            <MenuItem value="gas">Gas</MenuItem>
+                            <MenuItem value="nuclear">Nuclear</MenuItem>
+                            <MenuItem value="hydro">Hydro</MenuItem>
+                            <MenuItem value="wind">Wind</MenuItem>
+                            <MenuItem value="solar">Solar</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Box>
+                      <Box>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontWeight: 600, textTransform: 'uppercase' }}>Select Date Range</Typography>
                         <DateRangePicker 
                           startDate={genStartDate}
@@ -647,6 +672,8 @@ export default function DatabasePage() {
                     endDate={genEndDate} 
                     onStartDateChange={setGenStartDate} 
                     onEndDateChange={setGenEndDate} 
+                    selectedSource={genSelectedSource}
+                    onSourceChange={setGenSelectedSource}
                     onExport={() => { 
                       const url = `${apiClient.defaults.baseURL || 'http://localhost:3000/api'}/database/export/csv?dataset=generation&startDate=${committedGenStartDate}&endDate=${committedGenEndDate}`;
                       window.open(url, '_blank');

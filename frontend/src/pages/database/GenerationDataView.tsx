@@ -54,6 +54,8 @@ interface GenerationDataViewProps {
   onStartDateChange: (val: string) => void;
   onEndDateChange: (val: string) => void;
   onExport: () => void;
+  selectedSource: string;
+  onSourceChange: (val: string) => void;
 }
 
 const COLORS = {
@@ -71,11 +73,11 @@ export default function GenerationDataView({
   endDate, 
   onStartDateChange, 
   onEndDateChange,
-  onExport
+  onExport,
+  selectedSource,
+  onSourceChange
 }: GenerationDataViewProps) {
   const [viewType, setViewType] = useState<'raw' | 'adjusted'>('adjusted');
-
-    const [selectedSource, setSelectedSource] = useState<string>('all');
 
   const handleViewChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -91,31 +93,6 @@ export default function GenerationDataView({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Source Selection Dropdown */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <Select
-            value={selectedSource}
-            onChange={(e) => setSelectedSource(e.target.value)}
-            sx={{
-              borderRadius: '8px',
-              height: '38px',
-              bgcolor: '#FFF',
-              fontSize: '0.875rem',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' }
-            }}
-          >
-            <MenuItem value="all">All Sources</MenuItem>
-            <MenuItem value="thermal">Thermal</MenuItem>
-            <MenuItem value="gas">Gas</MenuItem>
-            <MenuItem value="nuclear">Nuclear</MenuItem>
-            <MenuItem value="hydro">Hydro</MenuItem>
-            <MenuItem value="wind">Wind</MenuItem>
-            <MenuItem value="solar">Solar</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
       {/* Latest Snapshot Cards */}
       <Box>
         <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Latest Snapshot</Typography>
@@ -144,7 +121,7 @@ export default function GenerationDataView({
             </Card>
           </Box>
           <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.thermal, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.thermal, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'thermal' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'thermal' ? 'all' : 'thermal')}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.thermal, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.thermal, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'thermal' ? 1 : 0.5 }} onClick={() => onSourceChange(selectedSource === 'thermal' ? 'all' : 'thermal')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">THERMAL (MW)</Typography>
                 <Typography variant="h6" color={COLORS.thermal}>{latestSnapshot?.thermal?.toLocaleString('en-IN') || '-'}</Typography>
@@ -152,7 +129,7 @@ export default function GenerationDataView({
             </Card>
           </Box>
           <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.gas, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.gas, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'gas' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'gas' ? 'all' : 'gas')}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.gas, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.gas, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'gas' ? 1 : 0.5 }} onClick={() => onSourceChange(selectedSource === 'gas' ? 'all' : 'gas')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">GAS (MW)</Typography>
                 <Typography variant="h6" color={COLORS.gas}>{latestSnapshot?.gas?.toLocaleString('en-IN') || '-'}</Typography>
@@ -160,7 +137,7 @@ export default function GenerationDataView({
             </Card>
           </Box>
           <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.nuclear, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.nuclear, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'nuclear' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'nuclear' ? 'all' : 'nuclear')}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.nuclear, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.nuclear, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'nuclear' ? 1 : 0.5 }} onClick={() => onSourceChange(selectedSource === 'nuclear' ? 'all' : 'nuclear')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">NUCLEAR (MW)</Typography>
                 <Typography variant="h6" color={COLORS.nuclear}>{latestSnapshot?.nuclear?.toLocaleString('en-IN') || '-'}</Typography>
@@ -168,7 +145,7 @@ export default function GenerationDataView({
             </Card>
           </Box>
           <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.hydro, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.hydro, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'hydro' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'hydro' ? 'all' : 'hydro')}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.hydro, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.hydro, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'hydro' ? 1 : 0.5 }} onClick={() => onSourceChange(selectedSource === 'hydro' ? 'all' : 'hydro')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">HYDRO (MW)</Typography>
                 <Typography variant="h6" color={COLORS.hydro}>{latestSnapshot?.hydro?.toLocaleString('en-IN') || '-'}</Typography>
@@ -176,7 +153,7 @@ export default function GenerationDataView({
             </Card>
           </Box>
           <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.wind, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.wind, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'wind' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'wind' ? 'all' : 'wind')}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.wind, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.wind, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'wind' ? 1 : 0.5 }} onClick={() => onSourceChange(selectedSource === 'wind' ? 'all' : 'wind')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">WIND (MW)</Typography>
                 <Typography variant="h6" color={COLORS.wind}>{latestSnapshot?.wind?.toLocaleString('en-IN') || '-'}</Typography>
@@ -184,7 +161,7 @@ export default function GenerationDataView({
             </Card>
           </Box>
           <Box sx={{ minWidth: 160, flexShrink: 0, flex: 1 }}>
-            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.solar, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.solar, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'solar' ? 1 : 0.5 }} onClick={() => setSelectedSource(prev => prev === 'solar' ? 'all' : 'solar')}>
+            <Card elevation={0} sx={{ bgcolor: alpha(COLORS.solar, 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha(COLORS.solar, 0.2), cursor: 'pointer', opacity: selectedSource === 'all' || selectedSource === 'solar' ? 1 : 0.5 }} onClick={() => onSourceChange(selectedSource === 'solar' ? 'all' : 'solar')}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">SOLAR (MW)</Typography>
                 <Typography variant="h6" color={COLORS.solar}>{latestSnapshot?.solar?.toLocaleString('en-IN') || '-'}</Typography>
