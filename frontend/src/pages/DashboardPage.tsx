@@ -107,16 +107,16 @@ export default function DashboardPage() {
 
       <Grid container spacing={2}>
         {MODULES.filter(mod => !(user as any)?.hiddenModules?.includes(mod.key)).map((mod) => (
-          <Grid item xs={12} sm={6} md={4} key={mod.key}>
+          <Grid item xs={12} sm={6} md={4} lg={3} key={mod.key}>
             <Paper
               elevation={0}
               sx={{
-                p: 2.5,
+                p: 2,
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                borderRadius: 4,
+                borderRadius: 3,
                 border: '1px solid',
                 borderColor: 'divider',
                 backgroundColor: theme.palette.background.paper,
@@ -130,16 +130,16 @@ export default function DashboardPage() {
               }}
               onClick={() => navigate(mod.path)}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', mb: 1.5, gap: 1.5 }}>
-                <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 1.5, bgcolor: alpha(mod.color, 0.1), borderRadius: 2 }}>
-                  {mod.icon}
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', mb: 1, gap: 1.2 }}>
+                <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 1, bgcolor: alpha(mod.color, 0.1), borderRadius: 1.5 }}>
+                  {React.cloneElement(mod.icon, { sx: { fontSize: 20 } })}
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.15rem', letterSpacing: '-0.5px', textAlign: 'left', lineHeight: 1.2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', letterSpacing: '-0.5px', textAlign: 'left', lineHeight: 1.2 }}>
                   {mod.title}
                 </Typography>
               </Box>
 
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, flexGrow: 1, lineHeight: 1.4, fontSize: '0.85rem', textAlign: 'left', width: '100%' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5, flexGrow: 1, lineHeight: 1.3, fontSize: '0.8rem', textAlign: 'left', width: '100%' }}>
                 {mod.description}
               </Typography>
 
@@ -153,13 +153,13 @@ export default function DashboardPage() {
                 }}
                 sx={{
                   mt: 'auto',
-                  py: 1.2,
+                  py: 0.8,
                   bgcolor: alpha(mod.color, 0.1),
                   color: mod.color,
                   fontWeight: 600,
                   textTransform: 'none',
-                  borderRadius: 2.5,
-                  fontSize: '0.9rem',
+                  borderRadius: 2,
+                  fontSize: '0.85rem',
                   border: '1px solid',
                   borderColor: alpha(mod.color, 0.1),
                   transition: 'all 0.2s',

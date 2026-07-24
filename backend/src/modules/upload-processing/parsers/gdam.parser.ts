@@ -8,17 +8,8 @@ export class GdamParser extends BaseParser {
   protected requiredHeaders = [
     'Purchase Bid (MW)',
     'Total Sell Bid (MW)',
-    'Solar Bid (MW)',
-    'Non-Solar Sell Bid (MW)',
-    'Hydro Sell Bid (MW)',
     'Total MCV (MW)',
-    'Solar MCV (MW)',
-    'Non-Solar MCV (MW)',
-    'Hydro MCV (MW)',
     'Total FSV (MW)',
-    'Solar FSV (MW)',
-    'Non-Solar FSV (MW)',
-    'Hydro FSV (MW)',
     'MCP (Rs/MWh)'
   ];
 
