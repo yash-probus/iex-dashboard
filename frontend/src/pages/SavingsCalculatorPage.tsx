@@ -503,17 +503,23 @@ export default function SavingsCalculatorPage() {
         if (!sanctionedLoadKw.trim()) return false;
         const parsed = parseFloat(sanctionedLoadKw);
         return !isNaN(parsed) && parsed > 0;
-      case 7:
-        let isValid = true;
+      case 7: {
+        let hasAtLeastOneValue = false;
+        let isConsumptionsValid = true;
         Object.values(todConsumptions).forEach(monthData => {
           Object.values(monthData).forEach(val => {
             if (val.trim()) {
               const v = parseFloat(val);
-              if (isNaN(v) || v < 0) isValid = false;
+              if (isNaN(v) || v < 0) {
+                isConsumptionsValid = false;
+              } else {
+                hasAtLeastOneValue = true;
+              }
             }
           });
         });
-        return isValid;
+        return isConsumptionsValid && hasAtLeastOneValue;
+      }
       case 8:
         return true; // Additional Billing Details are optional
       default:
@@ -951,6 +957,8 @@ export default function SavingsCalculatorPage() {
                     setFormErrors({ sanctionedLoadKw: 'Sanctioned load must be a positive number.' });
                   } else if (stepIndex === 6) {
                     setSnackbar({ open: true, message: 'Please enter valid numbers for TOD consumption', severity: 'error' });
+                  } else if (stepIndex === 7) {
+                    setSnackbar({ open: true, message: 'Please fill in values for at least one month before continuing.', severity: 'error' });
                   }
                 }
               }}
