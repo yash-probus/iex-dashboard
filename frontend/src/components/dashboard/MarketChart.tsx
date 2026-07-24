@@ -12,6 +12,7 @@ export interface ChartMetric {
   color: string;
   type: 'area' | 'line';
   yAxisId: 'left' | 'right';
+  unit?: string;
 }
 
 interface MarketChartProps {
@@ -179,7 +180,14 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
               contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '13px', padding: '12px' }}
               labelStyle={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px', borderBottom: '1px solid #F0F0F0', paddingBottom: '4px' }}
               itemStyle={{ padding: '3px 0', fontWeight: 600 }}
-              formatter={(value: any) => typeof value === 'number' ? Number(value.toFixed(2)).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : value}
+              formatter={(value: any, name: string) => {
+                if (typeof value === 'number') {
+                  const metric = metrics.find(m => m.name === name);
+                  const unitStr = metric && metric.unit ? ` ${metric.unit}` : '';
+                  return [`${Number(value.toFixed(2)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}${unitStr}`, name];
+                }
+                return [value, name];
+              }}
             />
 
             <Legend

@@ -22,11 +22,11 @@ import { uploadApi } from '../api/upload.api';
 const REC_ACCENT = '#3B8FF3'; // Resolved from var(--color-market-dam) for alpha() support
 
 const chartMetrics: ChartMetric[] = [
-  { key: 'purchaseBid', name: 'Purchase Bid', color: '#3B8FF3', type: 'area', yAxisId: 'left' },
-  { key: 'sellBid', name: 'Sell Bid', color: '#F29F67', type: 'area', yAxisId: 'left' },
-  { key: 'mcv', name: 'MCV', color: '#34B1AA', type: 'area', yAxisId: 'left' },
-  { key: 'fsv', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left' },
-  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right' },
+  { key: 'purchaseBid', name: 'Purchase Bid', color: '#3B8FF3', type: 'area', yAxisId: 'left', unit: 'Certificates' },
+  { key: 'sellBid', name: 'Sell Bid', color: '#F29F67', type: 'area', yAxisId: 'left', unit: 'Certificates' },
+  { key: 'mcv', name: 'MCV', color: '#34B1AA', type: 'area', yAxisId: 'left', unit: 'Certificates' },
+  { key: 'fsv', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left', unit: 'Certificates' },
+  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right', unit: '₹/Certificate' },
 ];
 
 export default function RECPage() {

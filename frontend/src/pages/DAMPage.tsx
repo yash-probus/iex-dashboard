@@ -19,11 +19,11 @@ import { useAuth } from '../contexts/AuthContext';
 const DAM_ACCENT = '#3B8FF3'; // Resolved from var(--color-market-dam) for alpha() support
 
 const chartMetrics: ChartMetric[] = [
-  { key: 'purchaseBid', name: 'Purchase Bid', color: '#3B8FF3', type: 'area', yAxisId: 'left' },
-  { key: 'sellBid', name: 'Sell Bid', color: '#F29F67', type: 'area', yAxisId: 'left' },
-  { key: 'mcv', name: 'MCV', color: '#34B1AA', type: 'area', yAxisId: 'left' },
-  { key: 'fsv', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left' },
-  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right' },
+  { key: 'purchaseBid', name: 'Purchase Bid', color: '#3B8FF3', type: 'area', yAxisId: 'left', unit: 'MW' },
+  { key: 'sellBid', name: 'Sell Bid', color: '#F29F67', type: 'area', yAxisId: 'left', unit: 'MW' },
+  { key: 'mcv', name: 'MCV', color: '#34B1AA', type: 'area', yAxisId: 'left', unit: 'MW' },
+  { key: 'fsv', name: 'FSV', color: '#8B5CF6', type: 'area', yAxisId: 'left', unit: 'MW' },
+  { key: 'mcp', name: 'MCP', color: '#374151', type: 'line', yAxisId: 'right', unit: '₹/kWh' },
 ];
 
 export default function DAMPage() {
