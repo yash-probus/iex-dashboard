@@ -150,7 +150,12 @@ export class DashboardService {
       if (market.toUpperCase() === 'DAM') {
         records = await prisma.damRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
       } else if (market.toUpperCase() === 'GDAM') {
-        records = await prisma.gdamRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
+        const transitionDate = new Date('2026-07-13T00:00:00.000Z');
+        if (ds.deliveryDate >= transitionDate) {
+          records = await prisma.gdamNewRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
+        } else {
+          records = await prisma.gdamRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
+        }
       } else if (market.toUpperCase() === 'RTM') {
         records = await prisma.rtmRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
       } else if (market.toUpperCase() === 'REC') {

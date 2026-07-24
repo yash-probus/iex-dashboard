@@ -38,6 +38,7 @@ model Dataset {
   updatedAt     DateTime        @updatedAt
   damRecords    DamRecord[]
   gdamRecords   GdamRecord[]
+  gdamNewRecords GdamNewRecord[]
   rtmRecords    RtmRecord[]
   recRecords    RecRecord[]
   uploadHistory UploadHistory[]
@@ -111,6 +112,37 @@ model GdamRecord {
   fsvWind         Decimal  @default(0) @db.Decimal(18, 4)
   fsvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
   fsvORE          Decimal  @default(0) @db.Decimal(18, 4)
+  mcp             Decimal  @db.Decimal(18, 4)
+  dataset         Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@unique([datasetId, intervalNumber])
+  @@index([datasetId])
+  @@index([intervalNumber])
+  @@index([intervalTime])
+}
+
+model GdamNewRecord {
+  id              String   @id @default(uuid())
+  datasetId       String
+  date            String?  @db.VarChar(10)
+  intervalNumber  Int      @db.SmallInt
+  intervalTime    String   @db.VarChar(15)
+  purchaseBid     Decimal  @db.Decimal(18, 4)
+  sellBidTotal    Decimal  @db.Decimal(18, 4)
+  sellBidHydro    Decimal  @db.Decimal(18, 4)
+  sellBidWind     Decimal  @default(0) @db.Decimal(18, 4)
+  sellBidOtherRE  Decimal  @default(0) @db.Decimal(18, 4)
+  sellBidDRE      Decimal  @default(0) @db.Decimal(18, 4)
+  mcvTotal        Decimal  @db.Decimal(18, 4)
+  mcvHydro        Decimal  @db.Decimal(18, 4)
+  mcvWind         Decimal  @default(0) @db.Decimal(18, 4)
+  mcvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
+  mcvDRE          Decimal  @default(0) @db.Decimal(18, 4)
+  fsvTotal        Decimal  @db.Decimal(18, 4)
+  fsvHydro        Decimal  @db.Decimal(18, 4)
+  fsvWind         Decimal  @default(0) @db.Decimal(18, 4)
+  fsvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
+  fsvDRE          Decimal  @default(0) @db.Decimal(18, 4)
   mcp             Decimal  @db.Decimal(18, 4)
   dataset         Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 

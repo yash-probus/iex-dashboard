@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { DamIntervalRecord, GdamIntervalRecord, RtmIntervalRecord } from '../transformation/transformation.types';
+import { DamIntervalRecord, GdamNewIntervalRecord, RtmIntervalRecord } from '../transformation/transformation.types';
 import { logger } from '../../logger';
 
 export class ScraperService {
@@ -96,7 +96,7 @@ export class ScraperService {
     }
   }
 
-  public static async scrapeGdam(): Promise<GdamIntervalRecord[]> {
+  public static async scrapeGdam(): Promise<GdamNewIntervalRecord[]> {
     logger.info('Starting Puppeteer for GDAM Market Data Scrape...');
     const browser = await puppeteer.launch({
       headless: true,
@@ -121,7 +121,7 @@ export class ScraperService {
         });
       });
 
-      const records: GdamIntervalRecord[] = [];
+      const records: GdamNewIntervalRecord[] = [];
       for (const row of data) {
         // Find the index of the time block column dynamically
         const timeBlockIdx = row.findIndex(c => c && c.includes(':') && c.includes('-'));
@@ -143,17 +143,17 @@ export class ScraperService {
           sellBidHydro:   this.parseNumber(row[offset + 3]  ?? '0'),
           sellBidWind:    this.parseNumber(row[offset + 4]  ?? '0'),
           sellBidOtherRE: this.parseNumber(row[offset + 5]  ?? '0'),
-          sellBidORE:     this.parseNumber(row[offset + 6]  ?? '0'),
+          sellBidDRE:     this.parseNumber(row[offset + 6]  ?? '0'),
           mcvTotal:       this.parseNumber(row[offset + 7]  ?? '0'),
           mcvHydro:       this.parseNumber(row[offset + 8]  ?? '0'),
           mcvWind:        this.parseNumber(row[offset + 9]  ?? '0'),
           mcvOtherRE:     this.parseNumber(row[offset + 10] ?? '0'),
-          mcvORE:         this.parseNumber(row[offset + 11] ?? '0'),
+          mcvDRE:         this.parseNumber(row[offset + 11] ?? '0'),
           fsvTotal:       this.parseNumber(row[offset + 12] ?? '0'),
           fsvHydro:       this.parseNumber(row[offset + 13] ?? '0'),
           fsvWind:        this.parseNumber(row[offset + 14] ?? '0'),
           fsvOtherRE:     this.parseNumber(row[offset + 15] ?? '0'),
-          fsvORE:         this.parseNumber(row[offset + 16] ?? '0'),
+          fsvDRE:         this.parseNumber(row[offset + 16] ?? '0'),
           mcp:            this.parseNumber(row[offset + 17] ?? '0'),
         });
       }

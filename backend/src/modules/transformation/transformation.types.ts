@@ -38,6 +38,28 @@ export interface GdamIntervalRecord {
   mcp: number;
 }
 
+export interface GdamNewIntervalRecord {
+  intervalNumber: number;
+  intervalTime: string;
+  purchaseBid: number;
+  sellBidTotal: number;
+  sellBidHydro: number;
+  sellBidWind: number;
+  sellBidOtherRE: number;
+  sellBidDRE: number;
+  mcvTotal: number;
+  mcvHydro: number;
+  mcvWind: number;
+  mcvOtherRE: number;
+  mcvDRE: number;
+  fsvTotal: number;
+  fsvHydro: number;
+  fsvWind: number;
+  fsvOtherRE: number;
+  fsvDRE: number;
+  mcp: number;
+}
+
 export interface RtmIntervalRecord {
   intervalNumber: number;
   intervalTime: string;

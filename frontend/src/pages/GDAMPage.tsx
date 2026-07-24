@@ -51,28 +51,79 @@ export default function GDAMPage() {
     const metricColumns: ColumnDefinition[] = [
       { field: 'purchaseBid', headerName: 'Purchase Bid (MW)', width: 140, align: 'right', valueFormatter: formatNum },
       { field: 'sellBidTotal', headerName: 'Sell Bid Total (MW)', width: 140, align: 'right', valueFormatter: formatNum },
-      { field: 'sellBidSolar', headerName: 'Sell Bid Solar', width: 120, align: 'right', valueFormatter: formatNum },
-      { field: 'sellBidNonSolar', headerName: 'Sell Bid Non-Solar', width: 140, align: 'right', valueFormatter: formatNum },
+    ];
+
+    const transitionDate = new Date('2026-07-13');
+    const start = new Date(filters.startDate);
+    const end = new Date(filters.endDate);
+    const hasOldData = start < transitionDate;
+    const hasNewData = end >= transitionDate;
+
+    if (hasOldData) {
+      metricColumns.push(
+        { field: 'sellBidSolar', headerName: 'Sell Bid Solar', width: 120, align: 'right', valueFormatter: formatNum },
+        { field: 'sellBidNonSolar', headerName: 'Sell Bid Non-Solar', width: 140, align: 'right', valueFormatter: formatNum }
+      );
+    }
+    
+    metricColumns.push(
       { field: 'sellBidHydro', headerName: 'Sell Bid Hydro', width: 120, align: 'right', valueFormatter: formatNum },
       { field: 'sellBidWind', headerName: 'Sell Bid Wind', width: 120, align: 'right', valueFormatter: formatNum },
-      { field: 'sellBidOtherRE', headerName: 'Sell Bid Other RE', width: 140, align: 'right', valueFormatter: formatNum },
-      { field: 'sellBidORE', headerName: 'Sell Bid ORE', width: 120, align: 'right', valueFormatter: formatNum },
-      { field: 'mcvTotal', headerName: 'MCV Total (MW)', width: 120, align: 'right', valueFormatter: formatNum },
-      { field: 'mcvSolar', headerName: 'MCV Solar', width: 100, align: 'right', valueFormatter: formatNum },
-      { field: 'mcvNonSolar', headerName: 'MCV Non-Solar', width: 120, align: 'right', valueFormatter: formatNum },
+      { field: 'sellBidOtherRE', headerName: 'Sell Bid Other RE', width: 140, align: 'right', valueFormatter: formatNum }
+    );
+
+    if (hasOldData) {
+      metricColumns.push({ field: 'sellBidORE', headerName: 'Sell Bid ORE', width: 120, align: 'right', valueFormatter: formatNum });
+    }
+    if (hasNewData) {
+      metricColumns.push({ field: 'sellBidDRE', headerName: 'Sell Bid DRE', width: 120, align: 'right', valueFormatter: formatNum });
+    }
+
+    metricColumns.push({ field: 'mcvTotal', headerName: 'MCV Total (MW)', width: 120, align: 'right', valueFormatter: formatNum });
+
+    if (hasOldData) {
+      metricColumns.push(
+        { field: 'mcvSolar', headerName: 'MCV Solar', width: 100, align: 'right', valueFormatter: formatNum },
+        { field: 'mcvNonSolar', headerName: 'MCV Non-Solar', width: 120, align: 'right', valueFormatter: formatNum }
+      );
+    }
+
+    metricColumns.push(
       { field: 'mcvHydro', headerName: 'MCV Hydro', width: 100, align: 'right', valueFormatter: formatNum },
       { field: 'mcvWind', headerName: 'MCV Wind', width: 100, align: 'right', valueFormatter: formatNum },
-      { field: 'mcvOtherRE', headerName: 'MCV Other RE', width: 120, align: 'right', valueFormatter: formatNum },
-      { field: 'mcvORE', headerName: 'MCV ORE', width: 100, align: 'right', valueFormatter: formatNum },
-      { field: 'fsvTotal', headerName: 'FSV Total (MW)', width: 120, align: 'right', valueFormatter: formatNum },
-      { field: 'fsvSolar', headerName: 'FSV Solar', width: 100, align: 'right', valueFormatter: formatNum },
-      { field: 'fsvNonSolar', headerName: 'FSV Non-Solar', width: 120, align: 'right', valueFormatter: formatNum },
+      { field: 'mcvOtherRE', headerName: 'MCV Other RE', width: 120, align: 'right', valueFormatter: formatNum }
+    );
+
+    if (hasOldData) {
+      metricColumns.push({ field: 'mcvORE', headerName: 'MCV ORE', width: 100, align: 'right', valueFormatter: formatNum });
+    }
+    if (hasNewData) {
+      metricColumns.push({ field: 'mcvDRE', headerName: 'MCV DRE', width: 100, align: 'right', valueFormatter: formatNum });
+    }
+
+    metricColumns.push({ field: 'fsvTotal', headerName: 'FSV Total (MW)', width: 120, align: 'right', valueFormatter: formatNum });
+
+    if (hasOldData) {
+      metricColumns.push(
+        { field: 'fsvSolar', headerName: 'FSV Solar', width: 100, align: 'right', valueFormatter: formatNum },
+        { field: 'fsvNonSolar', headerName: 'FSV Non-Solar', width: 120, align: 'right', valueFormatter: formatNum }
+      );
+    }
+
+    metricColumns.push(
       { field: 'fsvHydro', headerName: 'FSV Hydro', width: 100, align: 'right', valueFormatter: formatNum },
       { field: 'fsvWind', headerName: 'FSV Wind', width: 100, align: 'right', valueFormatter: formatNum },
-      { field: 'fsvOtherRE', headerName: 'FSV Other RE', width: 120, align: 'right', valueFormatter: formatNum },
-      { field: 'fsvORE', headerName: 'FSV ORE', width: 100, align: 'right', valueFormatter: formatNum },
-      { field: 'mcp', headerName: 'MCP (₹/MWh)', width: 120, align: 'right', valueFormatter: (v) => v !== undefined ? `₹${formatNum(v)}` : '-' },
-    ];
+      { field: 'fsvOtherRE', headerName: 'FSV Other RE', width: 120, align: 'right', valueFormatter: formatNum }
+    );
+
+    if (hasOldData) {
+      metricColumns.push({ field: 'fsvORE', headerName: 'FSV ORE', width: 100, align: 'right', valueFormatter: formatNum });
+    }
+    if (hasNewData) {
+      metricColumns.push({ field: 'fsvDRE', headerName: 'FSV DRE', width: 100, align: 'right', valueFormatter: formatNum });
+    }
+
+    metricColumns.push({ field: 'mcp', headerName: 'MCP (₹/MWh)', width: 120, align: 'right', valueFormatter: (v) => v !== undefined && v !== null ? `₹${formatNum(v)}` : '-' });
 
     return [...baseColumns, ...metricColumns];
   };

@@ -74,6 +74,7 @@ export class DatasetService {
           select: {
             damRecords: true,
             gdamRecords: true,
+            gdamNewRecords: true,
             rtmRecords: true,
             uploadHistory: true
           }

@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 
 export type DamDbPayload = Prisma.DamRecordCreateManyInput;
 export type GdamDbPayload = Prisma.GdamRecordCreateManyInput;
+export type GdamNewDbPayload = Prisma.GdamNewRecordCreateManyInput;
 export type RtmDbPayload = Prisma.RtmRecordCreateManyInput;
 export type RecDbPayload = Prisma.RecRecordCreateManyInput;
 

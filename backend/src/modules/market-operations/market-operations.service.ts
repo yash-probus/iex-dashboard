@@ -68,6 +68,11 @@ export class MarketOperationsService {
             (SELECT d."deliveryDate" as date, gr."intervalNumber" as timeblock, gr.mcp 
              FROM "GdamRecord" gr 
              JOIN "Dataset" d ON gr."datasetId" = d.id 
+             WHERE d.market = 'GDAM' AND d.status = 'ACTIVE' ${dateFilterGdam}
+             UNION ALL
+             SELECT d."deliveryDate" as date, gnr."intervalNumber" as timeblock, gnr.mcp 
+             FROM "GdamNewRecord" gnr 
+             JOIN "Dataset" d ON gnr."datasetId" = d.id 
              WHERE d.market = 'GDAM' AND d.status = 'ACTIVE' ${dateFilterGdam}) gdam
             ON COALESCE(dam.date, rtm.date) = gdam.date AND COALESCE(dam.timeblock, rtm.timeblock) = gdam.timeblock
         ORDER BY date DESC, timeblock ASC

@@ -3,9 +3,9 @@ import path from 'path';
 import prisma from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { logger } from '../../logger';
-import { PersistDatasetParams, DamDbPayload, GdamDbPayload, RtmDbPayload, RecDbPayload } from './persistence.types';
+import { PersistDatasetParams, DamDbPayload, GdamDbPayload, GdamNewDbPayload, RtmDbPayload, RecDbPayload } from './persistence.types';
 import { toDecimal } from '../../utils/prisma-decimal';
-import { DamIntervalRecord, GdamIntervalRecord, RtmIntervalRecord, RecIntervalRecord } from '../transformation/transformation.types';
+import { DamIntervalRecord, GdamIntervalRecord, GdamNewIntervalRecord, RtmIntervalRecord, RecIntervalRecord } from '../transformation/transformation.types';
 
 export class PersistenceService {
   /**
@@ -109,38 +109,70 @@ export class PersistenceService {
         } 
         else if (market === 'GDAM') {
           const formattedDate = dataset.deliveryDate.toISOString().split('T')[0];
-          const dbRecords: GdamDbPayload[] = (records as GdamIntervalRecord[]).map((r) => ({
-            datasetId: dataset.id,
-            date: formattedDate,
-            intervalNumber: r.intervalNumber,
-            intervalTime: r.intervalTime,
-            purchaseBid: toDecimal(r.purchaseBid),
-            sellBidTotal: toDecimal(r.sellBidTotal),
-            sellBidSolar: toDecimal(r.sellBidSolar ?? 0),
-            sellBidNonSolar: toDecimal(r.sellBidNonSolar ?? 0),
-            sellBidHydro: toDecimal(r.sellBidHydro),
-            sellBidWind: toDecimal(r.sellBidWind),
-            sellBidOtherRE: toDecimal(r.sellBidOtherRE),
-            sellBidORE: toDecimal(r.sellBidORE),
-            mcvTotal: toDecimal(r.mcvTotal),
-            mcvSolar: toDecimal(r.mcvSolar ?? 0),
-            mcvNonSolar: toDecimal(r.mcvNonSolar ?? 0),
-            mcvHydro: toDecimal(r.mcvHydro),
-            mcvWind: toDecimal(r.mcvWind),
-            mcvOtherRE: toDecimal(r.mcvOtherRE),
-            mcvORE: toDecimal(r.mcvORE),
-            fsvTotal: toDecimal(r.fsvTotal),
-            fsvSolar: toDecimal(r.fsvSolar ?? 0),
-            fsvNonSolar: toDecimal(r.fsvNonSolar ?? 0),
-            fsvHydro: toDecimal(r.fsvHydro),
-            fsvWind: toDecimal(r.fsvWind),
-            fsvOtherRE: toDecimal(r.fsvOtherRE),
-            fsvORE: toDecimal(r.fsvORE),
-            mcp: toDecimal(r.mcp),
-          }));
+          const transitionDate = new Date('2026-07-13T00:00:00.000Z');
+          const isNewFormat = dataset.deliveryDate >= transitionDate;
 
-          const result = await tx.gdamRecord.createMany({ data: dbRecords });
-          insertedCount = result.count;
+          if (isNewFormat) {
+            const dbRecords: GdamNewDbPayload[] = (records as GdamNewIntervalRecord[]).map((r) => ({
+              datasetId: dataset.id,
+              date: formattedDate,
+              intervalNumber: r.intervalNumber,
+              intervalTime: r.intervalTime,
+              purchaseBid: toDecimal(r.purchaseBid),
+              sellBidTotal: toDecimal(r.sellBidTotal),
+              sellBidHydro: toDecimal(r.sellBidHydro),
+              sellBidWind: toDecimal(r.sellBidWind),
+              sellBidOtherRE: toDecimal(r.sellBidOtherRE),
+              sellBidDRE: toDecimal(r.sellBidDRE),
+              mcvTotal: toDecimal(r.mcvTotal),
+              mcvHydro: toDecimal(r.mcvHydro),
+              mcvWind: toDecimal(r.mcvWind),
+              mcvOtherRE: toDecimal(r.mcvOtherRE),
+              mcvDRE: toDecimal(r.mcvDRE),
+              fsvTotal: toDecimal(r.fsvTotal),
+              fsvHydro: toDecimal(r.fsvHydro),
+              fsvWind: toDecimal(r.fsvWind),
+              fsvOtherRE: toDecimal(r.fsvOtherRE),
+              fsvDRE: toDecimal(r.fsvDRE),
+              mcp: toDecimal(r.mcp),
+            }));
+
+            const result = await tx.gdamNewRecord.createMany({ data: dbRecords });
+            insertedCount = result.count;
+          } else {
+            const dbRecords: GdamDbPayload[] = (records as GdamIntervalRecord[]).map((r) => ({
+              datasetId: dataset.id,
+              date: formattedDate,
+              intervalNumber: r.intervalNumber,
+              intervalTime: r.intervalTime,
+              purchaseBid: toDecimal(r.purchaseBid),
+              sellBidTotal: toDecimal(r.sellBidTotal),
+              sellBidSolar: toDecimal(r.sellBidSolar ?? 0),
+              sellBidNonSolar: toDecimal(r.sellBidNonSolar ?? 0),
+              sellBidHydro: toDecimal(r.sellBidHydro),
+              sellBidWind: toDecimal(r.sellBidWind),
+              sellBidOtherRE: toDecimal(r.sellBidOtherRE),
+              sellBidORE: toDecimal(r.sellBidORE),
+              mcvTotal: toDecimal(r.mcvTotal),
+              mcvSolar: toDecimal(r.mcvSolar ?? 0),
+              mcvNonSolar: toDecimal(r.mcvNonSolar ?? 0),
+              mcvHydro: toDecimal(r.mcvHydro),
+              mcvWind: toDecimal(r.mcvWind),
+              mcvOtherRE: toDecimal(r.mcvOtherRE),
+              mcvORE: toDecimal(r.mcvORE),
+              fsvTotal: toDecimal(r.fsvTotal),
+              fsvSolar: toDecimal(r.fsvSolar ?? 0),
+              fsvNonSolar: toDecimal(r.fsvNonSolar ?? 0),
+              fsvHydro: toDecimal(r.fsvHydro),
+              fsvWind: toDecimal(r.fsvWind),
+              fsvOtherRE: toDecimal(r.fsvOtherRE),
+              fsvORE: toDecimal(r.fsvORE),
+              mcp: toDecimal(r.mcp),
+            }));
+
+            const result = await tx.gdamRecord.createMany({ data: dbRecords });
+            insertedCount = result.count;
+          }
         }
         else if (market === 'RTM') {
           const formattedDate = dataset.deliveryDate.toISOString().split('T')[0];
