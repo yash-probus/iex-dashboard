@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useState, useMemo } from 'react';
+import { Box, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { Bolt as BoltIcon } from '@mui/icons-material';
 import ResourcePageLayout from '../../components/dashboard/ResourcePageLayout';
 import EmptyTableState from '../../components/dashboard/EmptyTableState';
@@ -14,7 +14,34 @@ export default function IstsChargesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const config = RESOURCE_CENTER_PAGES.ISTS_LOSSES;
 
+  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+
+  // Extract unique years from data for the filter dropdown
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    data.forEach((row: IstsCharges) => {
+      if (row.startDate) {
+        years.add(row.startDate.substring(0, 4));
+      }
+    });
+    return Array.from(years).sort().reverse(); // Newest first
+  }, [data]);
+
   const filteredData = data.filter((row: IstsCharges) => {
+    // Apply year filter
+    if (selectedYear !== 'all' && row.startDate && !row.startDate.startsWith(selectedYear)) {
+      return false;
+    }
+    
+    // Apply month filter
+    if (selectedMonth !== 'all' && row.startDate) {
+      const rowMonth = row.startDate.substring(5, 7);
+      if (rowMonth !== selectedMonth) {
+        return false;
+      }
+    }
+
     if (!searchQuery) return true;
     const lowerQuery = searchQuery.toLowerCase();
     return (
@@ -56,6 +83,50 @@ export default function IstsChargesPage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={config.searchPlaceholder}
+      customFilters={
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="year-filter-label">Year</InputLabel>
+            <Select
+              labelId="year-filter-label"
+              id="year-filter"
+              value={selectedYear}
+              label="Year"
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              <MenuItem value="all">All Years</MenuItem>
+              {availableYears.map(year => (
+                <MenuItem key={year} value={year}>{year}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="month-filter-label">Month</InputLabel>
+            <Select
+              labelId="month-filter-label"
+              id="month-filter"
+              value={selectedMonth}
+              label="Month"
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              <MenuItem value="all">All Months</MenuItem>
+              <MenuItem value="01">January</MenuItem>
+              <MenuItem value="02">February</MenuItem>
+              <MenuItem value="03">March</MenuItem>
+              <MenuItem value="04">April</MenuItem>
+              <MenuItem value="05">May</MenuItem>
+              <MenuItem value="06">June</MenuItem>
+              <MenuItem value="07">July</MenuItem>
+              <MenuItem value="08">August</MenuItem>
+              <MenuItem value="09">September</MenuItem>
+              <MenuItem value="10">October</MenuItem>
+              <MenuItem value="11">November</MenuItem>
+              <MenuItem value="12">December</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      }
       onUpload={async (parsedData) => {
         try {
           await bulkUpload(parsedData);
