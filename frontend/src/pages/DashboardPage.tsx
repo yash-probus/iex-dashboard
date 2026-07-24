@@ -6,6 +6,7 @@ import {
   SettingsSuggest as SettingsIcon,
   Calculate as CalculateIcon,
   Timeline as TimelineIcon,
+  Group as GroupIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -66,6 +67,14 @@ const MODULES = [
     path: '/admin/api-logs',
     icon: <StorageIcon sx={{ fontSize: 24 }} />,
     color: '#10B981'
+  },
+  {
+    key: 'user-management',
+    title: 'User Management',
+    description: 'Manage users, assign roles, and control access permissions.',
+    path: '/admin/user-management',
+    icon: <GroupIcon sx={{ fontSize: 24 }} />,
+    color: '#3B82F6'
   }
 ];
 
