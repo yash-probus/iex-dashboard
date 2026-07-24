@@ -324,20 +324,20 @@ export default function CityStateView() {
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>
                         <TableSortLabel
-                          active={orderBy === 'cityName'}
-                          direction={orderBy === 'cityName' ? order : 'asc'}
-                          onClick={() => handleRequestSort('cityName')}
-                        >
-                          City
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>
-                        <TableSortLabel
                           active={orderBy === 'stateName'}
                           direction={orderBy === 'stateName' ? order : 'asc'}
                           onClick={() => handleRequestSort('stateName')}
                         >
                           State
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>
+                        <TableSortLabel
+                          active={orderBy === 'cityName'}
+                          direction={orderBy === 'cityName' ? order : 'asc'}
+                          onClick={() => handleRequestSort('cityName')}
+                        >
+                          City
                         </TableSortLabel>
                       </TableCell>
                       <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>
@@ -374,8 +374,8 @@ export default function CityStateView() {
                       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       .map((row) => (
                         <TableRow key={row.id} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                          <TableCell sx={{ fontWeight: 600 }}>{row.cityName}</TableCell>
                           <TableCell sx={{ color: 'text.secondary' }}>{row.stateName}</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>{row.cityName}</TableCell>
                           <TableCell sx={{ color: 'text.secondary' }}>{row.population.toLocaleString('en-IN')}</TableCell>
                           <TableCell sx={{ color: 'text.secondary' }}>{row.latitude.toFixed(4)}° N</TableCell>
                           <TableCell sx={{ color: 'text.secondary' }}>{row.longitude.toFixed(4)}° E</TableCell>
