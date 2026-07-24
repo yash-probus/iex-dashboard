@@ -115,7 +115,7 @@ export default function DashboardPage() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 borderRadius: 4,
                 border: '1px solid',
                 borderColor: 'divider',
@@ -130,16 +130,16 @@ export default function DashboardPage() {
               }}
               onClick={() => navigate(mod.path)}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2, gap: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', mb: 2, gap: 2 }}>
                 <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 2, bgcolor: alpha(mod.color, 0.1), borderRadius: 2 }}>
                   {mod.icon}
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.25rem', letterSpacing: '-0.5px', textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.25rem', letterSpacing: '-0.5px', textAlign: 'left', lineHeight: 1.2 }}>
                   {mod.title}
                 </Typography>
               </Box>
 
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4, flexGrow: 1, lineHeight: 1.6, fontSize: '0.9rem', textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4, flexGrow: 1, lineHeight: 1.6, fontSize: '0.9rem', textAlign: 'left', width: '100%' }}>
                 {mod.description}
               </Typography>
 
