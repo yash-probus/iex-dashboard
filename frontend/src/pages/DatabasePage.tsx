@@ -569,8 +569,6 @@ export default function DatabasePage() {
                     </Box>
                   </Box>
                   
-                  <Divider />
-                  
                   <AllIndiaDemandView 
                     data={allIndiaDemand} 
                     startDate={nppStartDate} 
@@ -642,8 +640,6 @@ export default function DatabasePage() {
                       </Button>
                     </Box>
                   </Box>
-                  
-                  <Divider />
                   
                   <GenerationDataView 
                     data={generationData} 
@@ -791,7 +787,6 @@ export default function DatabasePage() {
                     </Button>
                   </Box>
                 </Box>
-                <Divider />
 
                 {weatherData && weatherData.length > 0 ? (
                   <Box sx={{ width: '100%', overflow: 'hidden' }}>
