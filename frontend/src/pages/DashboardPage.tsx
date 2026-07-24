@@ -72,7 +72,7 @@ const MODULES = [
     key: 'user-management',
     title: 'User Management',
     description: 'Manage users, assign roles, and control access permissions.',
-    path: '/admin/user-management',
+    path: '/admin/users',
     icon: <GroupIcon sx={{ fontSize: 24 }} />,
     color: '#3B82F6'
   }
