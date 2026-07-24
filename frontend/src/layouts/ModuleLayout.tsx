@@ -72,7 +72,7 @@ export default function ModuleLayout() {
   activeItems.forEach(item => {
     const hasSubItems = item.subItems && item.subItems.length > 0;
     if (hasSubItems) {
-      item.subItems.forEach((sub: any) => {
+      item.subItems?.forEach((sub: any) => {
         if (location.pathname.includes(sub.path)) {
           parentTitle = item.title;
           childTitle = sub.title;
