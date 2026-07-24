@@ -182,6 +182,7 @@ export default function AllIndiaDemandView({
                       width={45}
                     />
                     <Tooltip 
+                      formatter={(value: any, name: string) => [`${value} MW`, name]}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
                     />
                     {viewType === 'raw' ? (
