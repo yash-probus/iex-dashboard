@@ -78,14 +78,20 @@ export default function AllIndiaDemandView({
             <Card elevation={0} sx={{ bgcolor: alpha('#3B8FF3', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B8FF3', 0.2) }}>
               <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
-                <Typography variant="h6" color="#3B8FF3">{latestSnapshot?.timeStr || '-'}</Typography>
+                <Typography variant="h6" color="#3B8FF3" sx={{ fontSize: '1rem', fontWeight: 700 }}>
+                  {latestSnapshot?.timeStr
+                    ? latestSnapshot.timeStr.length > 16
+                      ? latestSnapshot.timeStr.slice(0, 16)
+                      : latestSnapshot.timeStr
+                    : '-'}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={0} sx={{ bgcolor: alpha('#2E51FF', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#2E51FF', 0.2) }}>
-              <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                <Typography variant="body2" color="text.secondary" fontWeight={600} mb={0.5}>{viewType === 'raw' ? 'Demand Met (MW)' : 'Max Demand (MW)'}</Typography>
+              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">{viewType === 'raw' ? 'DEMAND MET (MW)' : 'MAX DEMAND (MW)'}</Typography>
                 <Typography variant="h6" color="#2E51FF">{latestSnapshot ? (viewType === 'raw' ? latestSnapshot.demandMet?.toLocaleString('en-IN') : latestSnapshot.maxDemand?.toLocaleString('en-IN')) : '-'}</Typography>
               </CardContent>
             </Card>
