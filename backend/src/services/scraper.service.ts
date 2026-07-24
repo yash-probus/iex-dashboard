@@ -309,24 +309,32 @@ export class VidyutPravahScraper {
     console.log('[ScraperService] Fetching State Demands...');
     const demands: Record<string, number> = {};
     
-    // Create an array of promises to fetch all 30 states in parallel
-    const promises = Object.entries(STATE_URL_SLUGS).map(async ([stateName, slug]) => {
-      try {
-        const { data } = await axiosClient.get(`https://vidyutpravah.in/state-data/${slug}`);
-        // Regex to find: <span class="value_DemandMET_en..."><span...>  24,097&nbsp;MW</span>
-        const match = data.match(/<span class="value_DemandMET_en[^>]*><span[^>]*>\s*([\d,]+)\s*&nbsp;MW<\/span>/);
-        if (match && match[1]) {
-          demands[stateName] = parseFloat(match[1].replace(/,/g, ''));
-        } else {
-          // If a state doesn't report live demand, default to 0 to prevent crashes
+    // Fetch in batches of 5 to avoid rate limiting or timeouts
+    const entries = Object.entries(STATE_URL_SLUGS);
+    for (let i = 0; i < entries.length; i += 5) {
+      const batch = entries.slice(i, i + 5);
+      await Promise.all(batch.map(async ([stateName, slug]) => {
+        try {
+          const { data } = await axiosClient.get(`https://vidyutpravah.in/state-data/${slug}`);
+          // Regex to find: <span class="value_DemandMET_en..."><span...>  24,097&nbsp;MW</span>
+          const match = data.match(/<span class="value_DemandMET_en[^>]*><span[^>]*>\s*([\d,]+)\s*&nbsp;MW<\/span>/);
+          if (match && match[1]) {
+            demands[stateName] = parseFloat(match[1].replace(/,/g, ''));
+          } else {
+            // If a state doesn't report live demand, default to 0 to prevent crashes
+            demands[stateName] = 0;
+          }
+        } catch (e: any) {
+          console.error(`[ScraperService] Failed to scrape demand for ${stateName}:`, e.message);
           demands[stateName] = 0;
         }
-      } catch (e) {
-        demands[stateName] = 0;
+      }));
+      
+      // Delay 1 second between batches
+      if (i + 5 < entries.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-    });
-
-    await Promise.all(promises);
+    }
     return demands;
   }
 
