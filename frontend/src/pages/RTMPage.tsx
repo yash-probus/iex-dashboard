@@ -33,15 +33,6 @@ export default function RTMPage() {
   const { data, summaryMetrics, isLoading, error } = useMarketData('RTM', filters);
   const [marketView, setMarketView] = React.useState<'all-india' | 'state-wise'>('all-india');
 
-  const isDateRangeTooLarge = React.useMemo(() => {
-    const start = new Date(filters.startDate);
-    const end = new Date(filters.endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 31;
-  }, [filters.startDate, filters.endDate]);
-
-
   const getColumns = (): ColumnDefinition[] => {
     const baseColumns: ColumnDefinition[] = [];
     
@@ -160,12 +151,6 @@ export default function RTMPage() {
           </ToggleButtonGroup>
         </Box>
       </Box>
-
-      {isDateRangeTooLarge && (
-        <Alert severity="warning" sx={{ mb: 2, bgcolor: '#FFF3E0', color: '#E65100', border: '1px solid #FFE0B2', '& .MuiAlert-icon': { color: '#E65100' } }}>
-          Max Date Interval is 31 Days
-        </Alert>
-      )}
 
       {marketView === 'state-wise' ? (
         <EmptyState 

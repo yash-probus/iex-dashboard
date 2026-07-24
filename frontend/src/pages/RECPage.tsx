@@ -36,14 +36,6 @@ export default function RECPage() {
   const { data, summaryMetrics, isLoading, error } = useMarketData('REC', filters);
   const [marketView, setMarketView] = React.useState<'all-india' | 'state-wise'>('all-india');
 
-  const isDateRangeTooLarge = React.useMemo(() => {
-    const start = new Date(filters.startDate);
-    const end = new Date(filters.endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 31;
-  }, [filters.startDate, filters.endDate]);
-
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = React.useState(false);
@@ -316,12 +308,6 @@ export default function RECPage() {
           </ToggleButtonGroup>
         </Box>
       </Box>
-
-      {isDateRangeTooLarge && (
-        <Alert severity="warning" sx={{ mb: 2, bgcolor: '#FFF3E0', color: '#E65100', border: '1px solid #FFE0B2', '& .MuiAlert-icon': { color: '#E65100' } }}>
-          Max Date Interval is 31 Days
-        </Alert>
-      )}
 
       {marketView === 'state-wise' ? (
         <EmptyState

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Box, Button, TextField, MenuItem } from '@mui/material';
-import { FilterList as FilterIcon, FileDownload as DownloadIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Paper, Box, Button, TextField, MenuItem, Typography } from '@mui/material';
+import { FilterList as FilterIcon, FileDownload as DownloadIcon, Search as SearchIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
 import { IntervalFilter, MarketFilters } from '../../hooks/useMarketFilters';
 import ActionButton from '../common/ActionButton';
 import DateRangePicker from '../common/DateRangePicker';
@@ -50,6 +50,10 @@ export default function FilterContainer({
           setLocalEndDate(e);
         }}
       />
+
+      <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', ml: -0.5 }}>
+        <WarningAmberIcon sx={{ fontSize: 16 }} /> Max range: 31 days
+      </Typography>
 
       <Button
         variant="contained"
