@@ -229,11 +229,18 @@ export default function SavingsCalculatorPage() {
 
   const uniqueStates = React.useMemo(() => {
     const statesMap = new Map<string, string>();
+    
+    // Helper to format string to Title Case
+    const toTitleCase = (str: string) => {
+      return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
     tariffData.forEach((row: any) => {
       if (row.state) {
-        const key = row.state.trim().toUpperCase();
+        const raw = row.state.trim();
+        const key = raw.toUpperCase().replace(/_/g, ' ');
         if (!statesMap.has(key)) {
-          statesMap.set(key, row.state.trim());
+          statesMap.set(key, toTitleCase(key));
         }
       }
     });
