@@ -50,7 +50,7 @@ export default function HolidayCalendarView() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedYear, setSelectedYear] = useState<string>('All');
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedType, setSelectedType] = useState<string>('All');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [uploading, setUploading] = useState(false);
@@ -164,6 +164,7 @@ export default function HolidayCalendarView() {
   // Dynamically extract unique years from the holiday dates
   const uniqueYears = React.useMemo(() => {
     const yearsSet = new Set<string>();
+    yearsSet.add(new Date().getFullYear().toString());
     holidays.forEach(h => {
       const dateParts = h.holidayDate.split('-');
       if (dateParts.length === 3) {
