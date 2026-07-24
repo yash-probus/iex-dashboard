@@ -308,20 +308,20 @@ export default function GenerationDataView({
           <Typography color="text.secondary">No NPP Generation Data available.</Typography>
         ) : (
               <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 400, mt: 2 }}>
-                <Table size="small" stickyHeader>
+                <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Time</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Thermal (MW)</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Gas (MW)</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Nuclear (MW)</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Hydro (MW)</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Wind (MW)</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Solar (MW)</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Time</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thermal (MW)</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Gas (MW)</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nuclear (MW)</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Hydro (MW)</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Wind (MW)</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Solar (MW)</TableCell>
                       {viewType === 'raw' && (
                         <>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Updated At</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Fetched At</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Updated At</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Fetched At</TableCell>
                         </>
                       )}
                     </TableRow>
@@ -329,17 +329,17 @@ export default function GenerationDataView({
                   <TableBody>
                     {chartData?.map((row: any, i: number) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                        <TableCell>{row.timeStr}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.thermal?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.gas?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.nuclear?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.hydro?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.wind?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.solar?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.timeStr}</TableCell>
+                        <TableCell align="center">{row.thermal?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.gas?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.nuclear?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.hydro?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.wind?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.solar?.toLocaleString('en-IN') || 0}</TableCell>
                         {viewType === 'raw' && (
                           <>
-                            <TableCell sx={{ textAlign: 'right' }}>{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString('en-IN') : '-'}</TableCell>
-                            <TableCell sx={{ textAlign: 'right' }}>{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString('en-IN') : '-'}</TableCell>
+                            <TableCell align="center">{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString('en-IN') : '-'}</TableCell>
+                            <TableCell align="center">{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString('en-IN') : '-'}</TableCell>
                           </>
                         )}
                       </TableRow>

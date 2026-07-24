@@ -392,7 +392,7 @@ export default function HolidayCalendarView() {
                 </Box>
               ) : filteredHolidays.length > 0 ? (
                 <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 'calc(100vh - 280px)', minHeight: 400, overflowY: 'auto' }}>
-                  <Table size="small" stickyHeader>
+                  <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Month</TableCell>

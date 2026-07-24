@@ -319,7 +319,7 @@ export default function CityStateView() {
                   flexGrow: 1
                 }}
               >
-                <Table stickyHeader>
+                <Table stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>

@@ -237,22 +237,22 @@ export default function AllIndiaDemandView({
           <Typography color="text.secondary">No NPP Data available.</Typography>
         ) : (
               <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 400, mt: 2 }}>
-                <Table size="small" stickyHeader>
+                <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
                       {viewType === 'raw' ? (
                         <>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Time</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Demand Met (MW)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Updated At</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Fetched At</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Time</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Demand Met (MW)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Updated At</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Fetched At</TableCell>
                         </>
                       ) : (
                         <>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Adjusted Time</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Avg Demand (MW)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Max Demand (MW)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Min Demand (MW)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Adjusted Time</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Avg Demand (MW)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Max Demand (MW)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold' }}>Min Demand (MW)</TableCell>
                         </>
                       )}
                     </TableRow>
@@ -260,18 +260,18 @@ export default function AllIndiaDemandView({
                   <TableBody>
                     {viewType === 'raw' && data.raw.map((row, i) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                        <TableCell>{row.timeStr}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.demandMet.toLocaleString('en-IN')}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString('en-IN') : '-'}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString('en-IN') : '-'}</TableCell>
+                        <TableCell align="center">{row.timeStr}</TableCell>
+                        <TableCell align="center">{row.demandMet?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString('en-IN') : '-'}</TableCell>
+                        <TableCell align="center">{row.fetchedAt ? new Date(row.fetchedAt).toLocaleString('en-IN') : '-'}</TableCell>
                       </TableRow>
                     ))}
                     {viewType === 'adjusted' && data.adjusted.map((row, i) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                        <TableCell>{row.timeStr}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.avgDemand.toLocaleString('en-IN')}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.maxDemand.toLocaleString('en-IN')}</TableCell>
-                        <TableCell sx={{ textAlign: 'right' }}>{row.minDemand.toLocaleString('en-IN')}</TableCell>
+                        <TableCell align="center">{row.timeStr}</TableCell>
+                        <TableCell align="center">{row.avgDemand?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.maxDemand?.toLocaleString('en-IN') || 0}</TableCell>
+                        <TableCell align="center">{row.minDemand?.toLocaleString('en-IN') || 0}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
