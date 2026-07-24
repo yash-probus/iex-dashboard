@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
 import { AccountTree as AccountTreeIcon } from '@mui/icons-material';
 import ResourcePageLayout from '../../components/dashboard/ResourcePageLayout';
 import EmptyTableState from '../../components/dashboard/EmptyTableState';
@@ -11,20 +12,33 @@ import { StateCharges } from './types/resourceCenter.types';
 export default function StateChargesPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<StateCharges>('state-charges');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedState, setSelectedState] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('all');
   const config = RESOURCE_CENTER_PAGES.STATE_CHARGES;
 
+  const uniqueStates = Array.from(new Set(data.map((r: StateCharges) => r.state).filter(Boolean))).sort();
+  const uniqueCategories = Array.from(new Set(data.map((r: StateCharges) => r.category).filter(Boolean))).sort();
+  const uniqueSubCategories = Array.from(new Set(data.map((r: StateCharges) => r.subCategory).filter(Boolean))).sort();
+
   const filteredData = data.filter((row: StateCharges) => {
-    if (!searchQuery) return true;
+    // Text search
     const lowerQuery = searchQuery.toLowerCase();
-    const stateStr = String(row.state).toLowerCase();
+    const stateStr = String(row.state || '').toLowerCase();
     const catStr = String(row.category || '').toLowerCase();
     const subCatStr = String(row.subCategory || '').toLowerCase();
     
-    return (
+    const matchesSearch = !searchQuery || 
       stateStr.includes(lowerQuery) ||
       catStr.includes(lowerQuery) ||
-      subCatStr.includes(lowerQuery)
-    );
+      subCatStr.includes(lowerQuery);
+
+    // Dropdown filters
+    const matchesState = selectedState === 'all' || row.state === selectedState;
+    const matchesCategory = selectedCategory === 'all' || row.category === selectedCategory;
+    const matchesSubCategory = selectedSubCategory === 'all' || row.subCategory === selectedSubCategory;
+
+    return matchesSearch && matchesState && matchesCategory && matchesSubCategory;
   });
 
   const formatNum = (v: any) => v != null ? Number(v).toFixed(4) : '-';
@@ -91,6 +105,54 @@ export default function StateChargesPage() {
       }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
+      customFilters={
+        <>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>State</InputLabel>
+            <Select
+              value={selectedState}
+              label="State"
+              onChange={(e) => setSelectedState(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All States</MenuItem>
+              {uniqueStates.map((state) => (
+                <MenuItem key={state as string} value={state as string}>{state as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={selectedCategory}
+              label="Category"
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All Categories</MenuItem>
+              {uniqueCategories.map((cat) => (
+                <MenuItem key={cat as string} value={cat as string}>{cat as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Sub Category</InputLabel>
+            <Select
+              value={selectedSubCategory}
+              label="Sub Category"
+              onChange={(e) => setSelectedSubCategory(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All Sub Categories</MenuItem>
+              {uniqueSubCategories.map((subCat) => (
+                <MenuItem key={subCat as string} value={subCat as string}>{subCat as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </>
+      }
     >
       <TableContainer 
         data={filteredData}
