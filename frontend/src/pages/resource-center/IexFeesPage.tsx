@@ -35,23 +35,23 @@ export default function IexFeesPage() {
 
   const columns: ColumnDefinition[] = [
     { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-    { field: 'exchangeFees', headerName: 'Exchange Fees', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'exchangeFeesGst', headerName: 'Exchange Fees GST', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'nldcApplicationFees', headerName: 'NLDC Application Fees', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'nldcSchedulingFees', headerName: 'NLDC Scheduling Fees', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'sldcSchedulingFees', headerName: 'SLDC Scheduling Fees', align: 'center', width: 200, valueFormatter: formatNum },
-    { field: 'otherFixCharges', headerName: 'Other Fixed Charges', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'exchangeFees', headerName: 'Exchange Fees (₹)', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'exchangeFeesGst', headerName: 'Exchange Fees GST (%)', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'nldcApplicationFees', headerName: 'NLDC Application Fees (₹)', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'nldcSchedulingFees', headerName: 'NLDC Scheduling Fees (₹)', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'sldcSchedulingFees', headerName: 'SLDC Scheduling Fees (₹)', align: 'center', width: 200, valueFormatter: formatNum },
+    { field: 'otherFixCharges', headerName: 'Other Fixed Charges (₹)', align: 'center', width: 200, valueFormatter: formatNum },
   ];
 
   const handleExport = () => {
     const exportData = filteredData.map((row: any) => ({
       'Month': formatMonth(row.month),
-      'Exchange Fees': row.exchangeFees,
-      'Exchange Fees GST': row.exchangeFeesGst,
-      'NLDC Application Fees': row.nldcApplicationFees,
-      'NLDC Scheduling Fees': row.nldcSchedulingFees,
-      'SLDC Scheduling Fees': row.sldcSchedulingFees,
-      'Other Fixed Charges': row.otherFixCharges
+      'Exchange Fees (₹)': row.exchangeFees,
+      'Exchange Fees GST (%)': row.exchangeFeesGst,
+      'NLDC Application Fees (₹)': row.nldcApplicationFees,
+      'NLDC Scheduling Fees (₹)': row.nldcSchedulingFees,
+      'SLDC Scheduling Fees (₹)': row.sldcSchedulingFees,
+      'Other Fixed Charges (₹)': row.otherFixCharges
     }));
     exportToCSV(exportData, config.exportFilename);
   };
