@@ -41,8 +41,8 @@ export default function StateChargesPage() {
     return matchesSearch && matchesState && matchesCategory && matchesSubCategory;
   });
 
-  const formatNum = (v: any) => v != null ? Number(v).toFixed(4) : '-';
-  const formatDate = (v: any) => v ? new Date(v).toLocaleDateString() : '-';
+  const formatNum = (v: any) => v != null ? Number(v).toFixed(3) : '-';
+  const formatDate = (v: any) => v ? new Date(v).toLocaleDateString('en-GB') : '-';
 
   const columns: ColumnDefinition[] = [
     { field: 'id', headerName: 'ID', align: 'center', width: 80 },
@@ -50,7 +50,7 @@ export default function StateChargesPage() {
     { field: 'category', headerName: 'Category', align: 'center', width: 150 },
     { field: 'subCategory', headerName: 'Sub Category', align: 'center', width: 250 },
     { field: 'supplyVoltageCategory', headerName: 'Supply Voltage Category', align: 'center', width: 200 },
-    { field: 'voltageLevel', headerName: 'Voltage Level', align: 'center', width: 150 },
+    { field: 'voltageLevel', headerName: 'Voltage Level (kV)', align: 'center', width: 150 },
     { field: 'fromDate', headerName: 'From Date', align: 'center', width: 120, valueFormatter: formatDate },
     { field: 'toDate', headerName: 'To Date', align: 'center', width: 120, valueFormatter: formatDate },
     { field: 'demandFixedChargeKvaPerMonthRs', headerName: 'Demand Fixed Charge (Rs/kVA/mo)', align: 'center', width: 200, valueFormatter: formatNum },
@@ -69,7 +69,7 @@ export default function StateChargesPage() {
       'Category': row.category,
       'Sub Category': row.subCategory,
       'Supply Voltage Category': row.supplyVoltageCategory,
-      'Voltage Level': row.voltageLevel,
+      'Voltage Level (kV)': row.voltageLevel,
       'From Date': formatDate(row.fromDate),
       'To Date': formatDate(row.toDate),
       'Demand Fixed Charge (Rs/kVA/mo)': row.demandFixedChargeKvaPerMonthRs,
