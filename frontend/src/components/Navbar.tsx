@@ -16,6 +16,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
+import GlobalSubHeader from './common/GlobalSubHeader';
 
 const MARKET_ITEMS = [
   { label: 'DAM', path: '/dam', icon: <BarChart fontSize="small" sx={{ color: '#3B8FF3' }} /> },
@@ -524,6 +525,12 @@ export default function Navbar() {
                 objectFit: 'contain',
               }}
             />
+          </Box>
+
+
+          {/* Middle: Breadcrumb / GlobalSubHeader */}
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            <GlobalSubHeader />
           </Box>
 
 

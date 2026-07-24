@@ -8,7 +8,6 @@ export default function DashboardLayout() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Navbar />
-      <GlobalSubHeader />
       
       <Box
         component="main"

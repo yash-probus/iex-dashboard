@@ -40,17 +40,14 @@ export default function SummaryCard({ title, value, change, isPositive = true, a
         ...sx
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.75 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1.2 }}>
-          {title}
-        </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
         {icon && (
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 36,
-            height: 36,
+            width: 32,
+            height: 32,
             borderRadius: 2,
             backgroundColor: alpha(safeColor, 0.08),
             color: safeColor
@@ -58,6 +55,9 @@ export default function SummaryCard({ title, value, change, isPositive = true, a
             {icon}
           </Box>
         )}
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1.2 }}>
+          {title}
+        </Typography>
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mt: 0.5, width: '100%' }}>

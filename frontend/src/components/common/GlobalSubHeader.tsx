@@ -14,14 +14,8 @@ export default function GlobalSubHeader() {
 
   if (isDashboard) {
     return (
-      <Box sx={{ 
-        width: '100%', 
-        backgroundColor: '#e6f4ff', 
-        borderBottom: '1px solid #C5DDF0',
-        py: 1.5,
-        px: { xs: 2, sm: 4 }
-      }}>
-        <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '1.05rem', fontWeight: 500 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mx: 2 }}>
+        <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '0.95rem', fontWeight: 500 }}>
           Welcome back, <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>{displayName}</Box>
         </Typography>
       </Box>
@@ -68,13 +62,7 @@ export default function GlobalSubHeader() {
   });
 
   return (
-    <Box sx={{ 
-      width: '100%', 
-      backgroundColor: '#e6f4ff', 
-      borderBottom: '1px solid #C5DDF0',
-      py: 1.5,
-      px: { xs: 2, sm: 4 }
-    }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', mx: 2 }}>
       {parentTitle ? (
         <Breadcrumbs 
           separator={<NavigateNext fontSize="small" />} 
