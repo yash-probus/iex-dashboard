@@ -128,11 +128,11 @@ export default function MarketOperationsPage() {
                 <TableRow>
                   <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Date</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Timeblock</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>DAM MCP</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>RTM MCP</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>GDAM MCP</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>DAM vs RTM</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>DAM vs GDAM</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>DAM MCP (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>RTM MCP (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>GDAM MCP (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>DAM vs RTM (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>DAM vs GDAM (₹/MWh)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
