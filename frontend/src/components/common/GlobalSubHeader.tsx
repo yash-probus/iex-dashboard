@@ -13,13 +13,7 @@ export default function GlobalSubHeader() {
   const displayName = user && (user as any).name ? (user as any).name : 'User';
 
   if (isDashboard) {
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', mx: 2 }}>
-        <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '0.95rem', fontWeight: 500 }}>
-          Welcome back, <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>{displayName}</Box>
-        </Typography>
-      </Box>
-    );
+    return null;
   }
 
   let activeItems: any[] = [];
