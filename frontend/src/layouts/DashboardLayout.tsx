@@ -2,11 +2,13 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Box, Container } from '@mui/material';
 import Navbar from '../components/Navbar';
+import GlobalSubHeader from '../components/common/GlobalSubHeader';
 
 export default function DashboardLayout() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Navbar />
+      <GlobalSubHeader />
       
       <Box
         component="main"

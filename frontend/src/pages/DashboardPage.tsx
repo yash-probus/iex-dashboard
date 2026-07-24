@@ -94,9 +94,6 @@ export default function DashboardPage() {
       px: { xs: 0, sm: 2 }
     }}>
       <Box sx={{ mb: 4, pt: { xs: 1, md: 2 } }}>
-        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1, fontSize: '1.15rem', fontWeight: 500 }}>
-          Welcome back, <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>{displayName}</Box>
-        </Typography>
         <Typography variant="h4" sx={{ color: 'text.primary', fontWeight: 700, mb: 1.5, letterSpacing: '-0.5px' }}>
           Select Module
         </Typography>

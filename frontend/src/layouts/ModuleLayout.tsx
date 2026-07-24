@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
-import { Box, Paper, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, alpha, useTheme, Collapse, Breadcrumbs, Link as MuiLink } from '@mui/material';
-import { ExpandLess, ExpandMore, NavigateNext } from '@mui/icons-material';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Box, Paper, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, alpha, useTheme, Collapse } from '@mui/material';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, OverviewItemConfig, FORECAST_ITEMS } from '../constants/dashboardOverview';
 
 
@@ -63,27 +63,6 @@ export default function ModuleLayout() {
       navigate(defaultPath);
     }
   };
-
-  // Find active titles for breadcrumbs
-  let parentTitle = '';
-  let childTitle = '';
-  let parentPath = '';
-  
-  activeItems.forEach(item => {
-    const hasSubItems = item.subItems && item.subItems.length > 0;
-    if (hasSubItems) {
-      item.subItems?.forEach((sub: any) => {
-        if (location.pathname.includes(sub.path)) {
-          parentTitle = item.title;
-          childTitle = sub.title;
-        }
-      });
-    } else {
-      if (location.pathname.includes(item.path)) {
-        parentTitle = item.title;
-      }
-    }
-  });
 
   return (
     <Box sx={{ 
@@ -244,34 +223,6 @@ export default function ModuleLayout() {
 
       {/* Main Content */}
       <Box id="module-content-wrapper" sx={{ flexGrow: 1, minWidth: 0 }}>
-        {parentTitle && (
-          <Breadcrumbs 
-            separator={<NavigateNext fontSize="small" />} 
-            aria-label="breadcrumb"
-            sx={{ mb: 3 }}
-          >
-            <MuiLink component={Link} to="/" underline="hover" color="inherit">
-              Home
-            </MuiLink>
-            <Typography color="inherit">
-              {activeModuleTitle}
-            </Typography>
-            {childTitle ? (
-              <Typography color="inherit">
-                {parentTitle}
-              </Typography>
-            ) : (
-              <Typography color="text.primary" fontWeight={600}>
-                {parentTitle}
-              </Typography>
-            )}
-            {childTitle && (
-              <Typography color="text.primary" fontWeight={600}>
-                {childTitle}
-              </Typography>
-            )}
-          </Breadcrumbs>
-        )}
         <Outlet />
       </Box>
     </Box>
