@@ -821,17 +821,17 @@ export default function DatabasePage() {
                       <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Date</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Max Temp (°C)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Min Temp (°C)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Humidity (%)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Precip. Prob (%)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Precip. (mm)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunshine (hrs)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunrise</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunset</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Wind Speed (km/h)</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Max Temp (°C)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Min Temp (°C)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Humidity (%)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Precip. Prob (%)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Precip. (mm)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunshine (hrs)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunrise</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Sunset</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Wind Speed (km/h)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Status</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -847,7 +847,7 @@ export default function DatabasePage() {
                           
                           return paginatedData.map((row: WeatherDataRow, i: number) => (
                             <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
-                              <TableCell>
+                              <TableCell align="center">
                                 {(() => {
                                   const d = new Date(row.date);
                                   const datePart = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
@@ -861,16 +861,16 @@ export default function DatabasePage() {
                                   return datePart;
                                 })()}
                               </TableCell>
-                              <TableCell>{row.maxTemp != null ? row.maxTemp.toFixed(1) : '-'}</TableCell>
-                              <TableCell>{row.minTemp != null ? row.minTemp.toFixed(1) : '-'}</TableCell>
-                              <TableCell>{row.relativeHumidity != null ? Math.round(row.relativeHumidity) : '-'}</TableCell>
-                              <TableCell>{row.precipitationProb != null ? Math.round(row.precipitationProb) : '-'}</TableCell>
-                              <TableCell>{row.precipitationSum != null ? row.precipitationSum.toFixed(1) : '-'}</TableCell>
-                              <TableCell>{row.sunshineDuration != null ? row.sunshineDuration.toFixed(1) : '-'}</TableCell>
-                              <TableCell>{row.sunrise || '-'}</TableCell>
-                              <TableCell>{row.sunset || '-'}</TableCell>
-                              <TableCell>{row.windSpeed != null ? row.windSpeed.toFixed(1) : '-'}</TableCell>
-                              <TableCell>
+                              <TableCell align="center">{row.maxTemp != null ? row.maxTemp.toFixed(1) : '-'}</TableCell>
+                              <TableCell align="center">{row.minTemp != null ? row.minTemp.toFixed(1) : '-'}</TableCell>
+                              <TableCell align="center">{row.relativeHumidity != null ? Math.round(row.relativeHumidity) : '-'}</TableCell>
+                              <TableCell align="center">{row.precipitationProb != null ? Math.round(row.precipitationProb) : '-'}</TableCell>
+                              <TableCell align="center">{row.precipitationSum != null ? row.precipitationSum.toFixed(1) : '-'}</TableCell>
+                              <TableCell align="center">{row.sunshineDuration != null ? row.sunshineDuration.toFixed(1) : '-'}</TableCell>
+                              <TableCell align="center">{row.sunrise || '-'}</TableCell>
+                              <TableCell align="center">{row.sunset || '-'}</TableCell>
+                              <TableCell align="center">{row.windSpeed != null ? row.windSpeed.toFixed(1) : '-'}</TableCell>
+                              <TableCell align="center">
                                 <Box sx={{ 
                                   display: 'inline-block',
                                   px: 1, py: 0.5, 
