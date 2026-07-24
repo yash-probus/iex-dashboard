@@ -338,7 +338,7 @@ export default function DateRangePicker({
         {/* Footer info/controls */}
         <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <WarningAmberIcon sx={{ fontSize: 14 }} /> Max range: 31 days
+            <WarningAmberIcon sx={{ fontSize: 14, color: 'error.main' }} /> Max range: 31 days
           </Typography>
           {tempStart && !tempEnd && (
             <Typography variant="caption" color="primary" fontWeight="600">
