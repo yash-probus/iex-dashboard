@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
 import { Box, Typography } from '@mui/material';
 import { PriceCheck as PriceCheckIcon } from '@mui/icons-material';
 import ResourcePageLayout from '../../components/dashboard/ResourcePageLayout';
@@ -24,13 +25,28 @@ const formatMonth = (m: any) => {
 export default function StateTariffPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<StateTariff>('state-tariff');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedState, setSelectedState] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
   const config = RESOURCE_CENTER_PAGES.STATE_TARIFF;
 
+  const uniqueStates = Array.from(new Set(data.map((r: StateTariff) => r.state).filter(Boolean))).sort();
+  const uniqueCategories = Array.from(new Set(data.map((r: StateTariff) => r.consumerCategory).filter(Boolean))).sort();
+  const uniqueSubCategories = Array.from(new Set(data.map((r: StateTariff) => r.subCategory).filter(Boolean))).sort();
+  
+  // Extract unique years from the YYYYMM format
+  const uniqueYears = Array.from(new Set(data.map((r: StateTariff) => {
+    const s = String(r.month);
+    return s.length === 6 ? s.slice(0, 4) : '';
+  }).filter(Boolean))).sort();
+
   const filteredData = data.filter((row: StateTariff) => {
-    if (!searchQuery) return true;
+    // Text search
     const lowerQuery = searchQuery.toLowerCase();
     const monthStr = formatMonth(row.month).toLowerCase();
-    return (
+    
+    const matchesSearch = !searchQuery || 
       monthStr.includes(lowerQuery) ||
       String(row.state || '').toLowerCase().includes(lowerQuery) ||
       String(row.consumerCategory || '').toLowerCase().includes(lowerQuery) ||
@@ -38,8 +54,17 @@ export default function StateTariffPage() {
       String(row.supplyVoltageCategory || '').toLowerCase().includes(lowerQuery) ||
       String(row.supplyVoltage || '').toLowerCase().includes(lowerQuery) ||
       String(row.baseEnergyUnit || '').toLowerCase().includes(lowerQuery) ||
-      String(row.energyRate).includes(lowerQuery)
-    );
+      String(row.energyRate).includes(lowerQuery);
+
+    // Dropdown filters
+    const matchesState = selectedState === 'all' || row.state === selectedState;
+    const matchesCategory = selectedCategory === 'all' || row.consumerCategory === selectedCategory;
+    const matchesSubCategory = selectedSubCategory === 'all' || row.subCategory === selectedSubCategory;
+    
+    const rowYear = String(row.month).length === 6 ? String(row.month).slice(0, 4) : '';
+    const matchesYear = selectedYear === 'all' || rowYear === selectedYear;
+
+    return matchesSearch && matchesState && matchesCategory && matchesSubCategory && matchesYear;
   });
 
   const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : v;
@@ -53,10 +78,10 @@ export default function StateTariffPage() {
     { field: 'month', headerName: 'Month', align: 'center', width: 120, valueFormatter: formatMonth },
     { field: 'todStartTime', headerName: 'TOD Start Time', align: 'center', width: 150 },
     { field: 'todEndTime', headerName: 'TOD End Time', align: 'center', width: 150 },
-    { field: 'baseEnergyRate', headerName: 'Base Energy Rate', align: 'center', width: 180, valueFormatter: formatNum },
+    { field: 'baseEnergyRate', headerName: 'Base Energy Rate (₹)', align: 'center', width: 180, valueFormatter: formatNum },
     { field: 'baseEnergyUnit', headerName: 'Unit', align: 'center', width: 100 },
     { field: 'todChargePercent', headerName: 'TOD Charge %', align: 'center', width: 150 },
-    { field: 'energyRate', headerName: 'Energy Rate', align: 'center', width: 150, valueFormatter: formatNum },
+    { field: 'energyRate', headerName: 'Energy Rate (₹)', align: 'center', width: 150, valueFormatter: formatNum },
   ];
 
   const handleExport = () => {
@@ -69,10 +94,10 @@ export default function StateTariffPage() {
       'Month': formatMonth(row.month),
       'TOD Start Time': row.todStartTime,
       'TOD End Time': row.todEndTime,
-      'Base Energy Rate': row.baseEnergyRate,
+      'Base Energy Rate (₹)': row.baseEnergyRate,
       'Base Energy Unit': row.baseEnergyUnit,
       'TOD Charge %': row.todChargePercent,
-      'Energy Rate': row.energyRate,
+      'Energy Rate (₹)': row.energyRate,
     }));
     exportToCSV(exportData, config.exportFilename);
   };
@@ -99,6 +124,69 @@ export default function StateTariffPage() {
       }}
       onExport={handleExport}
       isExportDisabled={filteredData.length === 0}
+      customFilters={
+        <>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>State</InputLabel>
+            <Select
+              value={selectedState}
+              label="State"
+              onChange={(e) => setSelectedState(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All States</MenuItem>
+              {uniqueStates.map((state) => (
+                <MenuItem key={state as string} value={state as string}>{state as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={selectedCategory}
+              label="Category"
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All Categories</MenuItem>
+              {uniqueCategories.map((cat) => (
+                <MenuItem key={cat as string} value={cat as string}>{cat as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Sub Category</InputLabel>
+            <Select
+              value={selectedSubCategory}
+              label="Sub Category"
+              onChange={(e) => setSelectedSubCategory(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All Sub Categories</MenuItem>
+              {uniqueSubCategories.map((subCat) => (
+                <MenuItem key={subCat as string} value={subCat as string}>{subCat as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Year</InputLabel>
+            <Select
+              value={selectedYear}
+              label="Year"
+              onChange={(e) => setSelectedYear(e.target.value)}
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="all">All Years</MenuItem>
+              {uniqueYears.map((year) => (
+                <MenuItem key={year as string} value={year as string}>{year as string}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </>
+      }
     >
       <TableContainer 
         data={filteredData}
