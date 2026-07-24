@@ -1,39 +1,47 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { CircularProgress, Box } from '@mui/material';
 import DashboardLayout from '../layouts/DashboardLayout';
 import ModuleLayout from '../layouts/ModuleLayout';
-import DAMPage from '../pages/DAMPage';
-import GDAMPage from '../pages/GDAMPage';
-import RTMPage from '../pages/RTMPage';
-import RECPage from '../pages/RECPage';
-import RegionStatePage from '../pages/resource-center/RegionStatePage';
-import DiscomListPage from '../pages/resource-center/DiscomListPage';
-import IstsChargesPage from '../pages/resource-center/IstsChargesPage';
-import IexFeesPage from '../pages/resource-center/IexFeesPage';
-import ProltMarginPage from '../pages/resource-center/ProltMarginPage';
-import CtuChargesPage from '../pages/resource-center/CtuChargesPage';
-import StateChargesPage from '../pages/resource-center/StateChargesPage';
-import StateTariffPage from '../pages/resource-center/StateTariffPage';
-import FppaChargesPage from '../pages/resource-center/FppaChargesPage';
-import DashboardPage from '../pages/DashboardPage';
-import AdminPage from '../pages/AdminPage';
-import MarketDataAdminPage from '../pages/admin/MarketDataAdminPage';
-import ResourceCenterAdminPage from '../pages/admin/ResourceCenterAdminPage';
-import AdminResourcePage from '../pages/admin/resource-center/AdminResourcePage';
-import ApiLogsAdminPage from '../pages/admin/ApiLogsAdminPage';
-import UserManagementPage from '../pages/UserManagementPage';
-import DatabasePage from '../pages/DatabasePage';
-import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 
-import MarketOperationsPage from '../pages/market-operations/MarketOperationsPage';
-import SavingsCalculatorPage from '../pages/SavingsCalculatorPage';
-import ForecastPage from '../pages/ForecastPage';
+// Lazy Loaded Pages
+const DAMPage = lazy(() => import('../pages/DAMPage'));
+const GDAMPage = lazy(() => import('../pages/GDAMPage'));
+const RTMPage = lazy(() => import('../pages/RTMPage'));
+const RECPage = lazy(() => import('../pages/RECPage'));
+const RegionStatePage = lazy(() => import('../pages/resource-center/RegionStatePage'));
+const DiscomListPage = lazy(() => import('../pages/resource-center/DiscomListPage'));
+const IstsChargesPage = lazy(() => import('../pages/resource-center/IstsChargesPage'));
+const IexFeesPage = lazy(() => import('../pages/resource-center/IexFeesPage'));
+const ProltMarginPage = lazy(() => import('../pages/resource-center/ProltMarginPage'));
+const CtuChargesPage = lazy(() => import('../pages/resource-center/CtuChargesPage'));
+const StateChargesPage = lazy(() => import('../pages/resource-center/StateChargesPage'));
+const StateTariffPage = lazy(() => import('../pages/resource-center/StateTariffPage'));
+const FppaChargesPage = lazy(() => import('../pages/resource-center/FppaChargesPage'));
+const DashboardPage = lazy(() => import('../pages/DashboardPage'));
+const AdminPage = lazy(() => import('../pages/AdminPage'));
+const MarketDataAdminPage = lazy(() => import('../pages/admin/MarketDataAdminPage'));
+const ResourceCenterAdminPage = lazy(() => import('../pages/admin/ResourceCenterAdminPage'));
+const AdminResourcePage = lazy(() => import('../pages/admin/resource-center/AdminResourcePage'));
+const ApiLogsAdminPage = lazy(() => import('../pages/admin/ApiLogsAdminPage'));
+const UserManagementPage = lazy(() => import('../pages/UserManagementPage'));
+const DatabasePage = lazy(() => import('../pages/DatabasePage'));
+const LoginPage = lazy(() => import('../pages/LoginPage'));
+const MarketOperationsPage = lazy(() => import('../pages/market-operations/MarketOperationsPage'));
+const SavingsCalculatorPage = lazy(() => import('../pages/SavingsCalculatorPage'));
+const ForecastPage = lazy(() => import('../pages/ForecastPage'));
 
+const PageLoader = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <CircularProgress />
+  </Box>
+);
 
 export default function AppRoutes() {
   return (
-    <Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<DashboardLayout />}>
@@ -102,5 +110,6 @@ export default function AppRoutes() {
         </Route>
       </Route>
     </Routes>
+    </Suspense>
   );
 }
