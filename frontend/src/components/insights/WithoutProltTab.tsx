@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Grid, Card, CardContent, LinearProgress, Accordion, AccordionSummary, AccordionDetails, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { PersonOutline, ReceiptLong, ShowChart, AccountBalanceWallet, Speed, ExpandMore } from '@mui/icons-material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { CalendarToday, ElectricBolt, ChevronLeft, ChevronRight, Description, WarningAmber } from '@mui/icons-material';
 
 import { SavingsCalculatorEntry, ClientOverviewResult } from '../../api/savingsCalculator.api';
 
@@ -45,6 +46,11 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
   const miscPct = totalDiscomCost > 0 ? (miscCharges / totalDiscomCost) * 100 : 0;
 
   const formatLakhs = (val: number) => (val / 100000).toFixed(2) + 'L';
+  const formatK = (val: number) => {
+    if (val >= 100000 || val <= -100000) return formatLakhs(val);
+    if (val >= 1000 || val <= -1000) return (val / 1000).toFixed(2) + 'K';
+    return val.toFixed(2);
+  };
 
   const peakDemand = overview?.aggregatedCosts?.peakDemand || 0;
   const demandChargeRate = overview?.aggregatedCosts?.demandChargeRate || 0;
@@ -77,7 +83,9 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
                 <Typography variant="caption" fontWeight={700} color="text.secondary">ENERGY INSIGHTS EXPLORER</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#000', color: 'white', borderRadius: 5, px: 2, py: 0.5, cursor: 'pointer' }}>
-                <Typography variant="caption" sx={{ mx: 1 }}>{currentMonth}</Typography>
+                <ChevronLeft fontSize="small" sx={{ color: 'text.secondary' }} />
+                <Typography variant="caption" sx={{ mx: 2, fontWeight: 600 }}>{currentMonth}</Typography>
+                <ChevronRight fontSize="small" sx={{ color: 'text.secondary' }} />
               </Box>
             </Box>
 
@@ -88,15 +96,18 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
                   {entry.clientName}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 5, border: '1px solid #E5E7EB' }}>
+                    <CalendarToday sx={{ fontSize: 14, color: '#3B82F6' }} />
                     <Typography variant="caption" color="text.secondary" fontWeight={600}>Month :</Typography>
                     <Typography variant="caption" fontWeight={700}>{currentMonth.split(' ')[0].toUpperCase()}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 5, border: '1px solid #E5E7EB' }}>
+                    <CalendarToday sx={{ fontSize: 14, color: '#3B82F6' }} />
                     <Typography variant="caption" color="text.secondary" fontWeight={600}>Billed on :</Typography>
                     <Typography variant="caption" fontWeight={700}>{entry.billDate?.toUpperCase() || "N/A"}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 2, border: '1px solid #E5E7EB' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'white', px: 1.5, py: 0.5, borderRadius: 5, border: '1px solid #E5E7EB' }}>
+                    <ElectricBolt sx={{ fontSize: 14, color: '#3B82F6' }} />
                     <Typography variant="caption" color="text.secondary" fontWeight={600}>Billed Units :</Typography>
                     <Typography variant="caption" fontWeight={700}>{totalBilledUnits.toLocaleString()} kWh</Typography>
                   </Box>
@@ -106,7 +117,7 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
               <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 4, border: '1px solid #E5E7EB', minWidth: 250, textAlign: 'center', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }}>
                 <Typography variant="caption" color="text.secondary" fontWeight={700}>AMOUNT PAYABLE</Typography>
                 <Typography variant="h3" fontWeight={800} color="#2563EB" sx={{ my: 1 }}>₹{formatLakhs(totalBill)}</Typography>
-                <Box sx={{ bgcolor: '#F0FDF4', px: 2, py: 1, borderRadius: 2, display: 'inline-block' }}>
+                <Box sx={{ bgcolor: '#E0F2FE', px: 2, py: 1, borderRadius: 5, display: 'inline-block' }}>
                   <Typography variant="caption" color="text.secondary" fontWeight={600}>Includes ₹{formatLakhs(arrearAmount)} in arrears amount</Typography>
                 </Box>
               </Box>
@@ -125,28 +136,28 @@ export default function WithoutProltTab({ entry, overview, currentMonth }: Witho
             <Card elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 4, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}>
               <CardContent sx={{ p: '0 !important', display: 'flex' }}>
                 <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3B82F6' }} /> ENERGY CHARGES</Typography>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ bgcolor: '#DBEAFE', p: 0.5, borderRadius: '50%', display: 'flex' }}><ElectricBolt sx={{ fontSize: 14, color: '#3B82F6' }} /></Box> ENERGY CHARGES</Typography>
                   <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(energyCharges)}</Typography>
                   <Typography variant="caption" color="text.secondary">{energyPct.toFixed(2)}% of your bill</Typography>
                 </Box>
                 <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#8B5CF6' }} /> MISC CHARGES</Typography>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ bgcolor: '#DBEAFE', p: 0.5, borderRadius: '50%', display: 'flex' }}><Description sx={{ fontSize: 14, color: '#3B82F6' }} /></Box> MISC CHARGES</Typography>
                   <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(miscCharges)}</Typography>
                   <Typography variant="caption" color="text.secondary">Extra Cost Additions</Typography>
                 </Box>
                 <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10B981' }} /> NET CURRENT BILL</Typography>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ bgcolor: '#DBEAFE', p: 0.5, borderRadius: '50%', display: 'flex' }}><AccountBalanceWallet sx={{ fontSize: 14, color: '#3B82F6' }} /></Box> NET CURRENT BILL</Typography>
                   <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(netCurrentBill)}</Typography>
                   <Typography variant="caption" color="text.secondary">Current month charges</Typography>
                 </Box>
                 <Box sx={{ p: 2, minWidth: 160, borderRight: '1px solid #E5E7EB' }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#F59E0B' }} /> ARREARS CARRIED</Typography>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ bgcolor: '#DBEAFE', p: 0.5, borderRadius: '50%', display: 'flex' }}><ReceiptLong sx={{ fontSize: 14, color: '#3B82F6' }} /></Box> ARREARS CARRIED</Typography>
                   <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>₹{formatLakhs(arrearAmount)}</Typography>
                   <Typography variant="caption" color="text.secondary">Pay by {entry.billDate || 'due date'} to avoid penalty</Typography>
                 </Box>
                 <Box sx={{ p: 2, minWidth: 160 }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#EF4444' }} /> CURRENT LPSC</Typography>
-                  <Typography variant="h6" fontWeight={800} sx={{ mt: 1, color: '#EF4444' }}>₹{formatCurrency(currentLpsc)}</Typography>
+                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ bgcolor: '#FEE2E2', p: 0.5, borderRadius: '50%', display: 'flex' }}><WarningAmber sx={{ fontSize: 14, color: '#EF4444' }} /></Box> CURRENT LPSC</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ mt: 1, color: '#EF4444' }}>₹{formatK(currentLpsc)}</Typography>
                   <Typography variant="caption" color="text.secondary">Late payment surcharge</Typography>
                 </Box>
               </CardContent>
