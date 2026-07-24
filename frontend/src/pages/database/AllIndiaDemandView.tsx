@@ -76,7 +76,7 @@ export default function AllIndiaDemandView({
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={0} sx={{ bgcolor: alpha('#3B8FF3', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#3B8FF3', 0.2) }}>
-              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">LATEST TIME</Typography>
                 <Typography variant="h6" color="#3B8FF3">
                   {latestSnapshot?.timeStr
@@ -90,7 +90,7 @@ export default function AllIndiaDemandView({
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={0} sx={{ bgcolor: alpha('#2E51FF', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#2E51FF', 0.2) }}>
-              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+              <CardContent sx={{ py: 2, '&:last-child': { pb: 2 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">{viewType === 'raw' ? 'DEMAND MET (MW)' : 'MAX DEMAND (MW)'}</Typography>
                 <Typography variant="h6" color="#2E51FF">{latestSnapshot ? (viewType === 'raw' ? latestSnapshot.demandMet?.toLocaleString('en-IN') : latestSnapshot.maxDemand?.toLocaleString('en-IN')) : '-'}</Typography>
               </CardContent>
@@ -99,7 +99,7 @@ export default function AllIndiaDemandView({
           {viewType === 'adjusted' && (
             <Grid item xs={12} sm={6} md={3}>
               <Card elevation={0} sx={{ bgcolor: alpha('#10B981', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#10B981', 0.2) }}>
-                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                   <Typography variant="caption" color="text.secondary" fontWeight="bold">MIN DEMAND (MW)</Typography>
                   <Typography variant="h6" color="#10B981">{latestSnapshot?.minDemand?.toLocaleString('en-IN') || '-'}</Typography>
                 </CardContent>
@@ -109,7 +109,7 @@ export default function AllIndiaDemandView({
           {viewType === 'adjusted' && (
             <Grid item xs={12} sm={6} md={3}>
               <Card elevation={0} sx={{ bgcolor: alpha('#8B5CF6', 0.1), borderRadius: 3, border: '1px solid', borderColor: alpha('#8B5CF6', 0.2) }}>
-                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                   <Typography variant="caption" color="text.secondary" fontWeight="bold">AVG DEMAND (MW)</Typography>
                   <Typography variant="h6" color="#8B5CF6">{latestSnapshot?.avgDemand?.toLocaleString('en-IN') || '-'}</Typography>
                 </CardContent>
