@@ -4,7 +4,8 @@ export interface AppUser {
   id: string;
   username: string;
   email: string;
-  role: 'ADMIN' | 'CLIENT' | 'SUPER_ADMIN';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'CLIENT';
+  hiddenModules?: string[];
   createdAt?: string;
   updatedAt?: string;
 }

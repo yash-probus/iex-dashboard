@@ -23,8 +23,7 @@ export const loginUser = async (dto: LoginDTO): Promise<AuthResponse> => {
     throw new AppError('Invalid credentials', 401);
   }
 
-  // 4. Generate JWT (now includes role)
-  const token = generateToken({ id: user.id, username: user.username, role: user.role });
+  const token = generateToken({ id: user.id, username: user.username, role: user.role, hiddenModules: user.hiddenModules });
 
   // 5. Return authenticated user data
   return {
@@ -34,7 +33,8 @@ export const loginUser = async (dto: LoginDTO): Promise<AuthResponse> => {
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role
+      role: user.role,
+      hiddenModules: user.hiddenModules
     },
   };
 };

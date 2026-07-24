@@ -106,7 +106,7 @@ export default function DashboardPage() {
       </Box>
 
       <Grid container spacing={4}>
-        {MODULES.map((mod) => (
+        {MODULES.filter(mod => !(user as any)?.hiddenModules?.includes(mod.key)).map((mod) => (
           <Grid item xs={12} sm={6} md={4} key={mod.key}>
             <Paper
               elevation={0}

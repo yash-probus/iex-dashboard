@@ -7,7 +7,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+
+const AVAILABLE_MODULES = [
+  { id: 'database', label: 'Demand & Generation Data' },
+  { id: 'markets', label: 'IEX Market' },
+  { id: 'resource-center', label: 'Resource Center' },
+  { id: 'market-operations', label: 'Market Operations' },
+  { id: 'savings-calculator', label: 'Savings Calculator' },
+  { id: 'forecast', label: 'Forecast Analytics' },
+  { id: 'api-logs', label: 'API Logs' },
+  { id: 'user-management', label: 'User Management' },
+];
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -20,6 +32,7 @@ export default function UserManagementPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'CLIENT' | 'SUPER_ADMIN'>('CLIENT');
+  const [hiddenModules, setHiddenModules] = useState<string[]>([]);
 
   const fetchUsers = async () => {
     try {
@@ -43,6 +56,7 @@ export default function UserManagementPage() {
     setEmail('');
     setPassword('');
     setRole('CLIENT');
+    setHiddenModules([]);
     setIsModalOpen(true);
   };
 
@@ -52,6 +66,7 @@ export default function UserManagementPage() {
     setEmail(user.email);
     setPassword(''); // Don't populate password
     setRole(user.role);
+    setHiddenModules(user.hiddenModules || []);
     setIsModalOpen(true);
   };
 
@@ -69,12 +84,12 @@ export default function UserManagementPage() {
   const handleSubmit = async () => {
     try {
       if (editingUser) {
-        const payload: any = { username, email, role };
+        const payload: any = { username, email, role, hiddenModules };
         if (password) payload.password = password;
         await usersApi.updateUser(editingUser.id, payload);
         toast.success('User updated successfully');
       } else {
-        await usersApi.createUser({ username, email, role, password });
+        await usersApi.createUser({ username, email, role, password, hiddenModules } as any);
         toast.success('User created successfully');
       }
       setIsModalOpen(false);
@@ -160,6 +175,31 @@ export default function UserManagementPage() {
               <Label htmlFor="password">Password {editingUser && '(Leave blank to keep unchanged)'}</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
+            {role !== 'SUPER_ADMIN' && (
+              <div className="space-y-3">
+                <Label>Hidden Services (Modules)</Label>
+                <div className="grid grid-cols-2 gap-2 border rounded-md p-4 bg-muted/20">
+                  {AVAILABLE_MODULES.map((mod) => (
+                    <div key={mod.id} className="flex flex-row items-start space-x-3 space-y-0">
+                      <Checkbox
+                        id={`hide-${mod.id}`}
+                        checked={hiddenModules.includes(mod.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setHiddenModules([...hiddenModules, mod.id]);
+                          } else {
+                            setHiddenModules(hiddenModules.filter((id) => id !== mod.id));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`hide-${mod.id}`} className="font-normal text-sm cursor-pointer leading-none">
+                        {mod.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>

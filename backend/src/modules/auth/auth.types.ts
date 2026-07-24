@@ -8,6 +8,7 @@ export interface UserResponse {
   username: string;
   email: string;
   role: string;
+  hiddenModules?: string[];
 }
 
 export interface AuthResponse {

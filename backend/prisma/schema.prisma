@@ -19,6 +19,7 @@ model User {
   email        String   @unique @db.VarChar(255)
   passwordHash String   @db.VarChar(255)
   role         Role     @default(CLIENT)
+  hiddenModules String[] @default([])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

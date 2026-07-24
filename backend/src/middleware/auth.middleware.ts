@@ -10,6 +10,7 @@ declare global {
         id: string;
         username: string;
         role: string;
+        hiddenModules?: string[];
       };
     }
   }
