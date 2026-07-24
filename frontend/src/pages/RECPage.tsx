@@ -222,6 +222,18 @@ export default function RECPage() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {marketView === 'all-india' && (
+            <FilterContainer
+              accentColor={REC_ACCENT}
+              filters={filters}
+              onSearch={(newFilters, selectedState) => {
+                if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
+                if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);
+              }}
+              onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
+              hideHourlyDaily={true}
+            />
+          )}
           <input
             type="file"
             accept=".csv,.xlsx,.xls,.xlxs"
@@ -296,19 +308,6 @@ export default function RECPage() {
           </ToggleButtonGroup>
         </Box>
       </Box>
-
-      {marketView === 'all-india' && (
-        <FilterContainer
-          accentColor={REC_ACCENT}
-          filters={filters}
-          onSearch={(newFilters, selectedState) => {
-            if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
-            if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);
-          }}
-          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
-          hideHourlyDaily={true}
-        />
-      )}
 
       {marketView === 'state-wise' ? (
         <EmptyState

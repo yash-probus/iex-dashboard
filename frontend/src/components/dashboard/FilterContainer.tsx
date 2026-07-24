@@ -41,50 +41,29 @@ export default function FilterContainer({
   };
 
   return (
-    <Paper 
-      elevation={0}
-      sx={{ 
-        p: 2, 
-        border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: 'background.paper',
-        borderRadius: 2,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 2
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.primary' }}>
-        <FilterIcon fontSize="small" sx={{ color: accentColor }} />
-        <Box component="span" sx={{ fontSize: '13px', fontWeight: 600 }}>Filters</Box>
-      </Box>
-      
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <DateRangePicker 
-          startDate={localStartDate}
-          endDate={localEndDate}
-          onChange={(s, e) => {
-            setLocalStartDate(s);
-            setLocalEndDate(e);
-          }}
-        />
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <DateRangePicker 
+        startDate={localStartDate}
+        endDate={localEndDate}
+        onChange={(s, e) => {
+          setLocalStartDate(s);
+          setLocalEndDate(e);
+        }}
+      />
 
-        <Button
-          variant="contained"
-          onClick={handleSearch}
-          sx={{ 
-            bgcolor: accentColor, 
-            '&:hover': { bgcolor: accentColor, filter: 'brightness(0.9)' },
-            textTransform: 'none',
-            borderRadius: 1.5,
-            px: 3
-          }}
-        >
-          Submit
-        </Button>
-      </Box>
-    </Paper>
+      <Button
+        variant="contained"
+        onClick={handleSearch}
+        sx={{ 
+          bgcolor: accentColor, 
+          '&:hover': { bgcolor: accentColor, filter: 'brightness(0.9)' },
+          textTransform: 'none',
+          borderRadius: 1.5,
+          px: 3
+        }}
+      >
+        Submit
+      </Button>
+    </Box>
   );
 }

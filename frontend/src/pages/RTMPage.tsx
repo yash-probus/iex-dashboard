@@ -97,6 +97,18 @@ export default function RTMPage() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {marketView === 'all-india' && (
+            <FilterContainer 
+              accentColor={RTM_ACCENT} 
+              filters={filters}
+              onSearch={(newFilters, selectedState) => {
+                if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
+                if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);
+              }}
+              onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
+              hideHourlyDaily={true}
+            />
+          )}
           <ActionButton 
             variant="secondary" 
             startIcon={<DownloadIcon fontSize="small" />} 
@@ -139,19 +151,6 @@ export default function RTMPage() {
           </ToggleButtonGroup>
         </Box>
       </Box>
-
-      {marketView === 'all-india' && (
-        <FilterContainer 
-          accentColor={RTM_ACCENT} 
-          filters={filters}
-          onSearch={(newFilters, selectedState) => {
-            if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
-            if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);
-          }}
-          onManageData={isAuthenticated ? () => navigate('/admin/market-data') : undefined}
-          hideHourlyDaily={true}
-        />
-      )}
 
       {marketView === 'state-wise' ? (
         <EmptyState 
