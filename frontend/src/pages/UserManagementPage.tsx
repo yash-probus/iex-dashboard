@@ -8,7 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { UserPlus, Users, Edit2, Trash2, Mail, Shield, Calendar, UserCog } from 'lucide-react';
 
 const AVAILABLE_MODULES = [
   { id: 'database', label: 'Demand & Generation Data' },
@@ -100,21 +102,34 @@ export default function UserManagementPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <Button onClick={openAddModal}>Add New User</Button>
+    <div className="container mx-auto py-10 px-4 md:px-8 max-w-6xl">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg dark:bg-blue-900/30 dark:text-blue-400">
+              <Users className="w-6 h-6" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+          </div>
+          <p className="text-muted-foreground ml-11">Manage system access, assign administrative roles, and configure user permissions.</p>
+        </div>
+        <Button 
+          onClick={openAddModal} 
+          className="rounded-full px-6 shadow-sm font-medium transition-all hover:shadow-md"
+        >
+          <UserPlus className="mr-2 h-4 w-4" /> Add New User
+        </Button>
       </div>
 
-      <div className="border rounded-md bg-card">
+      <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Username</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="font-semibold">User</TableHead>
+              <TableHead className="font-semibold">Contact</TableHead>
+              <TableHead className="font-semibold">Access Level</TableHead>
+              <TableHead className="font-semibold">Joined Date</TableHead>
+              <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -128,14 +143,44 @@ export default function UserManagementPage() {
               </TableRow>
             ) : (
               users.map(user => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>{new Date(user.createdAt || '').toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditModal(user)}>Edit</Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(user.id)}>Delete</Button>
+                <TableRow key={user.id} className="group transition-colors hover:bg-muted/30">
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                        {user.username.slice(0, 2)}
+                      </div>
+                      {user.username}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Mail className="h-3 w-3" />
+                      {user.email}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={user.role === 'SUPER_ADMIN' ? 'destructive' : user.role === 'ADMIN' ? 'default' : 'secondary'}
+                      className="font-medium shadow-none"
+                    >
+                      {user.role.replace('_', ' ')}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(user.createdAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="outline" size="sm" className="h-8 px-2" onClick={() => openEditModal(user)}>
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-8 px-2 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/20 hover:border-destructive" onClick={() => handleDelete(user.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
