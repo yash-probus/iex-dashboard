@@ -285,7 +285,7 @@ export default function GenerationDataView({
           <Typography color="text.secondary">No NPP Generation Data available.</Typography>
         ) : (
               <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 400, mt: 2 }}>
-                <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
+                <Table stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
                       <TableCell align="center" sx={{ fontWeight: 'bold' }}>Time</TableCell>

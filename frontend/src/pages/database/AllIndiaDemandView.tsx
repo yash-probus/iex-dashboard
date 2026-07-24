@@ -243,7 +243,7 @@ export default function AllIndiaDemandView({
           <Typography color="text.secondary">No NPP Data available.</Typography>
         ) : (
               <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #eee', maxHeight: 400, mt: 2 }}>
-                <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
+                <Table stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
                       {viewType === 'raw' ? (
