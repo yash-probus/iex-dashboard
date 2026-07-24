@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 const axiosClient = axios.create({
   httpsAgent,
-  timeout: 5000,
+  timeout: 30000,
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
   }
@@ -309,10 +309,10 @@ export class VidyutPravahScraper {
     console.log('[ScraperService] Fetching State Demands...');
     const demands: Record<string, number> = {};
     
-    // Fetch in batches of 5 to avoid rate limiting or timeouts
+    // Fetch in batches of 2 to avoid rate limiting or timeouts
     const entries = Object.entries(STATE_URL_SLUGS);
-    for (let i = 0; i < entries.length; i += 5) {
-      const batch = entries.slice(i, i + 5);
+    for (let i = 0; i < entries.length; i += 2) {
+      const batch = entries.slice(i, i + 2);
       await Promise.all(batch.map(async ([stateName, slug]) => {
         try {
           const { data } = await axiosClient.get(`https://vidyutpravah.in/state-data/${slug}`);
@@ -331,7 +331,7 @@ export class VidyutPravahScraper {
       }));
       
       // Delay 1 second between batches
-      if (i + 5 < entries.length) {
+      if (i + 2 < entries.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
