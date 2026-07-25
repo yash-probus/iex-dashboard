@@ -569,13 +569,13 @@ export class SavingsCalculatorExportService {
 
     sheet.addRow([]);
 
-    const totalSavingSum = totalSaving.reduce((sum, val) => sum + val, 0);
-    const avgMonthlySavingRow = sheet.addRow(['Average Monthly Saving', Math.round(totalSavingSum / numMonths)]);
+    const savingForBizSum = savingForBiz.reduce((sum, val) => sum + val, 0);
+    const avgMonthlySavingRow = sheet.addRow(['Average Monthly Saving', Math.round(savingForBizSum / numMonths)]);
     avgMonthlySavingRow.font = { bold: true };
     avgMonthlySavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgMonthlySavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
 
-    const avgAnnualSavingRow = sheet.addRow(['Average Annual Saving', Math.round(totalSavingSum / numMonths) * 12]);
+    const avgAnnualSavingRow = sheet.addRow(['Average Annual Saving', Math.round(savingForBizSum / numMonths) * 12]);
     avgAnnualSavingRow.font = { bold: true };
     avgAnnualSavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgAnnualSavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
