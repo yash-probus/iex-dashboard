@@ -155,6 +155,22 @@ export default function ForecastPage() {
       baseColumns.push({ field: 'timeBlock', headerName: 'Time Block', sticky: true, align: 'center' });
     }
 
+    if (isDemand) {
+      if (subType === 'consumer') {
+        return [
+          ...baseColumns,
+          { field: 'demand', headerName: 'Forecasted Apparent Energy', align: 'center' },
+          { field: 'actualDemand', headerName: 'Actual Apparent Energy', align: 'center', valueFormatter: (v: any) => v ?? '-' },
+        ];
+      } else {
+        return [
+          ...baseColumns,
+          { field: 'demand', headerName: 'Forecasted Demand', align: 'center' },
+          { field: 'actualDemand', headerName: 'Actual Demand', align: 'center', valueFormatter: (v: any) => v ?? '-' },
+        ];
+      }
+    }
+
     return [
       ...baseColumns,
       { field: 'mcp', headerName: 'Forecasted MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
@@ -167,6 +183,23 @@ export default function ForecastPage() {
 
   // Define chart metrics
   const getChartMetrics = (): ChartMetric[] => {
+    if (isDemand) {
+      const metrics: ChartMetric[] = [
+        { key: 'demand', name: subType === 'consumer' ? 'Forecasted Apparent Energy' : 'Forecasted Demand', color: accentColor, type: 'area', yAxisId: 'left' }
+      ];
+      const hasActualDemand = data.some(d => d.actualDemand !== null && d.actualDemand !== undefined);
+      if (hasActualDemand) {
+        metrics.push({
+          key: 'actualDemand',
+          name: subType === 'consumer' ? 'Actual Apparent Energy' : 'Actual Demand',
+          color: '#10B981',
+          type: 'line',
+          yAxisId: 'left'
+        });
+      }
+      return metrics;
+    }
+
     const metrics: ChartMetric[] = [
       {key: 'mcp', name: 'Forecasted MCP (₹/MWh)', color: accentColor, type: 'area', yAxisId: 'right'},
     ];
@@ -200,57 +233,6 @@ export default function ForecastPage() {
     });
   };
 
-  // If submodule is Demand Forecast, RTM, or GDAM, render the Build In Progress placeholder
-  if (isDemand || subType === 'rtm' || subType === 'gdam') {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* Title Header */}
-        <Box sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 2,
-          mb: 0.5,
-          pb: 1.5,
-          borderBottom: '1px solid',
-          borderColor: 'divider'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{
-              color: accentColor,
-              backgroundColor: `${accentColor}15`,
-              p: 1.25,
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <TimelineIcon fontSize="large" />
-            </Box>
-            <Box>
-              <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
-                {displayTitle}
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                {displaySubtitle}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        <EmptyState
-          icon={<ConstructionIcon sx={{ fontSize: 60, color: 'text.secondary' }} />}
-          title="Module Build In Progress"
-          description={
-            isDemand
-              ? `The Demand Forecasting engine for ${subType === 'all-india' ? 'All India grid' : 'Consumer load profiling'} is currently under active development. Real-time machine learning predictions will be available here soon.`
-              : `The Price Forecasting engine for ${subType.toUpperCase()} is currently under active development. Real-time machine learning predictions will be available here soon.`
-          }
-        />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -409,22 +391,7 @@ export default function ForecastPage() {
             </TextField>
           </Box>
 
-          <Button
-            variant="contained"
-            disableElevation
-            onClick={() => handleSearch({ startDate: localStartDate, endDate: localEndDate, interval: localInterval, model: localModel })}
-            sx={{
-              bgcolor: accentColor,
-              '&:hover': { bgcolor: accentColor, filter: 'brightness(0.9)' },
-              textTransform: 'none',
-              borderRadius: 2,
-              px: 4,
-              py: 1,
-              fontWeight: 600
-            }}
-          >
-            Submit
-          </Button>
+
         </Box>
       </Box>
 

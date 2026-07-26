@@ -674,3 +674,75 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+model ForecastGdam {
+  id             String  @id @default(uuid())
+  date           String  @db.VarChar(10)
+  intervalNumber Int     @db.SmallInt
+  intervalTime   String  @db.VarChar(15)
+  purchaseBid    Decimal @db.Decimal(18, 4)
+  sellBid        Decimal @db.Decimal(18, 4)
+  mcv            Decimal @db.Decimal(18, 4)
+  fsv            Decimal @db.Decimal(18, 4)
+  mcp            Decimal @db.Decimal(18, 4)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([date, intervalNumber])
+  @@index([date])
+  @@index([intervalNumber])
+  @@index([intervalTime])
+}
+
+model ForecastRtm {
+  id             String  @id @default(uuid())
+  date           String  @db.VarChar(10)
+  intervalNumber Int     @db.SmallInt
+  intervalTime   String  @db.VarChar(15)
+  purchaseBid    Decimal @db.Decimal(18, 4)
+  sellBid        Decimal @db.Decimal(18, 4)
+  mcv            Decimal @db.Decimal(18, 4)
+  fsv            Decimal @db.Decimal(18, 4)
+  mcp            Decimal @db.Decimal(18, 4)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([date, intervalNumber])
+  @@index([date])
+  @@index([intervalNumber])
+  @@index([intervalTime])
+}
+
+model ForecastConsumerDemand {
+  id                        String   @id @default(uuid())
+  date                      String   @db.VarChar(10)
+  hour                      String   @db.VarChar(5)
+  intervalNumber            Int      @db.SmallInt
+  timeBlock                 String   @db.VarChar(15)
+  forecastedApparentEnergy  Decimal  @db.Decimal(18, 4)
+  actualApparentEnergy      Decimal? @db.Decimal(18, 4)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@unique([date, intervalNumber])
+  @@index([date])
+  @@index([intervalNumber])
+  @@index([timeBlock])
+}
+
+model ForecastAllIndiaDemand {
+  id                String   @id @default(uuid())
+  date              String   @db.VarChar(10)
+  hour              String   @db.VarChar(5)
+  intervalNumber    Int      @db.SmallInt
+  timeBlock         String   @db.VarChar(15)
+  forecastedDemand  Decimal  @db.Decimal(18, 4)
+  actualDemand      Decimal? @db.Decimal(18, 4)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([date, intervalNumber])
+  @@index([date])
+  @@index([intervalNumber])
+  @@index([timeBlock])
+}

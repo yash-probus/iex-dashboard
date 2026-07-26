@@ -20,6 +20,7 @@ export interface DemandForecastIntervalData {
   timeBlock: string;
   intervalNumber: number;
   demand: number; // in MW or kW
+  actualDemand?: number | null;
   frequency?: number; // in Hz
 }
 
@@ -217,6 +218,73 @@ export class ForecastService {
       } catch (e) {
         console.error('[ForecastService] Error querying dam_forecasting:', e);
       }
+    } else if (market.toUpperCase() === 'GDAM' || market.toUpperCase() === 'RTM') {
+      try {
+        const isGdam = market.toUpperCase() === 'GDAM';
+        
+        // Fetch actuals for mapping
+        const actualRows: any[] = await prisma.$queryRawUnsafe(
+          `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+           FROM "${isGdam ? 'GdamRecord' : 'RtmRecord'}" dr 
+           JOIN "Dataset" d ON dr."datasetId" = d.id 
+           WHERE d.market = $1 AND d.status = 'ACTIVE'
+           AND d."deliveryDate" >= $2::date AND d."deliveryDate" <= $3::date;`,
+          isGdam ? 'GDAM' : 'RTM',
+          startDateStr,
+          endDateStr
+        );
+
+        for (const act of actualRows) {
+          const dateStr = act.date instanceof Date 
+            ? act.date.toISOString().split('T')[0] 
+            : new Date(act.date).toISOString().split('T')[0];
+          const key = `${dateStr}_${act.timeblock}`;
+          actualMap.set(key, parseFloat((Number(act.mcp) / 1000.0).toFixed(2)));
+        }
+
+        // Fetch forecast
+        const forecastRows = isGdam 
+          ? await prisma.forecastGdam.findMany({
+              where: { date: { gte: startDateStr, lte: endDateStr } },
+              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+            })
+          : await prisma.forecastRtm.findMany({
+              where: { date: { gte: startDateStr, lte: endDateStr } },
+              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+            });
+            
+        if (forecastRows && forecastRows.length > 0) {
+          const formatted = forecastRows.map((r: any) => {
+            const hourNum = Math.floor((r.intervalNumber - 1) / 4) + 1;
+            const hour = hourNum.toString().padStart(2, '0');
+            const timeBlock = this.getIntervalTime(r.intervalNumber);
+            
+            const mcp = parseFloat((Number(r.mcp) / 1000.0).toFixed(2));
+            
+            const dateStr = r.date;
+            const key = `${dateStr}_${r.intervalNumber}`;
+            const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
+
+            return {
+              date: dateStr,
+              hour,
+              timeBlock,
+              intervalNumber: r.intervalNumber,
+              purchaseBid: Number(r.purchaseBid),
+              sellBid: Number(r.sellBid),
+              mcv: Number(r.mcv),
+              fsv: Number(r.fsv),
+              mcp,
+              actualMcp,
+              confidence: 'N/A'
+            };
+          });
+
+          intervals.push(...this.aggregatePriceIntervals(formatted, interval));
+        }
+      } catch (e) {
+         console.error(`[ForecastService] Error querying ${market} forecasting:`, e);
+      }
     }
 
     // Compute analytics
@@ -312,49 +380,45 @@ export class ForecastService {
     let baseLoad = isAllIndia ? 160000 : 150; // All India load in MW, Consumer load in kW
     let peakMultiplier = isAllIndia ? 40000 : 80;
 
-    // Check database if there is existing state/all India demand data or savings calculator client data
     try {
       if (isAllIndia) {
-        const dbDemand = await prisma.stateDemandData.findMany({
-          where: {
-            date: { gte: startDateStr, lte: endDateStr }
-          }
+        const records = await prisma.forecastAllIndiaDemand.findMany({
+          where: { date: { in: dates } },
+          orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
         });
 
-        if (dbDemand && dbDemand.length > 0) {
-          // Aggregate by date & timeStr, apply 1.04 forecast multiplier
-          const grouped = dbDemand.reduce((acc, curr) => {
-            const key = `${curr.date}_${curr.timeStr}`;
-            if (!acc[key]) acc[key] = { date: curr.date, time: curr.timeStr, sum: 0 };
-            acc[key].sum += curr.demand;
-            return acc;
-          }, {} as Record<string, { date: string; time: string; sum: number }>);
-
-          const formatted = Object.values(grouped).map((g: any, index: number) => {
-            const hour = g.time.split(':')[0];
-            return {
-              date: g.date,
-              hour,
-              timeBlock: g.time,
-              intervalNumber: index + 1,
-              demand: Math.round(g.sum * 1.04), // +4% demand growth
-              frequency: parseFloat((49.9 + Math.random() * 0.2).toFixed(2))
-            };
-          });
+        if (records && records.length > 0) {
+          const formatted = records.map(r => ({
+            date: r.date,
+            hour: r.hour,
+            timeBlock: r.timeBlock,
+            intervalNumber: r.intervalNumber,
+            demand: Number(r.forecastedDemand),
+            actualDemand: r.actualDemand !== null ? Number(r.actualDemand) : null
+          }));
           intervals.push(...this.aggregateDemandIntervals(formatted, interval));
         }
       } else {
         // Consumer demand
-        const savingsEntries = await prisma.savingsCalculatorEntry.findMany();
-        if (savingsEntries && savingsEntries.length > 0) {
-          const entry = savingsEntries[0];
-          const load = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
-          baseLoad = load * 0.6;
-          peakMultiplier = load * 0.35;
+        const records = await prisma.forecastConsumerDemand.findMany({
+          where: { date: { in: dates } },
+          orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+        });
+
+        if (records && records.length > 0) {
+          const formatted = records.map(r => ({
+            date: r.date,
+            hour: r.hour,
+            timeBlock: r.timeBlock,
+            intervalNumber: r.intervalNumber,
+            demand: Number(r.forecastedApparentEnergy),
+            actualDemand: r.actualApparentEnergy !== null ? Number(r.actualApparentEnergy) : null
+          }));
+          intervals.push(...this.aggregateDemandIntervals(formatted, interval));
         }
       }
     } catch (e) {
-      console.warn('[ForecastService] Error querying DB for demand, using simulation:', e);
+      console.warn('[ForecastService] Error querying DB for demand:', e);
     }
 
 
@@ -397,12 +461,16 @@ export class ForecastService {
         const sumDemand = hourRecords.reduce((sum, r) => sum + r.demand, 0);
         const sumFreq = hourRecords.reduce((sum, r) => sum + (r.frequency || 0), 0);
 
+        const sumActual = hourRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).reduce((sum, r) => sum + (r.actualDemand as number), 0);
+        const countActual = hourRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).length;
+
         hourlyData.push({
           date: hourRecords[0].date,
           hour: hourStr,
           timeBlock: `${hourStr}:00`,
           intervalNumber: h + 1,
           demand: Math.round(sumDemand / hourRecords.length),
+          actualDemand: countActual > 0 ? Math.round(sumActual / countActual) : null,
           frequency: hourRecords[0].frequency ? parseFloat((sumFreq / hourRecords.length).toFixed(2)) : undefined
         });
       }
@@ -412,6 +480,8 @@ export class ForecastService {
     // Daily
     const sumDemand = records.reduce((sum, r) => sum + r.demand, 0);
     const sumFreq = records.reduce((sum, r) => sum + (r.frequency || 0), 0);
+    const sumActual = records.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).reduce((sum, r) => sum + (r.actualDemand as number), 0);
+    const countActual = records.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).length;
 
     return [{
       date: records[0].date,
@@ -419,6 +489,7 @@ export class ForecastService {
       timeBlock: 'Daily',
       intervalNumber: 1,
       demand: Math.round(sumDemand / records.length),
+      actualDemand: countActual > 0 ? Math.round(sumActual / countActual) : null,
       frequency: records[0].frequency ? parseFloat((sumFreq / records.length).toFixed(2)) : undefined
     }];
   }
@@ -445,6 +516,24 @@ export class ForecastService {
         console.error('[ForecastService] Error querying available forecast dates:', e);
         return [];
       }
+    } else if (market.toUpperCase() === 'GDAM') {
+      try {
+        const rows = await prisma.forecastGdam.findMany({
+          select: { date: true },
+          distinct: ['date'],
+          orderBy: { date: 'desc' }
+        });
+        return rows.map(r => r.date);
+      } catch (e) { return []; }
+    } else if (market.toUpperCase() === 'RTM') {
+      try {
+        const rows = await prisma.forecastRtm.findMany({
+          select: { date: true },
+          distinct: ['date'],
+          orderBy: { date: 'desc' }
+        });
+        return rows.map(r => r.date);
+      } catch (e) { return []; }
     }
     return [];
   }
