@@ -74,7 +74,16 @@ export class SavingsCalculatorExportService {
           row.push('-', '-', '-');
         }
       });
-      sheet.addRow(row);
+      const r = sheet.addRow(row);
+      r.eachCell((cell) => {
+        if (cell.value === 'DAM') {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE599' } }; // Light Yellow
+        } else if (cell.value === 'RTM') {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4CCCC' } }; // Light Pink/Red
+        } else if (cell.value === 'GDAM') {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9EAD3' } }; // Light Green
+        }
+      });
     }
 
 
