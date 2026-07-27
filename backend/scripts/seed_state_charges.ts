@@ -17,7 +17,7 @@ function parseDate(dateStr: string): Date {
 async function main() {
   console.log('Seeding State Charges...');
 
-  const csvFilePath = path.join(__dirname, '../../backend_tables_updated - state_charges.csv');
+  const csvFilePath = path.join(__dirname, '../backend_tables_updated - state_charges.csv');
   
   await prisma.stateCharges.deleteMany();
 

@@ -30,8 +30,7 @@ function parseCsvLine(line: string): string[] {
 async function main() {
   const csvPath = path.join(
     __dirname,
-    '..',
-    '..',
+    '../',
     'backend_tables_updated - state-tarriff.csv'
   );
 
