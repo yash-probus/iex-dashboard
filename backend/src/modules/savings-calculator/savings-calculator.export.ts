@@ -578,7 +578,13 @@ export class SavingsCalculatorExportService {
     const regFee = 8333;
     // We only deduct Platform Fee, Value Share, NOC, Reg, and Consultancy.
     // Trading Margin is already deducted inside totalPowerCostOA, so we do not deduct it again!
-    const savingForBiz = allResults.map((r, i) => totalSaving[i] - nocFee - regFee - consultancyFeeVal - probusPlatformFee[i] - probusValueShare[i]);
+    const savingForBiz = allResults.map((r, i) => {
+      const netSavingsUnrounded = r.result.totalBaselineCost - (r.result.totalLandedExchangeCost + r.result.oaDetailed.dailyFixedOverhead + r.result.oaDetailed.bidApplicationFees);
+      const probusPlatformFeeUnrounded = r.result.totalMarketEnergyKwh * platformFeeRate;
+      const probusValueShareUnrounded = r.result.oaDetailed.totals.proltMarginCost;
+      const finalSavings = netSavingsUnrounded - nocFee - regFee - consultancyFeeVal - probusPlatformFeeUnrounded - probusValueShareUnrounded;
+      return Math.round(finalSavings);
+    });
     const savingForBizRow = sheet.addRow(['Saving for your business', ...savingForBiz]);
     savingForBizRow.font = { bold: true };
     savingForBizRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
