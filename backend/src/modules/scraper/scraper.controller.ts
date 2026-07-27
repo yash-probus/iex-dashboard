@@ -10,14 +10,21 @@ export const triggerScraper = async (req: Request, res: Response) => {
   try {
     const { market } = req.body;
     
-    if (!market || market !== 'DAM') {
-      throw new AppError('Currently only DAM market scraping is supported', 400);
+    if (!market || !['DAM', 'GDAM', 'RTM'].includes(market)) {
+      throw new AppError('Invalid market specified. Must be DAM, GDAM, or RTM.', 400);
     }
 
     logger.info(`Manual scraper triggered for market: ${market}`);
     
     // Scrape Data
-    const records = await ScraperService.scrapeDam();
+    let records: any[] = [];
+    if (market === 'DAM') {
+      records = await ScraperService.scrapeDam();
+    } else if (market === 'GDAM') {
+      records = await ScraperService.scrapeGdam();
+    } else if (market === 'RTM') {
+      records = await ScraperService.scrapeRtm();
+    }
     
     if (records.length === 0) {
       throw new AppError('Scraper returned 0 records', 500);
@@ -36,18 +43,18 @@ export const triggerScraper = async (req: Request, res: Response) => {
     const deliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
     const existing = await prisma.dataset.findFirst({
-      where: { market: 'DAM', deliveryDate, status: 'ACTIVE' }
+      where: { market: market, deliveryDate, status: 'ACTIVE' }
     });
 
     const dataset = await PersistenceService.persistDataset({
-      market: 'DAM',
+      market: market,
       deliveryDate,
-      fileName: `scraped_dam_${dateStr}.csv`,
+      fileName: `scraped_${market.toLowerCase()}_${dateStr}.csv`,
       records,
       action: existing ? 'replace' : undefined // Auto-replace if it already exists for today, else insert
     });
 
-    await ApiLogService.createLog('IEX DAM Scraper', 'https://www.iexindia.com/market-data/day-ahead-market/market-snapshot', 'SUCCESS', `Successfully scraped and saved ${records.length} records for ${market} (manual trigger)`);
+    await ApiLogService.createLog(`IEX ${market} Scraper`, `https://www.iexindia.com/market-data/${market.toLowerCase()}`, 'SUCCESS', `Successfully scraped and saved ${records.length} records for ${market} (manual trigger)`);
 
     res.status(200).json({
       success: true,
@@ -57,7 +64,8 @@ export const triggerScraper = async (req: Request, res: Response) => {
     
   } catch (error: any) {
     logger.error(`Scraper Controller Error: ${error.message}`);
-    await ApiLogService.createLog('IEX DAM Scraper', 'https://www.iexindia.com/market-data/day-ahead-market/market-snapshot', 'ERROR', error.message || String(error));
+    const marketStr = req.body?.market || 'Unknown';
+    await ApiLogService.createLog(`IEX ${marketStr} Scraper`, 'manual-trigger', 'ERROR', error.message || String(error));
     throw error;
   }
 };
