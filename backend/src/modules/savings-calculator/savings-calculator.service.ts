@@ -1050,10 +1050,10 @@ export class SavingsCalculatorService {
     }
 
     const EXCHANGE_FEES = 0.02;
-    const GST_EXCHANGE = 0.0036;
+    const GST_EXCHANGE = 0;
     const OTHER_CHARGES = 0.1;
     const TRADER_MARGIN = traderMargin;
-    const GST_TRADER_MARGIN = TRADER_MARGIN * 0.18;
+    const GST_TRADER_MARGIN = 0;
     const RPO_FLAT_RATE = 0.25;
     const NLDC_APPLICATION_FEE_PER_BID = 5;
 

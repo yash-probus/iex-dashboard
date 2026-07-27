@@ -317,11 +317,8 @@ export class SavingsCalculatorExportService {
     
     // Trader Margin (varies, calculate rate)
     const traderMargin = (t as any).traderMargin || 0;
-    const traderMarginGst = (t as any).traderMarginGst || 0;
     const traderRate = totalMarketEnergy > 0 ? traderMargin / totalMarketEnergy : 0;
-    const traderGstRate = totalMarketEnergy > 0 ? traderMarginGst / totalMarketEnergy : 0;
     addChargeRow('Trader Margin', traderMargin, traderRate, totalMarketEnergy);
-    addChargeRow('Trader Margin GST (18%)', traderMarginGst, traderGstRate, totalMarketEnergy, 18);
     
     // SLDC Operating charges (per market per day)
     const sldcCost = (oaDetailed as any).sldcSchedulingCost || 0;
@@ -564,7 +561,7 @@ export class SavingsCalculatorExportService {
     sheet.addRow([`Platform Fee (Rs ${platformFeeRate}/kWh)`, ...probusPlatformFee]);
 
     const probusValueShare = allResults.map(r => Math.round(r.result.oaDetailed.totals.proltMarginCost));
-    sheet.addRow(['Probus Value-Share for Prolt Energy Platform (15% of Saving)', ...probusValueShare]);
+    sheet.addRow(['Value-Share for Energy Platform (15% of Saving)', ...probusValueShare]);
 
     const totalAmount = allResults.map((r, i) => probusTradingMargin[i] + probusPlatformFee[i] + probusValueShare[i]);
     const totalAmountRow = sheet.addRow(['Total Amount', ...totalAmount]);
