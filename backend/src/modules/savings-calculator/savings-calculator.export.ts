@@ -125,8 +125,9 @@ export class SavingsCalculatorExportService {
       'OA Energy Charges (Rs.)',
       'DISCOM Bill after OA (Rs.)'
     ];
-    sheet.addRow(breakdownHeader);
-    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    const breakdownHeaderRow = sheet.addRow(breakdownHeader);
+    breakdownHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    breakdownHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
 
     let totalDiscomU = 0, totalOaU = 0, totalDiscomB = 0, totalNetB = 0, totalConsumerU = 0, totalOaB = 0;
 
@@ -148,7 +149,7 @@ export class SavingsCalculatorExportService {
       totalOaB += b.oaBill;
     });
 
-    sheet.addRow([
+    const todTotalRow = sheet.addRow([
       'Total', 
       Math.round(totalDiscomU), 
       Math.round(totalDiscomB), 
@@ -157,13 +158,15 @@ export class SavingsCalculatorExportService {
       Math.round(totalOaB),
       Math.round(totalNetB)
     ]);
-    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    todTotalRow.font = { bold: true };
+    todTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
     sheet.addRow([]);
 
     // --- NEW: DISCOM Baseline Breakdown ---
-    sheet.addRow(['DISCOM Baseline Breakdown']);
-    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    const baseHeaderRow = sheet.addRow(['DISCOM Baseline Breakdown', 'Amount (Rs.)']);
+    baseHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    baseHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
     const isNpcl = result.discom === 'NPCL';
     
@@ -197,14 +200,16 @@ export class SavingsCalculatorExportService {
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     const totalBaselineWithMisc = (result.totalBaselineCost || 0) + arrear + lpsc;
-    sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
-    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
+    baseTotalRow.font = { bold: true };
+    baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
     sheet.addRow([]);
 
     // --- NEW: DISCOM Bill After Open Access Breakdown ---
-    sheet.addRow(['DISCOM Bill After Open Access Breakdown']);
-    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    const afterHeaderRow = sheet.addRow(['DISCOM Bill After Open Access Breakdown', 'Amount (Rs.)']);
+    afterHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    afterHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
     let energyChargesAfterOA = (result.totalDiscomAfterProlt || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0);
     
@@ -232,15 +237,17 @@ export class SavingsCalculatorExportService {
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     const totalDiscomAfterOAWithMisc = (result.totalDiscomAfterProlt || 0) + arrear + lpsc;
-    sheet.addRow(['Total DISCOM Bill After Open Access', Math.round(totalDiscomAfterOAWithMisc)]);
-    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    const afterTotalRow = sheet.addRow(['Total DISCOM Bill After Open Access', Math.round(totalDiscomAfterOAWithMisc)]);
+    afterTotalRow.font = { bold: true };
+    afterTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
     sheet.addRow([]);
     
     // Add charges header with rate/kWh information
     const chargesHeader = ['Open Access Charge Type', 'Total Amount (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
-    sheet.addRow(chargesHeader);
-    if (sheet.lastRow) sheet.lastRow.font = { bold: true };
+    const chargesHeaderRow = sheet.addRow(chargesHeader);
+    chargesHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    chargesHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
     const t = oaDetailed.totals;
     const totalMarketEnergy = result.totalMarketEnergyKwh;
@@ -348,9 +355,14 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees), '-', '-', '-']);
     
     sheet.addRow([]);
-    sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
+    const totalEstRow = sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
+    totalEstRow.font = { bold: true };
+    totalEstRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
+    
     const totalGrossBill = result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees;
-    sheet.addRow(['Total Gross Bill (Net Landed OA Cost)', Math.round(totalGrossBill)]);
+    const totalGrossRow = sheet.addRow(['Total Gross Bill (Net Landed OA Cost)', Math.round(totalGrossBill)]);
+    totalGrossRow.font = { bold: true };
+    totalGrossRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
     sheet.addRow([]);
     const netSavings = totalDiscomB - totalGrossBill;
@@ -359,7 +371,9 @@ export class SavingsCalculatorExportService {
     const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
     sheet.addRow(['DISCOM Bill After PROLT', Math.round(discomAfterProltWithMisc)]);
     
-    sheet.addRow(['Net Savings', Math.round(netSavings)]);
+    const netSavingsRow = sheet.addRow(['Net Savings', Math.round(netSavings)]);
+    netSavingsRow.font = { bold: true };
+    netSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
     const nocFee = 7000;
     const regFee = 8333;
@@ -375,7 +389,9 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['Trader Margin', Math.round(proltMarginVal)]);
     
     const finalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - proltMarginVal;
-    sheet.addRow(['Final Client Savings', Math.round(finalSavings)]);
+    const finalSavingsRow = sheet.addRow(['Final Client Savings', Math.round(finalSavings)]);
+    finalSavingsRow.font = { bold: true };
+    finalSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     
     if (sheet.lastRow) {
       sheet.lastRow.font = { bold: true, color: { argb: 'FF008000' } };
