@@ -328,7 +328,7 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['SLDC Operating charges - DAM', Math.round(damSldcCost), '-', `${tradedDays.DAM.size} days`, '-']);
     sheet.addRow(['SLDC Operating charges - GDAM', Math.round(gdamSldcCost), '-', `${tradedDays.GDAM.size} days`, '-']);
     sheet.addRow(['SLDC Operating charges - RTM', Math.round(rtmSldcCost), '-', `${tradedDays.RTM.size} days`, '-']);
-    sheet.addRow(['SLDC Operating charges - Total', Math.round(sldcCost), '-', `${tradedDays.DAM.size + tradedDays.GDAM.size + tradedDays.RTM.size} market-days`, '-']);
+    sheet.addRow(['SLDC Operating charges - Total', Math.round(sldcCost), '-', `${tradedDays.DAM.size + tradedDays.GDAM.size + tradedDays.RTM.size} markets`, '-']);
     
     // NLDC Scheduling charges (fixed per unique day)
     const nldcCost = (oaDetailed as any).nldcSchedulingCost || 0;
