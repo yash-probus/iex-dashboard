@@ -361,9 +361,9 @@ export class SavingsCalculatorExportService {
 
     sheet.addRow(['Monthly NOC Fee', nocFee]);
     sheet.addRow(['IEX Registration Fee', regFee]);
-    sheet.addRow(['Prolt Consultancy Fee', consultancyFeeVal]);
-    sheet.addRow(['Probus Platform Fee', probusPlatformFee]);
-    sheet.addRow(['PROLT Margin', Math.round(proltMarginVal)]);
+    sheet.addRow(['Consultancy Fee', consultancyFeeVal]);
+    sheet.addRow(['Platform Fee', probusPlatformFee]);
+    sheet.addRow(['Trader Margin', Math.round(proltMarginVal)]);
     
     const finalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - proltMarginVal;
     sheet.addRow(['Final Client Savings', Math.round(finalSavings)]);
@@ -521,22 +521,22 @@ export class SavingsCalculatorExportService {
     for (let i = 2; i <= numMonths + 1; i++) savingUnitRow.getCell(i).numFmt = '₹0.00';
 
     const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
-    sheet.addRow(['Monthly Noc Fee/Monthly', ...Array(numMonths).fill(7000)]);
-    sheet.addRow(['IEX Registration Fee /Yearly', ...Array(numMonths).fill(8333)]);
-    sheet.addRow(['Prolt Consultancy Fee', ...Array(numMonths).fill(consultancyFeeVal)]);
+    sheet.addRow(['Monthly NOC Fee', ...Array(numMonths).fill(7000)]);
+    sheet.addRow(['IEX Registration Fee', ...Array(numMonths).fill(8333)]);
+    sheet.addRow(['Consultancy Fee', ...Array(numMonths).fill(consultancyFeeVal)]);
 
     sheet.addRow([]);
 
-    const probusHeaderRow = sheet.addRow(['Probus Margin', ...monthHeaders]);
+    const probusHeaderRow = sheet.addRow(['Margin Details', ...monthHeaders]);
     probusHeaderRow.font = { bold: true };
     probusHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } });
 
     const probusTradingMargin = allResults.map(r => Math.round(r.result.oaDetailed.totals.traderMargin));
-    sheet.addRow([`Probus' Trading Margin (Rs ${entry.traderMargin !== null && entry.traderMargin !== undefined ? entry.traderMargin : 0.02}/kWh)`, ...probusTradingMargin]);
+    sheet.addRow([`Trader Margin (Rs ${entry.traderMargin !== null && entry.traderMargin !== undefined ? entry.traderMargin : 0.02}/kWh)`, ...probusTradingMargin]);
 
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
     const probusPlatformFee = allResults.map(r => Math.round(r.result.totalMarketEnergyKwh * platformFeeRate));
-    sheet.addRow([`Probus Platform Subscription Fees for Prolt Energy Platform (Rs ${platformFeeRate}/kWh)`, ...probusPlatformFee]);
+    sheet.addRow([`Platform Fee (Rs ${platformFeeRate}/kWh)`, ...probusPlatformFee]);
 
     const probusValueShare = allResults.map(r => Math.round(r.result.oaDetailed.totals.proltMarginCost));
     sheet.addRow(['Probus Value-Share for Prolt Energy Platform (15% of Saving)', ...probusValueShare]);
