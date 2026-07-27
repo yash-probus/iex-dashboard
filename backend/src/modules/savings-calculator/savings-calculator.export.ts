@@ -360,7 +360,7 @@ export class SavingsCalculatorExportService {
     totalEstRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
     const totalGrossBill = result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees;
-    const totalGrossRow = sheet.addRow(['Total Gross Bill (Net Landed OA Cost)', Math.round(totalGrossBill)]);
+    const totalGrossRow = sheet.addRow(['Total Bill (OA + DISCOM After PROLT)', Math.round(totalGrossBill)]);
     totalGrossRow.font = { bold: true };
     totalGrossRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
