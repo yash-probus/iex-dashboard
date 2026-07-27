@@ -24,7 +24,7 @@ export class SavingsCalculatorExportService {
       const dateObj = new Date(d);
       const dayStr = `${dateObj.getDate()}-${dateObj.toLocaleString('default', { month: 'short' })}`;
       headerRow1.push(dayStr, '', '');
-      headerRow2.push('Price (₹)', 'Qty (kWh)', 'Market');
+      headerRow2.push('Qty (MWh)', 'Rate (Rs/kWh)', 'Market');
     });
 
     const hr1 = sheet.addRow(headerRow1);
@@ -67,8 +67,8 @@ export class SavingsCalculatorExportService {
           if (slot.marketSource === 'DAM') mcp = slot.damMcp || 0;
           else if (slot.marketSource === 'RTM') mcp = slot.rtmMcp || 0;
           else if (slot.marketSource === 'GDAM') mcp = slot.gdamMcp || 0;
+          row.push(Number(((slot.marketEnergy || 0) / 1000).toFixed(4)));
           row.push(Number(mcp.toFixed(2)));
-          row.push(Math.round(slot.marketEnergy || 0));
           row.push(slot.marketSource || '-');
         } else {
           row.push('-', '-', '-');
@@ -80,13 +80,13 @@ export class SavingsCalculatorExportService {
 
 
     // Add Total Quantity Row
-    const totalRow: any[] = ['Total Quantity (kWh)'];
+    const totalRow: any[] = ['Total Quantity (MWh)'];
     days.forEach(day => {
       let dayTotal = 0;
       slotsData.filter((s: any) => s.date === day && s.shouldBuyFromMarket).forEach((s: any) => {
         dayTotal += (s.marketEnergy || 0);
       });
-      totalRow.push('-', Math.round(dayTotal), '-');
+      totalRow.push(Number((dayTotal / 1000).toFixed(4)), '-', '-');
     });
     const tr = sheet.addRow(totalRow);
     tr.font = { bold: true };
