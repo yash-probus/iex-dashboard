@@ -624,6 +624,8 @@ model SavingsCalculatorEntryHistory {
   applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
 
   changedAt DateTime @default(now()) @map("changed_at")
+  createdBy String?  @map("created_by") @db.VarChar(50)
+  updatedBy String?  @map("updated_by") @db.VarChar(50)
 
   entry SavingsCalculatorEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
