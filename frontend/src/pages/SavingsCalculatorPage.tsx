@@ -175,6 +175,7 @@ export default function SavingsCalculatorPage() {
   
   // PROLT Dialog State
   const [proltDialogOpen, setProltDialogOpen] = useState(false);
+  const [todDialogOpen, setTodDialogOpen] = useState(false);
 
   // Calculation Dialog States
   const [calcDialogOpen, setCalcDialogOpen] = useState(false);
@@ -564,6 +565,27 @@ export default function SavingsCalculatorPage() {
     }
   };
 
+  const isTodValid = () => {
+    let hasAtLeastOneValue = false;
+    let isConsumptionsValid = true;
+    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty'];
+    Object.values(todConsumptions).forEach(monthData => {
+      Object.entries(monthData).forEach(([key, val]) => {
+        if (!ignoredKeys.includes(key) && val.trim()) {
+          const v = parseFloat(val);
+          if (key === 'Power Factor') {
+            if (isNaN(v) || v <= 0 || v > 1) isConsumptionsValid = false;
+            else hasAtLeastOneValue = true;
+          } else {
+            if (isNaN(v) || v < 0) isConsumptionsValid = false;
+            else hasAtLeastOneValue = true;
+          }
+        }
+      });
+    });
+    return isConsumptionsValid && hasAtLeastOneValue;
+  };
+
   const isStepValid = (step: number) => {
     switch (step) {
       case 0:
@@ -582,33 +604,7 @@ export default function SavingsCalculatorPage() {
         if (!sanctionedLoadKw.trim()) return false;
         const parsed = parseFloat(sanctionedLoadKw);
         return !isNaN(parsed) && parsed > 0;
-      case 6: {
-        let hasAtLeastOneValue = false;
-        let isConsumptionsValid = true;
-        const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty'];
-        Object.values(todConsumptions).forEach(monthData => {
-          Object.entries(monthData).forEach(([key, val]) => {
-            if (!ignoredKeys.includes(key) && val.trim()) {
-              const v = parseFloat(val);
-              if (key === 'Power Factor') {
-                if (isNaN(v) || v <= 0 || v > 1) {
-                  isConsumptionsValid = false;
-                } else {
-                  hasAtLeastOneValue = true;
-                }
-              } else {
-                if (isNaN(v) || v < 0) {
-                  isConsumptionsValid = false;
-                } else {
-                  hasAtLeastOneValue = true;
-                }
-              }
-            }
-          });
-        });
-        return isConsumptionsValid && hasAtLeastOneValue;
-      }
-      case 7:
+      case 6:
         return true; // Additional Billing Details are optional
       default:
         return false;
@@ -621,6 +617,7 @@ export default function SavingsCalculatorPage() {
     setSelectedEntry(null);
     setFormErrors({});
     setProltDialogOpen(false);
+    setTodDialogOpen(false);
     resetForm();
   };
 
@@ -1002,7 +999,10 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 7) {
+                  if (stepIndex === 5) {
+                    // After Sanction Load, open TOD Consumption dialog
+                    setTodDialogOpen(true);
+                  } else if (stepIndex < 6) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     setProltDialogOpen(true);
@@ -1012,14 +1012,10 @@ export default function SavingsCalculatorPage() {
                     setFormErrors({ clientDetails: 'Please fill in all required client details.' });
                   } else if (stepIndex === 5) {
                     setFormErrors({ sanctionedLoadKw: 'Sanctioned load must be a positive number.' });
-                  } else if (stepIndex === 6) {
-                    setSnackbar({ open: true, message: 'Please enter valid numbers for TOD consumption', severity: 'error' });
-                  } else if (stepIndex === 7) {
-                    setSnackbar({ open: true, message: 'Please fill in values for at least one month before continuing.', severity: 'error' });
                   }
                 }
               }}
-              endIcon={stepIndex === 7 ? undefined : <ArrowForwardIcon />}
+              endIcon={stepIndex === 6 ? undefined : <ArrowForwardIcon />}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2.5, 
@@ -1030,7 +1026,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {stepIndex === 7 ? 'Next' : 'Continue'}
+              {stepIndex === 6 ? 'Next' : 'Continue'}
             </Button>
           </Box>
         </Card>
@@ -1223,7 +1219,7 @@ export default function SavingsCalculatorPage() {
       />
 
       <Dialog 
-        open={dialogMode !== null && !proltDialogOpen} 
+        open={dialogMode !== null && !proltDialogOpen && !todDialogOpen} 
         onClose={handleCloseDialog}
         maxWidth={dialogMode === 'view' ? 'lg' : 'sm'}
         fullWidth
@@ -1525,209 +1521,6 @@ export default function SavingsCalculatorPage() {
           })}
 
           {renderStep(6, {
-            icon: <CalendarIcon />,
-            title: "Configure Monthly Consumption",
-            question: "Select a month and enter your consumption (kWh) per TOD slab",
-            summary: `TOD Consumptions set`,
-            content: (
-              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-                  <TextField
-                    select
-                    label="Year"
-                    value={entryYear}
-                    onChange={(e) => setEntryYear(Number(e.target.value))}
-                    size="small"
-                    sx={{ width: 120 }}
-                  >
-                    <MenuItem value={2023}>2023</MenuItem>
-                    <MenuItem value={2024}>2024</MenuItem>
-                    <MenuItem value={2025}>2025</MenuItem>
-                    <MenuItem value={2026}>2026</MenuItem>
-                  </TextField>
-                  <TextField
-                    select
-                    label="Month"
-                    value={entryMonth}
-                    onChange={(e) => setEntryMonth(Number(e.target.value))}
-                    size="small"
-                    sx={{ width: 150 }}
-                  >
-                    <MenuItem value={1}>January</MenuItem>
-                    <MenuItem value={2}>February</MenuItem>
-                    <MenuItem value={3}>March</MenuItem>
-                    <MenuItem value={4}>April</MenuItem>
-                    <MenuItem value={5}>May</MenuItem>
-                    <MenuItem value={6}>June</MenuItem>
-                    <MenuItem value={7}>July</MenuItem>
-                    <MenuItem value={8}>August</MenuItem>
-                    <MenuItem value={9}>September</MenuItem>
-                    <MenuItem value={10}>October</MenuItem>
-                    <MenuItem value={11}>November</MenuItem>
-                    <MenuItem value={12}>December</MenuItem>
-                  </TextField>
-                  <Button 
-                    variant="outlined" 
-                    startIcon={<AddIcon />}
-                    onClick={() => {
-                      const key = `${entryYear}-${String(entryMonth).padStart(2, '0')}`;
-                      if (!todConsumptions[key]) {
-                        let defaultStart = '';
-                        let defaultEnd = '';
-                        
-                        if (discom === 'NPCL') {
-                          defaultStart = `${entryYear}-${String(entryMonth).padStart(2, '0')}-19`;
-                          const nextMonthDate = new Date(entryYear, entryMonth - 1 + 1, 18);
-                          defaultEnd = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-18`;
-                        } else {
-                          defaultStart = `${entryYear}-${String(entryMonth).padStart(2, '0')}-01`;
-                          const lastDay = new Date(entryYear, entryMonth, 0).getDate();
-                          defaultEnd = `${entryYear}-${String(entryMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-                        }
-
-                        setTodConsumptions(prev => ({ 
-                          ...prev, 
-                          [key]: {
-                            'Power Factor': '',
-                            'Start Date': defaultStart,
-                            'End Date': defaultEnd,
-                            'Electricity Duty': 'Yes'
-                          } 
-                        }));
-                      }
-                    }}
-                    sx={{ height: 40, textTransform: 'none', borderRadius: 2 }}
-                  >
-                    Add Month
-                  </Button>
-                </Box>
-                
-                {getTodSlabsForMonth(entryMonth).length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Please select a State, DISCOM, and Category to see applicable TOD slabs.
-                  </Typography>
-                )}
-
-                {Object.keys(todConsumptions).sort().map(ym => {
-                  const editingMonth = ym;
-                  return (
-                  <Card key={ym} variant="outlined" sx={{ p: 3, borderRadius: '24px', bgcolor: '#F8FAFC', mb: 3, borderColor: '#E2E8F0' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, pb: 2, borderBottom: '1px solid #E2E8F0' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Box sx={{ bgcolor: '#F3E8FF', color: '#8B5CF6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
-                          <CalculateIcon fontSize="small" />
-                        </Box>
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '1.1rem' }}>
-                          {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} Details
-                        </Typography>
-                      </Box>
-                      <IconButton color="error" onClick={() => {
-                        const newTc = { ...todConsumptions };
-                        delete newTc[ym];
-                        setTodConsumptions(newTc);
-                      }}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                        {getTodSlabsForMonth(parseInt(editingMonth.split('-')[1], 10)).map(slab => (
-                          <TextField
-                            key={slab}
-                            label={`${slab} (kWh)`}
-                            value={todConsumptions[editingMonth]?.[slab] || ''}
-                            onChange={(e) => setTodConsumptions(prev => ({
-                              ...prev,
-                              [editingMonth]: { ...prev[editingMonth], [slab]: e.target.value }
-                            }))}
-                            fullWidth
-                            variant="outlined"
-                            size="medium"
-                            type="number"
-                            placeholder="0"
-                            InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
-                          />
-                        ))}
-                        <TextField
-                          label="Peak Demand (kVA)"
-                          value={todConsumptions[editingMonth]?.['Peak Demand (kVA)'] || ''}
-                          onChange={(e) => setTodConsumptions(prev => ({
-                            ...prev,
-                            [editingMonth]: { ...prev[editingMonth], 'Peak Demand (kVA)': e.target.value }
-                          }))}
-                          fullWidth
-                          variant="outlined"
-                          size="medium"
-                          type="number"
-                          placeholder="0"
-                          InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
-                        />
-                        <TextField
-                          label="Power Factor"
-                          value={todConsumptions[editingMonth]?.['Power Factor'] || ''}
-                          onChange={(e) => {
-                            let val = e.target.value;
-                            if (val !== '') {
-                              if (Number(val) > 1) val = '1';
-                              else if (Number(val) < 0) val = '';
-                            }
-                            setTodConsumptions(prev => ({
-                              ...prev,
-                              [editingMonth]: { ...prev[editingMonth], 'Power Factor': val }
-                            }))
-                          }}
-                          onBlur={(e) => {
-                            let val = e.target.value;
-                            if (val !== '' && Number(val) <= 0) {
-                              setTodConsumptions(prev => ({
-                                ...prev,
-                                [editingMonth]: { ...prev[editingMonth], 'Power Factor': '0.01' }
-                              }))
-                            }
-                          }}
-                          fullWidth
-                          variant="outlined"
-                          size="medium"
-                          type="number"
-                          placeholder="e.g., 0.99"
-                          inputProps={{ max: 1, min: 0.01, step: 0.01 }}
-                          InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
-                        />
-                        <Box sx={{ border: '1px solid #E2E8F0', borderRadius: '24px', p: 1, px: 2, display: 'flex', alignItems: 'center', bgcolor: '#FFF' }}>
-                          <DateRangePicker 
-                            startDate={todConsumptions[editingMonth]?.['Start Date'] || ''}
-                            endDate={todConsumptions[editingMonth]?.['End Date'] || ''}
-                            onChange={(start, end) => setTodConsumptions(prev => ({
-                              ...prev,
-                              [editingMonth]: { ...prev[editingMonth], 'Start Date': start, 'End Date': end }
-                            }))}
-                          />
-                        </Box>
-                        <TextField
-                          select
-                          label="Electricity Duty Applied?"
-                          value={todConsumptions[editingMonth]?.['Electricity Duty'] || 'Yes'}
-                          onChange={(e) => setTodConsumptions(prev => ({
-                            ...prev,
-                            [editingMonth]: { ...prev[editingMonth], 'Electricity Duty': e.target.value }
-                          }))}
-                          fullWidth
-                          variant="outlined"
-                          size="medium"
-                          sx={{ textAlign: 'left' }}
-                          InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
-                        >
-                          <MenuItem value="Yes">Yes</MenuItem>
-                          <MenuItem value="No">No</MenuItem>
-                        </TextField>
-                    </Box>
-                  </Card>
-                  );
-                })}
-              </Box>
-            )
-          })}
-
-          {renderStep(7, {
             icon: <CalculateIcon />,
             title: "Additional Billing Details",
             question: "Enter specific billing parameters to improve insights accuracy (optional).",
@@ -1806,6 +1599,220 @@ export default function SavingsCalculatorPage() {
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
           >
             {dialogMode === 'view' ? 'Close' : 'Cancel'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* TOD Monthly Consumption Dialog */}
+      <Dialog
+        open={todDialogOpen}
+        onClose={(e, reason) => { if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') setTodDialogOpen(false); }}
+        disableEscapeKeyDown
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 4, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ bgcolor: '#F3E8FF', color: '#8B5CF6', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CalendarIcon fontSize="small" />
+            </Box>
+            Monthly Consumption
+          </Box>
+          <IconButton onClick={() => setTodDialogOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 3 }}>
+          <Typography variant="body1" sx={{ fontWeight: 600, mb: 3 }}>
+            Select a month and enter your consumption (kWh) per TOD slab
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <TextField
+                select
+                label="Year"
+                value={entryYear}
+                onChange={(e) => setEntryYear(Number(e.target.value))}
+                size="small"
+                sx={{ width: 120 }}
+              >
+                <MenuItem value={2023}>2023</MenuItem>
+                <MenuItem value={2024}>2024</MenuItem>
+                <MenuItem value={2025}>2025</MenuItem>
+                <MenuItem value={2026}>2026</MenuItem>
+              </TextField>
+              <TextField
+                select
+                label="Month"
+                value={entryMonth}
+                onChange={(e) => setEntryMonth(Number(e.target.value))}
+                size="small"
+                sx={{ width: 150 }}
+              >
+                <MenuItem value={1}>January</MenuItem>
+                <MenuItem value={2}>February</MenuItem>
+                <MenuItem value={3}>March</MenuItem>
+                <MenuItem value={4}>April</MenuItem>
+                <MenuItem value={5}>May</MenuItem>
+                <MenuItem value={6}>June</MenuItem>
+                <MenuItem value={7}>July</MenuItem>
+                <MenuItem value={8}>August</MenuItem>
+                <MenuItem value={9}>September</MenuItem>
+                <MenuItem value={10}>October</MenuItem>
+                <MenuItem value={11}>November</MenuItem>
+                <MenuItem value={12}>December</MenuItem>
+              </TextField>
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  const key = `${entryYear}-${String(entryMonth).padStart(2, '0')}`;
+                  if (!todConsumptions[key]) {
+                    let defaultStart = '';
+                    let defaultEnd = '';
+                    if (discom === 'NPCL') {
+                      defaultStart = `${entryYear}-${String(entryMonth).padStart(2, '0')}-19`;
+                      const nextMonthDate = new Date(entryYear, entryMonth - 1 + 1, 18);
+                      defaultEnd = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-18`;
+                    } else {
+                      defaultStart = `${entryYear}-${String(entryMonth).padStart(2, '0')}-01`;
+                      const lastDay = new Date(entryYear, entryMonth, 0).getDate();
+                      defaultEnd = `${entryYear}-${String(entryMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                    }
+                    setTodConsumptions(prev => ({
+                      ...prev,
+                      [key]: {
+                        'Power Factor': '',
+                        'Start Date': defaultStart,
+                        'End Date': defaultEnd,
+                        'Electricity Duty': 'Yes'
+                      }
+                    }));
+                  }
+                }}
+                sx={{ height: 40, textTransform: 'none', borderRadius: 2 }}
+              >
+                Add Month
+              </Button>
+            </Box>
+
+            {getTodSlabsForMonth(entryMonth).length === 0 && (
+              <Typography variant="body2" color="text.secondary">
+                Please select a State, DISCOM, and Category to see applicable TOD slabs.
+              </Typography>
+            )}
+
+            {Object.keys(todConsumptions).sort().map(ym => {
+              const targetMonth = parseInt(ym.split('-')[1], 10);
+              const monthSlabs = getTodSlabsForMonth(targetMonth);
+              return (
+                <Card key={ym} variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: '#F8FAFC', mb: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    </Typography>
+                    <IconButton size="small" color="error" onClick={() => {
+                      const newTc = { ...todConsumptions };
+                      delete newTc[ym];
+                      setTodConsumptions(newTc);
+                    }}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                  <Grid container spacing={2}>
+                    {monthSlabs.map(slab => (
+                      <Grid item xs={12} sm={6} key={slab}>
+                        <TextField
+                          label={`${slab} (kWh)`}
+                          value={todConsumptions[ym][slab] || ''}
+                          onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], [slab]: e.target.value } }))}
+                          fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                    ))}
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Peak Demand (kVA)"
+                        value={todConsumptions[ym]['Peak Demand (kVA)'] || ''}
+                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Peak Demand (kVA)': e.target.value } }))}
+                        fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Power Factor"
+                        value={todConsumptions[ym]['Power Factor'] || ''}
+                        onChange={(e) => {
+                          let val = e.target.value;
+                          if (val !== '') {
+                            if (Number(val) > 1) val = '1';
+                            else if (Number(val) < 0) val = '';
+                          }
+                          setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': val } }))
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value !== '' && Number(e.target.value) <= 0) {
+                            setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': '0.01' } }))
+                          }
+                        }}
+                        fullWidth variant="outlined" size="small" type="number"
+                        placeholder="e.g., 0.99" inputProps={{ max: 1, min: 0.01, step: 0.01 }} sx={{ bgcolor: '#FFF' }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
+                      <DateRangePicker
+                        startDate={todConsumptions[ym]['Start Date'] || ''}
+                        endDate={todConsumptions[ym]['End Date'] || ''}
+                        onChange={(start, end) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end } }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        select
+                        label="Electricity Duty Applied?"
+                        value={todConsumptions[ym]['Electricity Duty'] || 'Yes'}
+                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Electricity Duty': e.target.value } }))}
+                        fullWidth variant="outlined" size="small" sx={{ bgcolor: '#FFF', textAlign: 'left' }}
+                      >
+                        <MenuItem value="Yes">Yes</MenuItem>
+                        <MenuItem value="No">No</MenuItem>
+                      </TextField>
+                    </Grid>
+                  </Grid>
+                </Card>
+              );
+            })}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
+          <Button
+            onClick={() => setTodDialogOpen(false)}
+            sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (!isTodValid()) {
+                setSnackbar({ open: true, message: 'Please enter valid consumption values for at least one month.', severity: 'error' });
+                return;
+              }
+              setTodDialogOpen(false);
+              setActiveStep(6);
+            }}
+            sx={{
+              bgcolor: '#8B5CF6',
+              '&:hover': { bgcolor: '#7C3AED' },
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3
+            }}
+          >
+            Continue
           </Button>
         </DialogActions>
       </Dialog>
