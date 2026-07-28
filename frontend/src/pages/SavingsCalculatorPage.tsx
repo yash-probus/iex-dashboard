@@ -1635,7 +1635,8 @@ export default function SavingsCalculatorPage() {
                       ...prev,
                       [key]: {
                         'Power Factor': '',
-                        'Bill Date': '',
+                        'Start Date': defaultStart,
+                        'End Date': defaultEnd,
                         'Electricity Duty': 'Yes',
                         'Miscellaneous Charges': ''
                       }
@@ -1712,12 +1713,11 @@ export default function SavingsCalculatorPage() {
                       Billed Consumption
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          label="Billing Date (e.g. 06-Dec-2025)"
-                          value={todConsumptions[ym]['Bill Date'] || ''}
-                          onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Bill Date': e.target.value } }))}
-                          fullWidth variant="outlined" size="small" placeholder="DD-Mon-YYYY" sx={{ bgcolor: '#FFF' }}
+                      <Grid item xs={12} sm={12}>
+                        <DateRangePicker
+                          startDate={todConsumptions[ym]['Start Date'] || ''}
+                          endDate={todConsumptions[ym]['End Date'] || ''}
+                          onChange={(start, end) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end } }))}
                         />
                       </Grid>
                       {monthSlabs.map(slab => (
