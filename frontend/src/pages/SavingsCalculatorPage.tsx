@@ -29,7 +29,8 @@ import {
   History as HistoryIcon,
   InfoOutlined as InfoOutlinedIcon,
   Search as SearchIcon,
-  ArrowRightAlt as ArrowRightAltIcon
+  ArrowRightAlt as ArrowRightAltIcon,
+  CalendarMonth as CalendarIcon
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
@@ -142,7 +143,6 @@ export default function SavingsCalculatorPage() {
   const [discom, setDiscom] = useState('');
   const [consumerCategory, setConsumerCategory] = useState('');
   const [voltageLevel, setVoltageLevel] = useState('');
-  const [applyElectricityDuty, setApplyElectricityDuty] = useState<boolean>(true);
   const [supplyVoltageValue, setSupplyVoltageValue] = useState('');
   const [proltMargin, setProltMargin] = useState<string>('');
   const [traderMargin, setTraderMargin] = useState('');
@@ -555,7 +555,7 @@ export default function SavingsCalculatorPage() {
       setCurrentLpsc(entry.currentLpsc !== undefined && entry.currentLpsc !== null ? String(entry.currentLpsc) : '');
       setBillDate(entry.billDate || '');
 
-      setActiveStep(8); 
+      setActiveStep(7); 
     } else {
       setSelectedEntry(null);
       resetForm();
@@ -578,17 +578,16 @@ export default function SavingsCalculatorPage() {
         if (availableSupplyVoltageValues.length > 0 && !supplyVoltageValue.trim()) return false;
         return true;
       case 5:
-        return true; // Apply ED step is always valid
-      case 6:
         if (!sanctionedLoadKw.trim()) return false;
         const parsed = parseFloat(sanctionedLoadKw);
         return !isNaN(parsed) && parsed > 0;
-      case 7: {
+      case 6: {
         let hasAtLeastOneValue = false;
         let isConsumptionsValid = true;
+        const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty'];
         Object.values(todConsumptions).forEach(monthData => {
-          Object.values(monthData).forEach(val => {
-            if (val.trim()) {
+          Object.entries(monthData).forEach(([key, val]) => {
+            if (!ignoredKeys.includes(key) && val.trim()) {
               const v = parseFloat(val);
               if (isNaN(v) || v < 0) {
                 isConsumptionsValid = false;
@@ -600,7 +599,7 @@ export default function SavingsCalculatorPage() {
         });
         return isConsumptionsValid && hasAtLeastOneValue;
       }
-      case 8:
+      case 7:
         return true; // Additional Billing Details are optional
       default:
         return false;
@@ -1242,8 +1241,9 @@ export default function SavingsCalculatorPage() {
             <>
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
-                width: `${((activeStep + 1) / 9) * 100}%`, 
                 height: '100%', 
+                width: `${((activeStep + 1) / 8) * 100}%`, 
+                bgcolor: '#3B8FF3', 
                 background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', 
                 transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
               }} />
@@ -1464,23 +1464,6 @@ export default function SavingsCalculatorPage() {
           })}
 
           {renderStep(5, {
-            icon: <BoltIcon />,
-            title: "Apply Electricity Duty?",
-            question: "Should Electricity Duty be applied?",
-            summary: applyElectricityDuty ? "Yes" : "No",
-            content: (
-              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', p: 1, backgroundColor: '#f8fafc', borderRadius: 1 }}>
-                  <FormControlLabel
-                    control={<Switch checked={applyElectricityDuty} onChange={(e) => setApplyElectricityDuty(e.target.checked)} color="primary" />}
-                    label="Apply Electricity Duty?"
-                  />
-                </Box>
-              </Box>
-            )
-          })}
-          
-          {renderStep(6, {
             icon: <SpeedIcon />,
             title: "What is your sanctioned load?",
             question: "What is your sanctioned load?",
@@ -1536,9 +1519,9 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {renderStep(7, {
-            icon: <CalculateIcon />,
-            title: "Energy Consumption per TOD Slab",
+          {renderStep(6, {
+            icon: <CalendarIcon />,
+            title: "Configure Monthly Consumption",
             question: "Select a month and enter your consumption (kWh) per TOD slab",
             summary: `TOD Consumptions set`,
             content: (
@@ -1726,7 +1709,7 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {renderStep(8, {
+          {renderStep(7, {
             icon: <CalculateIcon />,
             title: "Additional Billing Details",
             question: "Enter specific billing parameters to improve insights accuracy (optional).",
