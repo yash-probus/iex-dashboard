@@ -1001,15 +1001,15 @@ export default function SavingsCalculatorPage() {
       field: 'createdAt', 
       headerName: 'Created At', 
       align: 'center', 
-      width: 110,
-      valueFormatter: (v) => v ? new Date(v as string).toLocaleDateString() : '-'
+      width: 160,
+      valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
     },
     { 
       field: 'updatedAt', 
       headerName: 'Updated At', 
       align: 'center', 
-      width: 110,
-      valueFormatter: (v) => v ? new Date(v as string).toLocaleDateString() : '-'
+      width: 160,
+      valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
     },
     {
       field: 'actions',
