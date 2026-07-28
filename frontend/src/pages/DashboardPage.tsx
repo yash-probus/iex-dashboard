@@ -7,6 +7,7 @@ import {
   Calculate as CalculateIcon,
   Timeline as TimelineIcon,
   Group as GroupIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -130,47 +131,31 @@ export default function DashboardPage() {
               }}
               onClick={() => navigate(mod.path)}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', mb: 1, gap: 1.2 }}>
-                <Box sx={{ color: mod.color, display: 'flex', alignItems: 'center', p: 1, bgcolor: alpha(mod.color, 0.1), borderRadius: 1.5 }}>
-                  {React.cloneElement(mod.icon, { sx: { fontSize: 20 } })}
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ 
+                    color: mod.color, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    width: 48, 
+                    height: 48, 
+                    bgcolor: alpha(mod.color, 0.1), 
+                    borderRadius: '50%', 
+                    flexShrink: 0 
+                  }}>
+                    {React.cloneElement(mod.icon, { sx: { fontSize: 24 } })}
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0A1128', fontSize: '1.15rem', letterSpacing: '-0.3px', textAlign: 'left', lineHeight: 1.2 }}>
+                    {mod.title}
+                  </Typography>
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', letterSpacing: '-0.5px', textAlign: 'left', lineHeight: 1.2 }}>
-                  {mod.title}
-                </Typography>
+                <OpenInNewIcon sx={{ fontSize: 20, color: 'text.secondary', opacity: 0.6, mt: 1 }} />
               </Box>
 
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5, flexGrow: 1, lineHeight: 1.3, fontSize: '0.8rem', textAlign: 'left', width: '100%' }}>
+              <Typography variant="body2" sx={{ color: '#4A5568', flexGrow: 1, lineHeight: 1.5, fontSize: '0.95rem', textAlign: 'left', width: '100%' }}>
                 {mod.description}
               </Typography>
-
-              <Button
-                fullWidth
-                variant="contained"
-                disableElevation
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(mod.path);
-                }}
-                sx={{
-                  mt: 'auto',
-                  py: 0.8,
-                  bgcolor: alpha(mod.color, 0.1),
-                  color: mod.color,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  fontSize: '0.85rem',
-                  border: '1px solid',
-                  borderColor: alpha(mod.color, 0.1),
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: mod.color,
-                    color: '#FFF',
-                  }
-                }}
-              >
-                Access Module
-              </Button>
             </Paper>
           </Grid>
         ))}
