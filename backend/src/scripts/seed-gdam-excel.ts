@@ -13,7 +13,7 @@ function parseNumber(val: any): number {
 
 async function run() {
   try {
-    const filePath = '/Users/yashgupta/IEX-Dashboard/GDAM_Market Snapshot (2).xlsx';
+    const filePath = path.join(__dirname, '../../../GDAM_Market Snapshot (2).xlsx');
     console.log(`Reading file: ${filePath}`);
     
     const workbook = xlsx.readFile(filePath);
