@@ -227,7 +227,7 @@ export class ForecastService {
           `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
            FROM "${isGdam ? 'GdamRecord' : 'RtmRecord'}" dr 
            JOIN "Dataset" d ON dr."datasetId" = d.id 
-           WHERE d.market = $1 AND d.status = 'ACTIVE'
+           WHERE d.market = $1::"MarketType" AND d.status = 'ACTIVE'
            AND d."deliveryDate" >= $2::date AND d."deliveryDate" <= $3::date;`,
           isGdam ? 'GDAM' : 'RTM',
           startDateStr,
@@ -243,44 +243,85 @@ export class ForecastService {
         }
 
         // Fetch forecast
-        const forecastRows = isGdam 
-          ? await prisma.forecastGdam.findMany({
-              where: { date: { gte: startDateStr, lte: endDateStr } },
-              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
-            })
-          : await prisma.forecastRtm.findMany({
-              where: { date: { gte: startDateStr, lte: endDateStr } },
-              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+        if (isGdam) {
+          // Query gdam_forecasting via raw SQL
+          const gdamRows: any[] = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT ON (target_date::date, time_block) * FROM "forecasting"."gdam_forecasting"
+             WHERE target_date::date >= $1::date AND target_date::date <= $2::date
+             ORDER BY target_date::date ASC, time_block ASC, run_date DESC;`,
+            startDateStr,
+            endDateStr
+          );
+          
+          console.log('[DEBUG] GDAM query params:', startDateStr, endDateStr);
+          console.log('[DEBUG] GDAM returned rows:', gdamRows ? gdamRows.length : 0);
+
+          if (gdamRows && gdamRows.length > 0) {
+            const formatted = gdamRows.map(r => {
+              const hourNum = Math.floor((r.time_block - 1) / 4) + 1;
+              const hour = hourNum.toString().padStart(2, '0');
+              const timeBlock = this.getIntervalTime(r.time_block);
+              
+              const mcp = parseFloat((Number(r.predicted_mcp) / 1000.0).toFixed(2));
+              
+              const dateStr = r.target_date instanceof Date 
+                ? r.target_date.toISOString().split('T')[0] 
+                : new Date(r.target_date).toISOString().split('T')[0];
+
+              const key = `${dateStr}_${r.time_block}`;
+              const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
+
+              return {
+                date: dateStr,
+                hour,
+                timeBlock,
+                intervalNumber: r.time_block,
+                purchaseBid: 0,
+                sellBid: 0,
+                mcv: 0,
+                fsv: 0,
+                mcp,
+                actualMcp,
+                confidence: 'N/A'
+              };
             });
-            
-        if (forecastRows && forecastRows.length > 0) {
-          const formatted = forecastRows.map((r: any) => {
-            const hourNum = Math.floor((r.intervalNumber - 1) / 4) + 1;
-            const hour = hourNum.toString().padStart(2, '0');
-            const timeBlock = this.getIntervalTime(r.intervalNumber);
-            
-            const mcp = parseFloat((Number(r.mcp) / 1000.0).toFixed(2));
-            
-            const dateStr = r.date;
-            const key = `${dateStr}_${r.intervalNumber}`;
-            const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
-
-            return {
-              date: dateStr,
-              hour,
-              timeBlock,
-              intervalNumber: r.intervalNumber,
-              purchaseBid: Number(r.purchaseBid),
-              sellBid: Number(r.sellBid),
-              mcv: Number(r.mcv),
-              fsv: Number(r.fsv),
-              mcp,
-              actualMcp,
-              confidence: 'N/A'
-            };
+            intervals.push(...this.aggregatePriceIntervals(formatted, interval));
+          }
+        } else {
+          // RTM uses Prisma Model
+          const forecastRows = await prisma.forecastRtm.findMany({
+            where: { date: { gte: startDateStr, lte: endDateStr } },
+            orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
           });
+              
+          if (forecastRows && forecastRows.length > 0) {
+            const formatted = forecastRows.map((r: any) => {
+              const hourNum = Math.floor((r.intervalNumber - 1) / 4) + 1;
+              const hour = hourNum.toString().padStart(2, '0');
+              const timeBlock = this.getIntervalTime(r.intervalNumber);
+              
+              const mcp = parseFloat((Number(r.mcp) / 1000.0).toFixed(2));
+              
+              const dateStr = r.date;
+              const key = `${dateStr}_${r.intervalNumber}`;
+              const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
 
-          intervals.push(...this.aggregatePriceIntervals(formatted, interval));
+              return {
+                date: dateStr,
+                hour,
+                timeBlock,
+                intervalNumber: r.intervalNumber,
+                purchaseBid: Number(r.purchaseBid),
+                sellBid: Number(r.sellBid),
+                mcv: Number(r.mcv),
+                fsv: Number(r.fsv),
+                mcp,
+                actualMcp,
+                confidence: 'N/A'
+              };
+            });
+            intervals.push(...this.aggregatePriceIntervals(formatted, interval));
+          }
         }
       } catch (e) {
          console.error(`[ForecastService] Error querying ${market} forecasting:`, e);
@@ -346,6 +387,7 @@ export class ForecastService {
 
     const mae = actualCount > 0 ? sumAbsoluteError / actualCount : null;
     const mape = errorCount > 0 ? (sumPercentageError / errorCount) * 100 : null;
+    const wmape = sumActualMcp > 0 ? (sumAbsoluteError / sumActualMcp) * 100 : null;
 
     return {
       intervals,
@@ -362,7 +404,7 @@ export class ForecastService {
         minMcpActual: minMcpActual !== null ? parseFloat(minMcpActual.toFixed(2)) : 'N/A',
         mape: mape !== null ? `${mape.toFixed(2)}%` : 'N/A',
         mae: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
-        avgAbsoluteError: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
+        wmape: wmape !== null ? `${wmape.toFixed(2)}%` : 'N/A',
         confidence: confidenceCount > 0 ? (sumConfidence / confidenceCount).toFixed(2) : 'N/A'
       }
     };
@@ -428,14 +470,37 @@ export class ForecastService {
     let maxDemand = -Infinity;
     let minDemand = Infinity;
 
+    let sumActualDemand = 0;
+    let sumAbsoluteError = 0;
+    let sumPercentageError = 0;
+    let errorCount = 0;
+    let actualCount = 0;
+
     for (const row of intervals) {
       const dem = row.demand;
+      const actual = row.actualDemand !== null && row.actualDemand !== undefined ? Number(row.actualDemand) : null;
+      
       sumDemand += dem;
       if (dem > maxDemand) maxDemand = dem;
       if (dem < minDemand) minDemand = dem;
+
+      if (actual !== null) {
+        sumActualDemand += actual;
+        actualCount++;
+        const absErr = Math.abs(actual - dem);
+        sumAbsoluteError += absErr;
+        
+        if (actual > 0) {
+          sumPercentageError += (absErr / actual);
+          errorCount++;
+        }
+      }
     }
 
     const averageDemand = intervals.length > 0 ? sumDemand / intervals.length : 0;
+    const mae = actualCount > 0 ? sumAbsoluteError / actualCount : null;
+    const mape = errorCount > 0 ? (sumPercentageError / errorCount) * 100 : null;
+    const wmape = sumActualDemand > 0 ? (sumAbsoluteError / sumActualDemand) * 100 : null;
 
     return {
       intervals,
@@ -443,7 +508,10 @@ export class ForecastService {
         averageDemand: Math.round(averageDemand),
         maxDemand: maxDemand === -Infinity ? 0 : maxDemand,
         minDemand: minDemand === Infinity ? 0 : minDemand,
-        totalEnergyKwh: Math.round(sumDemand * 0.25) // assuming 15min intervals for total energy integration
+        totalEnergyKwh: Math.round(sumDemand * 0.25), // assuming 15min intervals for total energy integration
+        mape: mape !== null ? `${mape.toFixed(2)}%` : 'N/A',
+        mae: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
+        wmape: wmape !== null ? `${wmape.toFixed(2)}%` : 'N/A'
       }
     };
   }
@@ -518,16 +586,43 @@ export class ForecastService {
       }
     } else if (market.toUpperCase() === 'GDAM') {
       try {
-        const rows = await prisma.forecastGdam.findMany({
+        const rows: any[] = await prisma.$queryRawUnsafe(
+          `SELECT DISTINCT target_date::date AS date 
+           FROM "forecasting"."gdam_forecasting" 
+           ORDER BY date DESC;`
+        );
+        return rows.map(r => {
+          const d = r.date;
+          if (d instanceof Date) {
+            return d.toISOString().split('T')[0];
+          }
+          return new Date(d).toISOString().split('T')[0];
+        });
+      } catch (e) { 
+        console.error('[ForecastService] Error in GDAM dates:', e);
+        return []; 
+      }
+    } else if (market.toUpperCase() === 'RTM') {
+      try {
+        const rows = await prisma.forecastRtm.findMany({
           select: { date: true },
           distinct: ['date'],
           orderBy: { date: 'desc' }
         });
         return rows.map(r => r.date);
       } catch (e) { return []; }
-    } else if (market.toUpperCase() === 'RTM') {
+    } else if (market.toUpperCase() === 'CONSUMER') {
       try {
-        const rows = await prisma.forecastRtm.findMany({
+        const rows = await prisma.forecastConsumerDemand.findMany({
+          select: { date: true },
+          distinct: ['date'],
+          orderBy: { date: 'desc' }
+        });
+        return rows.map(r => r.date);
+      } catch (e) { return []; }
+    } else if (market.toUpperCase() === 'ALL-INDIA') {
+      try {
+        const rows = await prisma.forecastAllIndiaDemand.findMany({
           select: { date: true },
           distinct: ['date'],
           orderBy: { date: 'desc' }

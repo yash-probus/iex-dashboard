@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Alert, Paper, Grid, ToggleButton, ToggleButtonGroup, Button, TextField, MenuItem, Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableRow, TableHead } from '@mui/material';
+import { Box, Typography, Alert, Paper, Grid, ToggleButton, ToggleButtonGroup, Button, TextField, MenuItem, Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableRow, TableHead, Popover, IconButton, InputAdornment } from '@mui/material';
 import {
   Timeline as TimelineIcon,
   FileDownload as DownloadIcon,
@@ -8,8 +8,12 @@ import {
   ElectricBolt,
   ShowChart,
   Construction as ConstructionIcon,
-  TrendingDown
+  TrendingDown,
+  CalendarToday as CalendarTodayIcon
 } from '@mui/icons-material';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
+import { format, parseISO } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import DateRangePicker from '../components/common/DateRangePicker';
 import ActionButton from '../components/common/ActionButton';
@@ -79,6 +83,16 @@ export default function ForecastPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Popover state for Calendar
+  const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+  const handleCalendarOpen = (event: React.MouseEvent<HTMLDivElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleCalendarClose = () => {
+    setAnchorEl(null);
+  };
+  const calendarOpen = Boolean(anchorEl);
+
   // Fetch available dates from database
   useEffect(() => {
     const fetchDates = async () => {
@@ -101,9 +115,7 @@ export default function ForecastPage() {
       }
     };
 
-    if (isPrice && subType === 'dam') {
-      fetchDates();
-    }
+    fetchDates();
   }, [subType, isPrice]);
 
   // Sync local filter states with filters when filters change
@@ -116,12 +128,13 @@ export default function ForecastPage() {
 
   // Fetch forecast data
   const fetchForecast = async () => {
-    if (isDemand) return; // Skip fetching if demand is under progress
-
     setIsLoading(true);
     setError(null);
     try {
-      const endpoint = `/forecast/price?market=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}&model=${filters.model}`;
+      const endpoint = isDemand
+        ? `/forecast/demand?type=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}`
+        : `/forecast/price?market=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}&model=${filters.model}`;
+        
       const res = await apiClient.get(endpoint);
       if (res.data && res.data.success) {
         setData(res.data.data.intervals || []);
@@ -296,56 +309,64 @@ export default function ForecastPage() {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            {availableDates.length > 0 ? (
+            <Box sx={{ display: 'flex', alignItems: 'center' }} onClick={handleCalendarOpen}>
               <TextField
-                select
                 label="Forecast Date"
                 value={localStartDate}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setLocalStartDate(val);
-                  setLocalEndDate(val);
-                  setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
-                }}
                 size="small"
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton edge="end" size="small">
+                        <CalendarTodayIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
                 sx={{
                   minWidth: 180,
+                  cursor: 'pointer',
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2.5,
-                  }
-                }}
-              >
-                {availableDates.map((d) => (
-                  <MenuItem key={d} value={d}>
-                    {new Date(d).toLocaleDateString('en-IN', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-                  </MenuItem>
-                ))}
-              </TextField>
-            ) : (
-              <TextField
-                type="date"
-                label="Forecast Date"
-                value={localStartDate}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setLocalStartDate(val);
-                  setLocalEndDate(val);
-                  setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
-                }}
-                size="small"
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  minWidth: 180,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2.5,
+                    cursor: 'pointer',
+                    '& input': { cursor: 'pointer' }
                   }
                 }}
               />
-            )}
+            </Box>
+            <Popover
+              open={calendarOpen}
+              anchorEl={anchorEl}
+              onClose={handleCalendarClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+            >
+              <Box sx={{ p: 2, '& .rdp': { '--rdp-accent-color': accentColor } }}>
+                <DayPicker
+                  mode="single"
+                  selected={localStartDate ? parseISO(localStartDate) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      const val = format(date, 'yyyy-MM-dd');
+                      setLocalStartDate(val);
+                      setLocalEndDate(val);
+                      setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
+                      handleCalendarClose();
+                    }
+                  }}
+                  modifiers={{
+                    available: (date) => availableDates.includes(format(date, 'yyyy-MM-dd')),
+                    unavailable: (date) => !availableDates.includes(format(date, 'yyyy-MM-dd'))
+                  }}
+                  modifiersStyles={{
+                    unavailable: { opacity: 0.3, cursor: 'not-allowed' },
+                    available: { fontWeight: 'bold' }
+                  }}
+                  disabled={(date) => !availableDates.includes(format(date, 'yyyy-MM-dd'))}
+                />
+              </Box>
+            </Popover>
 
             <TextField
               select
@@ -405,68 +426,124 @@ export default function ForecastPage() {
           {/* Summary Cards */}
           {/* Summary Cards */}
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: '100%', mb: 3 }}>
-            {/* Average Card */}
-            <Box sx={{ flex: '1.8 1 280px', minWidth: 260 }}>
-              {isLoading ? <SummaryCardSkeleton /> : (
-                <SummaryCard
-                  title="Average MCP"
-                  value={
-                    <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
-                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                          ₹{Number(summaryMetrics.averageMcpForecasted || summaryMetrics.averageMcp || 0).toFixed(2)}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
-                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                          {summaryMetrics.averageMcpActual === 'N/A' || summaryMetrics.averageMcpActual === undefined || summaryMetrics.averageMcpActual === null
-                            ? 'N/A'
-                            : `₹${Number(summaryMetrics.averageMcpActual).toFixed(2)}`}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  }
-                  icon={<TrendingUp fontSize="small" />}
-                  accentColor={accentColor}
-                  sx={{ p: 1.75 }}
-                />
-              )}
-            </Box>
+            {/* Average / Min / Max Cards */}
+            {isDemand ? (
+              <>
+                <Box sx={{ flex: '1 1 200px', minWidth: 190 }}>
+                  {isLoading ? <SummaryCardSkeleton /> : (
+                    <SummaryCard
+                      title={subType === 'consumer' ? "Average Apparent Energy" : "Average Demand"}
+                      value={summaryMetrics.averageDemand ? `${summaryMetrics.averageDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
+                      icon={<TrendingUp fontSize="small" />}
+                      accentColor={accentColor}
+                      sx={{ p: 1.75 }}
+                    />
+                  )}
+                </Box>
+                <Box sx={{ flex: '1 1 200px', minWidth: 190 }}>
+                  {isLoading ? <SummaryCardSkeleton /> : (
+                    <SummaryCard
+                      title={subType === 'consumer' ? "Minimum Apparent Energy" : "Minimum Demand"}
+                      value={summaryMetrics.minDemand ? `${summaryMetrics.minDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
+                      icon={<TrendingDown fontSize="small" />}
+                      accentColor={accentColor}
+                      sx={{ p: 1.75 }}
+                    />
+                  )}
+                </Box>
+                <Box sx={{ flex: '1 1 200px', minWidth: 190 }}>
+                  {isLoading ? <SummaryCardSkeleton /> : (
+                    <SummaryCard
+                      title={subType === 'consumer' ? "Maximum Apparent Energy" : "Maximum Demand"}
+                      value={summaryMetrics.maxDemand ? `${summaryMetrics.maxDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
+                      icon={<TrendingUp fontSize="small" />}
+                      accentColor={accentColor}
+                      sx={{ p: 1.75 }}
+                    />
+                  )}
+                </Box>
+              </>
+            ) : (
+              <>
+                {/* Average Card */}
+                <Box sx={{ flex: '1 1 200px', minWidth: 190 }}>
+                  {isLoading ? <SummaryCardSkeleton /> : (
+                    <SummaryCard
+                      title="Average MCP"
+                      value={
+                        <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              ₹{Number(summaryMetrics.averageMcpForecasted || summaryMetrics.averageMcp || 0).toFixed(2)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              {summaryMetrics.averageMcpActual === 'N/A' || summaryMetrics.averageMcpActual === undefined || summaryMetrics.averageMcpActual === null
+                                ? 'N/A'
+                                : `₹${Number(summaryMetrics.averageMcpActual).toFixed(2)}`}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      }
+                      icon={<TrendingUp fontSize="small" />}
+                      accentColor={accentColor}
+                      sx={{ p: 1.75 }}
+                    />
+                  )}
+                </Box>
 
-            {/* Minimum Card */}
-            <Box sx={{ flex: '1.8 1 280px', minWidth: 260 }}>
+                {/* Minimum Card */}
+                <Box sx={{ flex: '1 1 200px', minWidth: 190 }}>
+                  {isLoading ? <SummaryCardSkeleton /> : (
+                    <SummaryCard
+                      title="Minimum MCP"
+                      value={
+                        <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              ₹{Number(summaryMetrics.minMcpForecasted || summaryMetrics.minMcp || 0).toFixed(2)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              {summaryMetrics.minMcpActual === 'N/A' || summaryMetrics.minMcpActual === undefined || summaryMetrics.minMcpActual === null
+                                ? 'N/A'
+                                : `₹${Number(summaryMetrics.minMcpActual).toFixed(2)}`}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      }
+                      icon={<TrendingDown fontSize="small" />}
+                      accentColor={accentColor}
+                      sx={{ p: 1.75 }}
+                    />
+                  )}
+                </Box>
+              </>
+            )}
+
+            {/* MAE Card */}
+            <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
-                  title="Minimum MCP"
-                  value={
-                    <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
-                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                          ₹{Number(summaryMetrics.minMcpForecasted || summaryMetrics.minMcp || 0).toFixed(2)}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
-                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                          {summaryMetrics.minMcpActual === 'N/A' || summaryMetrics.minMcpActual === undefined || summaryMetrics.minMcpActual === null
-                            ? 'N/A'
-                            : `₹${Number(summaryMetrics.minMcpActual).toFixed(2)}`}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  }
-                  icon={<TrendingDown fontSize="small" />}
-                  accentColor={accentColor}
+                  title="MAE"
+                  value={summaryMetrics.mae !== undefined && summaryMetrics.mae !== null && summaryMetrics.mae !== 'N/A' 
+                    ? (isDemand ? Number(summaryMetrics.mae).toFixed(2) : `₹${Number(summaryMetrics.mae).toFixed(2)}`) 
+                    : 'N/A'}
+                  icon={<ShowChart fontSize="small" />}
+                  accentColor="#EF4444"
                   sx={{ p: 1.75 }}
                 />
               )}
             </Box>
 
             {/* MAPE Card */}
-            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
+            <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="MAPE"
@@ -478,25 +555,12 @@ export default function ForecastPage() {
               )}
             </Box>
 
-            {/* MAE Card */}
-            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
+            {/* WMAPE Card */}
+            <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
-                  title="MAE"
-                  value={summaryMetrics.mae !== undefined && summaryMetrics.mae !== null && summaryMetrics.mae !== 'N/A' ? `₹${Number(summaryMetrics.mae).toFixed(2)}` : 'N/A'}
-                  icon={<ShowChart fontSize="small" />}
-                  accentColor="#EF4444"
-                  sx={{ p: 1.75 }}
-                />
-              )}
-            </Box>
-
-            {/* Avg Absolute Error Card */}
-            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
-              {isLoading ? <SummaryCardSkeleton /> : (
-                <SummaryCard
-                  title="Avg. Abs. Error"
-                  value={summaryMetrics.avgAbsoluteError !== undefined && summaryMetrics.avgAbsoluteError !== null && summaryMetrics.avgAbsoluteError !== 'N/A' ? `₹${Number(summaryMetrics.avgAbsoluteError).toFixed(2)}` : 'N/A'}
+                  title="WMAPE"
+                  value={summaryMetrics.wmape || 'N/A'}
                   icon={<ShowChart fontSize="small" />}
                   accentColor="#3B82F6"
                   sx={{ p: 1.75 }}
@@ -504,18 +568,20 @@ export default function ForecastPage() {
               )}
             </Box>
 
-            {/* Confidence Card */}
-            <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
-              {isLoading ? <SummaryCardSkeleton /> : (
-                <SummaryCard
-                  title="Confidence"
-                  value={summaryMetrics.confidence || 'N/A'}
-                  icon={<ShowChart fontSize="small" />}
-                  accentColor="#8B5CF6"
-                  sx={{ p: 1.75 }}
-                />
-              )}
-            </Box>
+            {/* Confidence Card (Price Only) */}
+            {!isDemand && (
+              <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
+                {isLoading ? <SummaryCardSkeleton /> : (
+                  <SummaryCard
+                    title="Confidence"
+                    value={summaryMetrics.confidence || 'N/A'}
+                    icon={<ShowChart fontSize="small" />}
+                    accentColor="#8B5CF6"
+                    sx={{ p: 1.75 }}
+                  />
+                )}
+              </Box>
+            )}
           </Box>
 
           {isLoading ? (
