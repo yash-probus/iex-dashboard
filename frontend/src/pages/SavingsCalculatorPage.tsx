@@ -664,17 +664,19 @@ export default function SavingsCalculatorPage() {
         probusPlatformFee: probusPlatformFee ? Number(probusPlatformFee) : undefined,
         todConsumptions: Object.keys(todConsumptions).length > 0 ? 
           Object.fromEntries(
-            Object.entries(todConsumptions).map(([ym, data]) => [
-              ym,
-              Object.fromEntries(Object.entries(data).filter(([_, v]) => v.trim() !== '').map(([k, v]) => [k, parseFloat(v)]))
-            ])
+            Object.entries(todConsumptions).map(([ym, data]) => {
+              const stringFields = ['Start Date', 'End Date', 'Electricity Duty'];
+              const processed = Object.fromEntries(
+                Object.entries(data)
+                  .filter(([_, v]) => v.trim() !== '')
+                  .map(([k, v]) => [k, stringFields.includes(k) ? v : parseFloat(v)])
+              );
+              return [ym, processed];
+            })
           )
           : undefined,
         billedDemandKv: billedDemandKv.trim() ? parseFloat(billedDemandKv) : undefined,
         powerFactor: powerFactor.trim() ? parseFloat(powerFactor) : undefined,
-        arrearAmount: arrearAmount.trim() ? parseFloat(arrearAmount) : undefined,
-        currentLpsc: currentLpsc.trim() ? parseFloat(currentLpsc) : undefined,
-        billDate: billDate.trim() || undefined
       };
 
       if (dialogMode === 'create') {
@@ -1002,7 +1004,7 @@ export default function SavingsCalculatorPage() {
                   if (stepIndex === 5) {
                     // After Sanction Load, open TOD Consumption dialog
                     setTodDialogOpen(true);
-                  } else if (stepIndex < 6) {
+                  } else if (stepIndex < 5) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     setProltDialogOpen(true);
@@ -1520,73 +1522,6 @@ export default function SavingsCalculatorPage() {
             )
           })}
 
-          {renderStep(6, {
-            icon: <CalculateIcon />,
-            title: "Additional Billing Details",
-            question: "Enter specific billing parameters to improve insights accuracy (optional).",
-            summary: "Additional details provided",
-            content: (
-              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                <TextField
-                  label="Billed Demand (kVA)"
-                  value={billedDemandKv}
-                  onChange={(e) => setBilledDemandKv(e.target.value)}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  type="number"
-                />
-                <TextField
-                  label="Power Factor (e.g., 0.95)"
-                  value={powerFactor}
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    if (val !== '') {
-                      if (Number(val) > 1) val = '1';
-                      else if (Number(val) < 0) val = '';
-                    }
-                    setPowerFactor(val);
-                  }}
-                  onBlur={(e) => {
-                    if (powerFactor !== '' && Number(powerFactor) <= 0) {
-                      setPowerFactor('0.01');
-                    }
-                  }}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  type="number"
-                  inputProps={{ max: 1, min: 0.01, step: 0.01 }}
-                />
-                <TextField
-                  label="Arrear Amount (₹)"
-                  value={arrearAmount}
-                  onChange={(e) => setArrearAmount(e.target.value)}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  type="number"
-                />
-                <TextField
-                  label="Current LPSC (₹)"
-                  value={currentLpsc}
-                  onChange={(e) => setCurrentLpsc(e.target.value)}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  type="number"
-                />
-                <TextField
-                  label="Bill Date (e.g., 06-Dec-2025)"
-                  value={billDate}
-                  onChange={(e) => setBillDate(e.target.value)}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                />
-              </Box>
-            )
-          })}
 
             </>
           )}
@@ -1781,6 +1716,22 @@ export default function SavingsCalculatorPage() {
                         <MenuItem value="No">No</MenuItem>
                       </TextField>
                     </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Arrear Amount (₹)"
+                        value={todConsumptions[ym]['Arrear Amount'] || ''}
+                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Arrear Amount': e.target.value } }))}
+                        fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Current LPSC (₹)"
+                        value={todConsumptions[ym]['Current LPSC'] || ''}
+                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Current LPSC': e.target.value } }))}
+                        fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                      />
+                    </Grid>
                   </Grid>
                 </Card>
               );
@@ -1802,7 +1753,7 @@ export default function SavingsCalculatorPage() {
                 return;
               }
               setTodDialogOpen(false);
-              setActiveStep(6);
+              setProltDialogOpen(true);
             }}
             sx={{
               bgcolor: '#8B5CF6',
