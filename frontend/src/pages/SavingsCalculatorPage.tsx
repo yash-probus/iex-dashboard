@@ -681,41 +681,8 @@ export default function SavingsCalculatorPage() {
     }
   };
 
-  const handleOpenCalc = async (entry: SavingsCalculatorEntry) => {
-    setCalcEntry(entry);
-    
-    
-    setCalcDialogOpen(true);
-    setCalcTab(0);
-    
-    const months = Object.keys(entry.todConsumptions || {}).sort();
-    setSelectedSimMonth(months.length > 0 ? months[0] : '');
-
-    setOverviewLoading(true);
-    fetchClientOverview(entry.id)
-      .then(overview => {
-        setClientOverview(overview);
-        setOverviewLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch overview", err);
-        setOverviewLoading(false);
-      });
-
-    try {
-      const history = await fetchEntryHistory(entry.id);
-      const versions = history.map(h => h.version).sort((a, b) => b - a);
-      setCalcVersions(versions);
-      if (versions.length > 0) {
-        setSelectedCalcVersion(versions[0]);
-      } else {
-        setSelectedCalcVersion('');
-      }
-    } catch (err) {
-      console.error('Failed to load entry history:', err);
-      setCalcVersions([]);
-      setSelectedCalcVersion('');
-    }
+  const handleOpenCalc = (entry: SavingsCalculatorEntry) => {
+    navigate(`/savings-calculator/analysis/${entry.id}`);
   };
 
   const handleCloseCalc = (event?: any, reason?: string) => {
