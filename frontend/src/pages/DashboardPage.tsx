@@ -131,31 +131,37 @@ export default function DashboardPage() {
               }}
               onClick={() => navigate(mod.path)}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', mb: 1.5 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ 
-                    color: mod.color, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    width: 48, 
-                    height: 48, 
-                    bgcolor: alpha(mod.color, 0.1), 
-                    borderRadius: '50%', 
-                    flexShrink: 0 
-                  }}>
-                    {React.cloneElement(mod.icon, { sx: { fontSize: 24 } })}
+              <Box sx={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
+                {/* Icon Container */}
+                <Box sx={{ 
+                  color: mod.color, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  width: 48, 
+                  height: 48, 
+                  bgcolor: alpha(mod.color, 0.1), 
+                  borderRadius: '50%', 
+                  flexShrink: 0,
+                  mr: 2
+                }}>
+                  {React.cloneElement(mod.icon, { sx: { fontSize: 24 } })}
+                </Box>
+                
+                {/* Text and Action Container */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#0A1128', fontSize: '1.15rem', letterSpacing: '-0.3px', textAlign: 'left', lineHeight: 1.2 }}>
+                      {mod.title}
+                    </Typography>
+                    <OpenInNewIcon sx={{ fontSize: 20, color: 'text.secondary', opacity: 0.6 }} />
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0A1128', fontSize: '1.15rem', letterSpacing: '-0.3px', textAlign: 'left', lineHeight: 1.2 }}>
-                    {mod.title}
+                  
+                  <Typography variant="body2" sx={{ color: '#4A5568', lineHeight: 1.5, fontSize: '0.95rem', textAlign: 'left' }}>
+                    {mod.description}
                   </Typography>
                 </Box>
-                <OpenInNewIcon sx={{ fontSize: 20, color: 'text.secondary', opacity: 0.6, mt: 1 }} />
               </Box>
-
-              <Typography variant="body2" sx={{ color: '#4A5568', flexGrow: 1, lineHeight: 1.5, fontSize: '0.95rem', textAlign: 'left', width: '100%' }}>
-                {mod.description}
-              </Typography>
             </Paper>
           </Grid>
         ))}
