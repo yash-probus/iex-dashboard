@@ -75,32 +75,53 @@ const getChanges = (current: any, previous: any) => {
   if (!previous) return [];
   const changes: { label: string, old: any, new: any }[] = [];
   const fields = [
-    { key: 'clientName', label: 'Client' },
-    { key: 'industryName', label: 'Industry' },
-    { key: 'address', label: 'Address' },
-    { key: 'stateCode', label: 'State' },
-    { key: 'discom', label: 'Discom' },
-    { key: 'consumerCategory', label: 'Category' },
-    { key: 'voltageLevel', label: 'Voltage' },
-    { key: 'sanctionedLoadKw', label: 'Load (kW)' },
-    { key: 'proltMargin', label: 'PROLT Margin' },
-    { key: 'traderMargin', label: 'Trader Margin' },
-    { key: 'consultancyFee', label: 'Consultancy Fee' },
-    { key: 'probusPlatformFee', label: 'Platform Fee' },
-    { key: 'applyElectricityDuty', label: 'Electricity Duty' },
-    { key: 'billedDemandKv', label: 'Billed Demand (kV)' },
-    { key: 'powerFactor', label: 'Power Factor' },
-    { key: 'arrearAmount', label: 'Arrear Amount' },
-    { key: 'currentLpsc', label: 'Current LPSC' }
+    { key: 'clientName', label: 'Client', isNumeric: false },
+    { key: 'industryName', label: 'Industry', isNumeric: false },
+    { key: 'address', label: 'Address', isNumeric: false },
+    { key: 'stateCode', label: 'State', isNumeric: false },
+    { key: 'discom', label: 'Discom', isNumeric: false },
+    { key: 'consumerCategory', label: 'Category', isNumeric: false },
+    { key: 'voltageLevel', label: 'Voltage', isNumeric: false },
+    { key: 'sanctionedLoadKw', label: 'Load (kW)', isNumeric: true },
+    { key: 'proltMargin', label: 'PROLT Margin', isNumeric: true },
+    { key: 'traderMargin', label: 'Trader Margin', isNumeric: true },
+    { key: 'consultancyFee', label: 'Consultancy Fee', isNumeric: true },
+    { key: 'probusPlatformFee', label: 'Platform Fee', isNumeric: true },
+    { key: 'applyElectricityDuty', label: 'Electricity Duty', isNumeric: false },
+    { key: 'billedDemandKv', label: 'Billed Demand (kV)', isNumeric: true },
+    { key: 'powerFactor', label: 'Power Factor', isNumeric: true },
+    { key: 'arrearAmount', label: 'Arrear Amount', isNumeric: true },
+    { key: 'currentLpsc', label: 'Current LPSC', isNumeric: true }
   ];
 
   fields.forEach(f => {
-    if (current[f.key] !== previous[f.key]) {
-      changes.push({
-        label: f.label,
-        old: previous[f.key],
-        new: current[f.key]
-      });
+    let valCurr = current[f.key];
+    let valPrev = previous[f.key];
+    
+    if (f.isNumeric) {
+      const numCurr = valCurr !== undefined && valCurr !== null && valCurr !== '' ? Number(valCurr) : null;
+      const numPrev = valPrev !== undefined && valPrev !== null && valPrev !== '' ? Number(valPrev) : null;
+      
+      const isBothNull = numCurr === null && numPrev === null;
+      const isOneNull = numCurr === null || numPrev === null;
+      
+      if (!isBothNull && (isOneNull || numCurr !== numPrev)) {
+        changes.push({
+          label: f.label,
+          old: valPrev !== null && valPrev !== undefined && valPrev !== '' ? valPrev : 'None',
+          new: valCurr !== null && valCurr !== undefined && valCurr !== '' ? valCurr : 'None'
+        });
+      }
+    } else {
+      const strCurr = valCurr !== undefined && valCurr !== null ? String(valCurr).trim() : '';
+      const strPrev = valPrev !== undefined && valPrev !== null ? String(valPrev).trim() : '';
+      if (strCurr !== strPrev) {
+        changes.push({
+          label: f.label,
+          old: valPrev || 'None',
+          new: valCurr || 'None'
+        });
+      }
     }
   });
 
