@@ -4,7 +4,7 @@ import { FormControlLabel, Switch,
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment, OutlinedInput
+  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment, OutlinedInput, Stack
 } from '@mui/material';
 import { 
   Calculate as CalculateIcon, 
@@ -28,7 +28,8 @@ import {
   BarChart as BarChartIcon,
   History as HistoryIcon,
   InfoOutlined as InfoOutlinedIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  ArrowRightAlt as ArrowRightAltIcon
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
@@ -67,6 +68,42 @@ type DialogMode = 'create' | 'edit' | 'view' | null;
 import { useAuth } from '../contexts/AuthContext';
 
 import { useNavigate } from 'react-router-dom';
+
+const getChanges = (current: any, previous: any) => {
+  if (!previous) return [];
+  const changes: { label: string, old: any, new: any }[] = [];
+  const fields = [
+    { key: 'clientName', label: 'Client' },
+    { key: 'industryName', label: 'Industry' },
+    { key: 'address', label: 'Address' },
+    { key: 'stateCode', label: 'State' },
+    { key: 'discom', label: 'Discom' },
+    { key: 'consumerCategory', label: 'Category' },
+    { key: 'voltageLevel', label: 'Voltage' },
+    { key: 'sanctionedLoadKw', label: 'Load (kW)' },
+    { key: 'proltMargin', label: 'PROLT Margin' },
+    { key: 'traderMargin', label: 'Trader Margin' },
+    { key: 'consultancyFee', label: 'Consultancy Fee' },
+    { key: 'probusPlatformFee', label: 'Platform Fee' },
+    { key: 'applyElectricityDuty', label: 'Electricity Duty' },
+    { key: 'billedDemandKv', label: 'Billed Demand (kV)' },
+    { key: 'powerFactor', label: 'Power Factor' },
+    { key: 'arrearAmount', label: 'Arrear Amount' },
+    { key: 'currentLpsc', label: 'Current LPSC' }
+  ];
+
+  fields.forEach(f => {
+    if (current[f.key] !== previous[f.key]) {
+      changes.push({
+        label: f.label,
+        old: previous[f.key],
+        new: current[f.key]
+      });
+    }
+  });
+
+  return changes;
+};
 
 export default function SavingsCalculatorPage() {
   const navigate = useNavigate();
@@ -2612,7 +2649,10 @@ export default function SavingsCalculatorPage() {
             </Box>
           ) : historyData && historyData.length > 0 ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {historyData.map((v) => (
+              {historyData.map((v) => {
+                const previousVersion = historyData.find(p => p.version === v.version - 1);
+                const changes = previousVersion ? getChanges(v, previousVersion) : [];
+                return (
                 <Paper key={v.id} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="subtitle1" fontWeight={700} color="primary">
@@ -2648,8 +2688,24 @@ export default function SavingsCalculatorPage() {
                       <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
                     </Grid>
                   </Grid>
+                  {changes.length > 0 && (
+                    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary" mb={1}>Changes from Version {previousVersion?.version}:</Typography>
+                      <Stack spacing={1}>
+                        {changes.map(c => (
+                          <Box key={c.label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" fontWeight={600}>{c.label}:</Typography>
+                            <Typography variant="body2" color="error.main" sx={{ textDecoration: 'line-through' }}>{c.old ?? 'None'}</Typography>
+                            <ArrowRightAltIcon fontSize="small" color="action" />
+                            <Typography variant="body2" color="success.main" fontWeight={600}>{c.new ?? 'None'}</Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
                 </Paper>
-              ))}
+              );
+            })}
             </Box>
           ) : (
             <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
