@@ -4,7 +4,7 @@ import { FormControlLabel, Switch,
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment
+  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment, OutlinedInput
 } from '@mui/material';
 import { 
   Calculate as CalculateIcon, 
@@ -27,7 +27,8 @@ import {
   FileDownload as FileDownloadIcon,
   BarChart as BarChartIcon,
   History as HistoryIcon,
-  InfoOutlined as InfoOutlinedIcon
+  InfoOutlined as InfoOutlinedIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
@@ -65,7 +66,10 @@ type DialogMode = 'create' | 'edit' | 'view' | null;
 
 import { useAuth } from '../contexts/AuthContext';
 
+import { useNavigate } from 'react-router-dom';
+
 export default function SavingsCalculatorPage() {
+  const navigate = useNavigate();
   const { isAdmin, user } = useAuth();
   
   const isReadOnly = (user as any)?.readOnlyModules?.includes('savings-calculator');
@@ -76,6 +80,10 @@ export default function SavingsCalculatorPage() {
   const [entries, setEntries] = useState<SavingsCalculatorEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Dialog State
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
@@ -223,6 +231,40 @@ export default function SavingsCalculatorPage() {
 
   const [entryYear, setEntryYear] = useState<number>(new Date().getFullYear());
   const [entryMonth, setEntryMonth] = useState<number>(new Date().getMonth() + 1);
+
+  const filteredAndSortedEntries = React.useMemo(() => {
+    let result = [...entries];
+    
+    // Filtering
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(e => 
+        e.clientName?.toLowerCase().includes(q) ||
+        e.industryName?.toLowerCase().includes(q) ||
+        e.stateCode?.toLowerCase().includes(q) ||
+        e.discom?.toLowerCase().includes(q) ||
+        e.consumerCategory?.toLowerCase().includes(q)
+      );
+    }
+    
+    result.sort((a, b) => {
+      let aVal = a[sortBy as keyof SavingsCalculatorEntry] ?? '';
+      let bVal = b[sortBy as keyof SavingsCalculatorEntry] ?? '';
+      
+      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+      
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    // Add serial number
+    return result.map((entry, idx) => ({
+      ...entry,
+      sno: idx + 1
+    }));
+  }, [entries, searchQuery, sortBy, sortOrder]);
 
   const [selectedSimMonth, setSelectedSimMonth] = useState<string>('');
   const calcResult = cachedResults[selectedSimMonth]?.calc || null;
@@ -428,15 +470,8 @@ export default function SavingsCalculatorPage() {
       setSelectedEntry(entry);
       
       if (mode === 'view') {
-        setOverviewLoading(true);
-        try {
-          const overview = await fetchClientOverview(entry.id);
-          setClientOverview(overview);
-        } catch (err) {
-          console.error("Failed to fetch overview", err);
-        } finally {
-          setOverviewLoading(false);
-        }
+        navigate(`/savings-calculator/view/${entry.id}`);
+        return;
       }
       setClientName(entry.clientName);
       setIndustryName(entry.industryName);
@@ -987,6 +1022,7 @@ export default function SavingsCalculatorPage() {
   };
 
   const columns: ColumnDefinition[] = [
+    { field: 'sno', headerName: 'Client ID', align: 'center', width: 90 },
     { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150 },
     { field: 'industryName', headerName: 'Industry Name', align: 'left', minWidth: 150 },
     { field: 'sanctionedLoadKw', headerName: 'Sanctioned Load (kW)', align: 'center', width: 140, valueFormatter: (v) => v ? Number(v).toLocaleString('en-IN') : '-' },
@@ -1097,6 +1133,23 @@ export default function SavingsCalculatorPage() {
           </Box>
         </Box>
 
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <OutlinedInput
+            placeholder="Search entries..."
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            startAdornment={
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              </InputAdornment>
+            }
+            sx={{
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+              minWidth: 250
+            }}
+          />
         {canEdit && (
           <Button
             variant="contained"
@@ -1117,6 +1170,7 @@ export default function SavingsCalculatorPage() {
             Create New Entry
           </Button>
         )}
+        </Box>
       </Box>
 
       {error && (
@@ -1127,7 +1181,7 @@ export default function SavingsCalculatorPage() {
 
       <TableContainer
         title="Savings Calculator Entries"
-        data={entries}
+        data={filteredAndSortedEntries}
         columns={columns}
         loading={loading}
         emptyStateMessage={
@@ -1159,11 +1213,7 @@ export default function SavingsCalculatorPage() {
         
         <DialogContent sx={{ pt: 2, mx: 'auto', width: '100%', pb: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {dialogMode === 'view' ? (
-            <Box sx={{ width: '100%' }}>
-              <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={overviewLoading} />
-            </Box>
-          ) : (
+          {dialogMode !== 'view' && (
             <>
             <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
               <Box sx={{ 
