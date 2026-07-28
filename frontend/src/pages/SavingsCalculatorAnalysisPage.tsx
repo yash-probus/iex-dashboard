@@ -1026,7 +1026,7 @@ const exportInsightsToExcel = async () => {
                   <Box sx={{ bgcolor: '#EFF6FF', p: 3, borderRadius: 3, border: '1px solid', borderColor: '#BFDBFE', height: '100%' }}>
                     <Typography variant="subtitle2" color="#1E40AF" sx={{ mb: 1 }}>Total Potential Savings</Typography>
                     {(() => {
-                      const baseRawSavings = marketDecisionResult ? (marketDecisionResult.totalSavings - (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) - (marketDecisionResult.oaDetailed?.bidApplicationFees || 0)) : 0;
+                      const baseRawSavings = marketDecisionResult ? marketDecisionResult.totalSavings : 0;
                       const baseSavings = Math.max(0, baseRawSavings);
                       const totalCombinedSavings = baseSavings + demandShiftInsights.savingsAchieved;
                       return (
