@@ -567,17 +567,28 @@ export class SavingsCalculatorService {
         whereClause.subCategory = { contains: parsedSubCategory };
       }
 
-      let startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-      let lastDay = new Date(year, month, 0).getDate();
-      let endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+      let startDayInput = monthConsumptions['Start Date'];
+      let endDayInput = monthConsumptions['End Date'];
+      
+      let startDay = startDayInput ? Number(startDayInput) : (entry.discom === 'NPCL' ? 19 : 1);
+      let endDay = endDayInput ? Number(endDayInput) : (entry.discom === 'NPCL' ? 18 : 0); // default to 0 for non-NPCL which resolves to last day
 
-      if (entry.discom === 'NPCL') {
-        startStr = `${year}-${String(month).padStart(2, '0')}-19`;
-        const nextMonthDate = new Date(year, month, 18);
-        const endYear = nextMonthDate.getFullYear();
-        const endMonth = nextMonthDate.getMonth() + 1;
-        endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-18`;
+      let startStr = `${year}-${String(month).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+      
+      let endYear = year;
+      let endMonth = month;
+      
+      if (endDay === 0) {
+        let lastDay = new Date(year, month, 0).getDate();
+        endDay = lastDay;
+      } else if (endDay <= startDay) {
+        // move to next month
+        const nextMonthDate = new Date(year, month, endDay);
+        endYear = nextMonthDate.getFullYear();
+        endMonth = nextMonthDate.getMonth() + 1;
       }
+      
+      let endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
 
       // Fetch stateCharges for losses
       const stateCharges = await prisma.stateCharges.findFirst({

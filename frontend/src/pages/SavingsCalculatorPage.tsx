@@ -1583,7 +1583,16 @@ export default function SavingsCalculatorPage() {
                     onClick={() => {
                       const key = `${entryYear}-${String(entryMonth).padStart(2, '0')}`;
                       if (!todConsumptions[key]) {
-                        setTodConsumptions(prev => ({ ...prev, [key]: {} }));
+                        const defaultStart = discom === 'NPCL' ? '19' : '1';
+                        const defaultEnd = discom === 'NPCL' ? '19' : '1';
+                        setTodConsumptions(prev => ({ 
+                          ...prev, 
+                          [key]: {
+                            'Power Factor': 'Yes',
+                            'Start Date': defaultStart,
+                            'End Date': defaultEnd
+                          } 
+                        }));
                       }
                     }}
                     sx={{ height: 40, textTransform: 'none', borderRadius: 2 }}
@@ -1648,6 +1657,54 @@ export default function SavingsCalculatorPage() {
                           size="small"
                           type="number"
                           placeholder="0"
+                          sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          select
+                          label="Power Factor Maintained?"
+                          value={todConsumptions[ym]['Power Factor'] || 'Yes'}
+                          onChange={(e) => setTodConsumptions(prev => ({
+                            ...prev,
+                            [ym]: { ...prev[ym], 'Power Factor': e.target.value }
+                          }))}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          sx={{ bgcolor: '#FFF', textAlign: 'left' }}
+                        >
+                          <MenuItem value="Yes">Yes</MenuItem>
+                          <MenuItem value="No">No</MenuItem>
+                        </TextField>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Billing Start Date"
+                          value={todConsumptions[ym]['Start Date'] || ''}
+                          onChange={(e) => setTodConsumptions(prev => ({
+                            ...prev,
+                            [ym]: { ...prev[ym], 'Start Date': e.target.value }
+                          }))}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          placeholder="e.g., 1 or 19"
+                          sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Billing End Date"
+                          value={todConsumptions[ym]['End Date'] || ''}
+                          onChange={(e) => setTodConsumptions(prev => ({
+                            ...prev,
+                            [ym]: { ...prev[ym], 'End Date': e.target.value }
+                          }))}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          placeholder="e.g., 1 or 19"
                           sx={{ bgcolor: '#FFF' }}
                         />
                       </Grid>
