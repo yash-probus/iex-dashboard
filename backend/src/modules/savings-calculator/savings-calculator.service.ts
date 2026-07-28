@@ -476,7 +476,7 @@ export class SavingsCalculatorService {
   }
 
   static async calculateSavingsHV1(entry: any, targetMonth?: string) {
-    throw new Error('Calculation logic for HV-1 is not yet implemented.');
+    return this.calculateSavingsHV2(entry, targetMonth);
   }
 
   static async calculateSavingsHV2(entry: any, targetMonth?: string) {
@@ -570,8 +570,35 @@ export class SavingsCalculatorService {
       let startDayInput = monthConsumptions['Start Date'];
       let endDayInput = monthConsumptions['End Date'];
       
-      let startDay = startDayInput ? Number(startDayInput) : (entry.discom === 'NPCL' ? 19 : 1);
-      let endDay = endDayInput ? Number(endDayInput) : (entry.discom === 'NPCL' ? 18 : 0); // default to 0 for non-NPCL which resolves to last day
+      let startDay = 1;
+      if (startDayInput) {
+        if (typeof startDayInput === 'string' && startDayInput.includes('-')) {
+          const parts = startDayInput.split('-');
+          startDay = Number(parts[parts.length - 1]);
+        } else {
+          startDay = Number(startDayInput);
+        }
+      } else {
+        startDay = entry.discom === 'NPCL' ? 19 : 1;
+      }
+      if (isNaN(startDay)) {
+        startDay = entry.discom === 'NPCL' ? 19 : 1;
+      }
+
+      let endDay = 0;
+      if (endDayInput) {
+        if (typeof endDayInput === 'string' && endDayInput.includes('-')) {
+          const parts = endDayInput.split('-');
+          endDay = Number(parts[parts.length - 1]);
+        } else {
+          endDay = Number(endDayInput);
+        }
+      } else {
+        endDay = entry.discom === 'NPCL' ? 18 : 0;
+      }
+      if (isNaN(endDay)) {
+        endDay = entry.discom === 'NPCL' ? 18 : 0;
+      }
 
       let startStr = `${year}-${String(month).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
       
@@ -763,15 +790,19 @@ export class SavingsCalculatorService {
             }
           }
         } else if (tariffs.length > 0) {
-          const matched = tariffs.find(t => {
-            const start = parseHour(t.todStartTime);
-            const end = parseHour(t.todEndTime);
-            if (start <= end) {
-              return hour >= start && hour < end;
-            } else {
-              return hour >= start || hour < end;
-            }
-          });
+          const flatTariff = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+          let matched = flatTariff;
+          if (!flatTariff) {
+            matched = tariffs.find(t => {
+              const start = parseHour(t.todStartTime);
+              const end = parseHour(t.todEndTime);
+              if (start <= end) {
+                return hour >= start && hour < end;
+              } else {
+                return hour >= start || hour < end;
+              }
+            });
+          }
 
           if (matched) {
             discomLandingPrice = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
@@ -1249,12 +1280,16 @@ export class SavingsCalculatorService {
           }
         }
       } else if (tariffs.length > 0) {
-        const matched = tariffs.find(t => {
-          const start = parseHour(t.todStartTime);
-          const end = parseHour(t.todEndTime);
-          if (start <= end) return hour >= start && hour < end;
-          return hour >= start || hour < end;
-        });
+        const flatTariff = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+        let matched = flatTariff;
+        if (!flatTariff) {
+          matched = tariffs.find(t => {
+            const start = parseHour(t.todStartTime);
+            const end = parseHour(t.todEndTime);
+            if (start <= end) return hour >= start && hour < end;
+            return hour >= start || hour < end;
+          });
+        }
         if (matched) {
           discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
           matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
