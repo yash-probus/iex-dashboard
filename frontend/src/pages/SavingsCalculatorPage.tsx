@@ -994,7 +994,7 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 8) {
+                  if (stepIndex < 7) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     setProltDialogOpen(true);
@@ -1011,7 +1011,7 @@ export default function SavingsCalculatorPage() {
                   }
                 }
               }}
-              endIcon={stepIndex === 7 || stepIndex === 8 ? undefined : <ArrowForwardIcon />}
+              endIcon={stepIndex === 7 ? undefined : <ArrowForwardIcon />}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2.5, 
@@ -1022,7 +1022,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {stepIndex === 8 ? 'Next' : 'Continue'}
+              {stepIndex === 7 ? 'Next' : 'Continue'}
             </Button>
           </Box>
         </Card>
