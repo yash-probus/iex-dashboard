@@ -1385,7 +1385,25 @@ export default function SavingsCalculatorPage() {
                   select
                   label="Consumer Category"
                   value={consumerCategory}
-                  onChange={(e) => setConsumerCategory(e.target.value)}
+                  onChange={(e) => {
+                    const newCat = e.target.value;
+                    setConsumerCategory(newCat);
+                    
+                    // Reset or set appropriate default voltage level when category changes
+                    let defaultVoltage = '';
+                    let defaultSupplyValue = '';
+                    if (newCat.startsWith('LMV-')) {
+                      defaultVoltage = 'Low Tension (LT)';
+                    } else if (newCat.startsWith('HV-1')) {
+                      defaultVoltage = 'At 11 kV';
+                      defaultSupplyValue = '11';
+                    } else if (newCat.startsWith('HV-2')) {
+                      defaultVoltage = 'Up to 11 kV';
+                      defaultSupplyValue = '11';
+                    }
+                    setVoltageLevel(defaultVoltage);
+                    setSupplyVoltageValue(defaultSupplyValue);
+                  }}
                   fullWidth
                   variant="outlined"
                   size="small"
