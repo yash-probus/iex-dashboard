@@ -637,8 +637,9 @@ export default function SavingsCalculatorPage() {
     }
     
     setFormErrors(errors);
-    if (errors.stateCode || errors.discom) {
-      setSnackbar({ open: true, message: 'Please select a State and DISCOM.', severity: 'error' });
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      setSnackbar({ open: true, message: firstError, severity: 'error' });
     }
     return Object.keys(errors).length === 0;
   };
@@ -695,13 +696,16 @@ export default function SavingsCalculatorPage() {
         });
       }
 
+      setProltDialogOpen(false);
+      setTodDialogOpen(false);
       handleCloseDialog();
       loadEntries();
     } catch (err: any) {
       console.error('Failed to submit form:', err);
+      const errMsg = err.response?.data?.message || err.message || 'Operation failed. Please try again.';
       setSnackbar({
         open: true,
-        message: err.message || 'Operation failed. Please try again.',
+        message: errMsg,
         severity: 'error'
       });
     } finally {
@@ -1952,7 +1956,6 @@ export default function SavingsCalculatorPage() {
           <Button
             variant="contained"
             onClick={() => {
-              setProltDialogOpen(false);
               handleSubmit();
             }}
             sx={{
