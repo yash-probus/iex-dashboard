@@ -1588,9 +1588,10 @@ export default function SavingsCalculatorPage() {
                         setTodConsumptions(prev => ({ 
                           ...prev, 
                           [key]: {
-                            'Power Factor': 'Yes',
+                            'Power Factor': '',
                             'Start Date': defaultStart,
-                            'End Date': defaultEnd
+                            'End Date': defaultEnd,
+                            'Electricity Duty': 'Yes'
                           } 
                         }));
                       }
@@ -1662,9 +1663,8 @@ export default function SavingsCalculatorPage() {
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <TextField
-                          select
-                          label="Power Factor Maintained?"
-                          value={todConsumptions[ym]['Power Factor'] || 'Yes'}
+                          label="Power Factor"
+                          value={todConsumptions[ym]['Power Factor'] || ''}
                           onChange={(e) => setTodConsumptions(prev => ({
                             ...prev,
                             [ym]: { ...prev[ym], 'Power Factor': e.target.value }
@@ -1672,11 +1672,10 @@ export default function SavingsCalculatorPage() {
                           fullWidth
                           variant="outlined"
                           size="small"
-                          sx={{ bgcolor: '#FFF', textAlign: 'left' }}
-                        >
-                          <MenuItem value="Yes">Yes</MenuItem>
-                          <MenuItem value="No">No</MenuItem>
-                        </TextField>
+                          type="number"
+                          placeholder="e.g., 0.99"
+                          sx={{ bgcolor: '#FFF' }}
+                        />
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <TextField
@@ -1707,6 +1706,24 @@ export default function SavingsCalculatorPage() {
                           placeholder="e.g., 1 or 19"
                           sx={{ bgcolor: '#FFF' }}
                         />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          select
+                          label="Electricity Duty Applied?"
+                          value={todConsumptions[ym]['Electricity Duty'] || 'Yes'}
+                          onChange={(e) => setTodConsumptions(prev => ({
+                            ...prev,
+                            [ym]: { ...prev[ym], 'Electricity Duty': e.target.value }
+                          }))}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          sx={{ bgcolor: '#FFF', textAlign: 'left' }}
+                        >
+                          <MenuItem value="Yes">Yes</MenuItem>
+                          <MenuItem value="No">No</MenuItem>
+                        </TextField>
                       </Grid>
                     </Grid>
                   </Card>

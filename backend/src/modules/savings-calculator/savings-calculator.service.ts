@@ -1675,7 +1675,11 @@ export class SavingsCalculatorService {
       };
 
       const discountedSlabBill = slabEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
-      const slabED = entry.applyElectricityDuty !== false ? discountedSlabBill * 0.075 : 0;
+      let applyED = entry.applyElectricityDuty !== false;
+      if (monthConsumptions['Electricity Duty'] === 'Yes') applyED = true;
+      if (monthConsumptions['Electricity Duty'] === 'No') applyED = false;
+      
+      const slabED = applyED ? discountedSlabBill * 0.075 : 0;
       totalElectricityDuty += slabED;
 
       const slabTotalDiscomBill = discountedSlabBill + slabED;
