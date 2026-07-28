@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { SavingsCalculatorController } from './savings-calculator.controller';
+import { authMiddleware } from '../../middleware/auth.middleware';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 router.get('/', SavingsCalculatorController.getAll);
 router.get('/:id', SavingsCalculatorController.getById);
