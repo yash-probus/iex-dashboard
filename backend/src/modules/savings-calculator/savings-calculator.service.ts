@@ -344,45 +344,44 @@ export class SavingsCalculatorService {
     let aggregatedBidFees = 0;
     let aggregatedTotalDaysTraded = 0;
     
-    const promises = months.map(month => this.calculateMarketDecision(id, month, version).catch(e => {
-      console.error("Error calculating month", month, e);
-      return null;
-    }));
-    const results = await Promise.all(promises);
-
-    for (const res of results) {
-      if (res) {
-        totalSavings += res.totalSavings;
-        totalBaselineCost += res.totalBaselineCost;
-        totalEnergyKwh += res.totalEnergyKwh;
-        totalMarketEnergyKwh += res.totalMarketEnergyKwh;
-        totalLandedExchangeCost += res.totalLandedExchangeCost;
-        totalDiscomAfterProlt += res.totalDiscomAfterProlt;
-        demandCharge += res.demandCharge;
-        electricityDuty += res.electricityDuty;
-        peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
-        demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
-        
-        if (res.oaDetailed) {
-          const t = res.oaDetailed.totals;
-          aggregatedTotals.cssCharge += t.cssCharge;
-          aggregatedTotals.rpoCharge += t.rpoCharge;
-          aggregatedTotals.pocCharge += t.pocCharge;
-          aggregatedTotals.stuCharge += t.stuCharge;
-          aggregatedTotals.dcCharge += t.dcCharge;
-          aggregatedTotals.iexFee += t.iexFee;
-          aggregatedTotals.traderMargin += t.traderMargin;
-          aggregatedTotals.traderMarginGst += t.traderMarginGst;
-          aggregatedTotals.proltMarginCost += t.proltMarginCost;
-          aggregatedTotals.consultancyFee += (t as any).consultancyFee || 0;
-          aggregatedTotals.probusPlatformFee += (t as any).probusPlatformFee || 0;
+    for (const month of months) {
+      try {
+        const res = await this.calculateMarketDecision(id, month, version);
+        if (res) {
+          totalSavings += res.totalSavings;
+          totalBaselineCost += res.totalBaselineCost;
+          totalEnergyKwh += res.totalEnergyKwh;
+          totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+          totalLandedExchangeCost += res.totalLandedExchangeCost;
+          totalDiscomAfterProlt += res.totalDiscomAfterProlt;
+          demandCharge += res.demandCharge;
+          electricityDuty += res.electricityDuty;
+          peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
+          demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
           
-          aggregatedDailyOverhead += res.oaDetailed.dailyFixedOverhead;
-          aggregatedNldc += res.oaDetailed.nldcSchedulingCost;
-          aggregatedSldc += res.oaDetailed.sldcSchedulingCost;
-          aggregatedBidFees += res.oaDetailed.bidApplicationFees;
-          aggregatedTotalDaysTraded += res.oaDetailed.totalDaysTraded;
+          if (res.oaDetailed) {
+            const t = res.oaDetailed.totals;
+            aggregatedTotals.cssCharge += t.cssCharge;
+            aggregatedTotals.rpoCharge += t.rpoCharge;
+            aggregatedTotals.pocCharge += t.pocCharge;
+            aggregatedTotals.stuCharge += t.stuCharge;
+            aggregatedTotals.dcCharge += t.dcCharge;
+            aggregatedTotals.iexFee += t.iexFee;
+            aggregatedTotals.traderMargin += t.traderMargin;
+            aggregatedTotals.traderMarginGst += t.traderMarginGst;
+            aggregatedTotals.proltMarginCost += t.proltMarginCost;
+            aggregatedTotals.consultancyFee += (t as any).consultancyFee || 0;
+            aggregatedTotals.probusPlatformFee += (t as any).probusPlatformFee || 0;
+            
+            aggregatedDailyOverhead += res.oaDetailed.dailyFixedOverhead;
+            aggregatedNldc += res.oaDetailed.nldcSchedulingCost;
+            aggregatedSldc += res.oaDetailed.sldcSchedulingCost;
+            aggregatedBidFees += res.oaDetailed.bidApplicationFees;
+            aggregatedTotalDaysTraded += res.oaDetailed.totalDaysTraded;
+          }
         }
+      } catch (e) {
+        console.error("Error calculating month", month, e);
       }
     }
     
@@ -429,19 +428,18 @@ export class SavingsCalculatorService {
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
     
-    const promises = months.map(month => this.calculateSavings(id, month, version).catch(e => {
-      console.error("Error calculating month", month, e);
-      return null;
-    }));
-    const results = await Promise.all(promises);
-
-    for (const res of results) {
-      if (res) {
-        totalSavings += res.totalSavings;
-        totalOptimizedCost += res.totalOptimizedCost;
-        totalBaselineCost += res.totalBaselineCost;
-        totalEnergyKwh += res.totalEnergyKwh;
-        totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+    for (const month of months) {
+      try {
+        const res = await this.calculateSavings(id, month, version);
+        if (res) {
+          totalSavings += res.totalSavings;
+          totalOptimizedCost += res.totalOptimizedCost;
+          totalBaselineCost += res.totalBaselineCost;
+          totalEnergyKwh += res.totalEnergyKwh;
+          totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+        }
+      } catch (e) {
+        console.error("Error calculating month", month, e);
       }
     }
     
@@ -1801,14 +1799,9 @@ export class SavingsCalculatorService {
     let shiftedEnergy = 0;
     const aggregatedTodSummary: Record<string, any> = {};
     
-    const promises = months.map(month => this.calculateDemandShiftInsights(id, month, version).catch(e => {
-      console.error("Error calculating month", month, e);
-      return null;
-    }));
-    const results = await Promise.all(promises);
-
-    for (const res of results) {
-      if (res) {
+    for (const month of months) {
+      try {
+        const res = await this.calculateDemandShiftInsights(id, month, version);
         originalTotalCost += res.originalTotalCost;
         newTotalCost += res.newTotalCost;
         savingsAchieved += res.savingsAchieved;
@@ -1824,6 +1817,8 @@ export class SavingsCalculatorService {
           aggregatedTodSummary[todSum.tod].originalMarketEnergy += todSum.originalMarketEnergy;
           aggregatedTodSummary[todSum.tod].newMarketEnergy += todSum.newMarketEnergy;
         }
+      } catch (e) {
+        console.error("Error calculating demand shift for month", month, e);
       }
     }
     
