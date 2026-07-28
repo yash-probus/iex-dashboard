@@ -790,18 +790,21 @@ export class SavingsCalculatorService {
             }
           }
         } else if (tariffs.length > 0) {
-          const flatTariff = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
-          let matched = flatTariff;
-          if (!flatTariff) {
-            matched = tariffs.find(t => {
-              const start = parseHour(t.todStartTime);
-              const end = parseHour(t.todEndTime);
-              if (start <= end) {
-                return hour >= start && hour < end;
-              } else {
-                return hour >= start || hour < end;
-              }
-            });
+          let matched = tariffs.find(t => {
+            if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
+              return false;
+            }
+            const start = parseHour(t.todStartTime);
+            const end = parseHour(t.todEndTime);
+            if (start <= end) {
+              return hour >= start && hour < end;
+            } else {
+              return hour >= start || hour < end;
+            }
+          });
+
+          if (!matched) {
+            matched = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
           }
 
           if (matched) {
@@ -1280,16 +1283,20 @@ export class SavingsCalculatorService {
           }
         }
       } else if (tariffs.length > 0) {
-        const flatTariff = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
-        let matched = flatTariff;
-        if (!flatTariff) {
-          matched = tariffs.find(t => {
-            const start = parseHour(t.todStartTime);
-            const end = parseHour(t.todEndTime);
-            if (start <= end) return hour >= start && hour < end;
-            return hour >= start || hour < end;
-          });
+        let matched = tariffs.find(t => {
+          if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
+            return false;
+          }
+          const start = parseHour(t.todStartTime);
+          const end = parseHour(t.todEndTime);
+          if (start <= end) return hour >= start && hour < end;
+          return hour >= start || hour < end;
+        });
+
+        if (!matched) {
+          matched = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
         }
+
         if (matched) {
           discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
           matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
