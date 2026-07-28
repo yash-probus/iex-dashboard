@@ -1696,7 +1696,7 @@ export default function SavingsCalculatorPage() {
               }}
             />
             <TextField
-              label="Probus Platform Subscription Fees for Prolt Energy Platform (Rs 0.02/kWh)"
+              label="Probus Platform Subscription fees (Rs/kWh)"
               value={probusPlatformFee}
               onChange={(e) => setProbusPlatformFee(e.target.value)}
               fullWidth
@@ -1706,7 +1706,7 @@ export default function SavingsCalculatorPage() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <MuiTooltip title="Probus Platform Subscription Fees for Prolt Energy Platform" placement="top">
+                    <MuiTooltip title="Probus Platform Subscription fees" placement="top">
                       <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
                     </MuiTooltip>
                   </InputAdornment>
@@ -1714,7 +1714,7 @@ export default function SavingsCalculatorPage() {
               }}
             />
             <TextField
-              label="PROLT Margin (%)"
+              label="Prolt Margin (% of total savings)"
               value={proltMargin}
               onChange={(e) => setProltMargin(e.target.value)}
               fullWidth
