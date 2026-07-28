@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Paper, Box, Typography, Button, Skeleton,
-  Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, alpha 
+  Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, TableSortLabel, alpha 
 } from '@mui/material';
 import { FileDownload as DownloadIcon } from '@mui/icons-material';
 
@@ -13,6 +13,7 @@ export interface ColumnDefinition {
   sticky?: boolean;
   stickyRight?: boolean;
   align?: 'left' | 'right' | 'center';
+  sortable?: boolean;
   valueFormatter?: (value: any) => any;
   renderCell?: (row: any) => React.ReactNode;
 }
@@ -24,9 +25,12 @@ interface TableContainerProps {
   onExport?: () => void;
   emptyStateMessage?: React.ReactNode;
   loading?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSort?: (field: string) => void;
 }
 
-export default function TableContainer({ title, data, columns, onExport, emptyStateMessage, loading = false }: TableContainerProps) {
+export default function TableContainer({ title, data, columns, onExport, emptyStateMessage, loading = false, sortBy, sortOrder = 'asc', onSort }: TableContainerProps) {
   // Calculate sticky left offsets
   let currentLeftOffset = 0;
   let currentRightOffset = 0;
@@ -100,9 +104,31 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                     left: col.sticky ? col.leftOffset : 'auto',
                     right: col.stickyRight ? col.rightOffset : 'auto',
                     zIndex: (col.sticky || col.stickyRight) ? 40 : 30,
+                    cursor: col.sortable ? 'pointer' : 'default',
+                    userSelect: 'none',
                   }}
+                  onClick={col.sortable && onSort ? () => onSort(col.field) : undefined}
                 >
-                  {col.headerName}
+                  {col.sortable && onSort ? (
+                    <TableSortLabel
+                      active={sortBy === col.field}
+                      direction={sortBy === col.field ? sortOrder : 'asc'}
+                      onClick={() => onSort(col.field)}
+                      sx={{
+                        fontSize: '11px',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                        fontWeight: 600,
+                        color: '#1E293B',
+                        '&.Mui-active': { color: '#8B5CF6' },
+                        '& .MuiTableSortLabel-icon': { color: '#8B5CF6 !important' }
+                      }}
+                    >
+                      {col.headerName}
+                    </TableSortLabel>
+                  ) : (
+                    col.headerName
+                  )}
                 </TableCell>
               ))}
             </TableRow>
@@ -130,7 +156,6 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                   key={index}
                   hover
                   sx={{ 
-                    '&:last-child td, &:last-child th': { border: 0 },
                     '&:nth-of-type(odd)': { backgroundColor: 'rgba(0, 0, 0, 0.01)' } 
                   }}
                 >
@@ -144,6 +169,7 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                         sx={{ 
                           fontSize: '12px',
                           color: 'text.primary',
+                          borderBottom: '1px solid',
                           borderRight: col.sticky ? '1px solid' : 'none',
                           borderLeft: col.stickyRight ? '1px solid' : 'none',
                           borderColor: 'divider',

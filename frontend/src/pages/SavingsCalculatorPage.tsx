@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
-import { FormControlLabel, Switch, 
+import { FormControlLabel, Switch, Radio, RadioGroup, FormControl, FormLabel, Divider,
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
@@ -1040,18 +1040,19 @@ export default function SavingsCalculatorPage() {
 
   const columns: ColumnDefinition[] = [
     { field: 'sno', headerName: 'Client ID', align: 'center', width: 90, sticky: true },
-    { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150, sticky: true },
-    { field: 'industryName', headerName: 'Industry Name', align: 'left', minWidth: 150, sticky: true },
-    { field: 'sanctionedLoadKw', headerName: 'Sanctioned Load (kW)', align: 'center', width: 140, valueFormatter: (v) => v ? Number(v).toLocaleString('en-IN') : '-' },
-    { field: 'stateCode', headerName: 'State', align: 'center', width: 80 },
-    { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120 },
-    { field: 'consumerCategory', headerName: 'Category', align: 'left', width: 110 },
-    { field: 'voltageLevel', headerName: 'Voltage', align: 'center', width: 100 },
+    { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150, sticky: true, sortable: true },
+    { field: 'industryName', headerName: 'Industry Name', align: 'left', minWidth: 150, sticky: true, sortable: true },
+    { field: 'sanctionedLoadKw', headerName: 'Sanctioned Load (kW)', align: 'center', width: 140, sortable: true, valueFormatter: (v) => v ? Number(v).toLocaleString('en-IN') : '-' },
+    { field: 'stateCode', headerName: 'State', align: 'center', width: 80, sortable: true },
+    { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120, sortable: true },
+    { field: 'consumerCategory', headerName: 'Category', align: 'left', width: 110, sortable: true },
+    { field: 'voltageLevel', headerName: 'Voltage', align: 'center', width: 100, sortable: true },
     { 
       field: 'createdAt', 
       headerName: 'Created At', 
       align: 'center', 
       width: 160,
+      sortable: true,
       valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
     },
     {
@@ -1059,6 +1060,7 @@ export default function SavingsCalculatorPage() {
       headerName: 'Created By',
       align: 'center',
       width: 120,
+      sortable: true,
       valueFormatter: (v) => v || '-'
     },
     { 
@@ -1066,6 +1068,7 @@ export default function SavingsCalculatorPage() {
       headerName: 'Updated At', 
       align: 'center', 
       width: 160,
+      sortable: true,
       valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
     },
     {
@@ -1073,6 +1076,7 @@ export default function SavingsCalculatorPage() {
       headerName: 'Updated By',
       align: 'center',
       width: 120,
+      sortable: true,
       valueFormatter: (v) => v || '-'
     },
     {
@@ -1211,6 +1215,16 @@ export default function SavingsCalculatorPage() {
         data={filteredAndSortedEntries}
         columns={columns}
         loading={loading}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={(field) => {
+          if (sortBy === field) {
+            setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+          } else {
+            setSortBy(field);
+            setSortOrder('asc');
+          }
+        }}
         emptyStateMessage={
           <EmptyTableState 
             title="No entries found" 
