@@ -136,6 +136,7 @@ export default function SavingsCalculatorPage() {
   const [industryName, setIndustryName] = useState('');
   const [address, setAddress] = useState('');
   const [sanctionedLoadKw, setSanctionedLoadKw] = useState('');
+  const [sanctionedLoadKva, setSanctionedLoadKva] = useState('');
   const [stateCode, setStateCode] = useState('');
   const [discom, setDiscom] = useState('');
   const [consumerCategory, setConsumerCategory] = useState('');
@@ -465,6 +466,7 @@ export default function SavingsCalculatorPage() {
     setIndustryName('');
     setAddress('');
     setSanctionedLoadKw('');
+    setSanctionedLoadKva('');
     setStateCode('');
     setDiscom('');
     setConsumerCategory('');
@@ -513,7 +515,9 @@ export default function SavingsCalculatorPage() {
       setClientName(entry.clientName);
       setIndustryName(entry.industryName);
       setAddress(entry.address);
-      setSanctionedLoadKw(entry.sanctionedLoadKw ? String(entry.sanctionedLoadKw) : '');
+      const kwValue = entry.sanctionedLoadKw ? String(entry.sanctionedLoadKw) : '';
+      setSanctionedLoadKw(kwValue);
+      setSanctionedLoadKva(kwValue ? (Number(kwValue) / 0.9).toFixed(2).replace(/\.00$/, '') : '');
       setStateCode(entry.stateCode || '');
       setDiscom(entry.discom || '');
       setConsumerCategory(entry.consumerCategory || '');
@@ -1481,11 +1485,19 @@ export default function SavingsCalculatorPage() {
             question: "What is your sanctioned load?",
             summary: `Sanctioned Load: ${sanctionedLoadKw} kW`,
             content: (
-              <Box sx={{ mt: 1 }}>
+              <Box sx={{ mt: 1, display: 'flex', gap: 2 }}>
                 <TextField
                   label="Sanctioned Load (kW)"
                   value={sanctionedLoadKw}
-                  onChange={(e) => setSanctionedLoadKw(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSanctionedLoadKw(val);
+                    if (val && !isNaN(Number(val))) {
+                      setSanctionedLoadKva((Number(val) / 0.9).toFixed(2).replace(/\.00$/, ''));
+                    } else {
+                      setSanctionedLoadKva('');
+                    }
+                  }}
                   error={!!formErrors.sanctionedLoadKw}
                   helperText={formErrors.sanctionedLoadKw}
                   fullWidth
@@ -1501,6 +1513,23 @@ export default function SavingsCalculatorPage() {
                       </InputAdornment>
                     )
                   }}
+                />
+                <TextField
+                  label="Sanctioned Load (kVA)"
+                  value={sanctionedLoadKva}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSanctionedLoadKva(val);
+                    if (val && !isNaN(Number(val))) {
+                      setSanctionedLoadKw((Number(val) * 0.9).toFixed(2).replace(/\.00$/, ''));
+                    } else {
+                      setSanctionedLoadKw('');
+                    }
+                  }}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  type="number"
                 />
               </Box>
             )
