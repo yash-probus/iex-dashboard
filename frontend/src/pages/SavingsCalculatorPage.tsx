@@ -1033,9 +1033,9 @@ export default function SavingsCalculatorPage() {
   };
 
   const columns: ColumnDefinition[] = [
-    { field: 'sno', headerName: 'Client ID', align: 'center', width: 90 },
-    { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150 },
-    { field: 'industryName', headerName: 'Industry Name', align: 'left', minWidth: 150 },
+    { field: 'sno', headerName: 'Client ID', align: 'center', width: 90, sticky: true },
+    { field: 'clientName', headerName: 'Client Name', align: 'left', minWidth: 150, sticky: true },
+    { field: 'industryName', headerName: 'Industry Name', align: 'left', minWidth: 150, sticky: true },
     { field: 'sanctionedLoadKw', headerName: 'Sanctioned Load (kW)', align: 'center', width: 140, valueFormatter: (v) => v ? Number(v).toLocaleString('en-IN') : '-' },
     { field: 'stateCode', headerName: 'State', align: 'center', width: 80 },
     { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120 },
@@ -1074,6 +1074,7 @@ export default function SavingsCalculatorPage() {
       headerName: 'Actions',
       align: 'center',
       width: 220,
+      stickyRight: true,
       renderCell: (row) => (
         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
           <Button 

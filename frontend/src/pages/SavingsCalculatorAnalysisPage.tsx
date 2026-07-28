@@ -467,22 +467,7 @@ const exportInsightsToExcel = async () => {
               </>
             )}
 
-            {calcResult && (
-              <Button
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={exportCalcToCSV}
-                sx={{ 
-                  textTransform: 'none', 
-                  borderRadius: 2, 
-                  borderColor: 'divider', 
-                  color: 'text.secondary' 
-                }}
-              >
-                Export CSV
-              </Button>
-            )}
-            
+
             {marketDecisionResult && (
               <Button 
                 variant="outlined" 
@@ -989,19 +974,7 @@ const exportInsightsToExcel = async () => {
                   >
                     Dynamic Heatmap
                   </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<DownloadIcon />}
-                    onClick={exportInsightsToCSV}
-                    sx={{ 
-                      textTransform: 'none', 
-                      borderRadius: 2, 
-                      borderColor: 'divider', 
-                      color: 'text.secondary' 
-                    }}
-                  >
-                    Export CSV
-                  </Button>
+
                   <Button
                     variant="outlined"
                     startIcon={<DownloadIcon />}

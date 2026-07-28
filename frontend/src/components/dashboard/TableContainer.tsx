@@ -11,6 +11,7 @@ export interface ColumnDefinition {
   width?: number;
   minWidth?: number;
   sticky?: boolean;
+  stickyRight?: boolean;
   align?: 'left' | 'right' | 'center';
   valueFormatter?: (value: any) => any;
   renderCell?: (row: any) => React.ReactNode;
@@ -28,13 +29,26 @@ interface TableContainerProps {
 export default function TableContainer({ title, data, columns, onExport, emptyStateMessage, loading = false }: TableContainerProps) {
   // Calculate sticky left offsets
   let currentLeftOffset = 0;
-  const columnsWithOffsets = columns.map(col => {
-    const colObj = { ...col, leftOffset: currentLeftOffset };
+  let currentRightOffset = 0;
+
+  const columnsWithOffsets = columns.map(col => ({ ...col, leftOffset: 0, rightOffset: 0 }));
+
+  // Left offsets
+  columnsWithOffsets.forEach(col => {
+    col.leftOffset = currentLeftOffset;
     if (col.sticky) {
       currentLeftOffset += (col.width || col.minWidth || 100);
     }
-    return colObj;
   });
+
+  // Right offsets
+  for (let i = columnsWithOffsets.length - 1; i >= 0; i--) {
+    const col = columnsWithOffsets[i];
+    col.rightOffset = currentRightOffset;
+    if (col.stickyRight) {
+      currentRightOffset += (col.width || col.minWidth || 100);
+    }
+  }
 
   return (
     <Paper
@@ -73,6 +87,7 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                     backgroundImage: 'none',
                     borderBottom: '2px solid',
                     borderRight: col.sticky ? '1px solid #E2E8F0' : 'none',
+                    borderLeft: col.stickyRight ? '1px solid #E2E8F0' : 'none',
                     borderColor: 'divider',
                     fontSize: '11px',
                     letterSpacing: '0.5px',
@@ -83,7 +98,8 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                     position: 'sticky',
                     top: 0,
                     left: col.sticky ? col.leftOffset : 'auto',
-                    zIndex: col.sticky ? 40 : 30,
+                    right: col.stickyRight ? col.rightOffset : 'auto',
+                    zIndex: (col.sticky || col.stickyRight) ? 40 : 30,
                   }}
                 >
                   {col.headerName}
@@ -129,13 +145,15 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                           fontSize: '12px',
                           color: 'text.primary',
                           borderRight: col.sticky ? '1px solid' : 'none',
+                          borderLeft: col.stickyRight ? '1px solid' : 'none',
                           borderColor: 'divider',
                           whiteSpace: 'nowrap',
-                          position: col.sticky ? 'sticky' : 'static',
+                          position: (col.sticky || col.stickyRight) ? 'sticky' : 'static',
                           left: col.sticky ? col.leftOffset : 'auto',
+                          right: col.stickyRight ? col.rightOffset : 'auto',
                           // Explicit opaque background merging row striping to prevent sticky transparency overlap
                           backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FAFAFA', 
-                          zIndex: col.sticky ? 20 : 'auto',
+                          zIndex: (col.sticky || col.stickyRight) ? 20 : 'auto',
                         }}
                       >
                         {col.renderCell 
