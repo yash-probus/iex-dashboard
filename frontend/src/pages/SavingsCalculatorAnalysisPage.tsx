@@ -126,12 +126,7 @@ export default function SavingsCalculatorAnalysisPage() {
             setSelectedCalcVersion('');
           }
           
-          const months = Object.keys(entry.todConsumptions || {}).sort();
-          if (months.length > 0) {
-            setSelectedSimMonth(months[0]);
-          } else {
-            setSelectedSimMonth('all');
-          }
+          setSelectedSimMonth('all');
           
           setOverviewLoading(true);
           fetchClientOverview(entry.id).then(res => {

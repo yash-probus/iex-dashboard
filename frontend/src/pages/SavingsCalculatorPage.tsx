@@ -306,7 +306,7 @@ export default function SavingsCalculatorPage() {
     }));
   }, [entries, searchQuery, sortBy, sortOrder]);
 
-  const [selectedSimMonth, setSelectedSimMonth] = useState<string>('');
+  const [selectedSimMonth, setSelectedSimMonth] = useState<string>('all');
   const calcResult = cachedResults[selectedSimMonth]?.calc || null;
   const marketDecisionResult = cachedResults[selectedSimMonth]?.market || null;
   const demandShiftInsights = cachedResults[selectedSimMonth]?.insights || null;
