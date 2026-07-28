@@ -1969,7 +1969,10 @@ export default function SavingsCalculatorPage() {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
           <Button 
-            onClick={() => setProltDialogOpen(false)} 
+            onClick={() => {
+              setProltDialogOpen(false);
+              setTodDialogOpen(true);
+            }} 
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
           >
             Back
