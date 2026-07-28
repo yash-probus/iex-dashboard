@@ -1595,7 +1595,6 @@ export default function SavingsCalculatorPage() {
                           } 
                         }));
                       }
-                      setEditingMonth(key);
                     }}
                     sx={{ height: 40, textTransform: 'none', borderRadius: 2 }}
                   >
@@ -1610,55 +1609,27 @@ export default function SavingsCalculatorPage() {
                 )}
 
                 {Object.keys(todConsumptions).sort().map(ym => {
+                  const editingMonth = ym;
                   return (
-                  <Card key={ym} variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: '#F8FAFC', mb: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
-                      </Typography>
-                      <Box>
-                        <IconButton size="small" color="primary" onClick={() => setEditingMonth(ym)} sx={{ mr: 1 }}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" color="error" onClick={() => {
-                          const newTc = { ...todConsumptions };
-                          delete newTc[ym];
-                          setTodConsumptions(newTc);
-                        }}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                  <Card key={ym} variant="outlined" sx={{ p: 3, borderRadius: '24px', bgcolor: '#F8FAFC', mb: 3, borderColor: '#E2E8F0' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, pb: 2, borderBottom: '1px solid #E2E8F0' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ bgcolor: '#F3E8FF', color: '#8B5CF6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
+                          <CalculateIcon fontSize="small" />
+                        </Box>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '1.1rem' }}>
+                          {new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} Details
+                        </Typography>
                       </Box>
+                      <IconButton color="error" onClick={() => {
+                        const newTc = { ...todConsumptions };
+                        delete newTc[ym];
+                        setTodConsumptions(newTc);
+                      }}>
+                        <DeleteIcon />
+                      </IconButton>
                     </Box>
-                  </Card>
-                  );
-                })}
-
-                <Dialog 
-                  open={!!editingMonth} 
-                  onClose={() => setEditingMonth(null)}
-                  maxWidth="xs"
-                  fullWidth
-                  PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
-                >
-                  <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, pb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ bgcolor: '#F3E8FF', color: '#8B5CF6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
-                        <CalculateIcon fontSize="small" />
-                      </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#0F172A', fontSize: '1.1rem' }}>
-                        {editingMonth ? new Date(`${editingMonth}-01`).toLocaleString('default', { month: 'long', year: 'numeric' }) : 'Month Details'}
-                      </Typography>
-                    </Box>
-                    <IconButton onClick={() => setEditingMonth(null)}>
-                      <CloseIcon />
-                    </IconButton>
-                  </DialogTitle>
-                  <DialogContent sx={{ pt: 2, pb: 3 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 600, mb: 3, color: '#0F172A' }}>
-                      Enter consumption details for this month
-                    </Typography>
-                    {editingMonth && (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                         {getTodSlabsForMonth(parseInt(editingMonth.split('-')[1], 10)).map(slab => (
                           <TextField
                             key={slab}
@@ -1673,7 +1644,7 @@ export default function SavingsCalculatorPage() {
                             size="medium"
                             type="number"
                             placeholder="0"
-                            InputProps={{ sx: { borderRadius: '24px' } }}
+                            InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
                           />
                         ))}
                         <TextField
@@ -1688,7 +1659,7 @@ export default function SavingsCalculatorPage() {
                           size="medium"
                           type="number"
                           placeholder="0"
-                          InputProps={{ sx: { borderRadius: '24px' } }}
+                          InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
                         />
                         <TextField
                           label="Power Factor"
@@ -1719,9 +1690,9 @@ export default function SavingsCalculatorPage() {
                           type="number"
                           placeholder="e.g., 0.99"
                           inputProps={{ max: 1, min: 0.01, step: 0.01 }}
-                          InputProps={{ sx: { borderRadius: '24px' } }}
+                          InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
                         />
-                        <Box sx={{ border: '1px solid #E2E8F0', borderRadius: '24px', p: 1, px: 2, display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ border: '1px solid #E2E8F0', borderRadius: '24px', p: 1, px: 2, display: 'flex', alignItems: 'center', bgcolor: '#FFF' }}>
                           <DateRangePicker 
                             startDate={todConsumptions[editingMonth]?.['Start Date'] || ''}
                             endDate={todConsumptions[editingMonth]?.['End Date'] || ''}
@@ -1743,39 +1714,15 @@ export default function SavingsCalculatorPage() {
                           variant="outlined"
                           size="medium"
                           sx={{ textAlign: 'left' }}
-                          InputProps={{ sx: { borderRadius: '24px' } }}
+                          InputProps={{ sx: { borderRadius: '24px', bgcolor: '#FFF' } }}
                         >
                           <MenuItem value="Yes">Yes</MenuItem>
                           <MenuItem value="No">No</MenuItem>
                         </TextField>
-                      </Box>
-                    )}
-                  </DialogContent>
-                  <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
-                    <Button 
-                      onClick={() => setEditingMonth(null)} 
-                      sx={{ textTransform: 'none', borderRadius: '24px', fontWeight: 600, color: 'text.secondary', px: 2 }}
-                    >
-                      Back
-                    </Button>
-                    <Button 
-                      onClick={() => setEditingMonth(null)} 
-                      variant="contained" 
-                      disableElevation
-                      sx={{ 
-                        textTransform: 'none', 
-                        borderRadius: '24px', 
-                        fontWeight: 600, 
-                        bgcolor: '#8B5CF6',
-                        px: 4,
-                        py: 1,
-                        '&:hover': { bgcolor: '#7C3AED' }
-                      }}
-                    >
-                      Done
-                    </Button>
-                  </DialogActions>
-                </Dialog>
+                    </Box>
+                  </Card>
+                  );
+                })}
               </Box>
             )
           })}
