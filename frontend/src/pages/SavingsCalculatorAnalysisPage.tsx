@@ -582,12 +582,12 @@ const exportInsightsToExcel = async () => {
 
               <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Tabs value={calcTab} onChange={(e, v) => setCalcTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 } }}>
-                  <Tab label="Slabs Group Summary (TOD Sorted)" disabled={!calcResult} />
-                  <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} />
-                  <Tab label="Market Buy Decision" disabled={!marketDecisionResult} />
-                  <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} />
-                  <Tab label="Usage Recommendations" disabled={!demandShiftInsights} />
-                  <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} />
+                  {selectedSimMonth !== 'all' && <Tab label="Slabs Group Summary (TOD Sorted)" disabled={!calcResult} value={0} />}
+                  {selectedSimMonth !== 'all' && <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} value={1} />}
+                  <Tab label="Market Buy Decision" disabled={!marketDecisionResult} value={2} />
+                  <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />
+                  <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
+                  <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />
                 </Tabs>
               </Box>
 
