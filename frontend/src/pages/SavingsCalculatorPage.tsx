@@ -36,6 +36,7 @@ import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlo
 import { SavingsDashboard } from '../components/dashboard/SavingsDashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
+import DateRangePicker from '../components/common/DateRangePicker';
 import { ClientOverviewDashboard } from '../components/dashboard/ClientOverviewDashboard';
 import { 
   fetchSavingsEntries, 
@@ -1583,8 +1584,19 @@ export default function SavingsCalculatorPage() {
                     onClick={() => {
                       const key = `${entryYear}-${String(entryMonth).padStart(2, '0')}`;
                       if (!todConsumptions[key]) {
-                        const defaultStart = discom === 'NPCL' ? '19' : '1';
-                        const defaultEnd = discom === 'NPCL' ? '19' : '1';
+                        let defaultStart = '';
+                        let defaultEnd = '';
+                        
+                        if (discom === 'NPCL') {
+                          defaultStart = `${entryYear}-${String(entryMonth).padStart(2, '0')}-19`;
+                          const nextMonthDate = new Date(entryYear, entryMonth - 1 + 1, 18);
+                          defaultEnd = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-18`;
+                        } else {
+                          defaultStart = `${entryYear}-${String(entryMonth).padStart(2, '0')}-01`;
+                          const lastDay = new Date(entryYear, entryMonth, 0).getDate();
+                          defaultEnd = `${entryYear}-${String(entryMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                        }
+
                         setTodConsumptions(prev => ({ 
                           ...prev, 
                           [key]: {
@@ -1677,34 +1689,14 @@ export default function SavingsCalculatorPage() {
                           sx={{ bgcolor: '#FFF' }}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          label="Billing Start Date"
-                          value={todConsumptions[ym]['Start Date'] || ''}
-                          onChange={(e) => setTodConsumptions(prev => ({
+                      <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
+                        <DateRangePicker 
+                          startDate={todConsumptions[ym]['Start Date'] || ''}
+                          endDate={todConsumptions[ym]['End Date'] || ''}
+                          onChange={(start, end) => setTodConsumptions(prev => ({
                             ...prev,
-                            [ym]: { ...prev[ym], 'Start Date': e.target.value }
+                            [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end }
                           }))}
-                          fullWidth
-                          variant="outlined"
-                          size="small"
-                          placeholder="e.g., 1 or 19"
-                          sx={{ bgcolor: '#FFF' }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          label="Billing End Date"
-                          value={todConsumptions[ym]['End Date'] || ''}
-                          onChange={(e) => setTodConsumptions(prev => ({
-                            ...prev,
-                            [ym]: { ...prev[ym], 'End Date': e.target.value }
-                          }))}
-                          fullWidth
-                          variant="outlined"
-                          size="small"
-                          placeholder="e.g., 1 or 19"
-                          sx={{ bgcolor: '#FFF' }}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>

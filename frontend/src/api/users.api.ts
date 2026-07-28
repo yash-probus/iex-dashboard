@@ -19,5 +19,10 @@ export const usersApi = {
 
   deleteUser: async (id: string): Promise<void> => {
     await apiClient.delete(`/users/${id}`);
+  },
+
+  getAuditLogs: async (): Promise<any[]> => {
+    const response = await apiClient.get('/users/audit-logs');
+    return response.data.data;
   }
 };

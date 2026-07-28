@@ -751,3 +751,17 @@ model ForecastAllIndiaDemand {
   @@index([intervalNumber])
   @@index([timeBlock])
 }
+
+model UserAuditLog {
+  id           String   @id @default(uuid())
+  action       String   @db.VarChar(50) // 'CREATE', 'UPDATE', 'DELETE'
+  targetUserId String?  @db.VarChar(36)
+  targetUser   String   @db.VarChar(50) // username
+  performedBy  String   @db.VarChar(50) // username of the admin who did it
+  changes      Json     // JSON detailing old and new values
+  timestamp    DateTime @default(now())
+
+  @@index([targetUserId])
+  @@index([performedBy])
+  @@index([timestamp])
+}

@@ -18,8 +18,13 @@ export class UsersService {
       orderBy: { createdAt: 'desc' }
     });
   }
+  static async getAuditLogs() {
+    return prisma.userAuditLog.findMany({
+      orderBy: { timestamp: 'desc' }
+    });
+  }
 
-  static async createUser(data: any) {
+  static async createUser(data: any, performedBy: string) {
     // Check if username or email already exists
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -55,11 +60,28 @@ export class UsersService {
         createdAt: true,
       }
     });
+    const changes = {
+      username: newUser.username,
+      email: newUser.email,
+      role: newUser.role,
+      hiddenModules: newUser.hiddenModules,
+      readOnlyModules: newUser.readOnlyModules
+    };
+
+    await prisma.userAuditLog.create({
+      data: {
+        action: 'CREATE',
+        targetUserId: newUser.id,
+        targetUser: newUser.username,
+        performedBy,
+        changes
+      }
+    });
 
     return newUser;
   }
 
-  static async updateUser(id: string, data: any) {
+  static async updateUser(id: string, data: any, performedBy: string) {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new AppError('User not found', 404);
@@ -81,8 +103,7 @@ export class UsersService {
     }
 
     if (data.password) updateData.passwordHash = await hashPassword(data.password);
-
-    return prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id },
       data: updateData,
       select: {
@@ -95,15 +116,48 @@ export class UsersService {
         createdAt: true,
       }
     });
+
+    const changes: any = {};
+    if (data.username && data.username !== user.username) changes.username = { old: user.username, new: data.username };
+    if (data.email && data.email !== user.email) changes.email = { old: user.email, new: data.email };
+    if (data.role && data.role !== user.role) changes.role = { old: user.role, new: data.role };
+    if (data.hiddenModules && JSON.stringify(data.hiddenModules) !== JSON.stringify(user.hiddenModules)) changes.hiddenModules = { old: user.hiddenModules, new: data.hiddenModules };
+    if (data.readOnlyModules && JSON.stringify(data.readOnlyModules) !== JSON.stringify(user.readOnlyModules)) changes.readOnlyModules = { old: user.readOnlyModules, new: data.readOnlyModules };
+    if (data.password) changes.password = { old: '***', new: '***' };
+
+    if (Object.keys(changes).length > 0) {
+      await prisma.userAuditLog.create({
+        data: {
+          action: 'UPDATE',
+          targetUserId: updatedUser.id,
+          targetUser: updatedUser.username,
+          performedBy,
+          changes
+        }
+      });
+    }
+
+    return updatedUser;
   }
 
-  static async deleteUser(id: string) {
+  static async deleteUser(id: string, performedBy: string) {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new AppError('User not found', 404);
     }
 
     await prisma.user.delete({ where: { id } });
+
+    await prisma.userAuditLog.create({
+      data: {
+        action: 'DELETE',
+        targetUserId: id,
+        targetUser: user.username,
+        performedBy,
+        changes: { deleted: true }
+      }
+    });
+
     return { message: 'User deleted successfully' };
   }
 }

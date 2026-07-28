@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
-import { Group as GroupIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material';
+import { Box, Typography, Tabs, Tab } from '@mui/material';
+import { Group as GroupIcon, PersonAdd as PersonAddIcon, History as HistoryIcon } from '@mui/icons-material';
 import ActionButton from '../components/common/ActionButton';
 import { usersApi } from '@/api/users.api';
 import { AppUser } from '@/api/auth.api';
@@ -31,6 +31,11 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
+  
+  // Tabs State
+  const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
 
   // Form State
   const [username, setUsername] = useState('');
@@ -52,9 +57,22 @@ export default function UserManagementPage() {
     }
   };
 
+  const fetchAuditLogs = async () => {
+    try {
+      setLoadingAudit(true);
+      const data = await usersApi.getAuditLogs();
+      setAuditLogs(data);
+    } catch (error: any) {
+      toast.error('Failed to fetch audit logs', { description: error.message });
+    } finally {
+      setLoadingAudit(false);
+    }
+  };
+
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (activeTab === 'users') fetchUsers();
+    else if (activeTab === 'audit') fetchAuditLogs();
+  }, [activeTab]);
 
   const openAddModal = () => {
     setEditingUser(null);
@@ -140,17 +158,27 @@ export default function UserManagementPage() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <ActionButton 
-            variant="secondary" 
-            startIcon={<PersonAddIcon fontSize="small" />} 
-            onClick={openAddModal}
-            accentColor="#3B8FF3"
-          >
-            Add New User
-          </ActionButton>
+          {activeTab === 'users' && (
+            <ActionButton 
+              variant="secondary" 
+              startIcon={<PersonAddIcon fontSize="small" />} 
+              onClick={openAddModal}
+              accentColor="#3B8FF3"
+            >
+              Add New User
+            </ActionButton>
+          )}
         </Box>
       </Box>
 
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={activeTab} onChange={(_, nv) => setActiveTab(nv)} textColor="primary" indicatorColor="primary">
+          <Tab value="users" label="Users" icon={<GroupIcon fontSize="small" />} iconPosition="start" sx={{ textTransform: 'none', fontWeight: 600 }} />
+          <Tab value="audit" label="Audit Trail" icon={<HistoryIcon fontSize="small" />} iconPosition="start" sx={{ textTransform: 'none', fontWeight: 600 }} />
+        </Tabs>
+      </Box>
+
+      {activeTab === 'users' ? (
       <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
@@ -218,6 +246,59 @@ export default function UserManagementPage() {
           </TableBody>
         </Table>
       </div>
+      ) : (
+      <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="font-semibold">Timestamp</TableHead>
+              <TableHead className="font-semibold">Action By</TableHead>
+              <TableHead className="font-semibold">Action</TableHead>
+              <TableHead className="font-semibold">Target User</TableHead>
+              <TableHead className="font-semibold">Details</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loadingAudit ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-4">Loading audit logs...</TableCell>
+              </TableRow>
+            ) : auditLogs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-4">No audit logs found</TableCell>
+              </TableRow>
+            ) : (
+              auditLogs.map(log => (
+                <TableRow key={log.id} className="group transition-colors hover:bg-muted/30">
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {log.performedBy}
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={log.action === 'DELETE' ? 'destructive' : log.action === 'CREATE' ? 'default' : 'secondary'}
+                      className="font-medium shadow-none"
+                    >
+                      {log.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {log.targetUser}
+                  </TableCell>
+                  <TableCell>
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap max-w-xs break-words">
+                      {JSON.stringify(log.changes, null, 2)}
+                    </pre>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>

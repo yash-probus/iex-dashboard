@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getUsers, createUser, updateUser, deleteUser } from './users.controller';
+import { getUsers, createUser, updateUser, deleteUser, getAuditLogs } from './users.controller';
 import { validateCreateUser, validateUpdateUser } from './users.validation';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { authMiddleware } from '../../middleware/auth.middleware';
@@ -12,6 +12,7 @@ router.use(authMiddleware);
 router.use(superAdminMiddleware);
 
 router.get('/', asyncHandler(getUsers));
+router.get('/audit-logs', asyncHandler(getAuditLogs));
 router.post('/', validateCreateUser, asyncHandler(createUser));
 router.put('/:id', validateUpdateUser, asyncHandler(updateUser));
 router.delete('/:id', asyncHandler(deleteUser));
