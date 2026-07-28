@@ -1004,12 +1004,26 @@ export default function SavingsCalculatorPage() {
       width: 160,
       valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
     },
+    {
+      field: 'createdBy',
+      headerName: 'Created By',
+      align: 'center',
+      width: 120,
+      valueFormatter: (v) => v || '-'
+    },
     { 
       field: 'updatedAt', 
       headerName: 'Updated At', 
       align: 'center', 
       width: 160,
       valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
+    },
+    {
+      field: 'updatedBy',
+      headerName: 'Updated By',
+      align: 'center',
+      width: 120,
+      valueFormatter: (v) => v || '-'
     },
     {
       field: 'actions',

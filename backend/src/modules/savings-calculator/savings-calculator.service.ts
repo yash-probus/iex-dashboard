@@ -50,6 +50,8 @@ export class SavingsCalculatorService {
     arrearAmount?: number | null;
     currentLpsc?: number | null;
     billDate?: string | null;
+    createdBy?: string;
+    updatedBy?: string;
   }) {
     return prisma.$transaction(async (tx) => {
       const entry = await tx.savingsCalculatorEntry.create({
@@ -72,7 +74,9 @@ export class SavingsCalculatorService {
           powerFactor: data.powerFactor,
           arrearAmount: data.arrearAmount,
           currentLpsc: data.currentLpsc,
-          billDate: data.billDate
+          billDate: data.billDate,
+          createdBy: data.createdBy,
+          updatedBy: data.updatedBy
         }
       });
 
@@ -98,7 +102,9 @@ export class SavingsCalculatorService {
           powerFactor: entry.powerFactor,
           arrearAmount: entry.arrearAmount,
           currentLpsc: entry.currentLpsc,
-          billDate: entry.billDate
+          billDate: entry.billDate,
+          createdBy: entry.createdBy,
+          updatedBy: entry.updatedBy
         }
       });
 
@@ -126,6 +132,7 @@ export class SavingsCalculatorService {
     arrearAmount?: number | null;
     currentLpsc?: number | null;
     billDate?: string | null;
+    updatedBy?: string;
   }) {
     return prisma.$transaction(async (tx) => {
       const entry = await tx.savingsCalculatorEntry.update({
@@ -149,7 +156,8 @@ export class SavingsCalculatorService {
           powerFactor: data.powerFactor,
           arrearAmount: data.arrearAmount,
           currentLpsc: data.currentLpsc,
-          billDate: data.billDate
+          billDate: data.billDate,
+          updatedBy: data.updatedBy
         }
       });
 
@@ -182,7 +190,9 @@ export class SavingsCalculatorService {
           powerFactor: entry.powerFactor,
           arrearAmount: entry.arrearAmount,
           currentLpsc: entry.currentLpsc,
-          billDate: entry.billDate
+          billDate: entry.billDate,
+          createdBy: entry.createdBy,
+          updatedBy: entry.updatedBy
         }
       });
 

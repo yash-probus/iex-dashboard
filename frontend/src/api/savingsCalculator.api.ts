@@ -15,7 +15,7 @@ export interface SavingsCalculatorEntry {
   consultancyFee?: number;
   probusPlatformFee?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
-  applyElectricityDuty?: boolean;
+  applyElectricityDuty: boolean;
   billedDemandKv?: number;
   powerFactor?: number;
   arrearAmount?: number;
@@ -23,6 +23,8 @@ export interface SavingsCalculatorEntry {
   billDate?: string;
   createdAt: string;
   updatedAt: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface SavingsCalculatorEntryHistory extends SavingsCalculatorEntry {

@@ -84,7 +84,9 @@ export class SavingsCalculatorController {
         powerFactor: powerFactor ? parseFloat(powerFactor) : undefined,
         arrearAmount: arrearAmount ? parseFloat(arrearAmount) : undefined,
         currentLpsc: currentLpsc ? parseFloat(currentLpsc) : undefined,
-        billDate
+        billDate,
+        createdBy: req.user?.username,
+        updatedBy: req.user?.username
       });
 
       res.status(201).json(entry);

@@ -588,6 +588,8 @@ model SavingsCalculatorEntry {
   applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
+  createdBy            String?  @map("created_by") @db.VarChar(50)
+  updatedBy            String?  @map("updated_by") @db.VarChar(50)
 
   history SavingsCalculatorEntryHistory[]
 
