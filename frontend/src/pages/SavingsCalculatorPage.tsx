@@ -66,7 +66,10 @@ type DialogMode = 'create' | 'edit' | 'view' | null;
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SavingsCalculatorPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  
+  const isReadOnly = (user as any)?.readOnlyModules?.includes('savings-calculator');
+  const canEdit = isAdmin || !isReadOnly;
   
   // State variables
   const [selectedInsightsEntry, setSelectedInsightsEntry] = useState<SavingsCalculatorEntry | null>(null);
@@ -1038,7 +1041,7 @@ export default function SavingsCalculatorPage() {
           <IconButton size="small" onClick={() => setSelectedInsightsEntry(row)} title="Explore Insights">
             <LightbulbIcon fontSize="small" sx={{ color: '#16A34A' }} />
           </IconButton>
-          {isAdmin && (
+          {canEdit && (
             <>
               <IconButton size="small" onClick={() => handleOpenDialog('edit', row)} title="Edit Entry">
                 <EditIcon fontSize="small" sx={{ color: 'text.secondary' }} />
@@ -1094,24 +1097,26 @@ export default function SavingsCalculatorPage() {
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog('create')}
-          sx={{ 
-            textTransform: 'none', 
-            borderRadius: 2.5, 
-            fontWeight: 600, 
-            bgcolor: '#8B5CF6',
-            '&:hover': {
-              bgcolor: '#7C3AED'
-            },
-            px: 2.5,
-            py: 1
-          }}
-        >
-          Create New Entry
-        </Button>
+        {canEdit && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog('create')}
+            sx={{ 
+              textTransform: 'none', 
+              borderRadius: 2.5, 
+              fontWeight: 600, 
+              bgcolor: '#8B5CF6',
+              '&:hover': {
+                bgcolor: '#7C3AED'
+              },
+              px: 2.5,
+              py: 1
+            }}
+          >
+            Create New Entry
+          </Button>
+        )}
       </Box>
 
       {error && (

@@ -12,6 +12,7 @@ export class UsersService {
         email: true,
         role: true,
         hiddenModules: true,
+        readOnlyModules: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' }
@@ -41,7 +42,8 @@ export class UsersService {
         email: data.email,
         passwordHash,
         role: data.role as Role,
-        hiddenModules: Array.isArray(data.hiddenModules) ? data.hiddenModules : []
+        hiddenModules: Array.isArray(data.hiddenModules) ? data.hiddenModules : [],
+        readOnlyModules: Array.isArray(data.readOnlyModules) ? data.readOnlyModules : []
       },
       select: {
         id: true,
@@ -49,6 +51,7 @@ export class UsersService {
         email: true,
         role: true,
         hiddenModules: true,
+        readOnlyModules: true,
         createdAt: true,
       }
     });
@@ -73,6 +76,10 @@ export class UsersService {
       updateData.hiddenModules = data.hiddenModules;
     }
 
+    if (Array.isArray(data.readOnlyModules)) {
+      updateData.readOnlyModules = data.readOnlyModules;
+    }
+
     if (data.password) updateData.passwordHash = await hashPassword(data.password);
 
     return prisma.user.update({
@@ -84,6 +91,7 @@ export class UsersService {
         email: true,
         role: true,
         hiddenModules: true,
+        readOnlyModules: true,
         createdAt: true,
       }
     });

@@ -6,6 +6,7 @@ export interface AppUser {
   email: string;
   role: 'SUPER_ADMIN' | 'ADMIN' | 'CLIENT';
   hiddenModules?: string[];
+  readOnlyModules?: string[];
   createdAt?: string;
   updatedAt?: string;
 }

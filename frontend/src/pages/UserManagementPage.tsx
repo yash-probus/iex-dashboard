@@ -37,7 +37,8 @@ export default function UserManagementPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'CLIENT' | 'SUPER_ADMIN'>('CLIENT');
-  const [hiddenModules, setHiddenModules] = useState<string[]>([]);
+  const [hiddenModules, setHiddenModules] = useState<string[]>(AVAILABLE_MODULES.map(m => m.id));
+  const [readOnlyModules, setReadOnlyModules] = useState<string[]>([]);
 
   const fetchUsers = async () => {
     try {
@@ -61,7 +62,8 @@ export default function UserManagementPage() {
     setEmail('');
     setPassword('');
     setRole('CLIENT');
-    setHiddenModules([]);
+    setHiddenModules(AVAILABLE_MODULES.map(m => m.id)); // Default: all hidden
+    setReadOnlyModules([]);
     setIsModalOpen(true);
   };
 
@@ -72,6 +74,7 @@ export default function UserManagementPage() {
     setPassword(''); // Don't populate password
     setRole(user.role);
     setHiddenModules(user.hiddenModules || []);
+    setReadOnlyModules(user.readOnlyModules || []);
     setIsModalOpen(true);
   };
 
@@ -89,12 +92,12 @@ export default function UserManagementPage() {
   const handleSubmit = async () => {
     try {
       if (editingUser) {
-        const payload: any = { username, email, role, hiddenModules };
+        const payload: any = { username, email, role, hiddenModules, readOnlyModules };
         if (password) payload.password = password;
         await usersApi.updateUser(editingUser.id, payload);
         toast.success('User updated successfully');
       } else {
-        await usersApi.createUser({ username, email, role, password, hiddenModules } as any);
+        await usersApi.createUser({ username, email, role, password, hiddenModules, readOnlyModules } as any);
         toast.success('User created successfully');
       }
       setIsModalOpen(false);
@@ -249,26 +252,49 @@ export default function UserManagementPage() {
             </div>
             {role !== 'SUPER_ADMIN' && (
               <div className="space-y-3">
-                <Label>Hidden Services (Modules)</Label>
-                <div className="grid grid-cols-2 gap-2 border rounded-md p-4 bg-muted/20">
-                  {AVAILABLE_MODULES.map((mod) => (
-                    <div key={mod.id} className="flex flex-row items-start space-x-3 space-y-0">
-                      <Checkbox
-                        id={`hide-${mod.id}`}
-                        checked={hiddenModules.includes(mod.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setHiddenModules([...hiddenModules, mod.id]);
-                          } else {
-                            setHiddenModules(hiddenModules.filter((id) => id !== mod.id));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={`hide-${mod.id}`} className="font-normal text-sm cursor-pointer leading-none">
-                        {mod.label}
-                      </Label>
-                    </div>
-                  ))}
+                <Label>Allowed Services (Modules)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-md p-4 bg-muted/20 max-h-[300px] overflow-y-auto">
+                  {AVAILABLE_MODULES.map((mod) => {
+                    let currentAccess = 'none';
+                    if (!hiddenModules.includes(mod.id)) {
+                      currentAccess = readOnlyModules.includes(mod.id) ? 'view' : 'edit';
+                    }
+                    
+                    return (
+                      <div key={mod.id} className="flex flex-col space-y-1.5 p-2 rounded border bg-background">
+                        <Label className="font-medium text-sm">{mod.label}</Label>
+                        <Select
+                          value={currentAccess}
+                          onValueChange={(val: 'none' | 'view' | 'edit') => {
+                            let newHidden = [...hiddenModules];
+                            let newReadOnly = [...readOnlyModules];
+                            
+                            // Remove from both lists first
+                            newHidden = newHidden.filter(id => id !== mod.id);
+                            newReadOnly = newReadOnly.filter(id => id !== mod.id);
+                            
+                            if (val === 'none') {
+                              newHidden.push(mod.id);
+                            } else if (val === 'view') {
+                              newReadOnly.push(mod.id);
+                            }
+                            
+                            setHiddenModules(newHidden);
+                            setReadOnlyModules(newReadOnly);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No Access</SelectItem>
+                            <SelectItem value="view">View Only</SelectItem>
+                            <SelectItem value="edit">View & Edit</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
