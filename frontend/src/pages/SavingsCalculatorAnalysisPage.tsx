@@ -92,6 +92,7 @@ export default function SavingsCalculatorAnalysisPage() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
   const [selectedSimMonth, setSelectedSimMonth] = useState<string>('');
+  const [insightsOpen, setInsightsOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -320,6 +321,10 @@ const exportInsightsToExcel = async () => {
   }
 
 
+  if (insightsOpen && calcEntry) {
+    return <EnergyInsightsExplorer entry={calcEntry} onBack={() => setInsightsOpen(false)} />;
+  }
+
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
@@ -329,11 +334,26 @@ const exportInsightsToExcel = async () => {
         >
           <ArrowBackIcon />
         </IconButton>
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Typography variant="h2" sx={{ fontWeight: 700, color: 'text.primary' }}>
             Savings Analysis for {calcEntry?.clientName}
           </Typography>
         </Box>
+        <Button
+          variant="contained"
+          startIcon={<LightbulbIcon />}
+          onClick={() => setInsightsOpen(true)}
+          sx={{ 
+            textTransform: 'none', 
+            borderRadius: 2, 
+            bgcolor: '#16A34A',
+            '&:hover': {
+              bgcolor: '#15803d'
+            }
+          }}
+        >
+          Explore Insights
+        </Button>
       </Box>
 
       <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -398,50 +418,54 @@ const exportInsightsToExcel = async () => {
 
             
 
-            <Button
-              variant="contained"
-              startIcon={<BarChartIcon />}
-              onClick={executeGraphSimulation}
-              disabled={calculating || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
-                bgcolor: '#F59E0B',
-                '&:hover': {
-                  bgcolor: '#D97706'
-                }
-              }}
-            >
-              {calculating ? 'Analyzing...' : 'Slot-wise Heatmap'}
-            </Button>
+            {selectedSimMonth !== 'all' && (
+              <>
+                <Button
+                  variant="contained"
+                  startIcon={<BarChartIcon />}
+                  onClick={executeGraphSimulation}
+                  disabled={calculating || !selectedSimMonth}
+                  sx={{ 
+                    textTransform: 'none', 
+                    borderRadius: 2, 
+                    bgcolor: '#F59E0B',
+                    '&:hover': {
+                      bgcolor: '#D97706'
+                    }
+                  }}
+                >
+                  {calculating ? 'Analyzing...' : 'Slot-wise Heatmap'}
+                </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<BarChartIcon />}
-              onClick={() => {
-                if (!marketDecisionResult) {
-                  executeGraphSimulation();
-                  // A bit hacky, but they want it to behave the same
-                  setTimeout(() => {
-                    setGraphDialogOpen(false);
-                    setDynamicGraphDialogOpen(true);
-                  }, 1000);
-                } else {
-                  setDynamicGraphDialogOpen(true);
-                }
-              }}
-              disabled={calculating || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
-                bgcolor: '#8B5CF6',
-                '&:hover': {
-                  bgcolor: '#7C3AED'
-                }
-              }}
-            >
-              Dynamic Heatmap
-            </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<BarChartIcon />}
+                  onClick={() => {
+                    if (!marketDecisionResult) {
+                      executeGraphSimulation();
+                      // A bit hacky, but they want it to behave the same
+                      setTimeout(() => {
+                        setGraphDialogOpen(false);
+                        setDynamicGraphDialogOpen(true);
+                      }, 1000);
+                    } else {
+                      setDynamicGraphDialogOpen(true);
+                    }
+                  }}
+                  disabled={calculating || !selectedSimMonth}
+                  sx={{ 
+                    textTransform: 'none', 
+                    borderRadius: 2, 
+                    bgcolor: '#8B5CF6',
+                    '&:hover': {
+                      bgcolor: '#7C3AED'
+                    }
+                  }}
+                >
+                  Dynamic Heatmap
+                </Button>
+              </>
+            )}
 
             {calcResult && (
               <Button

@@ -1096,12 +1096,7 @@ export default function SavingsCalculatorPage() {
           >
             View
           </Button>
-          <IconButton size="small" onClick={() => handleOpenDialog('view', row)} title="View Detail">
-            <VisibilityIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-          </IconButton>
-          <IconButton size="small" onClick={() => setSelectedInsightsEntry(row)} title="Explore Insights">
-            <LightbulbIcon fontSize="small" sx={{ color: '#16A34A' }} />
-          </IconButton>
+
           {canEdit && (
             <>
               <IconButton size="small" onClick={() => handleOpenDialog('edit', row)} title="Edit Entry">
