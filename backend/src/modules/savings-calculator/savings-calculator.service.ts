@@ -738,8 +738,9 @@ export class SavingsCalculatorService {
         let matchedTariffName = 'normal';
 
         const isNpcl = entry.discom === 'NPCL';
+        const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
-        if (isNpcl) {
+        if (isNpclHv2) {
           const isWinter = month >= 9 || month <= 3;
           const baseRate = 6.80; 
 
@@ -1242,8 +1243,9 @@ export class SavingsCalculatorService {
       let matchedTariffName = 'normal';
 
       const isNpcl = entry.discom === 'NPCL';
+      const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
-      if (isNpcl) {
+      if (isNpclHv2) {
         const isWinter = month >= 9 || month <= 3;
         const baseRate = 6.80; 
 
