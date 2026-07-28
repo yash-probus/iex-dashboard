@@ -2093,8 +2093,8 @@ export default function SavingsCalculatorPage() {
                 <Tabs value={calcTab} onChange={(e, v) => setCalcTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 } }}>
                   {selectedSimMonth !== 'all' && <Tab label="Slabs Group Summary (TOD Sorted)" disabled={!calcResult} value={0} />}
                   {selectedSimMonth !== 'all' && <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} value={1} />}
-                  <Tab label="Market Buy Decision" disabled={!marketDecisionResult} value={2} />
-                  <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />
+                  <Tab label={selectedSimMonth === 'all' ? "Summary" : "Market Buy Decision"} disabled={!marketDecisionResult} value={2} />
+                  {selectedSimMonth !== 'all' && <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />}
                   <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
                   <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />
                 </Tabs>
