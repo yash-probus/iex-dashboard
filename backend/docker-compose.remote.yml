@@ -8,11 +8,11 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: iex_sec_k9P2mX_2026
-      POSTGRES_DB: iex_dashboard
+      POSTGRES_DB: Prolt_Operations
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d iex_dashboard"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Prolt_Operations"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -31,7 +31,7 @@ services:
     environment:
       - PRISMA_HIDE_UPDATE_MESSAGE=true
       - TZ=Asia/Kolkata
-      - DATABASE_URL=postgresql://postgres:iex_sec_k9P2mX_2026@iex-postgres:5432/iex_dashboard?schema=public
+      - DATABASE_URL=postgresql://postgres:iex_sec_k9P2mX_2026@iex-postgres:5432/Prolt_Operations?schema=public
     command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
 
   iex-backend:
@@ -51,7 +51,7 @@ services:
       - .env
     environment:
       - TZ=Asia/Kolkata
-      - DATABASE_URL=postgresql://postgres:iex_sec_k9P2mX_2026@iex-postgres:5432/iex_dashboard?schema=public
+      - DATABASE_URL=postgresql://postgres:iex_sec_k9P2mX_2026@iex-postgres:5432/Prolt_Operations?schema=public
     volumes:
       - ./uploads:/app/uploads
 

@@ -13,7 +13,7 @@ Once the database container is running, you can connect your SQL client using th
 | --- | --- |
 | **Host** | `localhost` |
 | **Port** | `5432` |
-| **Database** | `iex_dashboard` |
+| **Database** | `Prolt_Operations` |
 | **Username** | `postgres` |
 | **Password** | `postgres` |
 
