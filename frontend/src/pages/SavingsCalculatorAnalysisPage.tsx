@@ -158,13 +158,15 @@ export default function SavingsCalculatorAnalysisPage() {
       const newCache: Record<string, any> = { ...cachedResults };
       
       await Promise.all(months.map(async (m) => {
-        const [savingsRes, marketRes] = await Promise.all([
+        const [savingsRes, marketRes, insightsRes] = await Promise.all([
           calculateSavings(calcEntry.id, m, selectedCalcVersion || undefined),
-          calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined)
+          calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined),
+          fetchDemandShiftInsights(calcEntry.id, m, selectedCalcVersion || undefined)
         ]);
         if (!newCache[m]) newCache[m] = { calc: null, market: null, insights: null };
         newCache[m].calc = savingsRes;
         newCache[m].market = marketRes;
+        newCache[m].insights = insightsRes;
       }));
       
       setCachedResults(newCache);
@@ -396,25 +398,10 @@ const exportInsightsToExcel = async () => {
                 }
               }}
             >
-              {calculating ? 'Analyzing...' : 'Run Simulation'}
+              {calculating ? 'Analyzing...' : 'View'}
             </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<PlayIcon />}
-              onClick={executeInsights}
-              disabled={calculating || calculatingInsights || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
-                bgcolor: '#14B8A6',
-                '&:hover': {
-                  bgcolor: '#0D9488'
-                }
-              }}
-            >
-              {calculatingInsights ? 'Analyzing...' : 'Usage Recommendations'}
-            </Button>
+            
 
             <Button
               variant="contained"
@@ -532,7 +519,7 @@ const exportInsightsToExcel = async () => {
           {!calculating && !calculatingInsights && !calcResult && !marketDecisionResult && !demandShiftInsights && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
               <Typography variant="body1" color="text.secondary">
-                Click 'Run Simulation' to load the landed cost analysis for your configured months.
+                Click 'View' to load the landed cost analysis for your configured months.
               </Typography>
             </Box>
           )}
