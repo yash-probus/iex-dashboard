@@ -353,7 +353,7 @@ const exportInsightsToExcel = async () => {
                   scrollButtons="auto"
                   sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
                 >
-                  <Tab label="All Months (Yearly Summary)" value="all" />
+                  <Tab label="Overall" value="all" />
                   {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
                     <Tab 
                       key={ym} 
