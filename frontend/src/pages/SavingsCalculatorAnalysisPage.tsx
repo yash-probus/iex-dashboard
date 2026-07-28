@@ -157,17 +157,16 @@ export default function SavingsCalculatorAnalysisPage() {
       
       const newCache: Record<string, any> = { ...cachedResults };
       
-      await Promise.all(months.map(async (m) => {
-        const [savingsRes, marketRes, insightsRes] = await Promise.all([
-          calculateSavings(calcEntry.id, m, selectedCalcVersion || undefined),
-          calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined),
-          fetchDemandShiftInsights(calcEntry.id, m, selectedCalcVersion || undefined)
-        ]);
+      for (const m of months) {
+        const savingsRes = await calculateSavings(calcEntry.id, m, selectedCalcVersion || undefined);
+        const marketRes = await calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined);
+        const insightsRes = await fetchDemandShiftInsights(calcEntry.id, m, selectedCalcVersion || undefined);
+        
         if (!newCache[m]) newCache[m] = { calc: null, market: null, insights: null };
         newCache[m].calc = savingsRes;
         newCache[m].market = marketRes;
         newCache[m].insights = insightsRes;
-      }));
+      }
       
       setCachedResults(newCache);
       setCalcTab(0);

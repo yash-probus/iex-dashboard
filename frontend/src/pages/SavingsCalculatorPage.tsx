@@ -738,7 +738,7 @@ export default function SavingsCalculatorPage() {
       
       const newCache: Record<string, any> = { ...cachedResults };
       
-      await Promise.all(months.map(async (m) => {
+      for (const m of months) {
         const [savingsRes, marketRes, insightsRes] = await Promise.all([
           calculateSavings(calcEntry.id, m, selectedCalcVersion || undefined),
           calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined),
@@ -748,7 +748,7 @@ export default function SavingsCalculatorPage() {
         newCache[m].calc = savingsRes;
         newCache[m].market = marketRes;
         newCache[m].insights = insightsRes;
-      }));
+      }
       
       setCachedResults(newCache);
       setCalcTab(0);
