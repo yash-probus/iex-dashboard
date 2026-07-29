@@ -1788,7 +1788,7 @@ export class SavingsCalculatorService {
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
     const probusPlatformFee = Math.round(totalMarketEnergyKwh * platformFeeRate);
 
-    const netSavings = totalBaselineCost - totalLandedExchangeCost;
+    const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
     
     // Treat proltMargin as a percentage of gross savings
     const proltMarginInput = Number(entry.proltMargin || 0);
