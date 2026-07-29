@@ -1,6 +1,35 @@
 import * as ExcelJS from 'exceljs';
 import { SavingsCalculatorService } from './savings-calculator.service';
 
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+const getShortSheetName = (monthStr?: string, fallback = 'Savings Analysis') => {
+  if (!monthStr || monthStr === 'all') return fallback;
+  const parts = monthStr.split('-');
+  if (parts.length < 2) return fallback;
+  const year = parts[0];
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  return `${MONTHS_SHORT[monthIdx]} ${year}`;
+};
+
+const getLongMonthName = (monthStr?: string) => {
+  if (!monthStr || monthStr === 'all') return '';
+  const parts = monthStr.split('-');
+  if (parts.length < 2) return '';
+  const year = parts[0];
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  return `${MONTHS_LONG[monthIdx]} ${year}`;
+};
+
+const getShortHeaderName = (monthStr: string) => {
+  const parts = monthStr.split('-');
+  if (parts.length < 2) return monthStr;
+  const year2Digit = parts[0].substring(2);
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  return `${MONTHS_SHORT[monthIdx]}-${year2Digit}`;
+};
+
 export class SavingsCalculatorExportService {
   private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any): Promise<Record<string, number>> {
     const { slotsData, todSummaries, oaDetailed } = result;
@@ -24,7 +53,7 @@ export class SavingsCalculatorExportService {
     days.forEach(d => {
       // Format day like '1-May'
       const dateObj = new Date(d);
-      const dayStr = `${dateObj.getDate()}-${dateObj.toLocaleString('default', { month: 'short' })}`;
+      const dayStr = `${dateObj.getDate()}-${MONTHS_SHORT[dateObj.getMonth()]}`;
       headerRow1.push(dayStr, '', '');
       headerRow2.push('Qty (MWh)', 'Rate (Rs/kWh)', 'Market');
     });
@@ -440,7 +469,7 @@ export class SavingsCalculatorExportService {
         const monthRowMap: Record<string, any> = {};
         
         for (const r of allResults) {
-          const sheetName = r.monthStr ? new Date(`${r.monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Savings Analysis';
+          const sheetName = getShortSheetName(r.monthStr, 'Savings Analysis');
           const rowMapping = await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, r.result, entry);
           monthRowMap[r.monthStr] = { sheetName, ...rowMapping };
         }
@@ -450,7 +479,7 @@ export class SavingsCalculatorExportService {
     } else {
       const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
       const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version);
-      const sheetName = monthStr ? new Date(`${monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Savings Analysis';
+      const sheetName = getShortSheetName(monthStr, 'Savings Analysis');
       await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, result, entry);
     }
 
@@ -473,10 +502,7 @@ export class SavingsCalculatorExportService {
     // Sort results chronologically
     allResults.sort((a, b) => a.monthStr.localeCompare(b.monthStr));
 
-    const monthHeaders = allResults.map(r => {
-      const date = new Date(`${r.monthStr}-01`);
-      return date.toLocaleString('default', { month: 'short', year: '2-digit' }).replace(' ', '-');
-    });
+    const monthHeaders = allResults.map(r => getShortHeaderName(r.monthStr));
 
     const numMonths = allResults.length;
 
@@ -790,7 +816,7 @@ export class SavingsCalculatorExportService {
     const headerRow2 = [''];
     days.forEach(d => {
       const dateObj = new Date(d);
-      const dayStr = `${dateObj.getDate()}-${dateObj.toLocaleString('default', { month: 'short' })}`;
+      const dayStr = `${dateObj.getDate()}-${MONTHS_SHORT[dateObj.getMonth()]}`;
       headerRow1.push(dayStr, '', '');
       headerRow2.push('Price (₹)', 'Qty (kWh Market)', 'Market');
     });
@@ -870,12 +896,12 @@ export class SavingsCalculatorExportService {
       const months = Object.keys(entry?.todConsumptions || {}).sort();
       for (const m of months) {
         const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, m, version);
-        const monthName = new Date(`${m}-01`).toLocaleString('default', { month: 'long', year: 'numeric' });
+        const monthName = getLongMonthName(m);
         await SavingsCalculatorExportService.addDemandShiftSheet(workbook, monthName, result);
       }
     } else {
       const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr, version);
-      const sheetName = monthStr ? new Date(`${monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Demand Shift';
+      const sheetName = getShortSheetName(monthStr, 'Demand Shift');
       await SavingsCalculatorExportService.addDemandShiftSheet(workbook, sheetName, result);
     }
 
