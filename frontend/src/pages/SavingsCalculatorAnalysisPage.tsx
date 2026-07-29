@@ -326,7 +326,7 @@ const exportInsightsToExcel = async () => {
   }
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
+    <Box sx={{ p: 3, maxWidth: '100%', mx: 'auto' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
         <IconButton 
           onClick={() => navigate('/savings-calculator')}
