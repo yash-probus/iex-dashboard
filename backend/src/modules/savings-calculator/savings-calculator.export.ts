@@ -60,20 +60,27 @@ export class SavingsCalculatorExportService {
 
     const hr1 = sheet.addRow(headerRow1);
     const hr2 = sheet.addRow(headerRow2);
+    hr1.height = 28;
+    hr2.height = 28;
     
     // Merge cells for headerRow1
     let colIndex = 2;
     days.forEach(() => {
       sheet.mergeCells(1, colIndex, 1, colIndex + 2);
-      sheet.getCell(1, colIndex).alignment = { horizontal: 'center' };
       colIndex += 3;
     });
 
     hr1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    hr1.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
+    hr1.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
     
     hr2.font = { bold: true };
-    hr2.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } });
+    hr2.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
 
     // Create 96 blocks
     // Helper to format block time (e.g., '00:00 - 00:15')
@@ -145,8 +152,15 @@ export class SavingsCalculatorExportService {
       'DISCOM Bill after OA (Rs.)'
     ];
     const breakdownHeaderRow = sheet.addRow(breakdownHeader);
+    breakdownHeaderRow.height = 32;
     breakdownHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    breakdownHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
+    breakdownHeaderRow.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
+    for (let col = 2; col <= 7; col++) {
+      sheet.getColumn(col).width = 18;
+    }
 
     rowMapping['breakdownTableStart'] = sheet.rowCount + 1;
 
@@ -517,8 +531,12 @@ export class SavingsCalculatorExportService {
 
     // TOD Header
     const todHeaderRow = sheet.addRow(['TOD', ...monthHeaders]);
+    todHeaderRow.height = 25;
     todHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    todHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } });
+    todHeaderRow.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
     
     const uniqueTods = new Set<string>();
     allResults.forEach(r => {
@@ -536,8 +554,12 @@ export class SavingsCalculatorExportService {
 
     // Savings section
     const savingsHeaderRow = sheet.addRow(['Savings', ...monthHeaders]);
+    savingsHeaderRow.height = 25;
     savingsHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    savingsHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } });
+    savingsHeaderRow.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
 
     const getColLetter = (colIdx: number) => {
       let temp = colIdx;
@@ -689,8 +711,12 @@ export class SavingsCalculatorExportService {
     sheet.addRow([]);
 
     const marginHeaderRow = sheet.addRow(['Margin Details', ...monthHeaders]);
+    marginHeaderRow.height = 25;
     marginHeaderRow.font = { bold: true };
-    marginHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } });
+    marginHeaderRow.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
 
     const traderMarginRowData: any[] = [`Trader Margin (Rs ${entry.traderMargin !== null && entry.traderMargin !== undefined ? entry.traderMargin : 0.02}/kWh)`];
     allResults.forEach((r, idx) => {
