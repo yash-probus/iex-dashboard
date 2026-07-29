@@ -3,14 +3,18 @@ cat > /tmp/gems << 'EOF'
 server {
     listen 8082;
     listen [::]:8082;
-    server_name 13.203.106.159;
-
-    root /var/www/gems;
-    index index.html;
+    server_name _;
 
     # Frontend routing
     location / {
-        try_files $uri $uri/ /index.html;
+        proxy_pass http://127.0.0.1:8081;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # Backend API proxy
