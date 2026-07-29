@@ -447,64 +447,64 @@ const exportInsightsToExcel = async () => {
 
 
             {Object.keys(cachedResults).length > 0 && (
-              <Box sx={{ width: '100%', mt: 2, borderTop: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, pt: 1 }}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Tabs 
-                    value={selectedSimMonth} 
-                    onChange={(e, v) => setSelectedSimMonth(v)}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                    sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
-                  >
-                    <Tab label="Overall" value="all" />
-                    {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
-                      <Tab 
-                        key={ym} 
-                        label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} 
-                        value={ym} 
-                      />
-                    ))}
-                  </Tabs>
-                </Box>
-
-                {marketDecisionResult && (
-                  <Button 
-                    variant="outlined" 
-                    startIcon={<DownloadIcon />} 
-                    onClick={async () => {
-                      if (!calcEntry) return;
-                      try {
-                        await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
-                      } catch (err: any) {
-                        setSnackbar({
-                          open: true,
-                          message: err.message || 'Export failed',
-                          severity: 'error'
-                        });
-                      }
-                    }}
-                    sx={{ 
-                      textTransform: 'none', 
-                      borderRadius: 2.5, 
-                      fontWeight: 600, 
-                      borderColor: 'divider',
-                      backgroundColor: '#0F172A',
-                      color: 'white',
-                      px: 4,
-                      py: 1,
-                      minWidth: 220,
-                      '&:hover': {
-                        backgroundColor: '#1E293B',
-                        borderColor: 'divider'
-                      }
-                    }}
-                  >
-                    Export Excel Sheet
-                  </Button>
-                )}
+              <Box sx={{ width: '100%', mt: 2, borderTop: 1, borderColor: 'divider' }}>
+                <Tabs 
+                  value={selectedSimMonth} 
+                  onChange={(e, v) => setSelectedSimMonth(v)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
+                >
+                  <Tab label="Overall" value="all" />
+                  {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
+                    <Tab 
+                      key={ym} 
+                      label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} 
+                      value={ym} 
+                    />
+                  ))}
+                </Tabs>
               </Box>
             )}
           </Box>
+
+          {marketDecisionResult && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2, mb: 2 }}>
+              <Button 
+                variant="outlined" 
+                startIcon={<DownloadIcon />} 
+                onClick={async () => {
+                  if (!calcEntry) return;
+                  try {
+                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
+                  } catch (err: any) {
+                    setSnackbar({
+                      open: true,
+                      message: err.message || 'Export failed',
+                      severity: 'error'
+                    });
+                  }
+                }}
+                sx={{ 
+                  textTransform: 'none', 
+                  borderRadius: 2.5, 
+                  fontWeight: 600, 
+                  borderColor: 'divider',
+                  backgroundColor: '#0F172A',
+                  color: 'white',
+                  px: 4,
+                  py: 1,
+                  minWidth: 220,
+                  '&:hover': {
+                    backgroundColor: '#1E293B',
+                    borderColor: 'divider'
+                  }
+                }}
+              >
+                Export Excel Sheet
+              </Button>
+            </Box>
+          )}
 
           {calculating && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 2 }}>
