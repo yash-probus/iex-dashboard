@@ -1,8 +1,8 @@
 #!/bin/bash
 cat > /tmp/gems << 'EOF'
 server {
-    listen 80;
-    listen [::]:80;
+    listen 8082;
+    listen [::]:8082;
     server_name 13.203.106.159;
 
     root /var/www/gems;
