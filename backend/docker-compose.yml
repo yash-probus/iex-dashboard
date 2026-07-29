@@ -133,8 +133,8 @@ services:
 
 volumes:
   postgres_data:
-    name: postgres_data_${ENV_SUFFIX:-dev}
+    name: ${POSTGRES_VOLUME:-postgres_data_${ENV_SUFFIX:-dev}}
   postgres_backup_data:
-    name: postgres_backup_data_${ENV_SUFFIX:-dev}
+    name: ${POSTGRES_BACKUP_VOLUME:-postgres_backup_data_${ENV_SUFFIX:-dev}}
   redis_data:
-    name: redis_data_${ENV_SUFFIX:-dev}
+    name: ${REDIS_VOLUME:-redis_data_${ENV_SUFFIX:-dev}}
