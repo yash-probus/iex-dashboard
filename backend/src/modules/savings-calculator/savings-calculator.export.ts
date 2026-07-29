@@ -144,7 +144,17 @@ export class SavingsCalculatorExportService {
     const monthData = entry.todConsumptions?.[monthStr || ''];
     const startDate = monthData?.['Start Date'] || '-';
     const endDate = monthData?.['End Date'] || '-';
-    const billingPeriodRow = sheet.addRow([`Billing Period: ${startDate} to ${endDate}`]);
+    
+    const formatToDDMM = (dStr: string) => {
+      if (!dStr || dStr === '-') return '-';
+      const parts = dStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}`;
+      }
+      return dStr;
+    };
+    
+    const billingPeriodRow = sheet.addRow([`Billing Period: ${formatToDDMM(startDate)} to ${formatToDDMM(endDate)}`]);
     billingPeriodRow.font = { bold: true, italic: true };
 
     sheet.addRow([]);
@@ -575,7 +585,17 @@ export class SavingsCalculatorExportService {
       const monthData = entry.todConsumptions?.[r.monthStr];
       const start = monthData?.['Start Date'] || '-';
       const end = monthData?.['End Date'] || '-';
-      billingPeriodRowData.push(`${start} to ${end}`);
+      
+      const formatToDDMM = (dStr: string) => {
+        if (!dStr || dStr === '-') return '-';
+        const parts = dStr.split('-');
+        if (parts.length === 3) {
+          return `${parts[2]}-${parts[1]}`;
+        }
+        return dStr;
+      };
+      
+      billingPeriodRowData.push(`${formatToDDMM(start)} to ${formatToDDMM(end)}`);
     });
     const bPeriodRow = sheet.addRow(billingPeriodRowData);
     bPeriodRow.height = 25;
