@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-Prolt_Operations}
     volumes:
-      - postgres_data_${ENV_SUFFIX:-dev}:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-Prolt_Operations}"]
       interval: 5s
@@ -28,7 +28,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-Prolt_Operations}
     volumes:
-      - postgres_backup_data_${ENV_SUFFIX:-dev}:/var/lib/postgresql/data
+      - postgres_backup_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-Prolt_Operations}"]
       interval: 5s
@@ -96,7 +96,7 @@ services:
       - "${REDIS_PORT:-6379}:6379"
     restart: unless-stopped
     volumes:
-      - redis_data_${ENV_SUFFIX:-dev}:/data
+      - redis_data:/data
 
   iex-backend:
     build:
@@ -132,9 +132,9 @@ services:
       - ./uploads:/app/uploads
 
 volumes:
-  postgres_data_${ENV_SUFFIX:-dev}:
+  postgres_data:
     name: postgres_data_${ENV_SUFFIX:-dev}
-  postgres_backup_data_${ENV_SUFFIX:-dev}:
+  postgres_backup_data:
     name: postgres_backup_data_${ENV_SUFFIX:-dev}
-  redis_data_${ENV_SUFFIX:-dev}:
+  redis_data:
     name: redis_data_${ENV_SUFFIX:-dev}
