@@ -1998,10 +1998,9 @@ export default function SavingsCalculatorPage() {
       <Dialog
         open={calcDialogOpen}
         onClose={handleCloseCalc}
-        maxWidth="lg"
-        fullWidth
+        fullScreen
         PaperProps={{
-          sx: { borderRadius: 3, p: 1 }
+          sx: { p: 1 }
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
