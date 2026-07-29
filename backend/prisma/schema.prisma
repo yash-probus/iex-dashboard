@@ -761,7 +761,7 @@ model DamForecasting {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
 
-  // @@unique([forecasting_for, time_block, model_number, forecast_date])
+  @@unique([forecasting_for, time_block, model_number, forecast_date])
   @@index([forecasting_for])
   @@index([time_block])
   @@map("dam_forecasting")
