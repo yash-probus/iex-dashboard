@@ -3,6 +3,7 @@ import axiosRetry from 'axios-retry';
 import https from 'https';
 import { PrismaClient } from '@prisma/client';
 import { ApiLogService } from '../modules/api-log/api-log.service';
+import puppeteer from 'puppeteer';
 
 const prisma = new PrismaClient();
 
@@ -306,35 +307,73 @@ export class VidyutPravahScraper {
   }
 
   private static async scrapeStateDemands(): Promise<Record<string, number>> {
-    console.log('[ScraperService] Fetching State Demands...');
+    console.log('[ScraperService] Fetching State Demands using Puppeteer...');
     const demands: Record<string, number> = {};
     
-    // Fetch in batches of 2 to avoid rate limiting or timeouts
-    const entries = Object.entries(STATE_URL_SLUGS);
-    for (let i = 0; i < entries.length; i += 2) {
-      const batch = entries.slice(i, i + 2);
-      await Promise.all(batch.map(async ([stateName, slug]) => {
-        try {
-          const { data } = await axiosClient.get(`https://vidyutpravah.in/state-data/${slug}`);
-          // Regex to find: <span class="value_DemandMET_en..."><span...>  24,097&nbsp;MW</span>
-          const match = data.match(/<span class="value_DemandMET_en[^>]*><span[^>]*>\s*([\d,]+)\s*&nbsp;MW<\/span>/);
-          if (match && match[1]) {
-            demands[stateName] = parseFloat(match[1].replace(/,/g, ''));
-          } else {
-            // If a state doesn't report live demand, default to 0 to prevent crashes
-            demands[stateName] = 0;
-          }
-        } catch (e: any) {
-          console.error(`[ScraperService] Failed to scrape demand for ${stateName}:`, e.message);
-          demands[stateName] = 0;
-        }
-      }));
+    let browser: any;
+    try {
+      browser = await puppeteer.launch({ 
+        headless: true, 
+        args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+      });
+      const entries = Object.entries(STATE_URL_SLUGS);
       
-      // Delay 1 second between batches
-      if (i + 2 < entries.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      // Fetch in batches of 2 to avoid rate limiting or timeouts
+      for (let i = 0; i < entries.length; i += 2) {
+        const batch = entries.slice(i, i + 2);
+        await Promise.all(batch.map(async ([stateName, slug]) => {
+          let page;
+          try {
+            page = await browser.newPage();
+            // Block images and css to save memory
+            await page.setRequestInterception(true);
+            page.on('request', (req: any) => {
+              if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
+                req.abort();
+              } else {
+                req.continue();
+              }
+            });
+
+            await page.goto(`https://vidyutpravah.in/state-data/${slug}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            
+            // Wait for the value to load (wait for the span and wait for it to not just be empty)
+            await page.waitForFunction(() => {
+              const el = document.querySelector('.value_DemandMET_en span');
+              return el && el.textContent && el.textContent.trim().length > 0 && el.textContent.trim().replace(/\u00a0/g, '') !== '';
+            }, { timeout: 10000 }).catch(() => {});
+
+            const demandText = await page.evaluate(() => {
+              const el = document.querySelector('.value_DemandMET_en span');
+              return el ? el.textContent : null;
+            });
+
+            if (demandText) {
+              const cleanedText = demandText.replace(/&nbsp;/g, '').replace(/\u00a0/g, '').replace(/,/g, '').replace(/[^\d.]/g, '');
+              const val = parseFloat(cleanedText);
+              demands[stateName] = isNaN(val) ? 0 : val;
+            } else {
+              demands[stateName] = 0;
+            }
+          } catch (e: any) {
+            console.error(`[ScraperService] Failed to scrape demand for ${stateName}:`, e.message);
+            demands[stateName] = 0;
+          } finally {
+            if (page) await page.close().catch(() => {});
+          }
+        }));
+        
+        // Delay 1 second between batches
+        if (i + 2 < entries.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
+    } catch (e: any) {
+       console.error('[ScraperService] Puppeteer launch error:', e);
+    } finally {
+      if (browser) await browser.close().catch(() => {});
     }
+
     return demands;
   }
 
