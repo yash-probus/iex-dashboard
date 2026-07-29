@@ -456,7 +456,7 @@ export class SavingsCalculatorExportService {
     finalSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     
     if (sheet.lastRow) {
-      sheet.lastRow.font = { bold: true, color: { argb: 'FF008000' } };
+      sheet.lastRow.font = { bold: true, color: { argb: 'FF000000' } };
     }
     
     // Auto-fit column A
