@@ -535,19 +535,17 @@ export class SavingsCalculatorExportService {
     calcBaseRow.getCell(1).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     calcBaseRow.getCell(2).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     
-    // Billing Period Rows
-    const billingStartRowData = ['Billing Start Date', ''];
-    const billingEndRowData = ['Billing End Date', ''];
+    // Billing Period Row
+    const billingPeriodRowData = ['Billing Period', ''];
     allResults.forEach(r => {
       const monthData = entry.todConsumptions?.[r.monthStr];
-      billingStartRowData.push(monthData?.['Start Date'] || '-');
-      billingEndRowData.push(monthData?.['End Date'] || '-');
+      const start = monthData?.['Start Date'] || '-';
+      const end = monthData?.['End Date'] || '-';
+      billingPeriodRowData.push(`${start} to ${end}`);
     });
     
-    const bStartRow = sheet.addRow(billingStartRowData);
-    const bEndRow = sheet.addRow(billingEndRowData);
-    bStartRow.font = { italic: true };
-    bEndRow.font = { italic: true };
+    const bPeriodRow = sheet.addRow(billingPeriodRowData);
+    bPeriodRow.font = { italic: true };
 
     sheet.addRow([]);
 
