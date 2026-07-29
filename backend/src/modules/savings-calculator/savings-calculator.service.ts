@@ -1782,17 +1782,20 @@ export class SavingsCalculatorService {
       });
     });
 
-    const rawSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
+    const nocFee = 7000;
+    const regFee = 8333;
+    const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
+    const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
+    const probusPlatformFee = Math.round(totalMarketEnergyKwh * platformFeeRate);
+
+    const netSavings = totalBaselineCost - totalLandedExchangeCost;
     
     // Treat proltMargin as a percentage of gross savings
     const proltMarginInput = Number(entry.proltMargin || 0);
-    const grossSavings = Math.max(0, rawSavings);
-    const totalProltMarginCost = grossSavings * (proltMarginInput / 100);
+    const grossSavings = Math.max(0, netSavings);
+    const totalProltMarginCost = Math.round(grossSavings * (proltMarginInput / 100));
     
-    const consultancyFee = Number((entry as any).consultancyFee || 0);
-    const probusPlatformFee = Number((entry as any).probusPlatformFee || 0);
-
-    const totalSavings = rawSavings - totalProltMarginCost - consultancyFee - probusPlatformFee;
+    const totalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - totalProltMarginCost;
     
     // Ensure savings are never negative - if they would be, set to 0
     const finalSavings = Math.max(0, totalSavings);
@@ -1835,7 +1838,7 @@ export class SavingsCalculatorService {
           traderMargin: globalTraderMargin,
           traderMarginGst: globalTraderMarginGst,
           proltMarginCost: totalProltMarginCost,
-          consultancyFee,
+          consultancyFee: consultancyFeeVal,
           probusPlatformFee,
         }
       }
