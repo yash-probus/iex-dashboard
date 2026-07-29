@@ -1685,7 +1685,13 @@ export class SavingsCalculatorService {
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
     const oaDetailedBreakdown: any[] = [];
 
-    Object.keys(slotsByTod).forEach(groupKey => {
+    const sortedTodKeys = Object.keys(slotsByTod).sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, ''), 10) || 0;
+      const numB = parseInt(b.replace(/\D/g, ''), 10) || 0;
+      return numA - numB;
+    });
+
+    sortedTodKeys.forEach(groupKey => {
       const slotsInGroup = slotsByTod[groupKey];
       
       let slabConsumption = 0;
