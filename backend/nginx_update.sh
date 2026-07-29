@@ -41,5 +41,6 @@ server {
 EOF
 
 sudo mv /tmp/gems /etc/nginx/sites-available/gems
+sudo ln -sf /etc/nginx/sites-available/gems /etc/nginx/sites-enabled/gems
 sudo rm -f /etc/nginx/sites-enabled/iex-backend
 sudo nginx -t && sudo systemctl restart nginx
