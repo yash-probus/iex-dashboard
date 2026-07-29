@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Delhi Flour Mills | Energy Savings Dashboard</title>
+<style>
+:root{
+  --ink:#10233f; --muted:#617089; --paper:#f4f7fb; --card:#ffffff;
+  --navy:#0a2540; --blue:#1769e0; --cyan:#00a7c4; --green:#1e9c68;
+  --green-dark:#13734c; --amber:#f3aa24; --red:#d45d5d; --line:#dde5ef;
+  --shadow:0 14px 36px rgba(15,39,70,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,select,input{font:inherit}
+.shell{max-width:1480px;margin:auto;padding:24px}
+.hero{
+  position:relative;overflow:hidden;border-radius:24px;padding:30px 32px;color:#fff;
+  background:linear-gradient(120deg,#071b32 0%,#0c3156 58%,#07584b 120%);
+  box-shadow:var(--shadow)
+}
+.hero:after{content:"";position:absolute;width:430px;height:430px;border-radius:50%;right:-160px;top:-240px;background:rgba(255,255,255,.07)}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#a8d8ff}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,.8fr);gap:26px;align-items:end}
+h1{font-size:clamp(28px,4vw,48px);line-height:1.05;margin:8px 0 10px}
+.hero p{margin:0;color:#d7e6f4;font-size:15px;line-height:1.6}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.meta div{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:12px}
+.meta b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a9c7dd;margin-bottom:4px}
+.meta span{font-size:14px;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center;margin:20px 0}
+.toolbar .left{display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:#fff;border:1px solid var(--line);padding:9px 12px;border-radius:999px;color:var(--muted);font-size:13px;font-weight:700}
+.btn{border:0;border-radius:11px;background:var(--navy);color:#fff;padding:10px 14px;cursor:pointer;font-weight:800;box-shadow:0 5px 14px rgba(10,37,64,.18)}
+.btn.secondary{background:#fff;color:var(--navy);border:1px solid var(--line);box-shadow:none}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);min-height:142px}
+.kpi .label{color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.kpi .value{font-size:clamp(25px,2.4vw,36px);font-weight:900;letter-spacing:-.035em;margin:12px 0 5px;white-space:nowrap}
+.kpi .sub{font-size:12px;color:var(--muted);line-height:1.4}
+.kpi.positive{background:linear-gradient(145deg,#effbf6,#fff);border-color:#bfe8d5}
+.kpi.positive .value{color:var(--green-dark)}
+.kpi.highlight{background:linear-gradient(145deg,#fff8e8,#fff);border-color:#f6d690}
+.kpi.highlight .value{color:#a75e00}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px;min-width:0}
+.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-6{grid-column:span 6}.span-5{grid-column:span 5}.span-4{grid-column:span 4}.span-12{grid-column:span 12}
+.card-head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.card h2{font-size:18px;margin:0}.card h3{font-size:15px;margin:0}
+.note{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);font-weight:700}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.chart{width:100%;height:330px;position:relative}
+.chart svg{width:100%;height:100%;overflow:visible}
+.axis-label{font-size:10px;fill:#718097}.gridline{stroke:#e7edf5;stroke-width:1}.axis{stroke:#b7c3d1}
+.tip{position:fixed;pointer-events:none;z-index:20;background:#0b1f36;color:#fff;padding:9px 11px;border-radius:9px;font-size:12px;line-height:1.45;box-shadow:0 8px 22px rgba(0,0,0,.22);display:none;max-width:230px}
+.insights{display:grid;gap:10px}
+.insight{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:12px;padding:13px 14px;background:#fbfdff}
+.insight.good{border-left-color:var(--green)}.insight.watch{border-left-color:var(--amber)}
+.insight b{display:block;margin-bottom:4px;font-size:13px}.insight span{font-size:12px;color:var(--muted);line-height:1.5}
+.score{display:flex;align-items:center;gap:16px;margin:16px 0}
+.ring{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) 0 80%,#e8eef5 80% 100%);position:relative}
+.ring:after{content:"";position:absolute;inset:13px;border-radius:50%;background:#fff}.ring strong{position:relative;z-index:1;font-size:26px}.ring small{position:absolute;z-index:1;margin-top:38px;color:var(--muted);font-weight:700}
+.split-list{display:grid;gap:9px;margin-top:10px}
+.split-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;font-size:12px}
+.split-row .bar{height:7px;background:#edf1f6;border-radius:99px;overflow:hidden;margin-top:4px}.split-row .bar i{display:block;height:100%;border-radius:99px}
+.scenario{background:linear-gradient(145deg,#f8fbff,#f0faf6)}
+.slider-wrap{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin:18px 0 12px}
+input[type=range]{width:100%;accent-color:var(--green)}
+.target{font-size:26px;font-weight:900;color:var(--green-dark);min-width:68px;text-align:right}
+.scenario-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mini{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.mini span{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:5px}.mini b{font-size:18px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+th{position:sticky;top:0;background:#f5f8fc;color:#53637a;text-align:right;padding:11px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:inherit}
+td{text-align:right;padding:10px 9px;border-bottom:1px solid #edf1f5;white-space:nowrap}
+tbody tr:hover{background:#f8fbff}
+.table-wrap{overflow:auto;max-height:430px;border:1px solid var(--line);border-radius:12px}
+.badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800}
+.badge.good{background:#e9f8f1;color:#14714a}.badge.watch{background:#fff4df;color:#9a5a00}.badge.neutral{background:#edf3fa;color:#42617c}
+.footer{font-size:11px;color:#718097;line-height:1.55;margin:18px 4px 4px}
+.section-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:9px;padding:7px 10px;font-weight:800;font-size:12px;cursor:pointer}
+.tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.hidden{display:none}
+@media(max-width:1150px){.kpis{grid-template-columns:repeat(3,1fr)}.span-8,.span-7,.span-6,.span-5,.span-4{grid-column:span 12}}
+@media(max-width:720px){.shell{padding:12px}.hero{padding:22px}.hero-grid{grid-template-columns:1fr}.meta{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.grid{gap:12px}.card{padding:15px}.scenario-kpis{grid-template-columns:1fr}.chart{height:285px}}
+@media(max-width:470px){.kpis{grid-template-columns:1fr}}
+@media print{body{background:#fff}.shell{max-width:none;padding:0}.toolbar{display:none}.card,.kpi,.hero{box-shadow:none;break-inside:avoid}.chart{height:260px}.table-wrap{max-height:none;overflow:visible}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">Open Access Energy Performance</div>
+        <h1>The Delhi Flour Mills</h1>
+        <p>Executive savings dashboard for March 2025–February 2026, combining energy clearance, power-cost spread, customer benefit and platform economics.</p>
+      </div>
+      <div class="meta">
+        <div><b>Location</b><span>Kasna Ecotech 1 Extension, Greater Noida</span></div>
+        <div><b>Connectivity</b><span>33 kV</span></div>
+        <div><b>Calculation Base</b><span>Demand (MW)</span></div>
+        <div><b>Period</b><span>12 months</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="left">
+      <span class="pill">All values in ₹ unless stated</span>
+      <span class="pill">Energy in kWh</span>
+      <span class="pill">Data reconciled: 12/12 months</span>
+    </div>
+    <div>
+      <button class="btn secondary" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn" onclick="downloadCSV()">Download monthly CSV</button>
+    </div>
+  </div>
+
+  <section class="kpis">
+    <article class="kpi positive"><div class="label">Annual net saving</div><div class="value" id="kpiNet"></div><div class="sub">Benefit retained by the business after platform charges</div></article>
+    <article class="kpi positive"><div class="label">Average monthly net</div><div class="value" id="kpiAvg"></div><div class="sub">Stable monthly value realization across the year</div></article>
+    <article class="kpi highlight"><div class="label">Gross saving</div><div class="value" id="kpiGross"></div><div class="sub">Difference between DISCOM cost and open-access cost</div></article>
+    <article class="kpi"><div class="label">Energy optimized</div><div class="value" id="kpiCleared"></div><div class="sub" id="kpiEnergySub"></div></article>
+    <article class="kpi"><div class="label">Weighted OA coverage</div><div class="value" id="kpiCoverage"></div><div class="sub">Cleared energy as a share of total billed consumption</div></article>
+    <article class="kpi"><div class="label">Net saving rate</div><div class="value" id="kpiNetRate"></div><div class="sub">Weighted customer benefit per consumed unit</div></article>
+  </section>
+
+  <section class="grid">
+    <article class="card span-8">
+      <div class="card-head">
+        <div><h2>Monthly savings performance</h2><div class="note">Gross savings versus net benefit retained by the business</div></div>
+        <div class="legend"><span><i style="background:#9ebce8"></i>Gross</span><span><i style="background:#1e9c68"></i>Net</span></div>
+      </div>
+      <div id="savingsChart" class="chart"></div>
+    </article>
+
+    <article class="card span-4">
+      <div class="card-head"><div><h2>Executive insights</h2><div class="note">Priority findings for commercial and energy teams</div></div></div>
+      <div class="insights" id="insights"></div>
+    </article>
+
+    <article class="card span-7">
+      <div class="card-head">
+        <div><h2>Energy clearance & utilization</h2><div class="note">Monthly total consumption, cleared units and open-access coverage</div></div>
+        <div class="legend"><span><i style="background:#dbe6f5"></i>Total</span><span><i style="background:#1769e0"></i>Cleared</span><span><i style="background:#f3aa24"></i>Coverage</span></div>
+      </div>
+      <div id="energyChart" class="chart"></div>
+    </article>
+
+    <article class="card span-5">
+      <div class="card-head">
+        <div><h2>Power purchase cost spread</h2><div class="note">Blended ₹/kWh comparison</div></div>
+        <div class="legend"><span><i style="background:#d45d5d"></i>DISCOM only</span><span><i style="background:#00a7c4"></i>With ProIt</span></div>
+      </div>
+      <div id="costChart" class="chart"></div>
+    </article>
+
+    <article class="card span-4">
+      <div class="card-head"><div><h2>Customer value retention</h2><div class="note">Share of gross savings retained by the business</div></div></div>
+      <div class="score">
+        <div class="ring" id="retentionRing"><strong id="retentionPct"></strong><small>retained</small></div>
+        <div><h3 id="retentionValue"></h3><div class="note">of total gross savings remained with the customer after charges.</div></div>
+      </div>
+      <div class="split-list" id="feeSplit"></div>
+    </article>
+
+    <article class="card span-4 scenario">
+      <div class="card-head"><div><h2>Open-access opportunity simulator</h2><div class="note">Illustrative upside using the current weighted spread and retention ratio</div></div></div>
+      <div class="slider-wrap">
+        <input type="range" id="coverageTarget" min="57" max="80" value="65" step="1" oninput="updateScenario()">
+        <div class="target"><span id="targetLabel">65%</span></div>
+      </div>
+      <div class="scenario-kpis">
+        <div class="mini"><span>Additional cleared energy</span><b id="scenarioEnergy"></b></div>
+        <div class="mini"><span>Indicative gross upside</span><b id="scenarioGross"></b></div>
+        <div class="mini"><span>Indicative net upside</span><b id="scenarioNet"></b></div>
+      </div>
+      <div class="note" style="margin-top:12px">Scenario only. Actual availability, exchange prices, scheduling constraints and losses can change the result.</div>
+    </article>
+
+    <article class="card span-4">
+      <div class="card-head"><div><h2>Recommended focus</h2><div class="note">Actions suggested by the observed performance</div></div></div>
+      <div class="insights">
+        <div class="insight good"><b>Raise coverage in high-spread months</b><span>February delivered a ₹1.12/kWh gross spread at only 52% clearance. Prioritize scheduling and volume capture when the spread widens.</span></div>
+        <div class="insight"><b>Use a dual trigger</b><span>Track both open-access coverage and price spread. High coverage alone did not maximize savings in November.</span></div>
+        <div class="insight watch"><b>Investigate low-clearance months</b><span>April was the lowest at 40%. Review approvals, banking, exchange availability, forecasting and operational constraints.</span></div>
+      </div>
+    </article>
+
+    <article class="card span-12">
+      <div class="card-head">
+        <div><h2>Detailed monthly performance</h2><div class="note">Switch between commercial and TOD views</div></div>
+      </div>
+      <div class="section-tabs">
+        <button class="tab active" onclick="showTable('commercial',this)">Commercial summary</button>
+        <button class="tab" onclick="showTable('tod',this)">TOD clearance</button>
+      </div>
+      <div id="commercialTable" class="table-wrap"></div>
+      <div id="todTable" class="table-wrap hidden"></div>
+    </article>
+  </section>
+
+  <div class="footer">
+    <b>Methodology:</b> Gross saving = DISCOM cost − total power cost through open access. Net business saving = gross saving − reported total platform amount.
+    Weighted rates use total billed consumption. The scenario tool applies the observed weighted gross saving rate and customer-retention ratio to incremental cleared energy; it is an indicative sensitivity, not a forecast.
+  </div>
+</div>
+<div id="tip" class="tip"></div>
+
+<script>
+const D = {"months":["Mar-25","Apr-25","May-25","Jun-25","Jul-25","Aug-25","Sep-25","Oct-25","Nov-25","Dec-25","Jan-26","Feb-26"],"cleared":[420151,400629,540172,663966,525064,649536,648185,617741,713860,548484,516076,426896],"consumption":[927170,996346,1038420,1024403,1039950,1093962,1034978,852762,969267,1009644,973969,827310],"coverage":[45,40,52,65,50,59,63,72,74,54,53,52],"openAccessCost":[5651647,6582719,6379232,6525850,6653768,6503498,5834955,4787513,6172093,6882901,6118161,5528658],"discomCost":[6490298,7152745,7206281,7532768,7482538,7713693,7504714,6130127,7095140,7602941,6853348,6456114],"discomRate":[7.0,7.18,6.94,7.35,7.2,7.05,7.25,7.19,7.32,7.53,7.04,7.8],"proItRate":[6.1,6.61,6.14,6.37,6.4,5.94,5.64,5.61,6.37,6.82,6.28,6.68],"grossSaving":[838651,570026,827049,1006918,828770,1210195,1669759,1342614,923047,720040,735187,927456],"grossPerUnit":[0.9,0.57,0.8,0.98,0.8,1.11,1.61,1.57,0.95,0.71,0.75,1.12],"totalFee":[170692,129920,171609,201420,171566,231585,300478,250764,190041,155910,157399,184173],"netSaving":[667959,440106,655440,805498,657204,978610,1369281,1091850,733006,564130,577788,743283],"netPerUnit":[0.72,0.44,0.63,0.79,0.63,0.89,1.32,1.28,0.76,0.56,0.59,0.9],"platformFee":[9561,9083,12219,15049,11917,14723,14681,14039,16251,12571,11788,9722],"valueShare":[125798,85504,124057,151038,124316,181529,250464,201392,138457,108006,110278,139118],"fixedFees":[35333,35333,35333,35333,35333,35333,35333,35333,35333,35333,35333,35333],"tod":{"TOD1":[3955,93948,143250,185220,140087,138992,54305,122035,227559,94483,38048,2634],"TOD2":[5275,77859,108292,115636,102368,122420,81922,58021,68776,68154,71543,33644],"TOD3":[178911,59390,107617,186045,109758,199201,174084,105132,112211,99687,101579,112192],"TOD4":[179837,169432,181013,177065,172851,188923,219787,208962,233509,246912,228016,233741],"TOD5":[2637,0,0,0,0,0,35946,67510,62588,16591,9184,31631],"TOD6":[49536,0,0,0,0,0,82141,56081,9217,22657,67706,13054]}};
+
+const sum = a => a.reduce((x,y)=>x+y,0);
+const avg = a => sum(a)/a.length;
+const maxIndex = a => a.indexOf(Math.max(...a));
+const minIndex = a => a.indexOf(Math.min(...a));
+const INR0 = n => "₹" + Math.round(n).toLocaleString("en-IN");
+const INR2 = n => "₹" + Number(n).toFixed(2);
+const L = n => "₹" + (n/100000).toFixed(2) + "L";
+const CR = n => "₹" + (n/10000000).toFixed(2) + "Cr";
+const compactINR = n => n>=10000000 ? CR(n) : L(n);
+const energy = n => n>=1000000 ? (n/1000000).toFixed(2)+" GWh" : (n/1000).toFixed(0)+" MWh";
+const pct = n => Number(n).toFixed(1)+"%";
+
+const totalConsumption = sum(D.consumption);
+const totalCleared = sum(D.cleared);
+const totalGross = sum(D.grossSaving);
+const totalNet = sum(D.netSaving);
+const totalFees = sum(D.totalFee);
+const coverageWeighted = totalCleared/totalConsumption*100;
+const grossRate = totalGross/totalConsumption;
+const netRate = totalNet/totalConsumption;
+const retention = totalNet/totalGross*100;
+
+document.getElementById("kpiNet").textContent = compactINR(totalNet);
+document.getElementById("kpiAvg").textContent = L(totalNet/12);
+document.getElementById("kpiGross").textContent = compactINR(totalGross);
+document.getElementById("kpiCleared").textContent = energy(totalCleared);
+document.getElementById("kpiEnergySub").textContent = "of "+energy(totalConsumption)+" total billed consumption";
+document.getElementById("kpiCoverage").textContent = pct(coverageWeighted);
+document.getElementById("kpiNetRate").textContent = INR2(netRate)+"/kWh";
+document.getElementById("retentionPct").textContent = Math.round(retention)+"%";
+document.getElementById("retentionValue").textContent = compactINR(totalNet);
+document.getElementById("retentionRing").style.background = `conic-gradient(var(--green) 0 ${retention}%, #e8eef5 ${retention}% 100%)`;
+
+const feeItems = [
+  ["Value-share",sum(D.valueShare),"#1769e0"],
+  ["Fixed monthly fees",sum(D.fixedFees),"#f3aa24"],
+  ["Platform fee",sum(D.platformFee),"#00a7c4"]
+];
+document.getElementById("feeSplit").innerHTML = feeItems.map(x => `
+  <div class="split-row"><div><b>${x[0]}</b><div class="bar"><i style="width:${x[1]/totalFees*100}%;background:${x[2]}"></i></div></div>
+  <div><b>${L(x[1])}</b><div class="note">${pct(x[1]/totalFees*100)}</div></div></div>`).join("");
+
+const bestNet = maxIndex(D.netSaving), lowCoverage = minIndex(D.coverage), highCoverage = maxIndex(D.coverage), bestSpread = maxIndex(D.grossPerUnit);
+document.getElementById("insights").innerHTML = `
+  <div class="insight good"><b>Best value month: ${D.months[bestNet]}</b><span>${L(D.netSaving[bestNet])} net saving at ${INR2(D.netPerUnit[bestNet])}/kWh, with ${D.coverage[bestNet]}% clearance.</span></div>
+  <div class="insight"><b>Strongest price spread: ${D.months[bestSpread]}</b><span>${INR2(D.grossPerUnit[bestSpread])}/kWh gross saving, driven by a ${INR2(D.discomRate[bestSpread]-D.proItRate[bestSpread])}/kWh blended cost gap.</span></div>
+  <div class="insight watch"><b>Coverage is not the only driver</b><span>${D.months[highCoverage]} had the highest clearance at ${D.coverage[highCoverage]}%, yet net saving per unit was ${INR2(D.netPerUnit[highCoverage])}. Price spread also determines value.</span></div>
+  <div class="insight watch"><b>Lowest clearance: ${D.months[lowCoverage]}</b><span>Only ${D.coverage[lowCoverage]}% of consumption was cleared, and net savings fell to ${L(D.netSaving[lowCoverage])}.</span></div>`;
+
+function svgEl(tag, attrs={}, text=""){
+  const ns="http://www.w3.org/2000/svg";
+  const el=document.createElementNS(ns,tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  if(text) el.textContent=text;
+  return el;
+}
+function showTip(evt, html){
+  const t=document.getElementById("tip"); t.innerHTML=html; t.style.display="block";
+  t.style.left=Math.min(window.innerWidth-250,evt.clientX+14)+"px"; t.style.top=(evt.clientY+14)+"px";
+}
+function hideTip(){ document.getElementById("tip").style.display="none"; }
+
+function drawGroupedBars(id, series, options={}){
+  const host=document.getElementById(id); host.innerHTML="";
+  const W=960,H=330,m={l:58,r:18,t:18,b:48}; const iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const svg=svgEl("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":options.aria||"Chart"});
+  const maxV=Math.max(...series.flatMap(s=>s.values))*1.12;
+  for(let i=0;i<=4;i++){
+    const y=m.t+ih-i*ih/4; svg.appendChild(svgEl("line",{x1:m.l,y1:y,x2:W-m.r,y2:y,class:"gridline"}));
+    svg.appendChild(svgEl("text",{x:m.l-9,y:y+4,"text-anchor":"end",class:"axis-label"}, options.yfmt?options.yfmt(maxV*i/4):Math.round(maxV*i/4)));
+  }
+  const group=iw/D.months.length, bw=Math.min(23,group/(series.length+1));
+  D.months.forEach((mo,i)=>{
+    const center=m.l+group*(i+.5);
+    svg.appendChild(svgEl("text",{x:center,y:H-18,"text-anchor":"middle",class:"axis-label"},mo));
+    series.forEach((s,j)=>{
+      const v=s.values[i], h=v/maxV*ih, x=center-(series.length*bw)/2+j*bw, y=m.t+ih-h;
+      const r=svgEl("rect",{x,y,width:bw-2,height:h,rx:3,fill:s.color,tabindex:0});
+      r.addEventListener("mousemove",e=>showTip(e,`<b>${mo}</b><br>${s.name}: ${s.tip(v)}`));
+      r.addEventListener("mouseleave",hideTip); svg.appendChild(r);
+    });
+  });
+  host.appendChild(svg);
+}
+drawGroupedBars("savingsChart",[
+  {name:"Gross saving",values:D.grossSaving,color:"#9ebce8",tip:L},
+  {name:"Net business saving",values:D.netSaving,color:"#1e9c68",tip:L}
+],{yfmt:v=>"₹"+(v/100000).toFixed(0)+"L",aria:"Monthly gross and net savings"});
+
+function drawEnergy(){
+  const host=document.getElementById("energyChart"); host.innerHTML="";
+  const W=960,H=330,m={l:58,r:48,t:18,b:48},iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const svg=svgEl("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":"Monthly energy clearance and coverage"});
+  const maxV=Math.max(...D.consumption)*1.1;
+  for(let i=0;i<=4;i++){
+    const y=m.t+ih-i*ih/4; svg.appendChild(svgEl("line",{x1:m.l,y1:y,x2:W-m.r,y2:y,class:"gridline"}));
+    svg.appendChild(svgEl("text",{x:m.l-8,y:y+4,"text-anchor":"end",class:"axis-label"},(maxV*i/4/1000000).toFixed(1)+"G"));
+    svg.appendChild(svgEl("text",{x:W-m.r+8,y:y+4,class:"axis-label"},Math.round(i*25)+"%"));
+  }
+  const group=iw/D.months.length,bw=Math.min(26,group*.34),points=[];
+  D.months.forEach((mo,i)=>{
+    const c=m.l+group*(i+.5);
+    svg.appendChild(svgEl("text",{x:c,y:H-18,"text-anchor":"middle",class:"axis-label"},mo));
+    [[D.consumption[i],"#dbe6f5","Total consumption"],[D.cleared[i],"#1769e0","Cleared units"]].forEach((x,j)=>{
+      const h=x[0]/maxV*ih, r=svgEl("rect",{x:c-bw+(j*bw),y:m.t+ih-h,width:bw-2,height:h,rx:3,fill:x[1]});
+      r.addEventListener("mousemove",e=>showTip(e,`<b>${mo}</b><br>${x[2]}: ${energy(x[0])}`));r.addEventListener("mouseleave",hideTip);svg.appendChild(r);
+    });
+    points.push([c,m.t+ih-(D.coverage[i]/100)*ih]);
+  });
+  const path=points.map((p,i)=>(i?"L":"M")+p.join(",")).join(" ");
+  svg.appendChild(svgEl("path",{d:path,fill:"none",stroke:"#f3aa24","stroke-width":3}));
+  points.forEach((p,i)=>{const c=svgEl("circle",{cx:p[0],cy:p[1],r:4,fill:"#f3aa24",stroke:"#fff","stroke-width":2});
+    c.addEventListener("mousemove",e=>showTip(e,`<b>${D.months[i]}</b><br>OA coverage: ${D.coverage[i]}%`)); c.addEventListener("mouseleave",hideTip); svg.appendChild(c);});
+  host.appendChild(svg);
+}
+drawEnergy();
+
+function drawLines(){
+  const host=document.getElementById("costChart"); host.innerHTML="";
+  const W=720,H=330,m={l:48,r:18,t:18,b:48},iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const all=[...D.discomRate,...D.proItRate],minV=Math.floor((Math.min(...all)-.3)*2)/2,maxV=Math.ceil((Math.max(...all)+.3)*2)/2;
+  const svg=svgEl("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":"Monthly power purchase cost comparison"});
+  for(let i=0;i<=4;i++){const val=minV+(maxV-minV)*i/4,y=m.t+ih-i*ih/4;svg.appendChild(svgEl("line",{x1:m.l,y1:y,x2:W-m.r,y2:y,class:"gridline"}));svg.appendChild(svgEl("text",{x:m.l-7,y:y+4,"text-anchor":"end",class:"axis-label"},"₹"+val.toFixed(1)));}
+  const series=[["DISCOM only",D.discomRate,"#d45d5d"],["With ProIt",D.proItRate,"#00a7c4"]];
+  series.forEach(s=>{
+    const pts=s[1].map((v,i)=>[m.l+iw*i/(D.months.length-1),m.t+ih-(v-minV)/(maxV-minV)*ih]);
+    svg.appendChild(svgEl("path",{d:pts.map((p,i)=>(i?"L":"M")+p.join(",")).join(" "),fill:"none",stroke:s[2],"stroke-width":3}));
+    pts.forEach((p,i)=>{const c=svgEl("circle",{cx:p[0],cy:p[1],r:4,fill:s[2],stroke:"#fff","stroke-width":2});
+      c.addEventListener("mousemove",e=>showTip(e,`<b>${D.months[i]}</b><br>${s[0]}: ${INR2(s[1][i])}/kWh`));c.addEventListener("mouseleave",hideTip);svg.appendChild(c);});
+  });
+  D.months.forEach((mo,i)=>svg.appendChild(svgEl("text",{x:m.l+iw*i/(D.months.length-1),y:H-18,"text-anchor":"middle",class:"axis-label"},mo.replace("-25","").replace("-26",""))));
+  host.appendChild(svg);
+}
+drawLines();
+
+function updateScenario(){
+  const target=Number(document.getElementById("coverageTarget").value);
+  document.getElementById("targetLabel").textContent=target+"%";
+  const add=Math.max(0,totalConsumption*target/100-totalCleared);
+  const gross=add*grossRate, net=gross*(retention/100);
+  document.getElementById("scenarioEnergy").textContent=energy(add);
+  document.getElementById("scenarioGross").textContent=compactINR(gross);
+  document.getElementById("scenarioNet").textContent=compactINR(net);
+}
+updateScenario();
+
+function statusBadge(i){
+  if(D.netPerUnit[i]>=1) return '<span class="badge good">High value</span>';
+  if(D.coverage[i]<50) return '<span class="badge watch">Low coverage</span>';
+  return '<span class="badge neutral">Stable</span>';
+}
+function buildTables(){
+  let h='<table><thead><tr><th>Month</th><th>Consumption</th><th>Cleared</th><th>Coverage</th><th>DISCOM ₹/kWh</th><th>With ProIt ₹/kWh</th><th>Gross saving</th><th>Total fee</th><th>Net saving</th><th>Net ₹/kWh</th><th>Status</th></tr></thead><tbody>';
+  D.months.forEach((m,i)=>h+=`<tr><td><b>${m}</b></td><td>${D.consumption[i].toLocaleString("en-IN")}</td><td>${D.cleared[i].toLocaleString("en-IN")}</td><td>${D.coverage[i]}%</td><td>${INR2(D.discomRate[i])}</td><td>${INR2(D.proItRate[i])}</td><td>${INR0(D.grossSaving[i])}</td><td>${INR0(D.totalFee[i])}</td><td><b>${INR0(D.netSaving[i])}</b></td><td>${INR2(D.netPerUnit[i])}</td><td>${statusBadge(i)}</td></tr>`);
+  h+=`<tr style="background:#eef8f3"><td><b>Total / Weighted</b></td><td><b>${totalConsumption.toLocaleString("en-IN")}</b></td><td><b>${totalCleared.toLocaleString("en-IN")}</b></td><td><b>${pct(coverageWeighted)}</b></td><td><b>${INR2(sum(D.discomCost)/totalConsumption)}</b></td><td><b>${INR2(sum(D.openAccessCost)/totalConsumption)}</b></td><td><b>${INR0(totalGross)}</b></td><td><b>${INR0(totalFees)}</b></td><td><b>${INR0(totalNet)}</b></td><td><b>${INR2(netRate)}</b></td><td><span class="badge good">Annual</span></td></tr></tbody></table>`;
+  document.getElementById("commercialTable").innerHTML=h;
+
+  const todNames=Object.keys(D.tod);
+  let t='<table><thead><tr><th>TOD</th>'+D.months.map(m=>`<th>${m}</th>`).join("")+'<th>Total</th><th>Share</th></tr></thead><tbody>';
+  todNames.forEach(name=>{const row=D.tod[name],rt=sum(row);t+=`<tr><td><b>${name}</b></td>${row.map(v=>`<td>${v.toLocaleString("en-IN")}</td>`).join("")}<td><b>${rt.toLocaleString("en-IN")}</b></td><td>${pct(rt/totalCleared*100)}</td></tr>`;});
+  t+=`<tr style="background:#eef4fb"><td><b>Total</b></td>${D.cleared.map(v=>`<td><b>${v.toLocaleString("en-IN")}</b></td>`).join("")}<td><b>${totalCleared.toLocaleString("en-IN")}</b></td><td><b>100%</b></td></tr></tbody></table>`;
+  document.getElementById("todTable").innerHTML=t;
+}
+buildTables();
+
+function showTable(which,btn){
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+  document.getElementById("commercialTable").classList.toggle("hidden",which!=="commercial");
+  document.getElementById("todTable").classList.toggle("hidden",which!=="tod");
+}
+function downloadCSV(){
+  const heads=["Month","Consumption_kWh","Cleared_kWh","OA_Coverage_pct","Discom_Rs_per_kWh","With_ProIt_Rs_per_kWh","Gross_Saving_Rs","Total_Fee_Rs","Net_Saving_Rs","Net_Saving_per_kWh"];
+  const rows=D.months.map((m,i)=>[m,D.consumption[i],D.cleared[i],D.coverage[i],D.discomRate[i],D.proItRate[i],D.grossSaving[i],D.totalFee[i],D.netSaving[i],D.netPerUnit[i]]);
+  const csv=[heads,...rows].map(r=>r.join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Delhi_Flour_Mills_Monthly_Energy_Savings.csv";a.click();URL.revokeObjectURL(a.href);
+}
+window.addEventListener("resize",()=>{drawGroupedBars("savingsChart",[{name:"Gross saving",values:D.grossSaving,color:"#9ebce8",tip:L},{name:"Net business saving",values:D.netSaving,color:"#1e9c68",tip:L}],{yfmt:v=>"₹"+(v/100000).toFixed(0)+"L"});drawEnergy();drawLines();});
+</script>
+</body>
+</html>
