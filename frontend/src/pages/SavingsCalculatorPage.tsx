@@ -2244,30 +2244,19 @@ export default function SavingsCalculatorPage() {
                   {selectedSimMonth !== 'all' && <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />}
                   <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
                   <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />
+                  <Tab label="Dashboard" disabled={!marketDecisionResult} value={6} />
                 </Tabs>
               </Box>
 
-            {selectedSimMonth === 'all' && (
+            {selectedSimMonth === 'all' && calcTab === 2 && (
               <Box sx={{ mt: 3 }}>
-                {/* Nested tabs for Overview and Dashboard */}
-                <Tabs
-                  value={overallTab}
-                  onChange={(e, v) => setOverallTab(v)}
-                  sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
-                >
-                  <Tab label="Overview" value="overview" />
-                  <Tab label="Dashboard" value="dashboard" />
-                </Tabs>
-                {overallTab === 'overview' && (
-                  <Box sx={{ mt: 2 }}>
-                    <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={overviewLoading} />
-                  </Box>
-                )}
-                {overallTab === 'dashboard' && (
-                  <Box sx={{ mt: 2 }}>
-                    <Dashboard />
-                  </Box>
-                )}
+                <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={overviewLoading} />
+              </Box>
+            )}
+
+            {calcTab === 6 && (
+              <Box sx={{ mt: 3 }}>
+                <Dashboard />
               </Box>
             )}
 
