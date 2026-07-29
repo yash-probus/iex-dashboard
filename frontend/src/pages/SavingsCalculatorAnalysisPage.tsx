@@ -37,6 +37,7 @@ import { SavingsDashboard } from '../components/dashboard/SavingsDashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import { ClientOverviewDashboard } from '../components/dashboard/ClientOverviewDashboard';
+import { Dashboard } from '../components/dashboard/Dashboard';
 import { 
   fetchSavingsEntries, 
   createSavingsEntry, 
@@ -596,12 +597,19 @@ const exportInsightsToExcel = async () => {
                   {selectedSimMonth !== 'all' && <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />}
                   <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
                   <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />
+                  <Tab label="Dashboard" disabled={!marketDecisionResult} value={6} />
                 </Tabs>
               </Box>
 
               {selectedSimMonth === 'all' && (calcTab === 0 || calcTab === 1 || calcTab === 3) && (
                 <Box sx={{ mt: 3 }}>
                   <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={overviewLoading} />
+                </Box>
+              )}
+
+              {calcTab === 6 && (
+                <Box sx={{ mt: 3 }}>
+                  <Dashboard />
                 </Box>
               )}
 
