@@ -54,7 +54,7 @@ export default function LoginPage() {
         display: 'flex', 
         height: '100vh', 
         width: '100vw',
-        backgroundImage: 'url(/image.png)',
+        backgroundImage: 'url(/image.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
