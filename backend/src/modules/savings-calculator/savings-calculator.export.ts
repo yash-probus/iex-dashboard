@@ -624,7 +624,7 @@ export class SavingsCalculatorExportService {
     const ppcDiscomRow = sheet.addRow(ppcDiscomRowData);
     ppcDiscomRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } });
     ppcDiscomRow.font = { bold: true };
-    for (let i = 2; i <= numMonths + 1; i++) ppcDiscomRow.getCell(i).numFmt = '₹0.00';
+    for (let i = 2; i <= numMonths + 1; i++) ppcDiscomRow.getCell(i).numFmt = '"₹"0.00';
 
     const ppcProltRowData: any[] = ['Power Purchase Cost (With Prolt)'];
     allResults.forEach((r, idx) => {
@@ -635,7 +635,7 @@ export class SavingsCalculatorExportService {
     const ppcProltRow = sheet.addRow(ppcProltRowData);
     ppcProltRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
     ppcProltRow.font = { bold: true };
-    for (let i = 2; i <= numMonths + 1; i++) ppcProltRow.getCell(i).numFmt = '₹0.00';
+    for (let i = 2; i <= numMonths + 1; i++) ppcProltRow.getCell(i).numFmt = '"₹"0.00';
 
     const totalSavingRowData: any[] = ['Total Saving'];
     allResults.forEach((r, idx) => {
@@ -657,7 +657,7 @@ export class SavingsCalculatorExportService {
     const savingUnitRow = sheet.addRow(savingUnitRowData);
     savingUnitRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     savingUnitRow.font = { bold: true };
-    for (let i = 2; i <= numMonths + 1; i++) savingUnitRow.getCell(i).numFmt = '₹0.00';
+    for (let i = 2; i <= numMonths + 1; i++) savingUnitRow.getCell(i).numFmt = '"₹"0.00';
 
     const nocFeeRowData: any[] = ['Monthly NOC Fee'];
     allResults.forEach((r, idx) => {
@@ -762,7 +762,7 @@ export class SavingsCalculatorExportService {
     const savingForBizUnitRow = sheet.addRow(savingForBizUnitRowData);
     savingForBizUnitRow.font = { bold: true };
     savingForBizUnitRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
-    for (let i = 2; i <= numMonths + 1; i++) savingForBizUnitRow.getCell(i).numFmt = '₹0.00';
+    for (let i = 2; i <= numMonths + 1; i++) savingForBizUnitRow.getCell(i).numFmt = '"₹"0.00';
 
     sheet.addRow([]);
 
