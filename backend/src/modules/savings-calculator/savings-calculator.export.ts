@@ -555,7 +555,7 @@ export class SavingsCalculatorExportService {
       const rowData: any[] = [`Cleared Units@Consumer bus ${tod}`];
       allResults.forEach((r, idx) => {
         const mMapping = monthRowMap[r.monthStr];
-        const formula = `=VLOOKUP("${tod}", '${mMapping.sheetName}'!$A$${mMapping.breakdownTableStart}:$G$${mMapping.breakdownTableEnd}, 5, FALSE)`;
+        const formula = `VLOOKUP("${tod}", '${mMapping.sheetName}'!$A$${mMapping.breakdownTableStart}:$G$${mMapping.breakdownTableEnd}, 5, FALSE)`;
         rowData.push({ formula });
       });
       const addedRow = sheet.addRow(rowData);
@@ -567,7 +567,7 @@ export class SavingsCalculatorExportService {
       const colChar = getColLetter(idx + 2);
       const startRow = todUnitsRowNums[todSlabs[0]];
       const endRow = todUnitsRowNums[todSlabs[todSlabs.length - 1]];
-      const formula = `=SUM(${colChar}${startRow}:${colChar}${endRow})`;
+      const formula = `SUM(${colChar}${startRow}:${colChar}${endRow})`;
       totalClearedRowData.push({ formula });
     });
     const totalClearedRow = sheet.addRow(totalClearedRowData);
@@ -577,7 +577,7 @@ export class SavingsCalculatorExportService {
     const totalConsumptionRowData: any[] = ['Total Consumption As per Ebill'];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.todTotalRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.todTotalRow}`;
       totalConsumptionRowData.push({ formula });
     });
     const totalConsumptionRow = sheet.addRow(totalConsumptionRowData);
@@ -587,7 +587,7 @@ export class SavingsCalculatorExportService {
     const clearedVsActualRowData: any[] = ['Cleared vs Actual consumption %'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${totalClearedRowNumber}/${colChar}${totalConsumptionRowNumber}`;
+      const formula = `${colChar}${totalClearedRowNumber}/${colChar}${totalConsumptionRowNumber}`;
       clearedVsActualRowData.push({ formula });
     });
     const clearedVsActualRow = sheet.addRow(clearedVsActualRowData);
@@ -596,7 +596,7 @@ export class SavingsCalculatorExportService {
     const totalPowerCostRowData: any[] = ['Total Power Cost through Open Access'];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.totalBillOADiscomAfterProltRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.totalBillOADiscomAfterProltRow}`;
       totalPowerCostRowData.push({ formula });
     });
     const totalPowerCostOARow = sheet.addRow(totalPowerCostRowData);
@@ -606,7 +606,7 @@ export class SavingsCalculatorExportService {
     const discomCostRowData: any[] = ['Discom Cost'];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.discomBaselineTotal}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.discomBaselineTotal}`;
       discomCostRowData.push({ formula });
     });
     const discomCostRow = sheet.addRow(discomCostRowData);
@@ -618,7 +618,7 @@ export class SavingsCalculatorExportService {
     const ppcDiscomRowData: any[] = ['Power Purchase Cost (Discom Only)'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${discomCostRowNumber}/${colChar}${totalConsumptionRowNumber}`;
+      const formula = `${colChar}${discomCostRowNumber}/${colChar}${totalConsumptionRowNumber}`;
       ppcDiscomRowData.push({ formula });
     });
     const ppcDiscomRow = sheet.addRow(ppcDiscomRowData);
@@ -629,7 +629,7 @@ export class SavingsCalculatorExportService {
     const ppcProltRowData: any[] = ['Power Purchase Cost (With Prolt)'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${totalPowerCostOARowNumber}/${colChar}${totalConsumptionRowNumber}`;
+      const formula = `${colChar}${totalPowerCostOARowNumber}/${colChar}${totalConsumptionRowNumber}`;
       ppcProltRowData.push({ formula });
     });
     const ppcProltRow = sheet.addRow(ppcProltRowData);
@@ -640,7 +640,7 @@ export class SavingsCalculatorExportService {
     const totalSavingRowData: any[] = ['Total Saving'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${discomCostRowNumber}-${colChar}${totalPowerCostOARowNumber}`;
+      const formula = `${colChar}${discomCostRowNumber}-${colChar}${totalPowerCostOARowNumber}`;
       totalSavingRowData.push({ formula });
     });
     const totalSavingRow = sheet.addRow(totalSavingRowData);
@@ -651,7 +651,7 @@ export class SavingsCalculatorExportService {
     const savingUnitRowData: any[] = ['Saving/Unit'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${totalSavingRowNumber}/${colChar}${totalClearedRowNumber}`;
+      const formula = `${colChar}${totalSavingRowNumber}/${colChar}${totalClearedRowNumber}`;
       savingUnitRowData.push({ formula });
     });
     const savingUnitRow = sheet.addRow(savingUnitRowData);
@@ -662,7 +662,7 @@ export class SavingsCalculatorExportService {
     const nocFeeRowData: any[] = ['Monthly NOC Fee'];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.nocFeeRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.nocFeeRow}`;
       nocFeeRowData.push({ formula });
     });
     const nocFeeRow = sheet.addRow(nocFeeRowData);
@@ -671,7 +671,7 @@ export class SavingsCalculatorExportService {
     const iexRegRowData: any[] = ['IEX Registration Fee'];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.iexRegFeeRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.iexRegFeeRow}`;
       iexRegRowData.push({ formula });
     });
     const iexRegRow = sheet.addRow(iexRegRowData);
@@ -680,7 +680,7 @@ export class SavingsCalculatorExportService {
     const consultancyRowData: any[] = ['Consultancy Fee'];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.consultancyFeeRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.consultancyFeeRow}`;
       consultancyRowData.push({ formula });
     });
     const consultancyRow = sheet.addRow(consultancyRowData);
@@ -695,7 +695,7 @@ export class SavingsCalculatorExportService {
     const traderMarginRowData: any[] = [`Trader Margin (Rs ${entry.traderMargin !== null && entry.traderMargin !== undefined ? entry.traderMargin : 0.02}/kWh)`];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.traderMarginChargeRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.traderMarginChargeRow}`;
       traderMarginRowData.push({ formula });
     });
     const traderMarginRow = sheet.addRow(traderMarginRowData);
@@ -705,7 +705,7 @@ export class SavingsCalculatorExportService {
     const platformFeeRowData: any[] = [`Platform Fee (Rs ${platformFeeRate}/kWh)`];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.platformFeeRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.platformFeeRow}`;
       platformFeeRowData.push({ formula });
     });
     const platformFeeRow = sheet.addRow(platformFeeRowData);
@@ -714,7 +714,7 @@ export class SavingsCalculatorExportService {
     const valueShareRowData: any[] = ['Value-Share for Energy Platform (15% of Saving)'];
     allResults.forEach((r, idx) => {
       const mMapping = monthRowMap[r.monthStr];
-      const formula = `='${mMapping.sheetName}'!B${mMapping.valueShareRow}`;
+      const formula = `'${mMapping.sheetName}'!B${mMapping.valueShareRow}`;
       valueShareRowData.push({ formula });
     });
     const valueShareRow = sheet.addRow(valueShareRowData);
@@ -723,7 +723,7 @@ export class SavingsCalculatorExportService {
     const totalAmountRowData: any[] = ['Total Amount'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=SUM(${colChar}${nocFeeRowNumber}:${colChar}${consultancyRowNumber})+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
+      const formula = `SUM(${colChar}${nocFeeRowNumber}:${colChar}${consultancyRowNumber})+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
       totalAmountRowData.push({ formula });
     });
     const totalAmountRow = sheet.addRow(totalAmountRowData);
@@ -734,7 +734,7 @@ export class SavingsCalculatorExportService {
     const probusRevUnitRowData: any[] = ['Probus Revenue /Unit'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${totalAmountRowNumber}/${colChar}${totalClearedRowNumber}`;
+      const formula = `${colChar}${totalAmountRowNumber}/${colChar}${totalClearedRowNumber}`;
       probusRevUnitRowData.push({ formula });
     });
     const probusRevUnitRow = sheet.addRow(probusRevUnitRowData);
@@ -745,7 +745,7 @@ export class SavingsCalculatorExportService {
     const savingForBizRowData: any[] = ['Saving for your business'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${totalSavingRowNumber}-${colChar}${totalAmountRowNumber}`;
+      const formula = `${colChar}${totalSavingRowNumber}-${colChar}${totalAmountRowNumber}`;
       savingForBizRowData.push({ formula });
     });
     const savingForBizRow = sheet.addRow(savingForBizRowData);
@@ -756,7 +756,7 @@ export class SavingsCalculatorExportService {
     const savingForBizUnitRowData: any[] = ['Saving/Unit'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `=${colChar}${savingForBizRowNumber}/${colChar}${totalClearedRowNumber}`;
+      const formula = `${colChar}${savingForBizRowNumber}/${colChar}${totalClearedRowNumber}`;
       savingForBizUnitRowData.push({ formula });
     });
     const savingForBizUnitRow = sheet.addRow(savingForBizUnitRowData);
@@ -767,14 +767,14 @@ export class SavingsCalculatorExportService {
     sheet.addRow([]);
 
     const lastColChar = getColLetter(numMonths + 1);
-    const avgMonthlySavingFormula = `=AVERAGE(B${savingForBizRowNumber}:${lastColChar}${savingForBizRowNumber})`;
+    const avgMonthlySavingFormula = `AVERAGE(B${savingForBizRowNumber}:${lastColChar}${savingForBizRowNumber})`;
     const avgMonthlySavingRow = sheet.addRow(['Average Monthly Saving', { formula: avgMonthlySavingFormula }]);
     avgMonthlySavingRow.font = { bold: true };
     avgMonthlySavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgMonthlySavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     const avgMonthlySavingRowNumber = avgMonthlySavingRow.number;
 
-    const avgAnnualSavingFormula = `=B${avgMonthlySavingRowNumber}*12`;
+    const avgAnnualSavingFormula = `B${avgMonthlySavingRowNumber}*12`;
     const avgAnnualSavingRow = sheet.addRow(['Average Annual Saving', { formula: avgAnnualSavingFormula }]);
     avgAnnualSavingRow.font = { bold: true };
     avgAnnualSavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
