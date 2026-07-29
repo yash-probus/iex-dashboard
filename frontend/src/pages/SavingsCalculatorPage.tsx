@@ -133,7 +133,9 @@ export default function SavingsCalculatorPage() {
   const { isAdmin, user } = useAuth();
   
   const isReadOnly = (user as any)?.readOnlyModules?.includes('savings-calculator');
-  const canEdit = isAdmin || !isReadOnly;
+  const isNoDelete = (user as any)?.readOnlyModules?.includes('savings-calculator-nodelete');
+  const canEdit = isAdmin || !isReadOnly || isNoDelete;
+  const canDelete = isAdmin || (!isReadOnly && !isNoDelete);
   
   // State variables
   const [selectedInsightsEntry, setSelectedInsightsEntry] = useState<SavingsCalculatorEntry | null>(null);
@@ -735,6 +737,14 @@ export default function SavingsCalculatorPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!canDelete) {
+      setSnackbar({
+        open: true,
+        message: 'You do not have permission to delete entries.',
+        severity: 'error'
+      });
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this entry?')) return;
 
     try {
@@ -1141,9 +1151,11 @@ export default function SavingsCalculatorPage() {
               <IconButton size="small" onClick={() => handleOpenHistory(row)} title="Version History">
                 <HistoryIcon fontSize="small" sx={{ color: '#8B5CF6' }} />
               </IconButton>
-              <IconButton size="small" color="error" onClick={() => handleDelete(row.id)} title="Delete Entry">
-                <DeleteIcon fontSize="small" />
-              </IconButton>
+              {canDelete && (
+                <IconButton size="small" color="error" onClick={() => handleDelete(row.id)} title="Delete Entry">
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              )}
             </>
           )}
         </Box>

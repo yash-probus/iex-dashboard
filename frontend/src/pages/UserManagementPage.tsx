@@ -338,7 +338,13 @@ export default function UserManagementPage() {
                   {AVAILABLE_MODULES.map((mod) => {
                     let currentAccess = 'none';
                     if (!hiddenModules.includes(mod.id)) {
-                      currentAccess = readOnlyModules.includes(mod.id) ? 'view' : 'edit';
+                      if (readOnlyModules.includes(mod.id)) {
+                        currentAccess = 'view';
+                      } else if (readOnlyModules.includes(`${mod.id}-nodelete`)) {
+                        currentAccess = 'edit_no_delete';
+                      } else {
+                        currentAccess = 'edit';
+                      }
                     }
                     
                     return (
@@ -346,18 +352,20 @@ export default function UserManagementPage() {
                         <Label className="font-medium text-sm">{mod.label}</Label>
                         <Select
                           value={currentAccess}
-                          onValueChange={(val: 'none' | 'view' | 'edit') => {
+                          onValueChange={(val: 'none' | 'view' | 'edit' | 'edit_no_delete') => {
                             let newHidden = [...hiddenModules];
                             let newReadOnly = [...readOnlyModules];
                             
                             // Remove from both lists first
                             newHidden = newHidden.filter(id => id !== mod.id);
-                            newReadOnly = newReadOnly.filter(id => id !== mod.id);
+                            newReadOnly = newReadOnly.filter(id => id !== mod.id && id !== `${mod.id}-nodelete`);
                             
                             if (val === 'none') {
                               newHidden.push(mod.id);
                             } else if (val === 'view') {
                               newReadOnly.push(mod.id);
+                            } else if (val === 'edit_no_delete') {
+                              newReadOnly.push(`${mod.id}-nodelete`);
                             }
                             
                             setHiddenModules(newHidden);
@@ -370,6 +378,9 @@ export default function UserManagementPage() {
                           <SelectContent>
                             <SelectItem value="none">No Access</SelectItem>
                             <SelectItem value="view">View Only</SelectItem>
+                            {mod.id === 'savings-calculator' && (
+                              <SelectItem value="edit_no_delete">View, Edit & No Delete</SelectItem>
+                            )}
                             <SelectItem value="edit">View & Edit</SelectItem>
                           </SelectContent>
                         </Select>

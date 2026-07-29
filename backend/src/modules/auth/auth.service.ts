@@ -23,7 +23,13 @@ export const loginUser = async (dto: LoginDTO): Promise<AuthResponse> => {
     throw new AppError('Invalid credentials', 401);
   }
 
-  const token = generateToken({ id: user.id, username: user.username, role: user.role, hiddenModules: user.hiddenModules });
+  const token = generateToken({ 
+    id: user.id, 
+    username: user.username, 
+    role: user.role, 
+    hiddenModules: user.hiddenModules,
+    readOnlyModules: user.readOnlyModules
+  });
 
   // 5. Return authenticated user data
   return {
@@ -34,7 +40,8 @@ export const loginUser = async (dto: LoginDTO): Promise<AuthResponse> => {
       username: user.username,
       email: user.email,
       role: user.role,
-      hiddenModules: user.hiddenModules
+      hiddenModules: user.hiddenModules,
+      readOnlyModules: user.readOnlyModules
     },
   };
 };

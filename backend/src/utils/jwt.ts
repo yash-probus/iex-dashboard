@@ -7,6 +7,7 @@ export interface JwtPayload {
   username: string;
   role: string;
   hiddenModules?: string[];
+  readOnlyModules?: string[];
 }
 
 /**

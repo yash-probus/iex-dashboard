@@ -157,6 +157,12 @@ export class SavingsCalculatorController {
 
   static async delete(req: Request, res: Response) {
     try {
+      if (req.user?.role !== 'SUPER_ADMIN' && req.user?.role !== 'ADMIN') {
+        const isNoDelete = req.user?.readOnlyModules?.includes('savings-calculator-nodelete');
+        if (isNoDelete) {
+          return res.status(403).json({ message: 'You do not have permission to delete entries.' });
+        }
+      }
       const id = req.params.id as string;
       await SavingsCalculatorService.delete(id);
       res.json({ message: 'Entry deleted successfully.' });

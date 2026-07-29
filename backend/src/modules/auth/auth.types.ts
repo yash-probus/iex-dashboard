@@ -9,6 +9,7 @@ export interface UserResponse {
   email: string;
   role: string;
   hiddenModules?: string[];
+  readOnlyModules?: string[];
 }
 
 export interface AuthResponse {

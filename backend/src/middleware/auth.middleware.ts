@@ -11,6 +11,7 @@ declare global {
         username: string;
         role: string;
         hiddenModules?: string[];
+        readOnlyModules?: string[];
       };
     }
   }
