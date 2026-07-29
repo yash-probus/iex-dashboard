@@ -31,7 +31,7 @@ const getShortHeaderName = (monthStr: string) => {
 };
 
 export class SavingsCalculatorExportService {
-  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any): Promise<Record<string, number>> {
+  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any, monthStr?: string): Promise<Record<string, number>> {
     const { slotsData, todSummaries, oaDetailed } = result;
 
     // Remove invalid characters for worksheet names
@@ -139,6 +139,14 @@ export class SavingsCalculatorExportService {
 
     // Add empty rows before summary
     sheet.addRow([]);
+    
+    // Add Billing Dates info row
+    const monthData = entry.todConsumptions?.[monthStr || ''];
+    const startDate = monthData?.['Start Date'] || '-';
+    const endDate = monthData?.['End Date'] || '-';
+    const billingPeriodRow = sheet.addRow([`Billing Period: ${startDate} to ${endDate}`]);
+    billingPeriodRow.font = { bold: true, italic: true };
+
     sheet.addRow([]);
 
     // Just output the general OA breakdown
@@ -484,7 +492,7 @@ export class SavingsCalculatorExportService {
         
         for (const r of allResults) {
           const sheetName = getShortSheetName(r.monthStr, 'Savings Analysis');
-          const rowMapping = await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, r.result, entry);
+          const rowMapping = await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, r.result, entry, r.monthStr);
           monthRowMap[r.monthStr] = { sheetName, ...rowMapping };
         }
         
@@ -494,7 +502,7 @@ export class SavingsCalculatorExportService {
       const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
       const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version);
       const sheetName = getShortSheetName(monthStr, 'Savings Analysis');
-      await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, result, entry);
+      await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, result, entry, monthStr);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -527,6 +535,20 @@ export class SavingsCalculatorExportService {
     calcBaseRow.getCell(1).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     calcBaseRow.getCell(2).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     
+    // Billing Period Rows
+    const billingStartRowData = ['Billing Start Date', ''];
+    const billingEndRowData = ['Billing End Date', ''];
+    allResults.forEach(r => {
+      const monthData = entry.todConsumptions?.[r.monthStr];
+      billingStartRowData.push(monthData?.['Start Date'] || '-');
+      billingEndRowData.push(monthData?.['End Date'] || '-');
+    });
+    
+    const bStartRow = sheet.addRow(billingStartRowData);
+    const bEndRow = sheet.addRow(billingEndRowData);
+    bStartRow.font = { italic: true };
+    bEndRow.font = { italic: true };
+
     sheet.addRow([]);
 
     // TOD Header
