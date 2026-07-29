@@ -535,19 +535,7 @@ export class SavingsCalculatorExportService {
     calcBaseRow.getCell(1).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     calcBaseRow.getCell(2).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     
-    // Billing Period Row
-    const billingPeriodRowData = ['Billing Period', ''];
-    allResults.forEach(r => {
-      const monthData = entry.todConsumptions?.[r.monthStr];
-      const start = monthData?.['Start Date'] || '-';
-      const end = monthData?.['End Date'] || '-';
-      billingPeriodRowData.push(`${start} to ${end}`);
-    });
-    
-    const bPeriodRow = sheet.addRow(billingPeriodRowData);
-    bPeriodRow.font = { italic: true };
 
-    sheet.addRow([]);
 
     // TOD Header
     const todHeaderRow = sheet.addRow(['TOD', ...monthHeaders]);
@@ -577,6 +565,22 @@ export class SavingsCalculatorExportService {
     savingsHeaderRow.height = 25;
     savingsHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     savingsHeaderRow.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
+
+    // Billing Period header row below the Savings header row
+    const billingPeriodRowData = ['Billing Period'];
+    allResults.forEach(r => {
+      const monthData = entry.todConsumptions?.[r.monthStr];
+      const start = monthData?.['Start Date'] || '-';
+      const end = monthData?.['End Date'] || '-';
+      billingPeriodRowData.push(`${start} to ${end}`);
+    });
+    const bPeriodRow = sheet.addRow(billingPeriodRowData);
+    bPeriodRow.height = 25;
+    bPeriodRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    bPeriodRow.eachCell(c => {
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } };
       c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
