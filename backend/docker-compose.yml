@@ -22,8 +22,6 @@ services:
   iex-postgres-backup:
     image: postgres:16
     container_name: iex-postgres-backup
-    ports:
-      - "5433:5432"
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
