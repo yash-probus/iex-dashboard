@@ -187,7 +187,7 @@ export const ClientOverviewDashboard: React.FC<ClientOverviewDashboardProps> = (
             
             {/* OA Cost Pie Chart */}
             {clientOverview.aggregatedCosts && (
-              <Box sx={{ width: '100%', height: 350, p: 2.5, bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+              <Box sx={{ width: '100%', height: 400, p: 2.5, bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
                 <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 800, color: 'text.primary' }}>Annual Cost Breakdown</Typography>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 10 }}>
@@ -205,7 +205,7 @@ export const ClientOverviewDashboard: React.FC<ClientOverviewDashboardProps> = (
                         { name: 'Prolt Margin', value: clientOverview.aggregatedCosts.proltMarginCost, color: '#64748B' }
                       ].filter(d => d.value > 0)}
                       cx="50%"
-                      cy="45%"
+                      cy="42%"
                       innerRadius={55}
                       outerRadius={85}
                       paddingAngle={3}
