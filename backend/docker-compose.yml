@@ -3,16 +3,16 @@ version: '3.8'
 services:
   iex-postgres:
     image: postgres:17
-    container_name: iex-postgres
+    container_name: iex-postgres-prod
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5436}:5432"
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-Prolt_Operations}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_prod:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-Prolt_Operations}"]
       interval: 5s
@@ -21,14 +21,14 @@ services:
 
   iex-postgres-backup:
     image: postgres:17
-    container_name: iex-postgres-backup
+    container_name: iex-postgres-backup-prod
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-Prolt_Operations}
     volumes:
-      - postgres_backup_data:/var/lib/postgresql/data
+      - postgres_backup_data_prod:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-Prolt_Operations}"]
       interval: 5s
@@ -37,7 +37,7 @@ services:
 
   iex-db-sync:
     image: postgres:17
-    container_name: iex-db-sync
+    container_name: iex-db-sync-prod
     restart: unless-stopped
     depends_on:
       iex-postgres:
@@ -77,7 +77,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: builder
-    container_name: iex-migrator
+    container_name: iex-migrator-prod
     depends_on:
       iex-postgres:
         condition: service_healthy
@@ -91,21 +91,21 @@ services:
 
   iex-redis:
     image: redis:7-alpine
-    container_name: iex-redis
+    container_name: iex-redis-prod
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_PORT:-6380}:6379"
     restart: unless-stopped
     volumes:
-      - redis_data:/data
+      - redis_data_prod:/data
 
   iex-backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: iex-backend
+    container_name: iex-backend-prod
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-5001}:8080"
+      - "${BACKEND_PORT:-5002}:8080"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:8080/health', (res) => { if (res.statusCode === 200) process.exit(0); else process.exit(1); }).on('error', () => process.exit(1))"]
       interval: 15s
@@ -132,9 +132,9 @@ services:
       - ./uploads:/app/uploads
 
 volumes:
-  postgres_data:
-    name: postgres_data
-  postgres_backup_data:
-    name: postgres_backup_data
-  redis_data:
-    name: redis_data
+  postgres_data_prod:
+    name: postgres_data_prod
+  postgres_backup_data_prod:
+    name: postgres_backup_data_prod
+  redis_data_prod:
+    name: redis_data_prod
