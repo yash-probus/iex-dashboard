@@ -1102,15 +1102,6 @@ const exportInsightsToExcel = async () => {
           )}
         
 
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={() => navigate('/savings-calculator')} 
-            sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
-          >
-            Close
-          </Button>
-        </DialogActions>
-      
 
       {/* History Dialog */}
       
