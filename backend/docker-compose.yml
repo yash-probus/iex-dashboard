@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   iex-postgres:
-    image: postgres:17
+    image: postgres:${POSTGRES_VERSION:-17}
     container_name: iex-postgres-${ENV_SUFFIX:-dev}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
@@ -20,7 +20,7 @@ services:
       retries: 5
 
   iex-postgres-backup:
-    image: postgres:17
+    image: postgres:${POSTGRES_VERSION:-17}
     container_name: iex-postgres-backup-${ENV_SUFFIX:-dev}
     restart: unless-stopped
     environment:
@@ -36,7 +36,7 @@ services:
       retries: 5
 
   iex-db-sync:
-    image: postgres:17
+    image: postgres:${POSTGRES_VERSION:-17}
     container_name: iex-db-sync-${ENV_SUFFIX:-dev}
     restart: unless-stopped
     depends_on:
