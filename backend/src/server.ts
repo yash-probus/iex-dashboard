@@ -3,6 +3,7 @@ import config from './config';
 import { logger } from './logger';
 
 import prisma from './config/prisma';
+import { disconnectRedis } from './config/redis';
 
 process.on('uncaughtException', (err: Error) => {
   logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
@@ -37,6 +38,11 @@ const gracefulShutdown = async (signal: string) => {
   logger.info(`👋 ${signal} RECEIVED. Shutting down gracefully...`);
   server.close(async () => {
     logger.success('💥 HTTP server closed.');
+    try {
+      await disconnectRedis();
+    } catch (err) {
+      logger.error('Error during Redis disconnection', err);
+    }
     try {
       await prisma.$disconnect();
       logger.success('Prisma disconnected successfully.');

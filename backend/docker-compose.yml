@@ -36,6 +36,15 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres:5432/${POSTGRES_DB:-Prolt_Operations}?schema=public
     command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
 
+  iex-redis:
+    image: redis:7-alpine
+    container_name: iex-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
   iex-backend:
     build:
       context: .
@@ -47,6 +56,8 @@ services:
     depends_on:
       iex-postgres:
         condition: service_healthy
+      iex-redis:
+        condition: service_started
       iex-migrator:
         condition: service_completed_successfully
     env_file:
@@ -54,9 +65,12 @@ services:
     environment:
       - TZ=Asia/Kolkata
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres:5432/${POSTGRES_DB:-Prolt_Operations}?schema=public
+      - REDIS_URL=redis://iex-redis:6379
     volumes:
       - ./uploads:/app/uploads
 
 volumes:
   postgres_data:
     name: postgres_data
+  redis_data:
+    name: redis_data

@@ -1,4 +1,5 @@
 import prisma from '../../config/prisma';
+import { getCache, setCache, invalidateCache } from '../../config/redis';
 
 export class SavingsCalculatorService {
   static async getAll() {
@@ -196,14 +197,21 @@ export class SavingsCalculatorService {
         }
       });
 
+      // Invalidate Redis cache for this entry ID
+      await invalidateCache(`market:${id}:*`);
+      await invalidateCache(`demandshift:${id}:*`);
+
       return entry;
     });
   }
 
   static async delete(id: string) {
-    return prisma.savingsCalculatorEntry.delete({
+    const res = await prisma.savingsCalculatorEntry.delete({
       where: { id }
     });
+    await invalidateCache(`market:${id}:*`);
+    await invalidateCache(`demandshift:${id}:*`);
+    return res;
   }
 
   static async getHistory(id: string) {
@@ -960,6 +968,12 @@ export class SavingsCalculatorService {
   static async calculateMarketDecision(id: string, targetMonthStr?: string, version?: number) {
     if (targetMonthStr === 'all') {
       return this.calculateMarketDecisionAllMonths(id, version);
+    }
+    const cacheVersion = version !== undefined ? version : 'live';
+    const cacheKey = `market:${id}:v:${cacheVersion}:m:${targetMonthStr || 'default'}`;
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return cached;
     }
     const entry = await this.getEntryOrVersion(id, version);
 
@@ -1802,7 +1816,7 @@ export class SavingsCalculatorService {
     
     console.log('[Savings Debug] totalBaselineCost:', totalBaselineCost, 'totalLandedExchangeCost:', totalLandedExchangeCost, 'totalProltMarginCost:', totalProltMarginCost, 'totalSavings:', totalSavings, 'finalSavings:', finalSavings);
 
-    return {
+    const result = {
       clientId: id,
       clientName: entry.clientName,
       slotsData,
@@ -1843,6 +1857,9 @@ export class SavingsCalculatorService {
         }
       }
     };
+
+    await setCache(cacheKey, result, 86400);
+    return result;
   }
 
   static async calculateDemandShiftInsightsAllMonths(id: string, version?: number) {
@@ -1903,7 +1920,12 @@ export class SavingsCalculatorService {
     if (targetMonth === 'all') {
       return this.calculateDemandShiftInsightsAllMonths(id, version);
     }
-    
+    const cacheVersion = version !== undefined ? version : 'live';
+    const cacheKey = `demandshift:${id}:v:${cacheVersion}:m:${targetMonth || 'default'}`;
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
     
@@ -1997,13 +2019,13 @@ export class SavingsCalculatorService {
     }
     
     let newTotalCost = 0;
-    shiftableSlots.forEach(s => {
+    shiftableSlots.forEach((s: any) => {
       newTotalCost += (s.currentEnergy * s.costPerKwh);
     });
     
     // Calculate TOD breakdown changes
     const todShiftSummary: Record<string, { originalEnergy: number, newEnergy: number, diff: number, originalMarketEnergy: number, newMarketEnergy: number }> = {};
-    shiftableSlots.forEach(s => {
+    shiftableSlots.forEach((s: any) => {
       if (!todShiftSummary[s.tod]) {
         todShiftSummary[s.tod] = { originalEnergy: 0, newEnergy: 0, diff: 0, originalMarketEnergy: 0, newMarketEnergy: 0 };
       }
@@ -2014,7 +2036,7 @@ export class SavingsCalculatorService {
       todShiftSummary[s.tod].diff += (s.currentEnergy - s.originalEnergy);
     });
 
-    return {
+    const result = {
       clientId: id,
       clientName: entry.clientName,
       sanctionedLoadKw,
@@ -2027,7 +2049,7 @@ export class SavingsCalculatorService {
         tod,
         ...data
       })),
-      slotsData: shiftableSlots.map(s => {
+      slotsData: shiftableSlots.map((s: any) => {
         const originalSlot = slotsData[s.originalIndex];
         return {
           date: s.date,
@@ -2046,5 +2068,8 @@ export class SavingsCalculatorService {
         };
       })
     };
+
+    await setCache(cacheKey, result, 86400);
+    return result;
   }
 }
