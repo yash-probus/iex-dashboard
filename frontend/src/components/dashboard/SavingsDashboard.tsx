@@ -268,38 +268,42 @@ export const SavingsDashboard: React.FC<SavingsDashboardProps> = ({ result, mont
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} ref={dashboardRef}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: -1 }}>
-        <Box data-html2canvas-ignore sx={{ display: 'flex', bgcolor: '#F3F4F6', p: 0.5, borderRadius: 8 }}>
-          <Button 
-            onClick={() => setActiveTab('overall')}
-            sx={{ 
-              borderRadius: 8, 
-              px: 3, 
-              py: 0.5, 
-              textTransform: 'none', 
-              fontWeight: 600,
-              bgcolor: activeTab === 'overall' ? '#111827' : 'transparent',
-              color: activeTab === 'overall' ? 'white' : '#6B7280',
-              '&:hover': { bgcolor: activeTab === 'overall' ? '#111827' : 'rgba(0,0,0,0.04)' }
-            }}
-          >
-            Overall Details
-          </Button>
-          <Button 
-            onClick={() => setActiveTab('monthly')}
-            sx={{ 
-              borderRadius: 8, 
-              px: 3, 
-              py: 0.5, 
-              textTransform: 'none', 
-              fontWeight: 600,
-              bgcolor: activeTab === 'monthly' ? '#111827' : 'transparent',
-              color: activeTab === 'monthly' ? 'white' : '#6B7280',
-              '&:hover': { bgcolor: activeTab === 'monthly' ? '#111827' : 'rgba(0,0,0,0.04)' }
-            }}
-          >
-            Monthly Details
-          </Button>
-        </Box>
+        {monthStr !== 'all' ? (
+          <Box data-html2canvas-ignore sx={{ display: 'flex', bgcolor: '#F3F4F6', p: 0.5, borderRadius: 8 }}>
+            <Button 
+              onClick={() => setActiveTab('overall')}
+              sx={{ 
+                borderRadius: 8, 
+                px: 3, 
+                py: 0.5, 
+                textTransform: 'none', 
+                fontWeight: 600,
+                bgcolor: activeTab === 'overall' ? '#111827' : 'transparent',
+                color: activeTab === 'overall' ? 'white' : '#6B7280',
+                '&:hover': { bgcolor: activeTab === 'overall' ? '#111827' : 'rgba(0,0,0,0.04)' }
+              }}
+            >
+              Overall Details
+            </Button>
+            <Button 
+              onClick={() => setActiveTab('monthly')}
+              sx={{ 
+                borderRadius: 8, 
+                px: 3, 
+                py: 0.5, 
+                textTransform: 'none', 
+                fontWeight: 600,
+                bgcolor: activeTab === 'monthly' ? '#111827' : 'transparent',
+                color: activeTab === 'monthly' ? 'white' : '#6B7280',
+                '&:hover': { bgcolor: activeTab === 'monthly' ? '#111827' : 'rgba(0,0,0,0.04)' }
+              }}
+            >
+              Monthly Details
+            </Button>
+          </Box>
+        ) : (
+          <Box />
+        )}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {activeTab === 'monthly' && (
             <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', px: 2, py: 1, borderRadius: 2, border: '1px solid #E5E7EB' }}>

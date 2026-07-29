@@ -2,7 +2,7 @@ import * as ExcelJS from 'exceljs';
 import { SavingsCalculatorService } from './savings-calculator.service';
 
 export class SavingsCalculatorExportService {
-  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any) {
+  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any): Promise<Record<string, number>> {
     const { slotsData, todSummaries, oaDetailed } = result;
 
     // Remove invalid characters for worksheet names
@@ -10,6 +10,8 @@ export class SavingsCalculatorExportService {
     const sheet = workbook.addWorksheet(safeSheetName, {
       views: [{ state: 'frozen', xSplit: 1, ySplit: 2 }]
     });
+
+    const rowMapping: Record<string, number> = {};
 
     // We need all unique days sorted
     const daysSet = new Set<string>();
@@ -86,8 +88,6 @@ export class SavingsCalculatorExportService {
       });
     }
 
-
-
     // Add Total Quantity Row
     const totalRow: any[] = ['Total Quantity (MWh)'];
     days.forEach(day => {
@@ -105,16 +105,6 @@ export class SavingsCalculatorExportService {
     sheet.addRow([]);
     sheet.addRow([]);
 
-    // Summary Rows
-    // In screenshot: Average TOD-1 (0-11), etc.
-    const addSummaryRow = (title: string, dataKey: string) => {
-      const row = [title];
-      days.forEach(day => row.push('')); // We can calculate per-day averages if needed, but UI shows blank for days?
-      // Actually screenshot has per day averages for TODs!
-      // But calculating per day averages per TOD is complex. Let's just output the main summary info.
-      sheet.addRow(row);
-    };
-
     // Just output the general OA breakdown
     const breakdownHeader = [
       'TOD Slab',
@@ -129,37 +119,55 @@ export class SavingsCalculatorExportService {
     breakdownHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     breakdownHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
 
-    let totalDiscomU = 0, totalOaU = 0, totalDiscomB = 0, totalNetB = 0, totalConsumerU = 0, totalOaB = 0;
+    rowMapping['breakdownTableStart'] = sheet.rowCount + 1;
+
+    let totalDiscomURounded = 0;
+    let totalDiscomBRounded = 0;
+    let totalOaURounded = 0;
+    let totalConsumerURounded = 0;
+    let totalOaBRounded = 0;
+    let totalNetBRounded = 0;
 
     oaDetailed.breakdown.forEach((b: any) => {
+      const discomU = Math.round(b.discomUnits);
+      const discomB = Math.round(b.discomBill);
+      const oaU = Math.round(b.oaUnits);
+      const consumerU = Math.round(b.consumerBusUnits);
+      const oaB = Math.round(b.oaBill);
+      const netB = Math.round(b.proltDiscomBill);
+
       sheet.addRow([
         b.slabName,
-        Math.round(b.discomUnits),
-        Math.round(b.discomBill),
-        Math.round(b.oaUnits),
-        Math.round(b.consumerBusUnits),
-        Math.round(b.oaBill),
-        Math.round(b.proltDiscomBill)
+        discomU,
+        discomB,
+        oaU,
+        consumerU,
+        oaB,
+        netB
       ]);
-      totalDiscomU += b.discomUnits;
-      totalOaU += b.oaUnits;
-      totalDiscomB += b.discomBill;
-      totalNetB += b.proltDiscomBill;
-      totalConsumerU += b.consumerBusUnits;
-      totalOaB += b.oaBill;
+      totalDiscomURounded += discomU;
+      totalDiscomBRounded += discomB;
+      totalOaURounded += oaU;
+      totalConsumerURounded += consumerU;
+      totalOaBRounded += oaB;
+      totalNetBRounded += netB;
     });
+
+    rowMapping['breakdownTableEnd'] = sheet.rowCount;
 
     const todTotalRow = sheet.addRow([
       'Total', 
-      Math.round(totalDiscomU), 
-      Math.round(totalDiscomB), 
-      Math.round(totalOaU), 
-      Math.round(totalConsumerU), 
-      Math.round(totalOaB),
-      Math.round(totalNetB)
+      totalDiscomURounded, 
+      totalDiscomBRounded, 
+      totalOaURounded, 
+      totalConsumerURounded, 
+      totalOaBRounded,
+      totalNetBRounded
     ]);
     todTotalRow.font = { bold: true };
     todTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
+
+    rowMapping['todTotalRow'] = todTotalRow.number;
 
     sheet.addRow([]);
 
@@ -204,6 +212,8 @@ export class SavingsCalculatorExportService {
     baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
+    rowMapping['discomBaselineTotal'] = baseTotalRow.number;
+
     sheet.addRow([]);
 
     // --- NEW: DISCOM Bill After Open Access Breakdown ---
@@ -241,6 +251,8 @@ export class SavingsCalculatorExportService {
     afterTotalRow.font = { bold: true };
     afterTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
+    rowMapping['discomBillAfterOATotal'] = afterTotalRow.number;
+
     sheet.addRow([]);
     
     // Add charges header with rate/kWh information
@@ -252,19 +264,18 @@ export class SavingsCalculatorExportService {
     const t = oaDetailed.totals;
     const totalMarketEnergy = result.totalMarketEnergyKwh;
     
-    console.log('[Excel Export Debug] Cross Subsidy from totals:', t.cssCharge);
-    console.log('[Excel Export Debug] STU Charges from totals:', t.stuCharge);
-    console.log('[Excel Export Debug] Total Market Energy:', totalMarketEnergy);
-    
     // Calculate and add each charge with rate information
     const addChargeRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
-      sheet.addRow([
+      const r = sheet.addRow([
         name,
         Math.round(amount),
         ratePerKwh > 0 ? Number(ratePerKwh.toFixed(4)) : '-',
         basisKwh > 0 ? Math.round(basisKwh) : '-',
         percentage > 0 ? Number(percentage.toFixed(2)) : '-'
       ]);
+      if (name === 'Trader Margin') {
+        rowMapping['traderMarginChargeRow'] = r.number;
+      }
     };
     
     // Cross Subsidy (rate varies by state, use actual rate from calculation)
@@ -352,7 +363,7 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees), '-', '-', '-']);
     
     sheet.addRow([]);
-    const totalEstRow = sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaB + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
+    const totalEstRow = sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaBRounded + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
     totalEstRow.font = { bold: true };
     totalEstRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
@@ -360,11 +371,13 @@ export class SavingsCalculatorExportService {
     const totalGrossRow = sheet.addRow(['Total Bill (OA + DISCOM After PROLT)', Math.round(totalGrossBill)]);
     totalGrossRow.font = { bold: true };
     totalGrossRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
+
+    rowMapping['totalBillOADiscomAfterProltRow'] = totalGrossRow.number;
     
     sheet.addRow([]);
-    const netSavings = totalDiscomB - totalGrossBill;
+    const netSavings = totalDiscomBRounded - totalGrossBill;
     
-    sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomB + (result.arrearAmount || 0) + (result.currentLpsc || 0))]);
+    sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0))]);
     const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
     sheet.addRow(['DISCOM Bill After PROLT', Math.round(discomAfterProltWithMisc)]);
     
@@ -379,11 +392,20 @@ export class SavingsCalculatorExportService {
     const probusPlatformFee = Math.round(result.totalMarketEnergyKwh * platformFeeRate);
     const proltMarginVal = (t as any).proltMarginCost || 0;
 
-    sheet.addRow(['Monthly NOC Fee', nocFee]);
-    sheet.addRow(['IEX Registration Fee', regFee]);
-    sheet.addRow(['Consultancy Fee', consultancyFeeVal]);
-    sheet.addRow(['Platform Fee', probusPlatformFee]);
-    sheet.addRow(['Trader Margin', Math.round(proltMarginVal)]);
+    const nocRow = sheet.addRow(['Monthly NOC Fee', nocFee]);
+    rowMapping['nocFeeRow'] = nocRow.number;
+
+    const regRow = sheet.addRow(['IEX Registration Fee', regFee]);
+    rowMapping['iexRegFeeRow'] = regRow.number;
+
+    const consultancyRow = sheet.addRow(['Consultancy Fee', consultancyFeeVal]);
+    rowMapping['consultancyFeeRow'] = consultancyRow.number;
+
+    const platformRow = sheet.addRow(['Platform Fee', probusPlatformFee]);
+    rowMapping['platformFeeRow'] = platformRow.number;
+
+    const valueShareRow = sheet.addRow(['Value-Share for Energy Platform', Math.round(proltMarginVal)]);
+    rowMapping['valueShareRow'] = valueShareRow.number;
     
     const finalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - proltMarginVal;
     const finalSavingsRow = sheet.addRow(['Final Client Savings', Math.round(finalSavings)]);
@@ -397,6 +419,7 @@ export class SavingsCalculatorExportService {
     // Auto-fit column A
     sheet.getColumn(1).width = 40;
 
+    return rowMapping;
   }
 
   static async exportToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
@@ -413,12 +436,16 @@ export class SavingsCalculatorExportService {
       }
       
       if (allResults.length > 0) {
-        await SavingsCalculatorExportService.addSummarySheet(workbook, entry, allResults);
-      }
-      
-      for (const r of allResults) {
-        const sheetName = r.monthStr ? new Date(`${r.monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Savings Analysis';
-        await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, r.result, entry);
+        const summarySheet = workbook.addWorksheet('Summary');
+        const monthRowMap: Record<string, any> = {};
+        
+        for (const r of allResults) {
+          const sheetName = r.monthStr ? new Date(`${r.monthStr}-01`).toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Savings Analysis';
+          const rowMapping = await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, r.result, entry);
+          monthRowMap[r.monthStr] = { sheetName, ...rowMapping };
+        }
+        
+        await SavingsCalculatorExportService.populateSummarySheet(summarySheet, entry, allResults, monthRowMap);
       }
     } else {
       const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
@@ -431,9 +458,7 @@ export class SavingsCalculatorExportService {
     return Buffer.from(buffer);
   }
 
-  private static async addSummarySheet(workbook: ExcelJS.Workbook, entry: any, allResults: any[]) {
-    const sheet = workbook.addWorksheet('Summary');
-    
+  private static async populateSummarySheet(sheet: ExcelJS.Worksheet, entry: any, allResults: any[], monthRowMap: Record<string, any>) {
     // Header
     sheet.addRow([`Industry Name: ${entry.industryName || entry.clientName || ''}`]);
     sheet.addRow([`Location / Address: ${entry.address || ''}`]);
@@ -488,122 +513,243 @@ export class SavingsCalculatorExportService {
     savingsHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     savingsHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } });
 
+    const getColLetter = (colIdx: number) => {
+      let temp = colIdx;
+      let letter = '';
+      while (temp > 0) {
+        let modulo = (temp - 1) % 26;
+        letter = String.fromCharCode(65 + modulo) + letter;
+        temp = Math.floor((temp - modulo) / 26);
+      }
+      return letter;
+    };
+
+    const todUnitsRowNums: Record<string, number> = {};
     todSlabs.forEach(tod => {
-      const todUnits = allResults.map(r => {
-        const found = r.result.todSummaries.find((t: any) => t.slabName === tod);
-        return found ? Math.round(found.marketEnergyKwh) : 0;
+      const rowData: any[] = [`Cleared Units@Consumer bus ${tod}`];
+      allResults.forEach((r, idx) => {
+        const mMapping = monthRowMap[r.monthStr];
+        const formula = `=VLOOKUP("${tod}", '${mMapping.sheetName}'!$A$${mMapping.breakdownTableStart}:$G$${mMapping.breakdownTableEnd}, 5, FALSE)`;
+        rowData.push({ formula });
       });
-      sheet.addRow([`Cleared Units@Consumer bus ${tod}`, ...todUnits]);
+      const addedRow = sheet.addRow(rowData);
+      todUnitsRowNums[tod] = addedRow.number;
     });
 
-    const totalClearedUnits = allResults.map(r => Math.round(r.result.totalMarketEnergyKwh));
-    const totalClearedRow = sheet.addRow(['Total Cleared Units@Consumer bus', ...totalClearedUnits]);
+    const totalClearedRowData: any[] = ['Total Cleared Units@Consumer bus'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const startRow = todUnitsRowNums[todSlabs[0]];
+      const endRow = todUnitsRowNums[todSlabs[todSlabs.length - 1]];
+      const formula = `=SUM(${colChar}${startRow}:${colChar}${endRow})`;
+      totalClearedRowData.push({ formula });
+    });
+    const totalClearedRow = sheet.addRow(totalClearedRowData);
     totalClearedRow.font = { bold: true };
+    const totalClearedRowNumber = totalClearedRow.number;
 
-    const totalConsumption = allResults.map(r => Math.round(r.result.totalEnergyKwh));
-    const totalConsumptionRow = sheet.addRow(['Total Consumption As per Ebill', ...totalConsumption]);
+    const totalConsumptionRowData: any[] = ['Total Consumption As per Ebill'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.todTotalRow}`;
+      totalConsumptionRowData.push({ formula });
+    });
+    const totalConsumptionRow = sheet.addRow(totalConsumptionRowData);
     totalConsumptionRow.font = { bold: true };
+    const totalConsumptionRowNumber = totalConsumptionRow.number;
 
-    const clearedVsActual = allResults.map((r, i) => totalConsumption[i] > 0 ? (totalClearedUnits[i] / totalConsumption[i]) : 0);
-    const clearedVsActualRow = sheet.addRow(['Cleared vs Actual consumption %', ...clearedVsActual]);
+    const clearedVsActualRowData: any[] = ['Cleared vs Actual consumption %'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${totalClearedRowNumber}/${colChar}${totalConsumptionRowNumber}`;
+      clearedVsActualRowData.push({ formula });
+    });
+    const clearedVsActualRow = sheet.addRow(clearedVsActualRowData);
     for (let i = 2; i <= numMonths + 1; i++) clearedVsActualRow.getCell(i).numFmt = '0%';
 
-    const totalPowerCostOA = allResults.map(r => Math.round(r.result.totalLandedExchangeCost + r.result.oaDetailed.dailyFixedOverhead + r.result.oaDetailed.bidApplicationFees));
-    const totalPowerCostOARow = sheet.addRow(['Total Power Cost through Open Access', ...totalPowerCostOA]);
+    const totalPowerCostRowData: any[] = ['Total Power Cost through Open Access'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.totalBillOADiscomAfterProltRow}`;
+      totalPowerCostRowData.push({ formula });
+    });
+    const totalPowerCostOARow = sheet.addRow(totalPowerCostRowData);
     totalPowerCostOARow.font = { bold: true };
+    const totalPowerCostOARowNumber = totalPowerCostOARow.number;
 
-    const discomCost = allResults.map(r => Math.round(r.result.totalBaselineCost));
-    const discomCostRow = sheet.addRow(['Discom Cost', ...discomCost]);
+    const discomCostRowData: any[] = ['Discom Cost'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.discomBaselineTotal}`;
+      discomCostRowData.push({ formula });
+    });
+    const discomCostRow = sheet.addRow(discomCostRowData);
     discomCostRow.font = { bold: true };
+    const discomCostRowNumber = discomCostRow.number;
 
     sheet.addRow([]);
 
-    const ppcDiscom = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (discomCost[i] / totalClearedUnits[i]) : 0);
-    const ppcDiscomRow = sheet.addRow(['Power Purchase Cost (Discom Only)', ...ppcDiscom]);
+    const ppcDiscomRowData: any[] = ['Power Purchase Cost (Discom Only)'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${discomCostRowNumber}/${colChar}${totalConsumptionRowNumber}`;
+      ppcDiscomRowData.push({ formula });
+    });
+    const ppcDiscomRow = sheet.addRow(ppcDiscomRowData);
     ppcDiscomRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } });
     ppcDiscomRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) ppcDiscomRow.getCell(i).numFmt = '₹0.00';
 
-    const ppcProlt = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalPowerCostOA[i] / totalClearedUnits[i]) : 0);
-    const ppcProltRow = sheet.addRow(['Power Purchase Cost (With Prolt)', ...ppcProlt]);
+    const ppcProltRowData: any[] = ['Power Purchase Cost (With Prolt)'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${totalPowerCostOARowNumber}/${colChar}${totalConsumptionRowNumber}`;
+      ppcProltRowData.push({ formula });
+    });
+    const ppcProltRow = sheet.addRow(ppcProltRowData);
     ppcProltRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
     ppcProltRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) ppcProltRow.getCell(i).numFmt = '₹0.00';
 
-    // Total Saving = Gross Saving (Discom - Power Cost OA)
-    const totalSaving = allResults.map((r, i) => discomCost[i] - totalPowerCostOA[i]);
-    const totalSavingRow = sheet.addRow(['Total Saving', ...totalSaving]);
+    const totalSavingRowData: any[] = ['Total Saving'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${discomCostRowNumber}-${colChar}${totalPowerCostOARowNumber}`;
+      totalSavingRowData.push({ formula });
+    });
+    const totalSavingRow = sheet.addRow(totalSavingRowData);
     totalSavingRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     totalSavingRow.font = { bold: true };
+    const totalSavingRowNumber = totalSavingRow.number;
 
-    const savingUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalSaving[i] / totalClearedUnits[i]) : 0);
-    const savingUnitRow = sheet.addRow(['Saving/Unit', ...savingUnit]);
+    const savingUnitRowData: any[] = ['Saving/Unit'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${totalSavingRowNumber}/${colChar}${totalClearedRowNumber}`;
+      savingUnitRowData.push({ formula });
+    });
+    const savingUnitRow = sheet.addRow(savingUnitRowData);
     savingUnitRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     savingUnitRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) savingUnitRow.getCell(i).numFmt = '₹0.00';
 
-    const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
-    sheet.addRow(['Monthly NOC Fee', ...Array(numMonths).fill(7000)]);
-    sheet.addRow(['IEX Registration Fee', ...Array(numMonths).fill(8333)]);
-    sheet.addRow(['Consultancy Fee', ...Array(numMonths).fill(consultancyFeeVal)]);
+    const nocFeeRowData: any[] = ['Monthly NOC Fee'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.nocFeeRow}`;
+      nocFeeRowData.push({ formula });
+    });
+    const nocFeeRow = sheet.addRow(nocFeeRowData);
+    const nocFeeRowNumber = nocFeeRow.number;
+
+    const iexRegRowData: any[] = ['IEX Registration Fee'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.iexRegFeeRow}`;
+      iexRegRowData.push({ formula });
+    });
+    const iexRegRow = sheet.addRow(iexRegRowData);
+    const iexRegRowNumber = iexRegRow.number;
+
+    const consultancyRowData: any[] = ['Consultancy Fee'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.consultancyFeeRow}`;
+      consultancyRowData.push({ formula });
+    });
+    const consultancyRow = sheet.addRow(consultancyRowData);
+    const consultancyRowNumber = consultancyRow.number;
 
     sheet.addRow([]);
 
-    const probusHeaderRow = sheet.addRow(['Margin Details', ...monthHeaders]);
-    probusHeaderRow.font = { bold: true };
-    probusHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } });
+    const marginHeaderRow = sheet.addRow(['Margin Details', ...monthHeaders]);
+    marginHeaderRow.font = { bold: true };
+    marginHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } });
 
-    const probusTradingMargin = allResults.map(r => Math.round(r.result.oaDetailed.totals.traderMargin));
-    sheet.addRow([`Trader Margin (Rs ${entry.traderMargin !== null && entry.traderMargin !== undefined ? entry.traderMargin : 0.02}/kWh)`, ...probusTradingMargin]);
+    const traderMarginRowData: any[] = [`Trader Margin (Rs ${entry.traderMargin !== null && entry.traderMargin !== undefined ? entry.traderMargin : 0.02}/kWh)`];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.traderMarginChargeRow}`;
+      traderMarginRowData.push({ formula });
+    });
+    const traderMarginRow = sheet.addRow(traderMarginRowData);
+    const traderMarginRowNumber = traderMarginRow.number;
 
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
-    const probusPlatformFee = allResults.map(r => Math.round(r.result.totalMarketEnergyKwh * platformFeeRate));
-    sheet.addRow([`Platform Fee (Rs ${platformFeeRate}/kWh)`, ...probusPlatformFee]);
+    const platformFeeRowData: any[] = [`Platform Fee (Rs ${platformFeeRate}/kWh)`];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.platformFeeRow}`;
+      platformFeeRowData.push({ formula });
+    });
+    const platformFeeRow = sheet.addRow(platformFeeRowData);
+    const platformFeeRowNumber = platformFeeRow.number;
 
-    const probusValueShare = allResults.map(r => Math.round(r.result.oaDetailed.totals.proltMarginCost));
-    sheet.addRow(['Value-Share for Energy Platform (15% of Saving)', ...probusValueShare]);
+    const valueShareRowData: any[] = ['Value-Share for Energy Platform (15% of Saving)'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `='${mMapping.sheetName}'!B${mMapping.valueShareRow}`;
+      valueShareRowData.push({ formula });
+    });
+    const valueShareRow = sheet.addRow(valueShareRowData);
+    const valueShareRowNumber = valueShareRow.number;
 
-    const totalAmount = allResults.map((r, i) => probusTradingMargin[i] + probusPlatformFee[i] + probusValueShare[i]);
-    const totalAmountRow = sheet.addRow(['Total Amount', ...totalAmount]);
+    const totalAmountRowData: any[] = ['Total Amount'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=SUM(${colChar}${nocFeeRowNumber}:${colChar}${consultancyRowNumber})+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
+      totalAmountRowData.push({ formula });
+    });
+    const totalAmountRow = sheet.addRow(totalAmountRowData);
     totalAmountRow.font = { bold: true };
     totalAmountRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
+    const totalAmountRowNumber = totalAmountRow.number;
 
-    const probusRevUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (totalAmount[i] / totalClearedUnits[i]) : 0);
-    const probusRevUnitRow = sheet.addRow(['Probus Revenue /Unit', ...probusRevUnit]);
+    const probusRevUnitRowData: any[] = ['Probus Revenue /Unit'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${totalAmountRowNumber}/${colChar}${totalClearedRowNumber}`;
+      probusRevUnitRowData.push({ formula });
+    });
+    const probusRevUnitRow = sheet.addRow(probusRevUnitRowData);
     for (let i = 2; i <= numMonths + 1; i++) probusRevUnitRow.getCell(i).numFmt = '0.00';
 
     sheet.addRow([]);
 
-    const nocFee = 7000;
-    const regFee = 8333;
-    // We only deduct Platform Fee, Value Share, NOC, Reg, and Consultancy.
-    // Trading Margin is already deducted inside totalPowerCostOA, so we do not deduct it again!
-    const savingForBiz = allResults.map((r, i) => {
-      const netSavingsUnrounded = r.result.totalBaselineCost - (r.result.totalLandedExchangeCost + r.result.oaDetailed.dailyFixedOverhead + r.result.oaDetailed.bidApplicationFees);
-      const probusPlatformFeeUnrounded = r.result.totalMarketEnergyKwh * platformFeeRate;
-      const probusValueShareUnrounded = r.result.oaDetailed.totals.proltMarginCost;
-      const finalSavings = netSavingsUnrounded - nocFee - regFee - consultancyFeeVal - probusPlatformFeeUnrounded - probusValueShareUnrounded;
-      return Math.round(finalSavings);
+    const savingForBizRowData: any[] = ['Saving for your business'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${totalSavingRowNumber}-${colChar}${totalAmountRowNumber}`;
+      savingForBizRowData.push({ formula });
     });
-    const savingForBizRow = sheet.addRow(['Saving for your business', ...savingForBiz]);
+    const savingForBizRow = sheet.addRow(savingForBizRowData);
     savingForBizRow.font = { bold: true };
     savingForBizRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
+    const savingForBizRowNumber = savingForBizRow.number;
 
-    const savingForBizUnit = allResults.map((r, i) => totalClearedUnits[i] > 0 ? (savingForBiz[i] / totalClearedUnits[i]) : 0);
-    const savingForBizUnitRow = sheet.addRow(['Saving/Unit', ...savingForBizUnit]);
+    const savingForBizUnitRowData: any[] = ['Saving/Unit'];
+    allResults.forEach((r, idx) => {
+      const colChar = getColLetter(idx + 2);
+      const formula = `=${colChar}${savingForBizRowNumber}/${colChar}${totalClearedRowNumber}`;
+      savingForBizUnitRowData.push({ formula });
+    });
+    const savingForBizUnitRow = sheet.addRow(savingForBizUnitRowData);
     savingForBizUnitRow.font = { bold: true };
     savingForBizUnitRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     for (let i = 2; i <= numMonths + 1; i++) savingForBizUnitRow.getCell(i).numFmt = '₹0.00';
 
     sheet.addRow([]);
 
-    const savingForBizSum = savingForBiz.reduce((sum, val) => sum + val, 0);
-    const avgMonthlySavingRow = sheet.addRow(['Average Monthly Saving', Math.round(savingForBizSum / numMonths)]);
+    const lastColChar = getColLetter(numMonths + 1);
+    const avgMonthlySavingFormula = `=AVERAGE(B${savingForBizRowNumber}:${lastColChar}${savingForBizRowNumber})`;
+    const avgMonthlySavingRow = sheet.addRow(['Average Monthly Saving', { formula: avgMonthlySavingFormula }]);
     avgMonthlySavingRow.font = { bold: true };
     avgMonthlySavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgMonthlySavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    const avgMonthlySavingRowNumber = avgMonthlySavingRow.number;
 
-    const avgAnnualSavingRow = sheet.addRow(['Average Annual Saving', Math.round(savingForBizSum / numMonths) * 12]);
+    const avgAnnualSavingFormula = `=B${avgMonthlySavingRowNumber}*12`;
+    const avgAnnualSavingRow = sheet.addRow(['Average Annual Saving', { formula: avgAnnualSavingFormula }]);
     avgAnnualSavingRow.font = { bold: true };
     avgAnnualSavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgAnnualSavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
