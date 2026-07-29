@@ -244,42 +244,32 @@ export class ForecastService {
 
         // Fetch forecast
         if (isGdam) {
-          // Query gdam_forecasting via raw SQL
-          const gdamRows: any[] = await prisma.$queryRawUnsafe(
-            `SELECT DISTINCT ON (target_date::date, time_block) * FROM "forecasting"."gdam_forecasting"
-             WHERE target_date::date >= $1::date AND target_date::date <= $2::date
-             ORDER BY target_date::date ASC, time_block ASC, run_date DESC;`,
-            startDateStr,
-            endDateStr
-          );
+          const forecastRows = await prisma.forecastGdam.findMany({
+            where: { date: { gte: startDateStr, lte: endDateStr } },
+            orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+          });
           
-          console.log('[DEBUG] GDAM query params:', startDateStr, endDateStr);
-          console.log('[DEBUG] GDAM returned rows:', gdamRows ? gdamRows.length : 0);
-
-          if (gdamRows && gdamRows.length > 0) {
-            const formatted = gdamRows.map(r => {
-              const hourNum = Math.floor((r.time_block - 1) / 4) + 1;
+          if (forecastRows && forecastRows.length > 0) {
+            const formatted = forecastRows.map((r: any) => {
+              const hourNum = Math.floor((r.intervalNumber - 1) / 4) + 1;
               const hour = hourNum.toString().padStart(2, '0');
-              const timeBlock = this.getIntervalTime(r.time_block);
+              const timeBlock = this.getIntervalTime(r.intervalNumber);
               
-              const mcp = parseFloat((Number(r.predicted_mcp) / 1000.0).toFixed(2));
+              const mcp = parseFloat((Number(r.mcp) / 1000.0).toFixed(2));
               
-              const dateStr = r.target_date instanceof Date 
-                ? r.target_date.toISOString().split('T')[0] 
-                : new Date(r.target_date).toISOString().split('T')[0];
-
-              const key = `${dateStr}_${r.time_block}`;
+              const dateStr = r.date;
+              const key = `${dateStr}_${r.intervalNumber}`;
               const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
 
               return {
                 date: dateStr,
                 hour,
                 timeBlock,
-                intervalNumber: r.time_block,
-                purchaseBid: 0,
-                sellBid: 0,
-                mcv: 0,
-                fsv: 0,
+                intervalNumber: r.intervalNumber,
+                purchaseBid: Number(r.purchaseBid),
+                sellBid: Number(r.sellBid),
+                mcv: Number(r.mcv),
+                fsv: Number(r.fsv),
                 mcp,
                 actualMcp,
                 confidence: 'N/A'
@@ -586,18 +576,12 @@ export class ForecastService {
       }
     } else if (market.toUpperCase() === 'GDAM') {
       try {
-        const rows: any[] = await prisma.$queryRawUnsafe(
-          `SELECT DISTINCT target_date::date AS date 
-           FROM "forecasting"."gdam_forecasting" 
-           ORDER BY date DESC;`
-        );
-        return rows.map(r => {
-          const d = r.date;
-          if (d instanceof Date) {
-            return d.toISOString().split('T')[0];
-          }
-          return new Date(d).toISOString().split('T')[0];
+        const rows = await prisma.forecastGdam.findMany({
+          select: { date: true },
+          distinct: ['date'],
+          orderBy: { date: 'desc' }
         });
+        return rows.map(r => r.date);
       } catch (e) { 
         console.error('[ForecastService] Error in GDAM dates:', e);
         return []; 

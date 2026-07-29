@@ -729,6 +729,45 @@ model AuditLog {
   @@schema("public")
 }
 
+model ForecastGdam {
+  id             String   @id @default(uuid())
+  date           String   @db.VarChar(10)
+  intervalNumber Int      @db.SmallInt
+  intervalTime   String   @db.VarChar(15)
+  purchaseBid    Decimal  @db.Decimal(18, 4)
+  sellBid        Decimal  @db.Decimal(18, 4)
+  mcv            Decimal  @db.Decimal(18, 4)
+  fsv            Decimal  @db.Decimal(18, 4)
+  mcp            Decimal  @db.Decimal(18, 4)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([date, intervalNumber])
+  @@index([date])
+  @@index([intervalNumber])
+  @@index([intervalTime])
+  @@map("gdam_forecasting")
+  @@schema("forecasting")
+}
+
+model DamForecasting {
+  id              String   @id @default(uuid())
+  forecasting_for DateTime
+  time_block      Int      @db.SmallInt
+  model_number    Int
+  forecast_date   DateTime
+  predicted_mcp   Decimal  @db.Decimal(18, 4)
+  confidence_pct  Decimal? @db.Decimal(5, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([forecasting_for, time_block, model_number, forecast_date])
+  @@index([forecasting_for])
+  @@index([time_block])
+  @@map("dam_forecasting")
+  @@schema("forecasting")
+}
+
 model ForecastRtm {
   id             String   @id @default(uuid())
   date           String   @db.VarChar(10)
