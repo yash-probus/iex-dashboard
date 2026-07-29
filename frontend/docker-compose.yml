@@ -8,4 +8,4 @@ services:
     container_name: iex-frontend
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "8085:8081"
