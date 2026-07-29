@@ -555,7 +555,7 @@ export class SavingsCalculatorExportService {
       const rowData: any[] = [`Cleared Units@Consumer bus ${tod}`];
       allResults.forEach((r, idx) => {
         const mMapping = monthRowMap[r.monthStr];
-        const formula = `VLOOKUP("${tod}", '${mMapping.sheetName}'!$A$${mMapping.breakdownTableStart}:$G$${mMapping.breakdownTableEnd}, 5, FALSE)`;
+        const formula = `IFERROR(VLOOKUP("${tod}", '${mMapping.sheetName}'!$A$${mMapping.breakdownTableStart}:$G$${mMapping.breakdownTableEnd}, 5, FALSE), 0)`;
         rowData.push({ formula });
       });
       const addedRow = sheet.addRow(rowData);
@@ -651,7 +651,7 @@ export class SavingsCalculatorExportService {
     const savingUnitRowData: any[] = ['Saving/Unit'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `${colChar}${totalSavingRowNumber}/${colChar}${totalClearedRowNumber}`;
+      const formula = `${colChar}${totalSavingRowNumber}/${colChar}${totalConsumptionRowNumber}`;
       savingUnitRowData.push({ formula });
     });
     const savingUnitRow = sheet.addRow(savingUnitRowData);
@@ -734,7 +734,7 @@ export class SavingsCalculatorExportService {
     const probusRevUnitRowData: any[] = ['Probus Revenue /Unit'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `${colChar}${totalAmountRowNumber}/${colChar}${totalClearedRowNumber}`;
+      const formula = `${colChar}${totalAmountRowNumber}/${colChar}${totalConsumptionRowNumber}`;
       probusRevUnitRowData.push({ formula });
     });
     const probusRevUnitRow = sheet.addRow(probusRevUnitRowData);
@@ -756,7 +756,7 @@ export class SavingsCalculatorExportService {
     const savingForBizUnitRowData: any[] = ['Saving/Unit'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `${colChar}${savingForBizRowNumber}/${colChar}${totalClearedRowNumber}`;
+      const formula = `${colChar}${savingForBizRowNumber}/${colChar}${totalConsumptionRowNumber}`;
       savingForBizUnitRowData.push({ formula });
     });
     const savingForBizUnitRow = sheet.addRow(savingForBizUnitRowData);
