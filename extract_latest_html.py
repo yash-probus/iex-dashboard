@@ -1,7 +1,7 @@
 import json
 
 log_path = "/Users/yashgupta/.gemini/antigravity-ide/brain/0e78b7cc-1161-4e38-9e35-bf981e2a10fc/.system_generated/logs/transcript_full.jsonl"
-found = False
+latest_html = None
 
 for line in open(log_path):
     try:
@@ -10,16 +10,19 @@ for line in open(log_path):
             content = data.get("content", "")
             lower_c = content.lower()
             if "<!doctype html>" in lower_c and "the delhi flour mills" in lower_c:
-                # write the HTML out to a file
                 start = lower_c.find("<!doctype html>")
-                end = lower_c.find("</html>", start) + 7
-                if start != -1 and end > start + 7:
-                    html = content[start:end]
-                    with open("/Users/yashgupta/IEX-Dashboard/frontend/public/dashboard.html", "w") as f:
-                        f.write(html)
-                    print(f"Extracted HTML successfully, length {len(html)}")
-                    found = True
+                end = lower_c.rfind("</html>")
+                if end == -1:
+                    end = len(content)
+                else:
+                    end += 7
+                latest_html = content[start:end]
     except Exception as e:
         pass
-if not found:
+
+if latest_html:
+    with open("/Users/yashgupta/IEX-Dashboard/frontend/public/dashboard.html", "w") as f:
+        f.write(latest_html)
+    print(f"Extracted latest HTML successfully, length {len(latest_html)}")
+else:
     print("Could not find the HTML!")
