@@ -357,30 +357,8 @@ const exportInsightsToExcel = async () => {
       </Box>
 
       <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
-
-            {Object.keys(cachedResults).length > 0 && (
-              <Box sx={{ width: '100%', mb: 2, borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs 
-                  value={selectedSimMonth} 
-                  onChange={(e, v) => setSelectedSimMonth(v)}
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
-                >
-                  <Tab label="Overall" value="all" />
-                  {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
-                    <Tab 
-                      key={ym} 
-                      label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} 
-                      value={ym} 
-                    />
-                  ))}
-                </Tabs>
-              </Box>
-            )}
-
-            <TextField
+        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
+             <TextField
               select
               label="Version"
               value={selectedCalcVersion}
@@ -499,6 +477,27 @@ const exportInsightsToExcel = async () => {
               >
                 Export Excel Sheet
               </Button>
+            )}
+
+            {Object.keys(cachedResults).length > 0 && (
+              <Box sx={{ width: '100%', mt: 2, borderTop: 1, borderColor: 'divider' }}>
+                <Tabs 
+                  value={selectedSimMonth} 
+                  onChange={(e, v) => setSelectedSimMonth(v)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
+                >
+                  <Tab label="Overall" value="all" />
+                  {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
+                    <Tab 
+                      key={ym} 
+                      label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} 
+                      value={ym} 
+                    />
+                  ))}
+                </Tabs>
+              </Box>
             )}
           </Box>
 
