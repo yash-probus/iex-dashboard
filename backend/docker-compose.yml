@@ -87,7 +87,7 @@ services:
       - PRISMA_HIDE_UPDATE_MESSAGE=true
       - TZ=Asia/Kolkata
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres:5432/${POSTGRES_DB:-Prolt_Operations}?schema=public
-    command: sh -c "npx prisma db push --accept-data-loss && (npx prisma db seed || true)"
+    command: sh -c "npx prisma db push --accept-data-loss"
 
   iex-redis:
     image: redis:7-alpine
