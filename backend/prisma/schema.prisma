@@ -800,4 +800,5 @@ model UserAuditLog {
   @@index([targetUserId])
   @@index([performedBy])
   @@index([timestamp])
+  @@schema("public")
 }
