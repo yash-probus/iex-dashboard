@@ -1132,13 +1132,21 @@
 
         function renderOverall() {
             const o = DATA.overall;
+            const mCount = Math.max(1, o.months.length);
             const totalCons = sum(o.consumption), totalCleared = sum(o.cleared), gross = sum(o.grossSaving), net = sum(o.netSaving), fees = sum(o.fees);
-            const cov = totalCleared / totalCons * 100, retention = net / gross * 100, netRate = net / totalCons;
+            const cov = totalCleared / (totalCons || 1) * 100, retention = net / (gross || 1) * 100, netRate = net / (totalCons || 1);
+            
+            const annualizedMultiplier = 12 / mCount;
+            const annualNet = net * annualizedMultiplier;
+            const monthlyNet = net / mCount;
+            const annualGross = gross * annualizedMultiplier;
+            const annualCleared = totalCleared * annualizedMultiplier;
+
             $("overallKpis").innerHTML = `
-    <article class="kpi green"><div class="label">Annual client saving</div><div class="value">${compactMoney(net)}</div><div class="sub">Final benefit after reported platform and service fees</div></article>
-    <article class="kpi green"><div class="label">Average monthly saving</div><div class="value">${lakh(net / 12)}</div><div class="sub">Average final client saving across 12 months</div></article>
-    <article class="kpi amber"><div class="label">Annual gross saving</div><div class="value">${compactMoney(gross)}</div><div class="sub">Before platform and service fee deductions</div></article>
-    <article class="kpi"><div class="label">OA energy delivered</div><div class="value">${energy(totalCleared)}</div><div class="sub">Consumer-bus cleared energy across the year</div></article>
+    <article class="kpi green"><div class="label">Annual client saving</div><div class="value">${compactMoney(annualNet)}</div><div class="sub">Final benefit after reported platform and service fees</div></article>
+    <article class="kpi green"><div class="label">Average monthly saving</div><div class="value">${lakh(monthlyNet)}</div><div class="sub">Average final client saving across ${mCount} month${mCount > 1 ? 's' : ''}</div></article>
+    <article class="kpi amber"><div class="label">Annual gross saving</div><div class="value">${compactMoney(annualGross)}</div><div class="sub">Before platform and service fee deductions</div></article>
+    <article class="kpi"><div class="label">OA energy delivered</div><div class="value">${energy(annualCleared)}</div><div class="sub">Consumer-bus cleared energy across the year</div></article>
     <article class="kpi"><div class="label">Weighted OA coverage</div><div class="value">${pct(cov)}</div><div class="sub">OA cleared units ÷ billed consumption</div></article>
     <article class="kpi"><div class="label">Net saving rate</div><div class="value">${rate(netRate)}</div><div class="sub">${pct(retention)} of gross savings retained by the client</div></article>`;
             drawOverallTrend();
