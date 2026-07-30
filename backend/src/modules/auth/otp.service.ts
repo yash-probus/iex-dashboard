@@ -53,7 +53,7 @@ export const generateAndSendOTP = async (email: string): Promise<void> => {
     text: `Your One-Time Password (OTP) for login is: ${otp}. It will expire in 5 minutes.`,
     html: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-        <div style="background-color: #ffffff; padding: 24px; text-align: center; border-bottom: 1px solid #e0e0e0;">
+        <div style="background-color: #7995beff; padding: 24px; text-align: center; border-bottom: 1px solid #e0e0e0;">
           <img src="cid:proltlogo" alt="Prolt Energy by Probus" style="max-height: 50px; width: auto;" />
         </div>
         <div style="padding: 40px 30px; text-align: center;">
