@@ -237,7 +237,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     }
 
-    return { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall };
+    return { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy };
   }, [clientOverview, marketDecisionResult, activeMonth]);
 
   return (
@@ -250,8 +250,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
         detailedCycle={detailedCycle}
       />
 
+      {/* Dynamic KPIs (Overall or Monthly depending on state) */}
+      <Box sx={{ mt: 2 }}>
+        <DashboardKPIs kpis={kpis} />
+      </Box>
+
+      {/* Energy Summary (Overall or Monthly) */}
+      <Box sx={{ mt: 2, mb: 1 }}>
+        <DashboardEnergySummary 
+          calcResult={{
+            totalEnergyKwh: totalConsumption,
+            totalMarketEnergyKwh: totalMarketEnergy
+          }} 
+          marketDecisionResult={isOverall ? null : marketDecisionResult} 
+        />
+      </Box>
+
       {/* Tabs / Month Selection Matrix (Always shown to allow switching) */}
-      <Box sx={{ mt: 1 }}>
+      <Box sx={{ mt: 3 }}>
         <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
           <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 'bold' }}>
             Monthly savings and Open Access coverage
@@ -281,11 +297,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         />
       </Box>
 
-      {/* Dynamic KPIs (Overall or Monthly depending on state) */}
-      <Box sx={{ mt: 2 }}>
-        <DashboardKPIs kpis={kpis} />
-      </Box>
-
       {/* Monthly-only components */}
       {!isOverall && (
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -304,13 +315,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Box>
               <DashboardMonthlyInsights detail={detail} />
             </Box>
-          </Box>
-
-          <Box>
-            <DashboardEnergySummary 
-              calcResult={calcResult} 
-              marketDecisionResult={marketDecisionResult} 
-            />
           </Box>
 
           {/* Visual Analytics Charts & Market Mix */}
