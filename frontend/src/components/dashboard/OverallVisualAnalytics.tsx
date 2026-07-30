@@ -4,10 +4,13 @@ import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Le
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BarChartIcon from '@mui/icons-material/BarChart';
 
-export const OverallVisualAnalytics: React.FC<{ clientOverview: any }> = ({ clientOverview }) => {
+export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMonth?: string }> = ({ clientOverview, selectedMonth }) => {
   if (!clientOverview || !clientOverview.months) return null;
 
-  const validMonths = clientOverview.months.filter((m: any) => !m.error);
+  let validMonths = clientOverview.months.filter((m: any) => !m.error);
+  if (selectedMonth && selectedMonth !== 'all') {
+    validMonths = validMonths.filter((m: any) => m.month === selectedMonth);
+  }
 
   const formatIndianNumber = (num: number) => {
     return new Intl.NumberFormat('en-IN').format(num);

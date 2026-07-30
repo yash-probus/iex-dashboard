@@ -170,6 +170,16 @@
             border-color: var(--green)
         }
 
+        .action-btn.export-btn {
+            background: #0f172a;
+            color: #fff;
+            border-color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+        }
+
         .route-note {
             font-size: 12px;
             color: var(--muted)
@@ -856,7 +866,10 @@
             </div>
             <div class="nav-right">
                 <button class="action-btn" onclick="window.print()">Print / Save PDF</button>
-                <button class="action-btn primary" onclick="downloadCurrentCSV()">Download current CSV</button>
+                <button class="action-btn export-btn" onclick="exportExcelSheet()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Export Excel Sheet
+                </button>
             </div>
         </nav>
 
@@ -1377,6 +1390,18 @@
                 const i = monthIndex(currentMonth), o = DATA.overall; rows = [["Month", "Consumption_kWh", "OA_Cleared_kWh", "Coverage_pct", "Gross_Saving_Rs", "Fees_Rs", "Client_Saving_Rs"], [currentMonth, o.consumption[i], o.cleared[i], o.coverage[i], o.grossSaving[i], o.fees[i], o.netSaving[i]]]; name = CLIENT_INFO.csvNamePrefix + "_" + currentMonth + ".csv";
             }
             const csv = rows.map(r => r.map(v => String(v).includes(",") ? `"${v}"` : v).join(",")).join("\n"), blob = new Blob([csv], { type: "text/csv" }), a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); URL.revokeObjectURL(a.href)
+        }
+
+        function exportExcelSheet() {
+            const hash = decodeURIComponent(location.hash.replace(/^#/, "")) || "overall";
+            const isMonthly = hash.startsWith("monthly/");
+            let targetMonth = "overall";
+            if (isMonthly) {
+                targetMonth = hash.split("/")[1] || "Mar-25";
+            }
+            if (window.parent) {
+                window.parent.postMessage({ type: 'EXPORT_EXCEL', month: targetMonth }, '*');
+            }
         }
 
         if(CLIENT_INFO) {

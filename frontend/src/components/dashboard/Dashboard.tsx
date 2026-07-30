@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ClientOverviewResult, MarketDecisionResult, SavingsCalculatorEntry } from '../../api/savingsCalculator.api';
+import { ClientOverviewResult, MarketDecisionResult, SavingsCalculatorEntry, exportSavingsExcel } from '../../api/savingsCalculator.api';
 import { Box } from '@mui/material';
 import { OverallVisualAnalytics } from './OverallVisualAnalytics';
 
@@ -232,10 +232,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
     // Send immediately in case it's already loaded
     sendMessage();
 
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data && event.data.type === 'EXPORT_EXCEL') {
+        if (calcEntry?.id) {
+          const monthToExport = event.data.month === 'overall' || event.data.month === 'all' ? undefined : event.data.month;
+          try {
+            await exportSavingsExcel(calcEntry.id, monthToExport);
+          } catch (e) {
+            console.error("Export excel failed:", e);
+          }
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
     return () => {
       iframe.removeEventListener('load', sendMessage);
+      window.removeEventListener('message', handleMessage);
     };
-  }, [clientName, clientOverview, marketDecisionResult, selectedMonth]);
+  }, [clientName, clientOverview, marketDecisionResult, selectedMonth, calcEntry]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -245,8 +260,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
         style={{ width: '100%', height: '800px', border: 'none', borderRadius: '12px' }}
         title="Dashboard"
       />
-      {(!selectedMonth || selectedMonth === 'all') && clientOverview && (
-        <OverallVisualAnalytics clientOverview={clientOverview} />
+      {clientOverview && (
+        <OverallVisualAnalytics clientOverview={clientOverview} selectedMonth={selectedMonth} />
       )}
     </Box>
   );
