@@ -35,7 +35,6 @@ import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHea
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
-import { ClientOverviewDashboard } from '../components/dashboard/ClientOverviewDashboard';
 import { Dashboard } from '../components/dashboard/Dashboard';
 import { 
   fetchSavingsEntries, 
@@ -56,7 +55,7 @@ import {
   fetchClientOverview,
   ClientOverviewResult
 } from '../api/savingsCalculator.api';
-import { VisualAnalyticsCharts } from '../components/insights/VisualAnalyticsCharts';
+
 import EnergyInsightsExplorer from '../components/insights/EnergyInsightsExplorer';
 import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
@@ -605,7 +604,6 @@ const exportInsightsToExcel = async () => {
                   <Tab label={selectedSimMonth === 'all' ? "Summary" : "Market Buy Decision"} disabled={!marketDecisionResult} value={2} />
                   {selectedSimMonth !== 'all' && <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />}
                   <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
-                  {selectedSimMonth !== 'all' && <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />}
                   <Tab label="Dashboard" disabled={!marketDecisionResult} value={6} />
                 </Tabs>
               </Box>
@@ -748,7 +746,7 @@ const exportInsightsToExcel = async () => {
                 <Box>
                   {/* Savings Dashboard Removed */}
                   
-                  {selectedSimMonth !== 'all' ? (
+                  {selectedSimMonth !== 'all' && (
                     <>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
@@ -830,10 +828,6 @@ const exportInsightsToExcel = async () => {
                     </Table>
                   </Box>
                   </>
-                  ) : (
-                    <Box sx={{ mt: 3 }}>
-                      <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={overviewLoading} />
-                    </Box>
                   )}
                 </Box>
               )}
@@ -1106,13 +1100,7 @@ const exportInsightsToExcel = async () => {
             </Box>
           )}
 
-          {calcTab === 5 && marketDecisionResult && demandShiftInsights && (
-            <VisualAnalyticsCharts 
-              marketDecisionResult={marketDecisionResult} 
-              demandShiftInsights={demandShiftInsights}
-              maxEnergyPerSlot={demandShiftInsights.maxEnergyPerSlot} 
-            />
-          )}
+          {/* Removed VisualAnalyticsCharts */}
         
 
 

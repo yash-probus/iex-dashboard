@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
-import { FormControlLabel, Switch, Radio, RadioGroup, FormControl, FormLabel, Divider,
-  Box, Typography, Button, alpha, Dialog, DialogTitle, 
+import {
+  FormControlLabel, Switch, Radio, RadioGroup, FormControl, FormLabel, Divider,
+  Box, Typography, Button, alpha, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
   CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment, OutlinedInput, Stack,
   Accordion, AccordionSummary, AccordionDetails, Select
 } from '@mui/material';
-import { 
-  Calculate as CalculateIcon, 
+import {
+  Calculate as CalculateIcon,
   Add as AddIcon,
   ExpandMore as ExpandMoreIcon,
   Visibility as VisibilityIcon,
@@ -40,15 +41,14 @@ import { Dashboard } from '../components/dashboard/Dashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import DateRangePicker from '../components/common/DateRangePicker';
-import { ClientOverviewDashboard } from '../components/dashboard/ClientOverviewDashboard';
-import { 
-  fetchSavingsEntries, 
-  createSavingsEntry, 
-  updateSavingsEntry, 
-  deleteSavingsEntry, 
+import {
+  fetchSavingsEntries,
+  createSavingsEntry,
+  updateSavingsEntry,
+  deleteSavingsEntry,
   calculateSavings,
   calculateMarketDecision,
-  SavingsCalculatorEntry, 
+  SavingsCalculatorEntry,
   CalculationResult,
   CalculationSlotDetail,
   MarketDecisionResult,
@@ -60,7 +60,7 @@ import {
   fetchClientOverview,
   ClientOverviewResult
 } from '../api/savingsCalculator.api';
-import { VisualAnalyticsCharts } from '../components/insights/VisualAnalyticsCharts';
+
 import EnergyInsightsExplorer from '../components/insights/EnergyInsightsExplorer';
 import { exportToCSV } from '../utils/export';
 import { getResourceData } from '../api/resourceCenter.api';
@@ -99,14 +99,14 @@ const getChanges = (current: any, previous: any) => {
   fields.forEach(f => {
     let valCurr = current[f.key];
     let valPrev = previous[f.key];
-    
+
     if (f.isNumeric) {
       const numCurr = valCurr !== undefined && valCurr !== null && valCurr !== '' ? Number(valCurr) : null;
       const numPrev = valPrev !== undefined && valPrev !== null && valPrev !== '' ? Number(valPrev) : null;
-      
+
       const isBothNull = numCurr === null && numPrev === null;
       const isOneNull = numCurr === null || numPrev === null;
-      
+
       if (!isBothNull && (isOneNull || numCurr !== numPrev)) {
         changes.push({
           label: f.label,
@@ -133,12 +133,12 @@ const getChanges = (current: any, previous: any) => {
 export default function SavingsCalculatorPage() {
   const navigate = useNavigate();
   const { isAdmin, user } = useAuth();
-  
+
   const isReadOnly = (user as any)?.readOnlyModules?.includes('savings-calculator');
   const isNoDelete = (user as any)?.readOnlyModules?.includes('savings-calculator-nodelete');
   const canEdit = isAdmin || !isReadOnly || isNoDelete;
   const canDelete = isAdmin || (!isReadOnly && !isNoDelete);
-  
+
   // State variables
   const [selectedInsightsEntry, setSelectedInsightsEntry] = useState<SavingsCalculatorEntry | null>(null);
   const [entries, setEntries] = useState<SavingsCalculatorEntry[]>([]);
@@ -153,11 +153,11 @@ export default function SavingsCalculatorPage() {
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
   const [selectedEntry, setSelectedEntry] = useState<SavingsCalculatorEntry | null>(null);
   const [activeStep, setActiveStep] = useState<number>(0);
-  
+
   // Client Overview State
   const [clientOverview, setClientOverview] = useState<ClientOverviewResult | null>(null);
   const [overviewLoading, setOverviewLoading] = useState<boolean>(false);
-  
+
   // Form Fields State
   const [clientName, setClientName] = useState('');
   const [clientPrefix, setClientPrefix] = useState('Mr.');
@@ -175,11 +175,11 @@ export default function SavingsCalculatorPage() {
   const [traderMargin, setTraderMargin] = useState('');
   const [consultancyFee, setConsultancyFee] = useState('');
   const [probusPlatformFee, setProbusPlatformFee] = useState('');
-  
+
   const [todConsumptions, setTodConsumptions] = useState<Record<string, Record<string, string>>>({});
   const [expandedAccordion, setExpandedAccordion] = useState<string | false>('initial');
   const [editingMonth, setEditingMonth] = useState<string | null>(null);
-  
+
   // Additional Billing Fields
   const [billedDemandKv, setBilledDemandKv] = useState('');
   const [powerFactor, setPowerFactor] = useState('');
@@ -188,9 +188,9 @@ export default function SavingsCalculatorPage() {
   const [billDate, setBillDate] = useState('');
 
   // Validation Errors
-  const [formErrors, setFormErrors] = useState<{ 
-    clientName?: string; 
-    industryName?: string; 
+  const [formErrors, setFormErrors] = useState<{
+    clientName?: string;
+    industryName?: string;
     address?: string;
     sanctionedLoadKw?: string;
     clientDetails?: string;
@@ -200,7 +200,7 @@ export default function SavingsCalculatorPage() {
 
   // Submitting States
   const [submitting, setSubmitting] = useState(false);
-  
+
   // PROLT Dialog State
   const [proltDialogOpen, setProltDialogOpen] = useState(false);
   const [todDialogOpen, setTodDialogOpen] = useState(false);
@@ -210,7 +210,7 @@ export default function SavingsCalculatorPage() {
   const [calcEntry, setCalcEntry] = useState<SavingsCalculatorEntry | null>(null);
   const [cachedResults, setCachedResults] = useState<Record<string, { calc: CalculationResult | null, market: MarketDecisionResult | null, insights: DemandShiftInsightsResult | null }>>({});
 
-  
+
   const [calculating, setCalculating] = useState(false);
   const [calculatingInsights, setCalculatingInsights] = useState(false);
   const [calcVersions, setCalcVersions] = useState<number[]>([]);
@@ -303,11 +303,11 @@ export default function SavingsCalculatorPage() {
 
   const filteredAndSortedEntries = React.useMemo(() => {
     let result = [...entries];
-    
+
     // Filtering
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(e => 
+      result = result.filter(e =>
         e.clientName?.toLowerCase().includes(q) ||
         e.industryName?.toLowerCase().includes(q) ||
         e.stateCode?.toLowerCase().includes(q) ||
@@ -315,14 +315,14 @@ export default function SavingsCalculatorPage() {
         e.consumerCategory?.toLowerCase().includes(q)
       );
     }
-    
+
     result.sort((a, b) => {
       let aVal = a[sortBy as keyof SavingsCalculatorEntry] ?? '';
       let bVal = b[sortBy as keyof SavingsCalculatorEntry] ?? '';
-      
+
       if (typeof aVal === 'string') aVal = aVal.toLowerCase();
       if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-      
+
       if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
       return 0;
@@ -344,7 +344,7 @@ export default function SavingsCalculatorPage() {
 
   const uniqueStates = React.useMemo(() => {
     const statesMap = new Map<string, string>();
-    
+
     // Helper to format string to Title Case
     const toTitleCase = (str: string) => {
       return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -374,9 +374,9 @@ export default function SavingsCalculatorPage() {
     }
 
     return discomList
-      .filter((d: any) => !stateCode || 
-        (d.stateCode && normalizedCode && d.stateCode.toLowerCase() === normalizedCode.toLowerCase()) || 
-        (d.state && d.state.toLowerCase() === stateCode.toLowerCase()) || 
+      .filter((d: any) => !stateCode ||
+        (d.stateCode && normalizedCode && d.stateCode.toLowerCase() === normalizedCode.toLowerCase()) ||
+        (d.state && d.state.toLowerCase() === stateCode.toLowerCase()) ||
         (d.stateCode && d.stateCode.toLowerCase() === stateCode.toLowerCase()))
       .map((d: any) => ({ code: d.code, legalName: d.legalName }));
   }, [discomList, stateCode, regionStates]);
@@ -384,7 +384,7 @@ export default function SavingsCalculatorPage() {
   const uniqueCategories = React.useMemo(() => {
     const categoriesSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      const matchState = !stateCode || 
+      const matchState = !stateCode ||
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       if (matchState && row.consumerCategory) {
@@ -406,7 +406,7 @@ export default function SavingsCalculatorPage() {
 
     const levelsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      const matchState = !stateCode || 
+      const matchState = !stateCode ||
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       let parsedCategory = consumerCategory;
@@ -420,7 +420,7 @@ export default function SavingsCalculatorPage() {
         parsedCategory = parts[0];
         parsedSubCategory = parts[1];
       }
-      
+
       const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
       if (matchState && matchCategory && row.supplyVoltageCategory) {
         levelsSet.add(row.supplyVoltageCategory);
@@ -441,7 +441,7 @@ export default function SavingsCalculatorPage() {
 
     const slabsSet = new Set<string>();
     tariffData.forEach((row: any) => {
-      const matchState = !stateCode || 
+      const matchState = !stateCode ||
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       let parsedCategory = consumerCategory;
@@ -455,7 +455,7 @@ export default function SavingsCalculatorPage() {
         parsedCategory = parts[0];
         parsedSubCategory = parts[1];
       }
-      
+
       const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
       let parsedVoltageLevel = voltageLevel;
       if (parsedVoltageLevel && parsedVoltageLevel.includes(' - ')) {
@@ -540,7 +540,7 @@ export default function SavingsCalculatorPage() {
     setClientOverview(null);
     if (entry) {
       setSelectedEntry(entry);
-      
+
       if (mode === 'view') {
         navigate(`/savings-calculator/view/${entry.id}`);
         return;
@@ -565,7 +565,7 @@ export default function SavingsCalculatorPage() {
       setStateCode(entry.stateCode || '');
       setDiscom(entry.discom || '');
       setConsumerCategory(entry.consumerCategory || '');
-      
+
       let parsedVoltageLevel = entry.voltageLevel || '';
       let parsedSupplyVoltageValue = '';
       if (parsedVoltageLevel.includes(' - ')) {
@@ -575,12 +575,12 @@ export default function SavingsCalculatorPage() {
       }
       setVoltageLevel(parsedVoltageLevel);
       setSupplyVoltageValue(parsedSupplyVoltageValue);
-      
+
       setProltMargin(entry.proltMargin ? String(entry.proltMargin) : '');
       setTraderMargin(entry.traderMargin ? String(entry.traderMargin) : '');
       setConsultancyFee(entry.consultancyFee ? String(entry.consultancyFee) : '');
       setProbusPlatformFee(entry.probusPlatformFee ? String(entry.probusPlatformFee) : '');
-      
+
       const tc: Record<string, Record<string, string>> = {};
       if (entry.todConsumptions) {
         Object.keys(entry.todConsumptions).forEach(ym => {
@@ -591,7 +591,7 @@ export default function SavingsCalculatorPage() {
         });
       }
       setTodConsumptions(tc);
-      
+
       setBilledDemandKv(entry.billedDemandKv !== undefined && entry.billedDemandKv !== null ? String(entry.billedDemandKv) : '');
       setPowerFactor(entry.powerFactor !== undefined && entry.powerFactor !== null ? String(entry.powerFactor) : '');
       setArrearAmount(entry.arrearAmount !== undefined && entry.arrearAmount !== null ? String(entry.arrearAmount) : '');
@@ -599,12 +599,12 @@ export default function SavingsCalculatorPage() {
       setBillDate(entry.billDate || '');
 
       setHasReachedSummary(true);
-      setActiveStep(7); 
+      setActiveStep(7);
     } else {
       setSelectedEntry(null);
       resetForm();
       setHasReachedSummary(false);
-      setActiveStep(0); 
+      setActiveStep(0);
     }
   };
 
@@ -671,14 +671,14 @@ export default function SavingsCalculatorPage() {
     if (!address.trim()) errors.address = 'Address is required.';
     if (!stateCode.trim()) errors.stateCode = 'State is required.';
     if (!discom.trim()) errors.discom = 'DISCOM is required.';
-    
+
     if (sanctionedLoadKw.trim()) {
       const parsed = parseFloat(sanctionedLoadKw);
       if (isNaN(parsed) || parsed <= 0) {
         errors.sanctionedLoadKw = 'Sanctioned load must be a positive number.';
       }
     }
-    
+
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) {
       const firstError = Object.values(errors)[0];
@@ -706,7 +706,7 @@ export default function SavingsCalculatorPage() {
         traderMargin: traderMargin ? Number(traderMargin) : undefined,
         consultancyFee: consultancyFee ? Number(consultancyFee) : undefined,
         probusPlatformFee: probusPlatformFee ? Number(probusPlatformFee) : undefined,
-        todConsumptions: Object.keys(todConsumptions).length > 0 ? 
+        todConsumptions: Object.keys(todConsumptions).length > 0 ?
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => {
               const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date'];
@@ -793,8 +793,8 @@ export default function SavingsCalculatorPage() {
     if (reason && (reason === 'backdropClick' || reason === 'escapeKeyDown')) return;
     setCalcDialogOpen(false);
     setCalcEntry(null);
-    
-    
+
+
   };
 
   const executeCalculation = async () => {
@@ -802,9 +802,9 @@ export default function SavingsCalculatorPage() {
     try {
       setCalculating(true);
       const months = ['all', ...Object.keys(calcEntry.todConsumptions || {}).sort()];
-      
+
       const newCache: Record<string, any> = { ...cachedResults };
-      
+
       await Promise.all(months.map(async (m) => {
         const [savingsRes, marketRes, insightsRes] = await Promise.all([
           calculateSavings(calcEntry.id, m, selectedCalcVersion || undefined),
@@ -816,7 +816,7 @@ export default function SavingsCalculatorPage() {
         newCache[m].market = marketRes;
         newCache[m].insights = insightsRes;
       }));
-      
+
       setCachedResults(newCache);
       setCalcTab(0);
     } catch (err: any) {
@@ -861,15 +861,15 @@ export default function SavingsCalculatorPage() {
     try {
       setCalculatingInsights(true);
       const months = ['all', ...Object.keys(calcEntry.todConsumptions || {}).sort()];
-      
+
       const newCache: Record<string, any> = { ...cachedResults };
-      
+
       await Promise.all(months.map(async (m) => {
         const res = await fetchDemandShiftInsights(calcEntry.id, m, selectedCalcVersion || undefined);
         if (!newCache[m]) newCache[m] = { calc: null, market: null, insights: null };
         newCache[m].insights = res;
       }));
-      
+
       setCachedResults(newCache);
       setCalcTab(4);
     } catch (err: any) {
@@ -904,7 +904,7 @@ export default function SavingsCalculatorPage() {
       'STU Loss (%)': row.stuLoss?.toFixed(4) || '0.0000',
       'Wheeling Loss (%)': row.wheelingLoss?.toFixed(4) || '0.0000'
     }));
-    
+
     const filename = `${calcResult.clientName}_savings_report.csv`;
     exportToCSV(exportData, filename);
   };
@@ -930,7 +930,7 @@ export default function SavingsCalculatorPage() {
       'STU Loss (%)': row.stuLoss?.toFixed(4) || '0.0000',
       'Wheeling Loss (%)': row.wheelingLoss?.toFixed(4) || '0.0000'
     }));
-    
+
     const filename = `${marketDecisionResult.clientName}_detailed_oa_simulation.csv`;
     exportToCSV(exportData, filename);
   };
@@ -950,7 +950,7 @@ export default function SavingsCalculatorPage() {
       'Market Source': row.marketSource || 'DISCOM',
       'Should Buy Market': row.shouldBuyFromMarket ? 'Yes' : 'No'
     }));
-    
+
     const filename = `${demandShiftInsights.clientName}_industry_insights.csv`;
     exportToCSV(exportData, filename);
   };
@@ -973,7 +973,7 @@ export default function SavingsCalculatorPage() {
   };
 
   const renderStep = (
-    stepIndex: number, 
+    stepIndex: number,
     stepMeta: { icon: React.ReactNode; title: string; question: string; summary: string; content: React.ReactNode }
   ) => {
     const isCompleted = stepIndex < activeStep || dialogMode === 'view';
@@ -984,12 +984,12 @@ export default function SavingsCalculatorPage() {
 
     if (isCompleted) {
       return (
-        <Card 
+        <Card
           key={stepIndex}
           elevation={0}
-          sx={{ 
-            border: '1px solid', 
-            borderColor: 'divider', 
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
             bgcolor: '#F8FAFC',
             borderRadius: '12px',
             p: 1.75,
@@ -1019,11 +1019,11 @@ export default function SavingsCalculatorPage() {
 
     if (isActive) {
       return (
-        <Card 
+        <Card
           key={stepIndex}
           elevation={0}
-          sx={{ 
-            border: '2px solid #8B5CF6', 
+          sx={{
+            border: '2px solid #8B5CF6',
             borderRadius: '16px',
             p: 3,
             boxShadow: '0 4px 12px -2px rgba(139, 92, 246, 0.08), 0 2px 6px -1px rgba(139, 92, 246, 0.04)',
@@ -1038,14 +1038,14 @@ export default function SavingsCalculatorPage() {
               {stepMeta.question}
             </Typography>
           </Box>
-          
+
           <Box sx={{ mb: 3 }}>
             {stepMeta.content}
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
             {stepIndex > 0 && (
-              <Button 
+              <Button
                 onClick={() => setActiveStep(stepIndex - 1)}
                 sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
               >
@@ -1075,10 +1075,10 @@ export default function SavingsCalculatorPage() {
                 }
               }}
               endIcon={stepIndex === 6 ? undefined : (hasReachedSummary ? undefined : <ArrowForwardIcon />)}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2.5, 
-                fontWeight: 600, 
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2.5,
+                fontWeight: 600,
                 bgcolor: '#8B5CF6',
                 '&:hover': {
                   bgcolor: '#7C3AED'
@@ -1104,10 +1104,10 @@ export default function SavingsCalculatorPage() {
     { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120, sortable: true },
     { field: 'consumerCategory', headerName: 'Category', align: 'left', width: 110, sortable: true },
     { field: 'voltageLevel', headerName: 'Voltage', align: 'center', width: 100, sortable: true },
-    { 
-      field: 'createdAt', 
-      headerName: 'Created At', 
-      align: 'center', 
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      align: 'center',
       width: 160,
       sortable: true,
       valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
@@ -1120,10 +1120,10 @@ export default function SavingsCalculatorPage() {
       sortable: true,
       valueFormatter: (v) => v || '-'
     },
-    { 
-      field: 'updatedAt', 
-      headerName: 'Updated At', 
-      align: 'center', 
+    {
+      field: 'updatedAt',
+      headerName: 'Updated At',
+      align: 'center',
       width: 160,
       sortable: true,
       valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
@@ -1144,15 +1144,15 @@ export default function SavingsCalculatorPage() {
       stickyRight: true,
       renderCell: (row) => (
         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-          <Button 
-            variant="outlined" 
-            size="small" 
+          <Button
+            variant="outlined"
+            size="small"
             startIcon={<CalculateIcon sx={{ fontSize: '14px !important' }} />}
             onClick={() => handleOpenCalc(row)}
-            sx={{ 
-              fontSize: '11px', 
-              py: 0.5, 
-              borderColor: '#8B5CF6', 
+            sx={{
+              fontSize: '11px',
+              py: 0.5,
+              borderColor: '#8B5CF6',
               color: '#8B5CF6',
               textTransform: 'none',
               borderRadius: 2,
@@ -1240,26 +1240,26 @@ export default function SavingsCalculatorPage() {
               minWidth: 250
             }}
           />
-        {canEdit && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog('create')}
-            sx={{ 
-              textTransform: 'none', 
-              borderRadius: 2.5, 
-              fontWeight: 600, 
-              bgcolor: '#8B5CF6',
-              '&:hover': {
-                bgcolor: '#7C3AED'
-              },
-              px: 2.5,
-              py: 1
-            }}
-          >
-            Create New Entry
-          </Button>
-        )}
+          {canEdit && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog('create')}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2.5,
+                fontWeight: 600,
+                bgcolor: '#8B5CF6',
+                '&:hover': {
+                  bgcolor: '#7C3AED'
+                },
+                px: 2.5,
+                py: 1
+              }}
+            >
+              Create New Entry
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -1285,16 +1285,16 @@ export default function SavingsCalculatorPage() {
           }
         }}
         emptyStateMessage={
-          <EmptyTableState 
-            title="No entries found" 
+          <EmptyTableState
+            title="No entries found"
             description="Create your first client configuration entry to simulate and calculate savings."
             onAddRecord={() => handleOpenDialog('create')}
           />
         }
       />
 
-      <Dialog 
-        open={dialogMode !== null && !proltDialogOpen && !todDialogOpen} 
+      <Dialog
+        open={dialogMode !== null && !proltDialogOpen && !todDialogOpen}
         onClose={handleCloseDialog}
         maxWidth={dialogMode === 'view' ? 'lg' : 'sm'}
         fullWidth
@@ -1310,339 +1310,339 @@ export default function SavingsCalculatorPage() {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        
+
         <DialogContent sx={{ pt: 2, mx: 'auto', width: '100%', pb: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {dialogMode !== 'view' && (
-            <>
-            <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
-              <Box sx={{ 
-                height: '100%', 
-                width: `${((activeStep + 1) / 8) * 100}%`, 
-                bgcolor: '#3B8FF3', 
-                background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', 
-                transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
-              }} />
-            </Box>
+            {dialogMode !== 'view' && (
+              <>
+                <Box sx={{ width: '100%', height: 6, bgcolor: '#F1F5F9', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
+                  <Box sx={{
+                    height: '100%',
+                    width: `${((activeStep + 1) / 8) * 100}%`,
+                    bgcolor: '#3B8FF3',
+                    background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
+                    transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }} />
+                </Box>
 
-          {renderStep(0, {
-            icon: <BusinessIcon />,
-            title: "Client & Facility Details",
-            question: "Who is the client for this simulation?",
-            summary: `Client: ${clientName} (${industryName})`,
-            content: (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
-                <TextField
-                  label="Client Name"
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  fullWidth
-                  required
-                  variant="outlined"
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Select
-                          value={clientPrefix}
-                          onChange={(e) => setClientPrefix(e.target.value)}
-                          variant="standard"
-                          disableUnderline
-                          displayEmpty
-                          sx={{ '& .MuiSelect-select': { py: 0, pr: 1, color: 'text.secondary' } }}
+                {renderStep(0, {
+                  icon: <BusinessIcon />,
+                  title: "Client & Facility Details",
+                  question: "Who is the client for this simulation?",
+                  summary: `Client: ${clientName} (${industryName})`,
+                  content: (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
+                      <TextField
+                        label="Client Name"
+                        value={clientName}
+                        onChange={(e) => setClientName(e.target.value)}
+                        fullWidth
+                        required
+                        variant="outlined"
+                        size="small"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Select
+                                value={clientPrefix}
+                                onChange={(e) => setClientPrefix(e.target.value)}
+                                variant="standard"
+                                disableUnderline
+                                displayEmpty
+                                sx={{ '& .MuiSelect-select': { py: 0, pr: 1, color: 'text.secondary' } }}
+                              >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                <MenuItem value="Mr.">Mr.</MenuItem>
+                                <MenuItem value="Ms.">Ms.</MenuItem>
+                                <MenuItem value="Mrs.">Mrs.</MenuItem>
+                                <MenuItem value="Dr.">Dr.</MenuItem>
+                                <MenuItem value="M/s">M/s</MenuItem>
+                              </Select>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                      <TextField
+                        label="Industry Name"
+                        value={industryName}
+                        onChange={(e) => setIndustryName(e.target.value)}
+                        fullWidth
+                        required
+                        variant="outlined"
+                        size="small"
+                      />
+                      <TextField
+                        label="Address"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        fullWidth
+                        required
+                        multiline
+                        rows={3}
+                        variant="outlined"
+                        size="small"
+                      />
+                    </Box>
+                  )
+                })}
+
+                {renderStep(1, {
+                  icon: <LocationIcon />,
+                  title: "Where is your facility located?",
+                  question: "Where is your facility located?",
+                  summary: `Location: ${stateCode} - ${uniqueStates.find(s => s.stateCode === stateCode)?.stateName || stateCode}`,
+                  content: (
+                    <Box sx={{ mt: 1 }}>
+                      <TextField
+                        select
+                        label="State Code"
+                        value={stateCode}
+                        onChange={(e) => {
+                          setStateCode(e.target.value);
+                          setDiscom('');
+                          setConsumerCategory('');
+                          setVoltageLevel('');
+                          setSupplyVoltageValue('');
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                      >
+                        <MenuItem value="" disabled>Select State</MenuItem>
+                        {uniqueStates.map((s) => (
+                          <MenuItem key={s.stateCode} value={s.stateCode}>
+                            {s.stateName}
+                          </MenuItem>
+                        ))}
+                        {stateCode && !uniqueStates.some((s) => s.stateCode === stateCode) && (
+                          <MenuItem value={stateCode}>{stateCode}</MenuItem>
+                        )}
+                      </TextField>
+                    </Box>
+                  )
+                })}
+
+                {renderStep(2, {
+                  icon: <ElectricBoltIcon />,
+                  title: "Who is your electricity provider?",
+                  question: "Who is your electricity provider?",
+                  summary: `Provider: ${discom}`,
+                  content: (
+                    <Box sx={{ mt: 1 }}>
+                      <TextField
+                        select
+                        label="DISCOM"
+                        value={discom}
+                        onChange={(e) => setDiscom(e.target.value)}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                      >
+                        <MenuItem value="" disabled>Select DISCOM</MenuItem>
+                        {filteredDiscoms.map((d) => (
+                          <MenuItem key={d.code} value={d.code}>
+                            {d.code} - {d.legalName}
+                          </MenuItem>
+                        ))}
+                        {discom && !filteredDiscoms.some((d) => d.code === discom) && (
+                          <MenuItem value={discom}>{discom}</MenuItem>
+                        )}
+                      </TextField>
+                    </Box>
+                  )
+                })}
+
+                {renderStep(3, {
+                  icon: <CategoryIcon />,
+                  title: "What is your consumer category?",
+                  question: "What is your consumer category?",
+                  summary: `Category: ${consumerCategory}`,
+                  content: (
+                    <Box sx={{ mt: 1 }}>
+                      <TextField
+                        select
+                        label="Consumer Category"
+                        value={consumerCategory}
+                        onChange={(e) => {
+                          const newCat = e.target.value;
+                          setConsumerCategory(newCat);
+
+                          // Reset or set appropriate default voltage level when category changes
+                          let defaultVoltage = '';
+                          let defaultSupplyValue = '';
+                          if (newCat.startsWith('LMV-')) {
+                            defaultVoltage = 'Low Tension (LT)';
+                          } else if (newCat.startsWith('HV-1')) {
+                            defaultVoltage = 'At 11 kV';
+                            defaultSupplyValue = '11';
+                          } else if (newCat.startsWith('HV-2')) {
+                            defaultVoltage = 'Up to 11 kV';
+                            defaultSupplyValue = '11';
+                          }
+                          setVoltageLevel(defaultVoltage);
+                          setSupplyVoltageValue(defaultSupplyValue);
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <MuiTooltip title="Your official customer category defined by the DISCOM (determines your base tariff)." placement="top">
+                                <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                              </MuiTooltip>
+                            </InputAdornment>
+                          )
+                        }}
+                      >
+                        <MenuItem value="" disabled>Select Category</MenuItem>
+                        {uniqueCategories.map((cat) => (
+                          <MenuItem key={cat} value={cat}>
+                            {cat}
+                          </MenuItem>
+                        ))}
+                        {consumerCategory && !uniqueCategories.includes(consumerCategory) && (
+                          <MenuItem value={consumerCategory}>{consumerCategory}</MenuItem>
+                        )}
+                      </TextField>
+                    </Box>
+                  )
+                })}
+
+                {renderStep(4, {
+                  icon: <BoltIcon />,
+                  title: "What is your voltage level?",
+                  question: "What is your voltage level?",
+                  summary: `Voltage Level: ${voltageLevel}${supplyVoltageValue ? ` - ${supplyVoltageValue}` : ''}`,
+                  content: (
+                    <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                      <TextField
+                        select
+                        label="Voltage Category"
+                        value={voltageLevel}
+                        onChange={(e) => {
+                          setVoltageLevel(e.target.value);
+                          setSupplyVoltageValue('');
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <MuiTooltip title="The supply voltage level for your connection (affects surcharges)." placement="top">
+                                <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                              </MuiTooltip>
+                            </InputAdornment>
+                          )
+                        }}
+                      >
+                        <MenuItem value="" disabled>Select Voltage</MenuItem>
+                        {uniqueVoltageLevels.map((lvl) => (
+                          <MenuItem key={lvl} value={lvl}>
+                            {lvl}
+                          </MenuItem>
+                        ))}
+                        {voltageLevel && !uniqueVoltageLevels.includes(voltageLevel) && (
+                          <MenuItem value={voltageLevel}>{voltageLevel}</MenuItem>
+                        )}
+                      </TextField>
+
+                      {availableSupplyVoltageValues.length > 0 && (
+                        <TextField
+                          select
+                          label="Supply Voltage Value (kV)"
+                          value={supplyVoltageValue}
+                          onChange={(e) => setSupplyVoltageValue(e.target.value)}
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          InputLabelProps={{ shrink: true }}
                         >
-                          <MenuItem value=""><em>None</em></MenuItem>
-                          <MenuItem value="Mr.">Mr.</MenuItem>
-                          <MenuItem value="Ms.">Ms.</MenuItem>
-                          <MenuItem value="Mrs.">Mrs.</MenuItem>
-                          <MenuItem value="Dr.">Dr.</MenuItem>
-                          <MenuItem value="M/s">M/s</MenuItem>
-                        </Select>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <TextField
-                  label="Industry Name"
-                  value={industryName}
-                  onChange={(e) => setIndustryName(e.target.value)}
-                  fullWidth
-                  required
-                  variant="outlined"
-                  size="small"
-                />
-                <TextField
-                  label="Address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  fullWidth
-                  required
-                  multiline
-                  rows={3}
-                  variant="outlined"
-                  size="small"
-                />
-              </Box>
-            )
-          })}
-
-          {renderStep(1, {
-            icon: <LocationIcon />,
-            title: "Where is your facility located?",
-            question: "Where is your facility located?",
-            summary: `Location: ${stateCode} - ${uniqueStates.find(s => s.stateCode === stateCode)?.stateName || stateCode}`,
-            content: (
-              <Box sx={{ mt: 1 }}>
-                <TextField
-                  select
-                  label="State Code"
-                  value={stateCode}
-                  onChange={(e) => {
-                    setStateCode(e.target.value);
-                    setDiscom('');
-                    setConsumerCategory('');
-                    setVoltageLevel('');
-                    setSupplyVoltageValue('');
-                  }}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                >
-                  <MenuItem value="" disabled>Select State</MenuItem>
-                  {uniqueStates.map((s) => (
-                    <MenuItem key={s.stateCode} value={s.stateCode}>
-                      {s.stateName}
-                    </MenuItem>
-                  ))}
-                  {stateCode && !uniqueStates.some((s) => s.stateCode === stateCode) && (
-                    <MenuItem value={stateCode}>{stateCode}</MenuItem>
-                  )}
-                </TextField>
-              </Box>
-            )
-          })}
-
-          {renderStep(2, {
-            icon: <ElectricBoltIcon />,
-            title: "Who is your electricity provider?",
-            question: "Who is your electricity provider?",
-            summary: `Provider: ${discom}`,
-            content: (
-              <Box sx={{ mt: 1 }}>
-                <TextField
-                  select
-                  label="DISCOM"
-                  value={discom}
-                  onChange={(e) => setDiscom(e.target.value)}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                >
-                  <MenuItem value="" disabled>Select DISCOM</MenuItem>
-                  {filteredDiscoms.map((d) => (
-                    <MenuItem key={d.code} value={d.code}>
-                      {d.code} - {d.legalName}
-                    </MenuItem>
-                  ))}
-                  {discom && !filteredDiscoms.some((d) => d.code === discom) && (
-                    <MenuItem value={discom}>{discom}</MenuItem>
-                  )}
-                </TextField>
-              </Box>
-            )
-          })}
-
-          {renderStep(3, {
-            icon: <CategoryIcon />,
-            title: "What is your consumer category?",
-            question: "What is your consumer category?",
-            summary: `Category: ${consumerCategory}`,
-            content: (
-              <Box sx={{ mt: 1 }}>
-                <TextField
-                  select
-                  label="Consumer Category"
-                  value={consumerCategory}
-                  onChange={(e) => {
-                    const newCat = e.target.value;
-                    setConsumerCategory(newCat);
-                    
-                    // Reset or set appropriate default voltage level when category changes
-                    let defaultVoltage = '';
-                    let defaultSupplyValue = '';
-                    if (newCat.startsWith('LMV-')) {
-                      defaultVoltage = 'Low Tension (LT)';
-                    } else if (newCat.startsWith('HV-1')) {
-                      defaultVoltage = 'At 11 kV';
-                      defaultSupplyValue = '11';
-                    } else if (newCat.startsWith('HV-2')) {
-                      defaultVoltage = 'Up to 11 kV';
-                      defaultSupplyValue = '11';
-                    }
-                    setVoltageLevel(defaultVoltage);
-                    setSupplyVoltageValue(defaultSupplyValue);
-                  }}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <MuiTooltip title="Your official customer category defined by the DISCOM (determines your base tariff)." placement="top">
-                          <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
-                        </MuiTooltip>
-                      </InputAdornment>
-                    )
-                  }}
-                >
-                  <MenuItem value="" disabled>Select Category</MenuItem>
-                  {uniqueCategories.map((cat) => (
-                    <MenuItem key={cat} value={cat}>
-                      {cat}
-                    </MenuItem>
-                  ))}
-                  {consumerCategory && !uniqueCategories.includes(consumerCategory) && (
-                    <MenuItem value={consumerCategory}>{consumerCategory}</MenuItem>
-                  )}
-                </TextField>
-              </Box>
-            )
-          })}
-
-          {renderStep(4, {
-            icon: <BoltIcon />,
-            title: "What is your voltage level?",
-            question: "What is your voltage level?",
-            summary: `Voltage Level: ${voltageLevel}${supplyVoltageValue ? ` - ${supplyVoltageValue}` : ''}`,
-            content: (
-              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                <TextField
-                  select
-                  label="Voltage Category"
-                  value={voltageLevel}
-                  onChange={(e) => {
-                    setVoltageLevel(e.target.value);
-                    setSupplyVoltageValue('');
-                  }}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <MuiTooltip title="The supply voltage level for your connection (affects surcharges)." placement="top">
-                          <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
-                        </MuiTooltip>
-                      </InputAdornment>
-                    )
-                  }}
-                >
-                  <MenuItem value="" disabled>Select Voltage</MenuItem>
-                  {uniqueVoltageLevels.map((lvl) => (
-                    <MenuItem key={lvl} value={lvl}>
-                      {lvl}
-                    </MenuItem>
-                  ))}
-                  {voltageLevel && !uniqueVoltageLevels.includes(voltageLevel) && (
-                    <MenuItem value={voltageLevel}>{voltageLevel}</MenuItem>
-                  )}
-                </TextField>
-
-                {availableSupplyVoltageValues.length > 0 && (
-                  <TextField
-                    select
-                    label="Supply Voltage Value (kV)"
-                    value={supplyVoltageValue}
-                    onChange={(e) => setSupplyVoltageValue(e.target.value)}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    InputLabelProps={{ shrink: true }}
-                  >
-                    <MenuItem value="" disabled>Select Value</MenuItem>
-                    {availableSupplyVoltageValues.map((val) => (
-                      <MenuItem key={val} value={val}>{val} kV</MenuItem>
-                    ))}
-                    {supplyVoltageValue && !availableSupplyVoltageValues.includes(supplyVoltageValue) && (
-                      <MenuItem value={supplyVoltageValue}>{supplyVoltageValue} kV</MenuItem>
-                    )}
-                  </TextField>
-                )}
-
-                
-              </Box>
-            )
-          })}
-
-          {renderStep(5, {
-            icon: <SpeedIcon />,
-            title: "What is your sanctioned load?",
-            question: "What is your sanctioned load?",
-            summary: `Sanctioned Load: ${sanctionedLoadKw} kW`,
-            content: (
-              <Box sx={{ mt: 1, display: 'flex', gap: 2 }}>
-                <TextField
-                  label="Sanctioned Load (kW)"
-                  value={sanctionedLoadKw}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSanctionedLoadKw(val);
-                    if (val && !isNaN(Number(val))) {
-                      setSanctionedLoadKva((Number(val) / 0.9).toFixed(2).replace(/\.00$/, ''));
-                    } else {
-                      setSanctionedLoadKva('');
-                    }
-                  }}
-                  error={!!formErrors.sanctionedLoadKw}
-                  helperText={formErrors.sanctionedLoadKw}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  type="number"
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <MuiTooltip title="The maximum power capacity your DISCOM has approved for your facility." placement="top">
-                          <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
-                        </MuiTooltip>
-                      </InputAdornment>
-                    )
-                  }}
-                />
-                <TextField
-                  label="Sanctioned Load (kVA)"
-                  value={sanctionedLoadKva}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSanctionedLoadKva(val);
-                    if (val && !isNaN(Number(val))) {
-                      setSanctionedLoadKw((Number(val) * 0.9).toFixed(2).replace(/\.00$/, ''));
-                    } else {
-                      setSanctionedLoadKw('');
-                    }
-                  }}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  type="number"
-                />
-              </Box>
-            )
-          })}
+                          <MenuItem value="" disabled>Select Value</MenuItem>
+                          {availableSupplyVoltageValues.map((val) => (
+                            <MenuItem key={val} value={val}>{val} kV</MenuItem>
+                          ))}
+                          {supplyVoltageValue && !availableSupplyVoltageValues.includes(supplyVoltageValue) && (
+                            <MenuItem value={supplyVoltageValue}>{supplyVoltageValue} kV</MenuItem>
+                          )}
+                        </TextField>
+                      )}
 
 
-            </>
-          )}
+                    </Box>
+                  )
+                })}
+
+                {renderStep(5, {
+                  icon: <SpeedIcon />,
+                  title: "What is your sanctioned load?",
+                  question: "What is your sanctioned load?",
+                  summary: `Sanctioned Load: ${sanctionedLoadKw} kW`,
+                  content: (
+                    <Box sx={{ mt: 1, display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="Sanctioned Load (kW)"
+                        value={sanctionedLoadKw}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSanctionedLoadKw(val);
+                          if (val && !isNaN(Number(val))) {
+                            setSanctionedLoadKva((Number(val) / 0.9).toFixed(2).replace(/\.00$/, ''));
+                          } else {
+                            setSanctionedLoadKva('');
+                          }
+                        }}
+                        error={!!formErrors.sanctionedLoadKw}
+                        helperText={formErrors.sanctionedLoadKw}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        type="number"
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <MuiTooltip title="The maximum power capacity your DISCOM has approved for your facility." placement="top">
+                                <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                              </MuiTooltip>
+                            </InputAdornment>
+                          )
+                        }}
+                      />
+                      <TextField
+                        label="Sanctioned Load (kVA)"
+                        value={sanctionedLoadKva}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSanctionedLoadKva(val);
+                          if (val && !isNaN(Number(val))) {
+                            setSanctionedLoadKw((Number(val) * 0.9).toFixed(2).replace(/\.00$/, ''));
+                          } else {
+                            setSanctionedLoadKw('');
+                          }
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        type="number"
+                      />
+                    </Box>
+                  )
+                })}
+
+
+              </>
+            )}
           </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'flex-start' }}>
-          <Button 
-            onClick={handleCloseDialog} 
+          <Button
+            onClick={handleCloseDialog}
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
           >
             {dialogMode === 'view' ? 'Close' : 'Cancel'}
@@ -1671,7 +1671,7 @@ export default function SavingsCalculatorPage() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          
+
           {getTodSlabsForMonth(1).length === 0 && (
             <Alert severity="warning" sx={{ mb: 2 }}>
               Please select a State, DISCOM, and Category first to load the correct TOD slabs.
@@ -1684,14 +1684,14 @@ export default function SavingsCalculatorPage() {
             return (
               <Accordion key={ym} expanded={expandedAccordion === 'initial' ? index === 0 : expandedAccordion === ym} onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? ym : false)} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
-                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-                     <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
-                       {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
-                     </Typography>
-                     <IconButton size="small" onClick={(e) => { e.stopPropagation(); const newTc = { ...todConsumptions }; delete newTc[ym]; setTodConsumptions(newTc); }}>
-                       <DeleteIcon fontSize="small" color="action" />
-                     </IconButton>
-                   </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
+                      {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                    </Typography>
+                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); const newTc = { ...todConsumptions }; delete newTc[ym]; setTodConsumptions(newTc); }}>
+                      <DeleteIcon fontSize="small" color="action" />
+                    </IconButton>
+                  </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 3, pt: 1 }}>
                   {/* ── Section 1: Billing Data ── */}
@@ -1818,7 +1818,7 @@ export default function SavingsCalculatorPage() {
 
           <Accordion elevation={0} expanded={expandedAccordion === 'new_month'} onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? 'new_month' : false)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
-               <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>+ Add New Month</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>+ Add New Month</Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ p: 3, pt: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Month</Typography>
@@ -1890,11 +1890,11 @@ export default function SavingsCalculatorPage() {
             variant="outlined"
             fullWidth
             onClick={() => setTodDialogOpen(false)}
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              height: 48, 
-              fontWeight: 600, 
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              height: 48,
+              fontWeight: 600,
               fontSize: '16px',
               borderColor: '#8B5CF6',
               color: '#8B5CF6',
@@ -1933,9 +1933,9 @@ export default function SavingsCalculatorPage() {
       </Dialog>
 
       {/* PROLT Config Dialog */}
-      <Dialog 
-        open={proltDialogOpen} 
-        onClose={(e, reason) => { if (reason !== "backdropClick" && reason !== "escapeKeyDown") setProltDialogOpen(false); }} 
+      <Dialog
+        open={proltDialogOpen}
+        onClose={(e, reason) => { if (reason !== "backdropClick" && reason !== "escapeKeyDown") setProltDialogOpen(false); }}
         disableEscapeKeyDown
         maxWidth="xs"
         fullWidth
@@ -2034,11 +2034,11 @@ export default function SavingsCalculatorPage() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
-          <Button 
+          <Button
             onClick={() => {
               setProltDialogOpen(false);
               setTodDialogOpen(true);
-            }} 
+            }}
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
           >
             Back
@@ -2090,8 +2090,8 @@ export default function SavingsCalculatorPage() {
               value={selectedCalcVersion}
               onChange={(e) => {
                 setSelectedCalcVersion(Number(e.target.value));
-                
-                
+
+
               }}
               size="small"
               sx={{ width: 120, bgcolor: 'background.paper' }}
@@ -2108,9 +2108,9 @@ export default function SavingsCalculatorPage() {
               startIcon={<PlayIcon />}
               onClick={executeCalculation}
               disabled={calculating || calculatingInsights || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
                 bgcolor: '#8B5CF6',
                 '&:hover': {
                   bgcolor: '#7C3AED'
@@ -2120,16 +2120,16 @@ export default function SavingsCalculatorPage() {
               {calculating ? 'Analyzing...' : 'View'}
             </Button>
 
-            
+
 
             <Button
               variant="contained"
               startIcon={<BarChartIcon />}
               onClick={executeGraphSimulation}
               disabled={calculating || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
                 bgcolor: '#F59E0B',
                 '&:hover': {
                   bgcolor: '#D97706'
@@ -2155,9 +2155,9 @@ export default function SavingsCalculatorPage() {
                 }
               }}
               disabled={calculating || !selectedSimMonth}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2, 
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
                 bgcolor: '#8B5CF6',
                 '&:hover': {
                   bgcolor: '#7C3AED'
@@ -2172,21 +2172,21 @@ export default function SavingsCalculatorPage() {
                 variant="outlined"
                 startIcon={<DownloadIcon />}
                 onClick={exportCalcToCSV}
-                sx={{ 
-                  textTransform: 'none', 
-                  borderRadius: 2, 
-                  borderColor: 'divider', 
-                  color: 'text.secondary' 
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  borderColor: 'divider',
+                  color: 'text.secondary'
                 }}
               >
                 Export CSV
               </Button>
             )}
-            
+
             {Object.keys(cachedResults).length > 0 && (
               <Box sx={{ width: '100%', mt: 2, borderTop: 1, borderColor: 'divider' }}>
-                <Tabs 
-                  value={selectedSimMonth} 
+                <Tabs
+                  value={selectedSimMonth}
                   onChange={(e, v) => setSelectedSimMonth(v)}
                   variant="scrollable"
                   scrollButtons="auto"
@@ -2194,10 +2194,10 @@ export default function SavingsCalculatorPage() {
                 >
                   <Tab label="Overall" value="all" />
                   {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
-                    <Tab 
-                      key={ym} 
-                      label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })} 
-                      value={ym} 
+                    <Tab
+                      key={ym}
+                      label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                      value={ym}
                     />
                   ))}
                 </Tabs>
@@ -2207,9 +2207,9 @@ export default function SavingsCalculatorPage() {
 
           {marketDecisionResult && (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2, mb: 2 }}>
-              <Button 
-                variant="outlined" 
-                startIcon={<DownloadIcon />} 
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
@@ -2222,10 +2222,10 @@ export default function SavingsCalculatorPage() {
                     });
                   }
                 }}
-                sx={{ 
-                  textTransform: 'none', 
-                  borderRadius: 2.5, 
-                  fontWeight: 600, 
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
                   borderColor: 'divider',
                   backgroundColor: '#0F172A',
                   color: 'white',
@@ -2251,7 +2251,7 @@ export default function SavingsCalculatorPage() {
               </Typography>
             </Box>
           )}
-          
+
           {calculatingInsights && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 2 }}>
               <CircularProgress sx={{ color: '#14B8A6' }} />
@@ -2332,16 +2332,15 @@ export default function SavingsCalculatorPage() {
                   {selectedSimMonth !== 'all' && <Tab label="Market Buy Decision" disabled={!marketDecisionResult} value={2} />}
                   {selectedSimMonth !== 'all' && <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />}
                   <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
-                  {selectedSimMonth !== 'all' && <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />}
                   <Tab label="Dashboard" disabled={!marketDecisionResult} value={6} />
                 </Tabs>
               </Box>
 
-            {calcTab === 6 && (
-              <Box sx={{ mt: 3 }}>
-                <Dashboard calcEntry={null} clientName={clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
-              </Box>
-            )}
+              {calcTab === 6 && (
+                <Box sx={{ mt: 3 }}>
+                  <Dashboard calcEntry={null} clientName={clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
+                </Box>
+              )}
 
               {calcTab === 0 && calcResult && selectedSimMonth !== 'all' && (
                 <Grid container spacing={3}>
@@ -2349,55 +2348,55 @@ export default function SavingsCalculatorPage() {
                     const groupCount = Object.keys(calcResult.todGroups).length;
                     const lgValue = groupCount === 4 ? 3 : groupCount === 3 ? 4 : groupCount === 2 ? 6 : 12;
                     return (
-                    <Grid item xs={12} lg={lgValue} key={groupName}>
-                      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 2, height: '100%', bgcolor: 'background.paper' }}>
-                        <Typography variant="h4" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-                          <span>{groupName}</span>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                            {list.length} slots
+                      <Grid item xs={12} lg={lgValue} key={groupName}>
+                        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 2, height: '100%', bgcolor: 'background.paper' }}>
+                          <Typography variant="h4" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{groupName}</span>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              {list.length} slots
+                            </Typography>
                           </Typography>
-                        </Typography>
-                        
-                        <Box sx={{ maxHeight: 350, overflowY: 'auto' }}>
-                          <Table size="small" stickyHeader>
-                            <TableHead>
-                              <TableRow>
-                                <TableCell sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>Date/Time</TableCell>
-                                <TableCell align="right" sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>Lowest Price</TableCell>
-                                <TableCell align="right" sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>DISCOM</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {list.slice(0, 50).map((row, idx) => (
-                                <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
-                                  <TableCell sx={{ fontSize: '11px', py: 0.75 }}>
-                                    {row.date.substring(5)} {row.timeStr}
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontSize: '11px', fontWeight: 600, color: '#16A34A', py: 0.75 }}>
-                                    ₹{row.comparedLowestPrice.toFixed(2)}
-                                    <span style={{ 
-                                      fontSize: '9px', 
-                                      fontWeight: 800, 
-                                      color: row.selectedSource === 'DISCOM' ? '#64748B' : '#7C3AED',
-                                      backgroundColor: row.selectedSource === 'DISCOM' ? '#F1F5F9' : '#F5F3FF',
-                                      padding: '1px 4px',
-                                      borderRadius: '3px',
-                                      marginLeft: '4px'
-                                    }}>
-                                      {row.selectedSource}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontSize: '11px', color: 'text.secondary', py: 0.75 }}>
-                                    ₹{row.discomLandingPrice.toFixed(2)}
-                                  </TableCell>
+
+                          <Box sx={{ maxHeight: 350, overflowY: 'auto' }}>
+                            <Table size="small" stickyHeader>
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>Date/Time</TableCell>
+                                  <TableCell align="right" sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>Lowest Price</TableCell>
+                                  <TableCell align="right" sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>DISCOM</TableCell>
                                 </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
+                              </TableHead>
+                              <TableBody>
+                                {list.slice(0, 50).map((row, idx) => (
+                                  <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
+                                    <TableCell sx={{ fontSize: '11px', py: 0.75 }}>
+                                      {row.date.substring(5)} {row.timeStr}
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ fontSize: '11px', fontWeight: 600, color: '#16A34A', py: 0.75 }}>
+                                      ₹{row.comparedLowestPrice.toFixed(2)}
+                                      <span style={{
+                                        fontSize: '9px',
+                                        fontWeight: 800,
+                                        color: row.selectedSource === 'DISCOM' ? '#64748B' : '#7C3AED',
+                                        backgroundColor: row.selectedSource === 'DISCOM' ? '#F1F5F9' : '#F5F3FF',
+                                        padding: '1px 4px',
+                                        borderRadius: '3px',
+                                        marginLeft: '4px'
+                                      }}>
+                                        {row.selectedSource}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ fontSize: '11px', color: 'text.secondary', py: 0.75 }}>
+                                      ₹{row.discomLandingPrice.toFixed(2)}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </Box>
                         </Box>
-                      </Box>
-                    </Grid>
-                  );
+                      </Grid>
+                    );
                   })}
                 </Grid>
               )}
@@ -2436,10 +2435,10 @@ export default function SavingsCalculatorPage() {
                           <TableCell align="right">₹{row.discomLandingPrice.toFixed(4)}</TableCell>
                           <TableCell align="right" sx={{ fontWeight: 600, color: '#16A34A' }}>₹{row.comparedLowestPrice.toFixed(4)}</TableCell>
                           <TableCell align="center">
-                            <span style={{ 
-                              textTransform: 'uppercase', 
-                              fontSize: '10px', 
-                              fontWeight: 800, 
+                            <span style={{
+                              textTransform: 'uppercase',
+                              fontSize: '10px',
+                              fontWeight: 800,
                               color: row.selectedSource === 'DISCOM' ? '#64748B' : '#7C3AED',
                               backgroundColor: row.selectedSource === 'DISCOM' ? '#F1F5F9' : '#F5F3FF',
                               padding: '2px 6px',
@@ -2449,10 +2448,10 @@ export default function SavingsCalculatorPage() {
                             </span>
                           </TableCell>
                           <TableCell align="center">
-                            <span style={{ 
-                              textTransform: 'uppercase', 
-                              fontSize: '10px', 
-                              fontWeight: 800, 
+                            <span style={{
+                              textTransform: 'uppercase',
+                              fontSize: '10px',
+                              fontWeight: 800,
                               color: row.selectedSource !== 'DISCOM' ? '#16A34A' : '#DC2626',
                               backgroundColor: row.selectedSource !== 'DISCOM' ? '#DCFCE7' : '#FEE2E2',
                               padding: '2px 6px',
@@ -2468,98 +2467,92 @@ export default function SavingsCalculatorPage() {
                   </Table>
                 </Box>
               )}
-              
+
               {calcTab === 2 && marketDecisionResult && (
                 <Box>
                   {/* Savings Dashboard Removed */}
-                  {selectedSimMonth !== 'all' ? (
+                  {selectedSimMonth !== 'all' && (
                     <>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
                           Slot-wise Market Simulation
                         </Typography>
-                    <Button
-                      variant="outlined"
-                      startIcon={<BarChartIcon />}
-                      onClick={() => setGraphDialogOpen(true)}
-                      sx={{ textTransform: 'none', borderRadius: 2 }}
-                    >
-                      View Daily Simulation Graph
-                    </Button>
-                  </Box>
-                  
-                  <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5, mb: 4 }}>
-                    <Table size="small" stickyHeader>
-                    <TableBody>
-                      {marketDecisionResult.slotsData.slice(0, 150).map((row: any, idx: number) => {
-                        const isOaEligible = (marketDecisionResult.totalSavings - (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) - (marketDecisionResult.oaDetailed?.bidApplicationFees || 0)) > 0;
-                        const buyDecision = isOaEligible && row.shouldBuyFromMarket;
-                        
-                        return (
-                        <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
-                          <TableCell>{row.date}</TableCell>
-                          <TableCell align="center">{row.timeStr || `${String(row.hour).padStart(2, '0')}:${String((row.timeblock - 1) * 15 % 60).padStart(2, '0')}`}</TableCell>
-                          <TableCell align="center">
-                            <span style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700, color: 'text.secondary' }}>
-                              {row.tod}
-                            </span>
-                          </TableCell>
-                          <TableCell align="right">
-                            <span style={{ 
-                              textTransform: 'uppercase', 
-                              fontSize: '10px', 
-                              fontWeight: 800, 
-                              color: row.marketSource === 'DAM' ? '#3B82F6' : row.marketSource === 'GDAM' ? '#10B981' : '#8B5CF6',
-                              backgroundColor: row.marketSource === 'DAM' ? '#EFF6FF' : row.marketSource === 'GDAM' ? '#ECFDF5' : '#F5F3FF',
-                              padding: '2px 6px',
-                              borderRadius: '4px'
-                            }}>
-                              {row.marketSource}
-                            </span>
-                          </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 600 }}>₹{row.bestMarketLanding > 0 ? row.bestMarketLanding.toFixed(4) : '-'}</TableCell>
-                          <TableCell align="right">₹{row.discomLanding.toFixed(4)}</TableCell>
-                          <TableCell align="center">
-                            <span style={{ 
-                              textTransform: 'uppercase', 
-                              fontSize: '10px', 
-                              fontWeight: 800, 
-                              color: buyDecision ? '#16A34A' : '#DC2626',
-                              backgroundColor: buyDecision ? '#DCFCE7' : '#FEE2E2',
-                              padding: '2px 6px',
-                              borderRadius: '4px'
-                            }}>
-                              {buyDecision ? 'Yes' : 'No'}
-                            </span>
-                          </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : 'inherit' }}>
-                            {row.savingsPerKwh > 0 ? `₹${row.savingsPerKwh.toFixed(4)}` : '-'}
-                          </TableCell>
-                        </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                    </Table>
-                  </Box>
-                  </>
-                  ) : (
-                    <Box sx={{ mt: 3 }}>
-                      <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={overviewLoading} />
-                    </Box>
+                        <Button
+                          variant="outlined"
+                          startIcon={<BarChartIcon />}
+                          onClick={() => setGraphDialogOpen(true)}
+                          sx={{ textTransform: 'none', borderRadius: 2 }}
+                        >
+                          View Daily Simulation Graph
+                        </Button>
+                      </Box>
+
+                      <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5, mb: 4 }}>
+                        <Table size="small" stickyHeader>
+                          <TableBody>
+                            {marketDecisionResult.slotsData.slice(0, 150).map((row: any, idx: number) => {
+                              const isOaEligible = (marketDecisionResult.totalSavings - (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) - (marketDecisionResult.oaDetailed?.bidApplicationFees || 0)) > 0;
+                              const buyDecision = isOaEligible && row.shouldBuyFromMarket;
+
+                              return (
+                                <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
+                                  <TableCell>{row.date}</TableCell>
+                                  <TableCell align="center">{row.timeStr || `${String(row.hour).padStart(2, '0')}:${String((row.timeblock - 1) * 15 % 60).padStart(2, '0')}`}</TableCell>
+                                  <TableCell align="center">
+                                    <span style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700, color: 'text.secondary' }}>
+                                      {row.tod}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    <span style={{
+                                      textTransform: 'uppercase',
+                                      fontSize: '10px',
+                                      fontWeight: 800,
+                                      color: row.marketSource === 'DAM' ? '#3B82F6' : row.marketSource === 'GDAM' ? '#10B981' : '#8B5CF6',
+                                      backgroundColor: row.marketSource === 'DAM' ? '#EFF6FF' : row.marketSource === 'GDAM' ? '#ECFDF5' : '#F5F3FF',
+                                      padding: '2px 6px',
+                                      borderRadius: '4px'
+                                    }}>
+                                      {row.marketSource}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 600 }}>₹{row.bestMarketLanding > 0 ? row.bestMarketLanding.toFixed(4) : '-'}</TableCell>
+                                  <TableCell align="right">₹{row.discomLanding.toFixed(4)}</TableCell>
+                                  <TableCell align="center">
+                                    <span style={{
+                                      textTransform: 'uppercase',
+                                      fontSize: '10px',
+                                      fontWeight: 800,
+                                      color: buyDecision ? '#16A34A' : '#DC2626',
+                                      backgroundColor: buyDecision ? '#DCFCE7' : '#FEE2E2',
+                                      padding: '2px 6px',
+                                      borderRadius: '4px'
+                                    }}>
+                                      {buyDecision ? 'Yes' : 'No'}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : 'inherit' }}>
+                                    {row.savingsPerKwh > 0 ? `₹${row.savingsPerKwh.toFixed(4)}` : '-'}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </Box>
+                    </>
                   )}
                 </Box>
               )}
-
-
               {calcTab === 3 && marketDecisionResult?.oaDetailed?.breakdown && (
                 <Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
                       Detailed OA Savings Breakdown
                     </Typography>
-                    <Button 
-                      variant="outlined" 
-                      startIcon={<DownloadIcon />} 
+                    <Button
+                      variant="outlined"
+                      startIcon={<DownloadIcon />}
                       onClick={exportDetailedOAToCSV}
                       sx={{ textTransform: 'none', borderRadius: 2 }}
                     >
@@ -2628,8 +2621,8 @@ export default function SavingsCalculatorPage() {
                       <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
                       <Typography variant="body2" fontWeight={700} color="#7C3AED">
                         ₹{(
-                          marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0) + 
-                          marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                          marketDecisionResult.oaDetailed.breakdown.reduce((sum, r) => sum + r.oaBill, 0) +
+                          marketDecisionResult.oaDetailed.dailyFixedOverhead +
                           marketDecisionResult.oaDetailed.bidApplicationFees
                         ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </Typography>
@@ -2638,8 +2631,8 @@ export default function SavingsCalculatorPage() {
                       <Typography variant="caption" color="text.secondary" display="block">Total Gross Bill (Net Landed OA Cost)</Typography>
                       <Typography variant="body2" fontWeight={700} color="#E11D48">
                         ₹{(
-                          marketDecisionResult.totalLandedExchangeCost + 
-                          marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                          marketDecisionResult.totalLandedExchangeCost +
+                          marketDecisionResult.oaDetailed.dailyFixedOverhead +
                           marketDecisionResult.oaDetailed.bidApplicationFees
                         ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </Typography>
@@ -2677,9 +2670,9 @@ export default function SavingsCalculatorPage() {
                     variant="contained"
                     startIcon={<BarChartIcon />}
                     onClick={() => setDemandShiftGraphOpen(true)}
-                    sx={{ 
-                      textTransform: 'none', 
-                      borderRadius: 2, 
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: 2,
                       bgcolor: '#F59E0B',
                       '&:hover': {
                         bgcolor: '#D97706'
@@ -2692,9 +2685,9 @@ export default function SavingsCalculatorPage() {
                     variant="contained"
                     startIcon={<BarChartIcon />}
                     onClick={() => setDynamicDemandShiftGraphOpen(true)}
-                    sx={{ 
-                      textTransform: 'none', 
-                      borderRadius: 2, 
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: 2,
                       bgcolor: '#8B5CF6',
                       '&:hover': {
                         bgcolor: '#7C3AED'
@@ -2707,11 +2700,11 @@ export default function SavingsCalculatorPage() {
                     variant="outlined"
                     startIcon={<DownloadIcon />}
                     onClick={exportInsightsToCSV}
-                    sx={{ 
-                      textTransform: 'none', 
-                      borderRadius: 2, 
-                      borderColor: 'divider', 
-                      color: 'text.secondary' 
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      borderColor: 'divider',
+                      color: 'text.secondary'
                     }}
                   >
                     Export CSV
@@ -2720,10 +2713,10 @@ export default function SavingsCalculatorPage() {
                     variant="outlined"
                     startIcon={<DownloadIcon />}
                     onClick={exportInsightsToExcel}
-                    sx={{ 
-                      textTransform: 'none', 
-                      borderRadius: 2, 
-                      borderColor: 'divider', 
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      borderColor: 'divider',
                       color: '#10B981',
                       '&:hover': {
                         borderColor: '#059669',
@@ -2830,18 +2823,12 @@ export default function SavingsCalculatorPage() {
             </Box>
           )}
 
-          {calcTab === 5 && marketDecisionResult && demandShiftInsights && (
-            <VisualAnalyticsCharts 
-              marketDecisionResult={marketDecisionResult} 
-              demandShiftInsights={demandShiftInsights}
-              maxEnergyPerSlot={demandShiftInsights.maxEnergyPerSlot} 
-            />
-          )}
+          {/* Removed VisualAnalyticsCharts */}
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleCloseCalc} 
+          <Button
+            onClick={handleCloseCalc}
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
           >
             Close
@@ -2877,44 +2864,44 @@ export default function SavingsCalculatorPage() {
                 const previousVersion = historyData.find(p => p.version === v.version - 1);
                 const changes = previousVersion ? getChanges(v, previousVersion) : [];
                 return (
-                <Paper key={v.id} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="subtitle1" fontWeight={700} color="primary">
-                      Version {v.version}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {new Date(v.changedAt).toLocaleString('en-IN')}
-                    </Typography>
-                  </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6} sm={4}>
-                      <Typography variant="caption" color="text.secondary">Client</Typography>
-                      <Typography variant="body2" fontWeight={600}>{v.clientName}</Typography>
+                  <Paper key={v.id} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="subtitle1" fontWeight={700} color="primary">
+                        Version {v.version}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {new Date(v.changedAt).toLocaleString('en-IN')}
+                      </Typography>
+                    </Box>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} sm={4}>
+                        <Typography variant="caption" color="text.secondary">Client</Typography>
+                        <Typography variant="body2" fontWeight={600}>{v.clientName}</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Typography variant="caption" color="text.secondary">Industry</Typography>
+                        <Typography variant="body2" fontWeight={600}>{v.industryName}</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Typography variant="caption" color="text.secondary">State</Typography>
+                        <Typography variant="body2" fontWeight={600}>{v.stateCode}</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Typography variant="caption" color="text.secondary">Load</Typography>
+                        <Typography variant="body2" fontWeight={600}>{v.sanctionedLoadKw} kW</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Typography variant="caption" color="text.secondary">Discom</Typography>
+                        <Typography variant="body2" fontWeight={600}>{v.discom}</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Typography variant="caption" color="text.secondary">PROLT / Trader Margin</Typography>
+                        <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={6} sm={4}>
-                      <Typography variant="caption" color="text.secondary">Industry</Typography>
-                      <Typography variant="body2" fontWeight={600}>{v.industryName}</Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={4}>
-                      <Typography variant="caption" color="text.secondary">State</Typography>
-                      <Typography variant="body2" fontWeight={600}>{v.stateCode}</Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={4}>
-                      <Typography variant="caption" color="text.secondary">Load</Typography>
-                      <Typography variant="body2" fontWeight={600}>{v.sanctionedLoadKw} kW</Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={4}>
-                      <Typography variant="caption" color="text.secondary">Discom</Typography>
-                      <Typography variant="body2" fontWeight={600}>{v.discom}</Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={4}>
-                      <Typography variant="caption" color="text.secondary">PROLT / Trader Margin</Typography>
-                      <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              );
-            })}
+                  </Paper>
+                );
+              })}
             </Box>
           ) : (
             <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
@@ -2931,9 +2918,9 @@ export default function SavingsCalculatorPage() {
         onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
           sx={{ width: '100%', borderRadius: 2 }}
         >
           {snackbar.message}
