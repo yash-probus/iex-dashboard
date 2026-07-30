@@ -605,7 +605,7 @@ const exportInsightsToExcel = async () => {
                   <Tab label={selectedSimMonth === 'all' ? "Summary" : "Market Buy Decision"} disabled={!marketDecisionResult} value={2} />
                   {selectedSimMonth !== 'all' && <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />}
                   <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
-                  <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />
+                  {selectedSimMonth !== 'all' && <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />}
                   <Tab label="Dashboard" disabled={!marketDecisionResult} value={6} />
                 </Tabs>
               </Box>
