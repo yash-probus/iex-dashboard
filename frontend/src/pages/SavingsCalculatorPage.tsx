@@ -176,6 +176,7 @@ export default function SavingsCalculatorPage() {
   const [probusPlatformFee, setProbusPlatformFee] = useState('');
   
   const [todConsumptions, setTodConsumptions] = useState<Record<string, Record<string, string>>>({});
+  const [expandedAccordion, setExpandedAccordion] = useState<string | false>('initial');
   const [editingMonth, setEditingMonth] = useState<string | null>(null);
   
   // Additional Billing Fields
@@ -1643,7 +1644,7 @@ export default function SavingsCalculatorPage() {
             const targetMonth = parseInt(ym.split('-')[1], 10);
             const monthSlabs = getTodSlabsForMonth(targetMonth);
             return (
-              <Accordion key={ym} defaultExpanded={index === 0} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
+              <Accordion key={ym} expanded={expandedAccordion === 'initial' ? index === 0 : expandedAccordion === ym} onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? ym : false)} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
@@ -1777,9 +1778,9 @@ export default function SavingsCalculatorPage() {
             );
           })}
 
-          <Accordion elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
+          <Accordion elevation={0} expanded={expandedAccordion === 'new_month'} onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? 'new_month' : false)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
-               <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>New Month</Typography>
+               <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>+ Add New Month</Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ p: 3, pt: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Month</Typography>
@@ -1833,6 +1834,9 @@ export default function SavingsCalculatorPage() {
                         'Miscellaneous Charges': ''
                       }
                     }));
+                    setExpandedAccordion(key);
+                  } else {
+                    setSnackbar({ open: true, message: 'This month has already been added.', severity: 'error' });
                   }
                 }}
                 sx={{ mt: 3, height: 48, textTransform: 'none', borderRadius: 2, borderStyle: 'dashed', color: '#1E293B', borderColor: '#CBD5E1' }}
@@ -1843,7 +1847,27 @@ export default function SavingsCalculatorPage() {
           </Accordion>
 
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center' }}>
+        <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={() => setTodDialogOpen(false)}
+            sx={{ 
+              borderRadius: 2, 
+              textTransform: 'none', 
+              height: 48, 
+              fontWeight: 600, 
+              fontSize: '16px',
+              borderColor: '#8B5CF6',
+              color: '#8B5CF6',
+              '&:hover': {
+                borderColor: '#7C3AED',
+                backgroundColor: 'rgba(139, 92, 246, 0.04)'
+              }
+            }}
+          >
+            Back
+          </Button>
           <Button
             variant="contained"
             fullWidth
