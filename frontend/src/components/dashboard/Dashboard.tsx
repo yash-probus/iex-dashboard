@@ -15,6 +15,7 @@ import { DashboardBillEconomics } from './native/DashboardBillEconomics';
 import { DashboardTodCoverage } from './native/DashboardTodCoverage';
 import { DashboardHeatmap } from './native/DashboardHeatmap';
 import { DashboardSimulationTabs } from './native/DashboardSimulationTabs';
+import { DashboardEnergySummary } from './native/DashboardEnergySummary';
 
 interface DashboardProps {
   clientName?: string;
@@ -303,6 +304,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Box>
               <DashboardMonthlyInsights detail={detail} />
             </Box>
+          </Box>
+
+          <Box>
+            <DashboardEnergySummary 
+              calcResult={calcResult} 
+              marketDecisionResult={marketDecisionResult} 
+            />
           </Box>
 
           {/* Visual Analytics Charts & Market Mix */}
