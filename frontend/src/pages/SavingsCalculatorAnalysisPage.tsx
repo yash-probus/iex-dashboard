@@ -615,8 +615,8 @@ const exportInsightsToExcel = async () => {
 
               {calcTab === 0 && calcResult && selectedSimMonth !== 'all' && (
                 <Grid container spacing={3}>
-                  {Object.entries(calcResult.todGroups).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]) => {
-                    const groupCount = Object.keys(calcResult.todGroups).length;
+                  {Object.entries(calcResult?.todGroups || {}).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]: any) => {
+                    const groupCount = Object.keys(calcResult?.todGroups || {}).length;
                     const lgValue = groupCount === 4 ? 3 : groupCount === 3 ? 4 : groupCount === 2 ? 6 : 12;
                     return (
                     <Grid item xs={12} lg={lgValue} key={groupName}>
@@ -638,7 +638,7 @@ const exportInsightsToExcel = async () => {
                               </TableRow>
                             </TableHead>
                             <TableBody>
-                              {list.slice(0, 50).map((row, idx) => (
+                              {list.slice(0, 50).map((row: any, idx: number) => (
                                 <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
                                   <TableCell sx={{ fontSize: '11px', py: 0.75 }}>
                                     {row.date.substring(5)} {row.timeStr}
@@ -691,7 +691,7 @@ const exportInsightsToExcel = async () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {calcResult.sortedMonthlyList.slice(0, 100).map((row, idx) => (
+                      {calcResult?.sortedMonthlyList?.slice(0, 100).map((row, idx) => (
                         <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
                           <TableCell>{row.date}</TableCell>
                           <TableCell align="center">{row.timeStr}</TableCell>
@@ -774,7 +774,7 @@ const exportInsightsToExcel = async () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {marketDecisionResult.slotsData.slice(0, 150).map((row: any, idx: number) => {
+                      {marketDecisionResult?.slotsData?.slice(0, 150).map((row: any, idx: number) => {
                         const isOaEligible = (marketDecisionResult.totalSavings - (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) - (marketDecisionResult.oaDetailed?.bidApplicationFees || 0)) > 0;
                         const buyDecision = isOaEligible && row.shouldBuyFromMarket;
                         
