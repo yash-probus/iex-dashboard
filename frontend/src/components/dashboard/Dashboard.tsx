@@ -9,6 +9,11 @@ import { DashboardKPIs, KPI } from './native/DashboardKPIs';
 import { DashboardFlow } from './native/DashboardFlow';
 import { DashboardMatrix, MonthData } from './native/DashboardMatrix';
 import { DashboardDataTable } from './native/DashboardDataTable';
+import { DashboardMonthlyInsights } from './native/DashboardMonthlyInsights';
+import { DashboardMarketMix } from './native/DashboardMarketMix';
+import { DashboardBillEconomics } from './native/DashboardBillEconomics';
+import { DashboardTodCoverage } from './native/DashboardTodCoverage';
+import { DashboardHeatmap } from './native/DashboardHeatmap';
 
 interface DashboardProps {
   clientName?: string;
@@ -118,6 +123,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // Compute Detail (Data Tables) - only if not overall and we have detailed result
       if (!isOverall && marketDecisionResult && marketDecisionResult.slotsData) {
         const dailyMap: Record<string, any> = {};
+        const heatmapRecords: any[] = [];
         const marketSummaryMap: Record<string, any> = { DAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, GDAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, RTM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 } };
         
         marketDecisionResult.slotsData.forEach((slot: any) => {
@@ -150,6 +156,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
             marketSummaryMap[mkt].activeSlots += 1;
             marketSummaryMap[mkt].activeDays.add(date);
             marketSummaryMap[mkt].sumWeighted += qtyMWh * rate;
+
+            const timeStr = slot.timeBlock || slot.date;
+            heatmapRecords.push({
+              date: date,
+              time: timeStr,
+              qty: qtyMWh,
+              rate: rate,
+              market: mkt
+            });
           }
         });
 
@@ -179,13 +194,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
           basis: `${b.oaUnits} kWh`
         })) : [];
 
+        // Use the selected month from clientOverview to find fees
+        const currentMonthData = clientOverview?.months?.find(m => m.month === activeMonth);
+        const fees = (currentMonthData?.grossSavings || 0) - (currentMonthData?.savings || 0);
+        const finalSaving = currentMonthData?.savings || marketDecisionResult.totalSavings;
+        const grossSaving = currentMonthData?.grossSavings || marketDecisionResult.totalSavings;
+
         detail = {
           baselineBill: marketDecisionResult.totalBaselineCost,
           combinedBill: marketDecisionResult.totalBaselineCost - marketDecisionResult.totalSavings,
+          finalClientSaving: finalSaving,
+          totalFees: fees,
+          grossSaving: grossSaving,
+          customerRetention: grossSaving > 0 ? (finalSaving / grossSaving) * 100 : 0,
+          discomAfterOA: (marketDecisionResult.todSummaries || []).reduce((acc: number, t: any) => acc + (t.totalEnergyKwh - t.marketEnergyKwh), 0) * 8.5, // approximate
+          oaBill: (marketDecisionResult.oaDetailed?.breakdown || []).reduce((acc: number, b: any) => acc + b.oaBill, 0),
+          oaEnergyCharges: (marketDecisionResult.todSummaries || []).reduce((acc: number, t: any) => acc + t.marketCostBase, 0),
+          oaOperatingCharges: (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) + (marketDecisionResult.oaDetailed?.bidApplicationFees || 0),
           daily,
           tod,
           baselineBreakdown: [],
           oaCharges,
+          heatmapRecords,
+          marketSummary: Object.keys(marketSummaryMap).map(mkt => ({
+            market: mkt,
+            qtyMWh: marketSummaryMap[mkt].qtyMWh,
+            weightedRate: marketSummaryMap[mkt].qtyMWh > 0 ? marketSummaryMap[mkt].sumWeighted / marketSummaryMap[mkt].qtyMWh : 0,
+            activeSlots: marketSummaryMap[mkt].activeSlots,
+            activeDays: marketSummaryMap[mkt].activeDays.size,
+            share: totalMarketEnergy > 0 ? ((marketSummaryMap[mkt].qtyMWh * 1000) / totalMarketEnergy) * 100 : 0
+          }))
         };
       }
     }
@@ -241,32 +279,52 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Monthly-only components */}
       {!isOverall && (
-        <>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 'bold', mb: 1 }}>
-              Energy flow and Open Access delivery
-            </Typography>
-            <DashboardFlow 
-              regionalBusOA={flowData.regionalBusOA} 
-              efficiency={flowData.efficiency} 
-              consumerOA={flowData.consumerOA} 
-            />
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Energy Flow & Monthly Insights Row */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 'bold', mb: 1 }}>
+                Energy flow and Open Access delivery
+              </Typography>
+              <DashboardFlow 
+                regionalBusOA={flowData.regionalBusOA} 
+                efficiency={flowData.efficiency} 
+                consumerOA={flowData.consumerOA} 
+              />
+            </Box>
+            <Box>
+              <DashboardMonthlyInsights detail={detail} />
+            </Box>
           </Box>
 
-          {marketDecisionResult && demandShiftInsights && (
-            <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Visual Analytics Charts & Market Mix */}
+          {marketDecisionResult && (
+            <>
               <Box sx={{ p: 3, border: '1px solid #dce5ef', borderRadius: '12px', bgcolor: '#fff' }}>
                 <VisualAnalyticsCharts 
                   marketDecisionResult={marketDecisionResult} 
-                  demandShiftInsights={demandShiftInsights}
+                  demandShiftInsights={demandShiftInsights || { slotsData: [] }}
                   maxEnergyPerSlot={500} 
                 />
               </Box>
-            </Box>
+              
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                <DashboardMarketMix detail={detail} />
+                <DashboardBillEconomics detail={detail} />
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 3 }}>
+                <DashboardTodCoverage detail={detail} />
+              </Box>
+              
+              <Box>
+                <DashboardHeatmap detail={detail} />
+              </Box>
+            </>
           )}
 
           {detail && <DashboardDataTable detail={detail} />}
-        </>
+        </Box>
       )}
 
       {/* Overall-only components */}

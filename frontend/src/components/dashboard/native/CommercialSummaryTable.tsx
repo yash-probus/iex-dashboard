@@ -18,10 +18,10 @@ export const CommercialSummaryTable: React.FC<CommercialSummaryTableProps> = ({ 
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#f8fafc' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', color: '#64748b' }}>Component</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>Baseline</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>After OA</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>Variance</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#64748b' }}>Metric</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>Baseline / Source</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>After OA / Result</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>Change</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
