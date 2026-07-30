@@ -129,11 +129,11 @@ export const SlotWiseMarketHeatmap: React.FC<SlotWiseMarketHeatmapProps> = ({ sl
         </Box>
       </Box>
 
-      <Box sx={{ display: 'inline-block', minWidth: '100%' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         {/* X-axis labels (Dates) */}
-        <Box sx={{ display: 'flex', ml: '60px', mb: 1 }}>
+        <Box sx={{ display: 'flex', ml: '60px', mb: 1, gap: '2px' }}>
           {formattedDates.map((label, i) => (
-            <Box key={i} sx={{ width: '30px', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+            <Box key={i} sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
               <Typography 
                 variant="caption" 
                 sx={{ 
@@ -142,7 +142,7 @@ export const SlotWiseMarketHeatmap: React.FC<SlotWiseMarketHeatmapProps> = ({ sl
                   transformOrigin: 'bottom left',
                   whiteSpace: 'nowrap',
                   fontWeight: 600,
-                  fontSize: '0.7rem'
+                  fontSize: '10px'
                 }}
               >
                 {label}
@@ -168,19 +168,20 @@ export const SlotWiseMarketHeatmap: React.FC<SlotWiseMarketHeatmapProps> = ({ sl
               <Box key={timeblock} sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ width: '60px', flexShrink: 0, textAlign: 'right', pr: 2, height: '12px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                   {timeLabel && (
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '10px' }}>
                       {timeLabel}
                     </Typography>
                   )}
                 </Box>
-                <Box sx={{ display: 'flex', gap: '2px' }}>
+                <Box sx={{ display: 'flex', gap: '2px', flex: 1 }}>
                   {dates.map((dateStr) => {
                     const slot = rowData[dateStr];
                     return (
                       <Tooltip key={dateStr} title={getTooltipContent(slot)} arrow placement="top">
                         <Box
                           sx={{
-                            width: '28px',
+                            flex: 1,
+                            minWidth: 0,
                             height: '10px',
                             bgcolor: getCellColor(slot),
                             cursor: 'pointer',

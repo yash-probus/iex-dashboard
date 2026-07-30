@@ -29,7 +29,7 @@ export const DashboardHeatmap: React.FC<DashboardHeatmapProps> = ({ detail }) =>
   const mktColor = (m: string) => m === 'DAM' ? '#eab308' : m === 'GDAM' ? '#10b981' : m === 'RTM' ? '#f43f5e' : '#fef08a';
 
   return (
-    <Paper elevation={0} sx={{ p: 3, border: '1px solid #dce5ef', borderRadius: '12px', width: '100%', overflowX: 'auto' }}>
+    <Paper elevation={0} sx={{ p: 3, border: '1px solid #dce5ef', borderRadius: '12px', width: '100%' }}>
       <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 'bold' }}>Blockwise market activity heatmap</Typography>
       <Typography variant="body2" sx={{ color: '#65758b', fontSize: '11px', mb: 3 }}>
         {days.length} days x 96 time blocks. Hover any colored cell for market, quantity and rate.
@@ -42,7 +42,7 @@ export const DashboardHeatmap: React.FC<DashboardHeatmapProps> = ({ detail }) =>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box sx={{ width: 8, height: 8, bgcolor: '#fef08a', borderRadius: '1px' }}/><Typography sx={{ fontSize: '9px' }}>Light cell = zero scheduled quantity</Typography></Box>
       </Box>
 
-      <Box sx={{ minWidth: '800px' }}>
+      <Box sx={{ width: '100%' }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: `40px repeat(${days.length}, 1fr)`, gap: '2px', mb: '4px' }}>
           <Box />
           {days.map((d: string) => (
