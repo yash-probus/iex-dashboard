@@ -98,7 +98,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
                 const totalMins = (slot.timeblock - 1) * 15;
                 const hh = String(Math.floor(totalMins / 60)).padStart(2, '0');
                 const mm = String(totalMins % 60).padStart(2, '0');
-                const timeStr = `${hh}:${mm}`;
+                
+                const endMins = slot.timeblock * 15;
+                const ehh = endMins === 1440 ? '24' : String(Math.floor(endMins / 60)).padStart(2, '0');
+                const emm = String(endMins % 60).padStart(2, '0');
+                
+                const timeStr = `${hh}:${mm} - ${ehh}:${emm}`;
 
                 heatmapRecords.push({
                   date: date,
