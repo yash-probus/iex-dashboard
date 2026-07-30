@@ -10,16 +10,12 @@ export const validateCreateUser = (req: Request, res: Response, next: NextFuncti
   if (!email || typeof email !== 'string' || email.trim() === '') {
     return next(new AppError('Email is required', 400));
   }
-  if (!password || typeof password !== 'string' || password.trim() === '') {
-    return next(new AppError('Password is required', 400));
-  }
   if (!role || (role !== 'ADMIN' && role !== 'CLIENT')) {
     return next(new AppError('Valid role is required (ADMIN or CLIENT)', 400));
   }
 
   req.body.username = username.trim();
   req.body.email = email.trim();
-  req.body.password = password.trim();
   next();
 };
 

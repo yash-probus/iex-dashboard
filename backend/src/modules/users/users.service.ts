@@ -2,6 +2,7 @@ import prisma from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { hashPassword } from '../../utils/password';
 import { Role } from '@prisma/client';
+import crypto from 'crypto';
 
 export class UsersService {
   static async getAllUsers() {
@@ -39,7 +40,8 @@ export class UsersService {
       throw new AppError('Username or email already exists', 400);
     }
 
-    const passwordHash = await hashPassword(data.password);
+    const dummyPassword = crypto.randomBytes(16).toString('hex');
+    const passwordHash = await hashPassword(data.password || dummyPassword);
 
     const newUser = await prisma.user.create({
       data: {

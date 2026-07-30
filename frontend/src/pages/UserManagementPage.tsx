@@ -40,7 +40,6 @@ export default function UserManagementPage() {
   // Form State
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'CLIENT' | 'SUPER_ADMIN'>('CLIENT');
   const [hiddenModules, setHiddenModules] = useState<string[]>(AVAILABLE_MODULES.map(m => m.id));
   const [readOnlyModules, setReadOnlyModules] = useState<string[]>([]);
@@ -78,7 +77,6 @@ export default function UserManagementPage() {
     setEditingUser(null);
     setUsername('');
     setEmail('');
-    setPassword('');
     setRole('CLIENT');
     setHiddenModules(AVAILABLE_MODULES.map(m => m.id)); // Default: all hidden
     setReadOnlyModules([]);
@@ -89,7 +87,6 @@ export default function UserManagementPage() {
     setEditingUser(user);
     setUsername(user.username);
     setEmail(user.email);
-    setPassword(''); // Don't populate password
     setRole(user.role);
     setHiddenModules(user.hiddenModules || []);
     setReadOnlyModules(user.readOnlyModules || []);
@@ -112,11 +109,10 @@ export default function UserManagementPage() {
       setIsSaving(true);
       if (editingUser) {
         const payload: any = { username, email, role, hiddenModules, readOnlyModules };
-        if (password) payload.password = password;
         await usersApi.updateUser(editingUser.id, payload);
         toast.success('User updated successfully');
       } else {
-        await usersApi.createUser({ username, email, role, password, hiddenModules, readOnlyModules } as any);
+        await usersApi.createUser({ username, email, role, hiddenModules, readOnlyModules } as any);
         toast.success('User created successfully');
       }
       setIsModalOpen(false);
@@ -198,12 +194,12 @@ export default function UserManagementPage() {
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-4">Loading...</TableCell>
               </TableRow>
-            ) : users.length === 0 ? (
+            ) : users.filter(user => user.role !== 'SUPER_ADMIN').length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-4">No users found</TableCell>
               </TableRow>
             ) : (
-              users.map(user => (
+              users.filter(user => user.role !== 'SUPER_ADMIN').map(user => (
                 <TableRow key={user.id} className="group transition-colors hover:bg-muted/30">
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
@@ -331,10 +327,6 @@ export default function UserManagementPage() {
                   <SelectItem value="CLIENT">CLIENT</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password {editingUser && '(Leave blank to keep unchanged)'}</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             {role !== 'SUPER_ADMIN' && (
               <div className="space-y-3">
