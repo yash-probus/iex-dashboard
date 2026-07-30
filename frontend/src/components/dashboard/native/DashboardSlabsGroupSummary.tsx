@@ -12,8 +12,8 @@ export const DashboardSlabsGroupSummary: React.FC<DashboardSlabsGroupSummaryProp
     <Grid container spacing={2}>
       {Object.entries(calcResult.todGroups).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]: any) => {
         return (
-          <Grid item xs={12} sm={6} md={6} lg={4} key={groupName}>
-            <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 1.5, height: '100%', bgcolor: 'background.paper' }}>
+          <Grid item xs={12} sm={6} md={6} lg={6} key={groupName}>
+            <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 1.5, height: '100%', bgcolor: 'background.paper', overflow: 'hidden' }}>
               <Typography variant="h4" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 1, display: 'flex', justifyContent: 'space-between' }}>
                 <span>{groupName}</span>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
@@ -21,7 +21,7 @@ export const DashboardSlabsGroupSummary: React.FC<DashboardSlabsGroupSummaryProp
                 </Typography>
               </Typography>
               
-              <Box sx={{ maxHeight: 350, overflowY: 'auto' }}>
+              <Box sx={{ maxHeight: 350, overflowY: 'auto', overflowX: 'hidden' }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
