@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { ClientOverviewResult, MarketDecisionResult, SavingsCalculatorEntry } from '../../api/savingsCalculator.api';
 import { OverallVisualAnalytics } from './OverallVisualAnalytics';
@@ -47,6 +47,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   selectedMonth 
 }) => {
   const [activeMonth, setActiveMonth] = useState<string>(selectedMonth || 'all');
+
+  useEffect(() => {
+    if (selectedMonth) {
+      setActiveMonth(selectedMonth);
+    }
+  }, [selectedMonth]);
 
   // Compute Overall KPI Data
   const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall } = useMemo(() => {
