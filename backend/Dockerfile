@@ -16,6 +16,7 @@ RUN npm ci
 # Copy the rest of the backend source code
 COPY src ./src
 COPY scripts ./scripts
+COPY assets ./assets
 COPY *.csv ./
 
 # Generate Prisma Client and build the TypeScript application
@@ -41,6 +42,7 @@ RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/assets ./assets
 
 # Expose backend port
 EXPOSE 5000
