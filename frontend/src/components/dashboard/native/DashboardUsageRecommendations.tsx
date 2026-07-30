@@ -6,8 +6,8 @@ import DownloadIcon from '@mui/icons-material/Download';
 interface DashboardUsageRecommendationsProps {
   demandShiftInsights: any;
   marketDecisionResult: any;
-  setDemandShiftGraphOpen: (open: boolean) => void;
-  setDynamicDemandShiftGraphOpen: (open: boolean) => void;
+  setDemandShiftGraphOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setDynamicDemandShiftGraphOpen: React.Dispatch<React.SetStateAction<boolean>>;
   exportInsightsToExcel: () => void;
 }
 
@@ -28,7 +28,7 @@ export const DashboardUsageRecommendations: React.FC<DashboardUsageRecommendatio
           <Button
             variant="contained"
             startIcon={<BarChartIcon />}
-            onClick={() => setDemandShiftGraphOpen(true)}
+            onClick={() => setDemandShiftGraphOpen((prev: any) => !prev)}
             sx={{ 
               textTransform: 'none', 
               borderRadius: 2, 
@@ -41,7 +41,7 @@ export const DashboardUsageRecommendations: React.FC<DashboardUsageRecommendatio
           <Button
             variant="contained"
             startIcon={<BarChartIcon />}
-            onClick={() => setDynamicDemandShiftGraphOpen(true)}
+            onClick={() => setDynamicDemandShiftGraphOpen((prev: any) => !prev)}
             sx={{ 
               textTransform: 'none', 
               borderRadius: 2, 

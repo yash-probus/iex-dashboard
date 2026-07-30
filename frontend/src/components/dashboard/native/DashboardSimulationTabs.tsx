@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { DashboardSlabsGroupSummary } from './DashboardSlabsGroupSummary';
 import { DashboardCheapestSlots } from './DashboardCheapestSlots';
 import { DashboardMarketBuyDecision } from './DashboardMarketBuyDecision';
 import { DashboardDetailedOASimulation } from './DashboardDetailedOASimulation';
 import { DashboardUsageRecommendations } from './DashboardUsageRecommendations';
+import { SlotWiseMarketHeatmap } from '../SlotWiseMarketHeatmap';
+import { DynamicSlotWiseMarketHeatmap } from '../DynamicSlotWiseMarketHeatmap';
 
 interface DashboardSimulationTabsProps {
   calcResult?: any;
@@ -80,6 +83,19 @@ export const DashboardSimulationTabs: React.FC<DashboardSimulationTabsProps> = (
                 setDynamicDemandShiftGraphOpen={setDynamicDemandShiftGraphOpen}
                 exportInsightsToExcel={handleExportInsights}
               />
+              
+              {demandShiftGraphOpen && (
+                 <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0f172a' }}>Usage Recommendations Heatmap</Typography>
+                    <SlotWiseMarketHeatmap slotsData={demandShiftInsights.slotsData} />
+                 </Box>
+              )}
+              {dynamicDemandShiftGraphOpen && (
+                 <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0f172a' }}>Dynamic Usage Recommendations Heatmap</Typography>
+                    <DynamicSlotWiseMarketHeatmap slotsData={demandShiftInsights.slotsData} />
+                 </Box>
+              )}
             </Box>
           )}
         </Box>
