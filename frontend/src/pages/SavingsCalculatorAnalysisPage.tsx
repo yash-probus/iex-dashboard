@@ -105,6 +105,16 @@ export default function SavingsCalculatorAnalysisPage() {
   const demandShiftInsights = cachedResults[selectedSimMonth]?.insights || null;
 
   useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'CHANGE_MONTH' && event.data.month) {
+        setSelectedSimMonth(event.data.month);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  useEffect(() => {
     const loadEntry = async () => {
       try {
         const data = await fetchSavingsEntries();

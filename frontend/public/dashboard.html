@@ -850,7 +850,7 @@
         <nav class="navbar">
             <div class="nav-left">
                 <button id="overallNav" class="nav-btn" onclick="goOverall()">Overall report</button>
-                <button id="monthlyNav" class="nav-btn" onclick="goMonth(currentMonth)">Monthly sub-report</button>
+                <button id="monthlyNav" class="nav-btn" onclick="goLatestMonth()">Monthly sub-report</button>
                 <select id="monthSelect" class="month-select" onchange="goMonth(this.value)"></select>
                 <span class="route-note" id="routeNote"></span>
             </div>
@@ -1092,8 +1092,22 @@
         function tip(e, html) { const t = $("tooltip"); t.innerHTML = html; t.style.display = "block"; t.style.left = Math.min(window.innerWidth - 260, e.clientX + 13) + "px"; t.style.top = (e.clientY + 13) + "px" }
         function hideTip() { $("tooltip").style.display = "none" }
 
-        function goOverall() { location.hash = "overall" }
-        function goMonth(month) { currentMonth = month; location.hash = "monthly/" + encodeURIComponent(month) }
+        function goOverall() { 
+            location.hash = "overall";
+            if (window.parent) window.parent.postMessage({ type: 'CHANGE_MONTH', month: 'all' }, '*');
+        }
+        function goMonth(month) { 
+            currentMonth = month; 
+            location.hash = "monthly/" + encodeURIComponent(month);
+            if (window.parent) window.parent.postMessage({ type: 'CHANGE_MONTH', month: month }, '*');
+        }
+        function goLatestMonth() {
+            if (DATA.overall && DATA.overall.months && DATA.overall.months.length > 0) {
+                goMonth(DATA.overall.months[DATA.overall.months.length - 1]);
+            } else {
+                goMonth(currentMonth);
+            }
+        }
         function copyViewLink() {
             const url = location.href;
             if (navigator.clipboard) { navigator.clipboard.writeText(url).then(() => alert("View link copied.")); }
