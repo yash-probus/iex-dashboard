@@ -33,6 +33,7 @@ const SavingsCalculatorPage = lazy(() => import('../pages/SavingsCalculatorPage'
 const SavingsCalculatorViewPage = lazy(() => import('../pages/SavingsCalculatorViewPage'));
 const SavingsCalculatorAnalysisPage = lazy(() => import('../pages/SavingsCalculatorAnalysisPage'));
 const ForecastPage = lazy(() => import('../pages/ForecastPage'));
+const CustomerLeadPage = lazy(() => import('../pages/CustomerLeadPage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -49,9 +50,11 @@ export default function AppRoutes() {
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="customer-lead" element={<CustomerLeadPage />} />
           <Route path="savings-calculator" element={<SavingsCalculatorPage />} />
           <Route path="savings-calculator/view/:id" element={<SavingsCalculatorViewPage />} />
           <Route path="savings-calculator/analysis/:id" element={<SavingsCalculatorAnalysisPage />} />
+          <Route path="forecast" element={<ForecastPage />} />
           
           {/* Module Layout wrapping all module sub-pages */}
           <Route element={<ModuleLayout />}>

@@ -33,7 +33,6 @@ import {
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
-import { SavingsDashboard } from '../components/dashboard/SavingsDashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import { ClientOverviewDashboard } from '../components/dashboard/ClientOverviewDashboard';
@@ -751,7 +750,7 @@ const exportInsightsToExcel = async () => {
               
               {calcTab === 2 && marketDecisionResult && (
                 <Box>
-                  <SavingsDashboard result={marketDecisionResult} monthStr={selectedSimMonth} />
+                  {/* Savings Dashboard Removed */}
                   
                   {selectedSimMonth !== 'all' ? (
                     <>

@@ -76,6 +76,14 @@ const MODULES = [
     path: '/admin/users',
     icon: <GroupIcon sx={{ fontSize: 24 }} />,
     color: '#3B82F6'
+  },
+  {
+    key: 'customer-lead',
+    title: 'Customer Lead',
+    description: 'Track and manage new customer leads and inquiries.',
+    path: '/customer-lead',
+    icon: <GroupIcon sx={{ fontSize: 24 }} />,
+    color: '#F59E0B'
   }
 ];
 

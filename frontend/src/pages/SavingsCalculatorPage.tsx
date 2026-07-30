@@ -37,7 +37,6 @@ import {
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
 import { Dashboard } from '../components/dashboard/Dashboard';
-import { SavingsDashboard } from '../components/dashboard/SavingsDashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import DateRangePicker from '../components/common/DateRangePicker';
@@ -2478,8 +2477,7 @@ export default function SavingsCalculatorPage() {
               
               {calcTab === 2 && marketDecisionResult && (
                 <Box>
-                  <SavingsDashboard result={marketDecisionResult} monthStr={selectedSimMonth} />
-                  
+                  {/* Savings Dashboard Removed */}
                   {selectedSimMonth !== 'all' ? (
                     <>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
