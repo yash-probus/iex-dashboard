@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Tabs, Tab } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { DashboardSlabsGroupSummary } from './DashboardSlabsGroupSummary';
 import { DashboardCheapestSlots } from './DashboardCheapestSlots';
 import { DashboardMarketBuyDecision } from './DashboardMarketBuyDecision';
@@ -17,8 +17,6 @@ export const DashboardSimulationTabs: React.FC<DashboardSimulationTabsProps> = (
   marketDecisionResult, 
   demandShiftInsights 
 }) => {
-  const [tab, setTab] = useState(0);
-  
   // Handlers for dialogs and exports (mocked or handled internally if needed, or pass them in)
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
   const [demandShiftGraphOpen, setDemandShiftGraphOpen] = useState(false);
@@ -40,43 +38,53 @@ export const DashboardSimulationTabs: React.FC<DashboardSimulationTabsProps> = (
         <Typography variant="body2" sx={{ color: '#65758b', fontSize: '11px', mb: 2 }}>
           Detailed breakdown of market decisions, TOD shifting, and OA calculations
         </Typography>
-        
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-          <Tabs value={tab} onChange={(e, v) => setTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 } }}>
-            <Tab label="Slabs Group Summary" disabled={!calcResult} value={0} />
-            <Tab label="Cheapest Slots" disabled={!calcResult} value={1} />
-            <Tab label="Market Buy Decision" disabled={!marketDecisionResult} value={2} />
-            <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />
-            <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
-          </Tabs>
-        </Box>
 
-        <Box sx={{ mt: 2 }}>
-          {tab === 0 && <DashboardSlabsGroupSummary calcResult={calcResult} />}
-          {tab === 1 && <DashboardCheapestSlots calcResult={calcResult} />}
-          {tab === 2 && (
-            <DashboardMarketBuyDecision 
-              marketDecisionResult={marketDecisionResult} 
-              setGraphDialogOpen={setGraphDialogOpen} 
-            />
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {calcResult && (
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0f172a' }}>Slabs Group Summary</Typography>
+              <DashboardSlabsGroupSummary calcResult={calcResult} />
+            </Box>
           )}
-          {tab === 3 && (
-            <DashboardDetailedOASimulation 
-              marketDecisionResult={marketDecisionResult} 
-              exportDetailedOAToCSV={handleExportDetailedOA} 
-            />
+          {calcResult && (
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0f172a' }}>Cheapest Slots</Typography>
+              <DashboardCheapestSlots calcResult={calcResult} />
+            </Box>
           )}
-          {tab === 4 && (
-            <DashboardUsageRecommendations 
-              demandShiftInsights={demandShiftInsights}
-              marketDecisionResult={marketDecisionResult}
-              setDemandShiftGraphOpen={setDemandShiftGraphOpen}
-              setDynamicDemandShiftGraphOpen={setDynamicDemandShiftGraphOpen}
-              exportInsightsToExcel={handleExportInsights}
-            />
+          {marketDecisionResult && (
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0f172a' }}>Market Buy Decision</Typography>
+              <DashboardMarketBuyDecision 
+                marketDecisionResult={marketDecisionResult} 
+                setGraphDialogOpen={setGraphDialogOpen} 
+              />
+            </Box>
+          )}
+          {marketDecisionResult?.oaDetailed && (
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0f172a' }}>Detailed OA Simulation</Typography>
+              <DashboardDetailedOASimulation 
+                marketDecisionResult={marketDecisionResult} 
+                exportDetailedOAToCSV={handleExportDetailedOA} 
+              />
+            </Box>
+          )}
+          {demandShiftInsights && (
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0f172a' }}>Usage Recommendations</Typography>
+              <DashboardUsageRecommendations 
+                demandShiftInsights={demandShiftInsights}
+                marketDecisionResult={marketDecisionResult}
+                setDemandShiftGraphOpen={setDemandShiftGraphOpen}
+                setDynamicDemandShiftGraphOpen={setDynamicDemandShiftGraphOpen}
+                exportInsightsToExcel={handleExportInsights}
+              />
+            </Box>
           )}
         </Box>
       </Box>
     </Box>
   );
 };
+
