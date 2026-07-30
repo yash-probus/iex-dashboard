@@ -1655,95 +1655,122 @@ export default function SavingsCalculatorPage() {
                    </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 3, pt: 1 }}>
-                  
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Month</Typography>
-                  <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-                    <DateRangePicker
-                      startDate={todConsumptions[ym]['Start Date'] || ''}
-                      endDate={todConsumptions[ym]['End Date'] || ''}
-                      onChange={(start, end) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end } }))}
+                  {/* ── Section 1: Billing Data ── */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
+                      Billing Data
+                    </Typography>
+                    <FormControl component="fieldset">
+                      <FormLabel component="legend" sx={{ fontSize: '12px', color: 'text.secondary', mb: 0.5 }}>Electricity Duty Applied?</FormLabel>
+                      <RadioGroup
+                        row
+                        value={todConsumptions[ym]['Electricity Duty'] || 'Yes'}
+                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Electricity Duty': e.target.value } }))}
+                      >
+                        <FormControlLabel value="Yes" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Yes</Typography>} />
+                        <FormControlLabel value="No" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">No</Typography>} />
+                      </RadioGroup>
+                    </FormControl>
+                  </Box>
+
+                  <Divider sx={{ mb: 2.5 }} />
+
+                  {/* ── Section 2: Billing Demand ── */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
+                      Billing Demand
+                    </Typography>
+                    <TextField
+                      label="Peak Demand (kVA)"
+                      value={todConsumptions[ym]['Peak Demand (kVA)'] || ''}
+                      onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Peak Demand (kVA)': e.target.value } }))}
+                      variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF', width: { xs: '100%', sm: '50%' } }}
                     />
                   </Box>
 
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Total Monthly Consumption (Energy per TOD Slab)</Typography>
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    {monthSlabs.map(slab => (
-                      <Grid item xs={12} sm={3} key={slab}>
+                  <Divider sx={{ mb: 2.5 }} />
+
+                  {/* ── Section 3: Billed Consumption ── */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
+                      Billed Consumption
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={12}>
+                        <DateRangePicker
+                          startDate={todConsumptions[ym]['Start Date'] || ''}
+                          endDate={todConsumptions[ym]['End Date'] || ''}
+                          onChange={(start, end) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end } }))}
+                        />
+                      </Grid>
+                      {monthSlabs.map(slab => (
+                        <Grid item xs={12} sm={6} md={3} key={slab}>
+                          <TextField
+                            label={`${slab}`}
+                            value={todConsumptions[ym][slab] || ''}
+                            onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], [slab]: e.target.value } }))}
+                            fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+
+                  <Divider sx={{ mb: 2.5 }} />
+
+                  {/* ── Section 4: Other Info (optional) ── */}
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: 'text.secondary', display: 'block', mb: 1.5 }}>
+                      Other Info <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span>
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6} md={3}>
                         <TextField
-                          label={`${slab}`}
-                          value={todConsumptions[ym][slab] || ''}
-                          onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], [slab]: e.target.value } }))}
+                          label="Power Factor"
+                          value={todConsumptions[ym]['Power Factor'] || ''}
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            if (val !== '') {
+                              if (Number(val) > 1) val = '1';
+                              else if (Number(val) < 0) val = '';
+                            }
+                            setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': val } }))
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value !== '' && Number(e.target.value) <= 0) {
+                              setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': '0.01' } }))
+                            }
+                          }}
+                          fullWidth variant="outlined" size="small" type="number"
+                          placeholder="e.g., 0.99" inputProps={{ max: 1, min: 0.01, step: 0.01 }} sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <TextField
+                          label="Current LPSC (₹)"
+                          value={todConsumptions[ym]['Current LPSC'] || ''}
+                          onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Current LPSC': e.target.value } }))}
                           fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
                         />
                       </Grid>
-                    ))}
-                  </Grid>
-
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Peak Demand & Charges</Typography>
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                     <Grid item xs={12} sm={6}>
-                       <TextField
-                         label="Peak Demand (kVA)"
-                         value={todConsumptions[ym]['Peak Demand (kVA)'] || ''}
-                         onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Peak Demand (kVA)': e.target.value } }))}
-                         variant="outlined" size="small" fullWidth type="number" placeholder="e.g., 500" sx={{ bgcolor: '#FFF' }}
-                       />
-                     </Grid>
-                     <Grid item xs={12} sm={6}>
-                       <TextField
-                         label="Miscellaneous Charges (₹)"
-                         value={todConsumptions[ym]['Miscellaneous Charges'] || ''}
-                         onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Miscellaneous Charges': e.target.value } }))}
-                         fullWidth variant="outlined" size="small" type="number" placeholder="e.g., 250000" sx={{ bgcolor: '#FFF' }}
-                       />
-                     </Grid>
-                  </Grid>
-
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Advanced Settings</Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Power Factor"
-                        value={todConsumptions[ym]['Power Factor'] || ''}
-                        onChange={(e) => {
-                          let val = e.target.value;
-                          if (val !== '') { if (Number(val) > 1) val = '1'; else if (Number(val) < 0) val = ''; }
-                          setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': val } }))
-                        }}
-                        onBlur={(e) => {
-                          if (e.target.value !== '' && Number(e.target.value) <= 0) {
-                            setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': '0.01' } }))
-                          }
-                        }}
-                        fullWidth variant="outlined" size="small" type="number" placeholder="e.g., 0.99" inputProps={{ max: 1, min: 0.01, step: 0.01 }} sx={{ bgcolor: '#FFF' }}
-                      />
+                      <Grid item xs={12} sm={6} md={3}>
+                        <TextField
+                          label="Arrear Amount (₹)"
+                          value={todConsumptions[ym]['Arrear Amount'] || ''}
+                          onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Arrear Amount': e.target.value } }))}
+                          fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <TextField
+                          label="Miscellaneous Charges (₹)"
+                          value={todConsumptions[ym]['Miscellaneous Charges'] || ''}
+                          onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Miscellaneous Charges': e.target.value } }))}
+                          fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Current LPSC (₹)"
-                        value={todConsumptions[ym]['Current LPSC'] || ''}
-                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Current LPSC': e.target.value } }))}
-                        fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Arrear Amount (₹)"
-                        value={todConsumptions[ym]['Arrear Amount'] || ''}
-                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Arrear Amount': e.target.value } }))}
-                        fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <FormControl component="fieldset" sx={{ mt: 1 }}>
-                        <FormLabel component="legend" sx={{ fontSize: '12px', color: 'text.secondary', mb: 0.5 }}>Electricity Duty Applied?</FormLabel>
-                        <RadioGroup row value={todConsumptions[ym]['Electricity Duty'] || 'Yes'} onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Electricity Duty': e.target.value } }))}>
-                          <FormControlLabel value="Yes" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Yes</Typography>} />
-                          <FormControlLabel value="No" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">No</Typography>} />
-                        </RadioGroup>
-                      </FormControl>
-                    </Grid>
-                  </Grid>
+                  </Box>
 
                 </AccordionDetails>
               </Accordion>
