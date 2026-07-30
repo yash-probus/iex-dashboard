@@ -478,7 +478,29 @@ const exportInsightsToExcel = async () => {
           </Box>
 
           {marketDecisionResult && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2, mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: -2, mb: 2 }}>
+              <Button 
+                variant="outlined" 
+                startIcon={<DownloadIcon />} 
+                onClick={() => window.print()}
+                sx={{ 
+                  textTransform: 'none', 
+                  borderRadius: 2.5, 
+                  fontWeight: 600, 
+                  borderColor: 'divider',
+                  backgroundColor: '#FFFFFF',
+                  color: 'text.primary',
+                  px: 4,
+                  py: 1,
+                  minWidth: 220,
+                  '&:hover': {
+                    backgroundColor: '#F8FAFC',
+                    borderColor: 'divider'
+                  }
+                }}
+              >
+                Export as PDF
+              </Button>
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
