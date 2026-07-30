@@ -37,6 +37,8 @@ import {
 } from '@mui/icons-material';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
+
+import { OverallVisualAnalytics } from '../components/dashboard/OverallVisualAnalytics';
 import { Dashboard } from '../components/dashboard/Dashboard';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
@@ -2338,6 +2340,7 @@ export default function SavingsCalculatorPage() {
 
               {calcTab === 6 && (
                 <Box sx={{ mt: 3 }}>
+                  {selectedSimMonth === 'all' && <OverallVisualAnalytics clientOverview={clientOverview} />}
                   <Dashboard calcEntry={null} clientName={clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
                 </Box>
               )}
