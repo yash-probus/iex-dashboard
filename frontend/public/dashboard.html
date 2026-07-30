@@ -1192,18 +1192,32 @@
         function monthIndex(m) { return DATA.overall.months.indexOf(m) }
         function renderMonth(m) {
             const i = monthIndex(m), o = DATA.overall; if (i < 0) return goOverall();
-            const detailed = true;
-            $("detailLoaded").style.display = "block";
-            $("detailUnavailable").style.display = "none";
-            $("emptyTitle").textContent = m + " detailed source not loaded";
-            $("monthKpis").innerHTML = `
-    <article class="kpi green"><div class="label">Client saving</div><div class="value">${lakh(o.netSaving[i])}</div><div class="sub">Summary value after fees</div></article>
-    <article class="kpi amber"><div class="label">Gross saving</div><div class="value">${lakh(o.grossSaving[i])}</div><div class="sub">Before platform and service charges</div></article>
-    <article class="kpi"><div class="label">OA coverage</div><div class="value">${o.coverage[i] + "%"}</div><div class="sub">Consumer-bus OA energy ÷ consumption</div></article>
-    <article class="kpi"><div class="label">Total consumption</div><div class="value">${energy(o.consumption[i])}</div><div class="sub">Billed monthly electricity consumption</div></article>
-    <article class="kpi"><div class="label">Blended cost</div><div class="value">₹${o.platformRate[i].toFixed(2)}</div><div class="sub">Compared with ₹${o.discomRate[i].toFixed(2)}/kWh baseline</div></article>
-    <article class="kpi"><div class="label">Net saving rate</div><div class="value">${rate(o.netPerUnit[i])}</div><div class="sub">Final client saving per consumed unit</div></article>`;
-            renderDetailed(i);
+            const detailed = DATA.detail && DATA.detail.month === m;
+            
+            if (detailed) {
+                $("detailLoaded").style.display = "block";
+                $("detailUnavailable").style.display = "none";
+                $("emptyTitle").textContent = "";
+                $("monthKpis").innerHTML = `
+        <article class="kpi green"><div class="label">Client saving</div><div class="value">${lakh(o.netSaving[i])}</div><div class="sub">Summary value after fees</div></article>
+        <article class="kpi amber"><div class="label">Gross saving</div><div class="value">${lakh(o.grossSaving[i])}</div><div class="sub">Before platform and service charges</div></article>
+        <article class="kpi"><div class="label">OA coverage</div><div class="value">${o.coverage[i] + "%"}</div><div class="sub">Consumer-bus OA energy ÷ consumption</div></article>
+        <article class="kpi"><div class="label">Total consumption</div><div class="value">${energy(o.consumption[i])}</div><div class="sub">Billed monthly electricity consumption</div></article>
+        <article class="kpi"><div class="label">Blended cost</div><div class="value">₹${o.platformRate[i].toFixed(2)}</div><div class="sub">Compared with ₹${o.discomRate[i].toFixed(2)}/kWh baseline</div></article>
+        <article class="kpi"><div class="label">Net saving rate</div><div class="value">${rate(o.netPerUnit[i])}</div><div class="sub">Final client saving per consumed unit</div></article>`;
+                renderDetailed(i);
+            } else {
+                $("detailLoaded").style.display = "none";
+                $("detailUnavailable").style.display = "block";
+                $("emptyTitle").textContent = m + " detailed view";
+                $("monthKpis").innerHTML = `
+        <article class="kpi green"><div class="label">Client saving</div><div class="value">${lakh(o.netSaving[i])}</div><div class="sub">Summary value after fees</div></article>
+        <article class="kpi amber"><div class="label">Gross saving</div><div class="value">${lakh(o.grossSaving[i])}</div><div class="sub">Before platform and service charges</div></article>
+        <article class="kpi"><div class="label">OA coverage</div><div class="value">${o.coverage[i] + "%"}</div><div class="sub">Consumer-bus OA energy ÷ consumption</div></article>
+        <article class="kpi"><div class="label">Total consumption</div><div class="value">${energy(o.consumption[i])}</div><div class="sub">Billed monthly electricity consumption</div></article>
+        <article class="kpi"><div class="label">Blended cost</div><div class="value">₹${o.platformRate[i].toFixed(2)}</div><div class="sub">Compared with ₹${o.discomRate[i].toFixed(2)}/kWh baseline</div></article>
+        <article class="kpi"><div class="label">Net saving rate</div><div class="value">${rate(o.netPerUnit[i])}</div><div class="sub">Final client saving per consumed unit</div></article>`;
+            }
         }
         function renderDetailed(i) {
             const d = DATA.detail, o = DATA.overall;
@@ -1376,6 +1390,9 @@
                     // Re-render everything with new data
                     initSelect();
                     renderOverall();
+                    if (payload.forceView) {
+                        location.hash = payload.forceView;
+                    }
                     route();
                 }
             }

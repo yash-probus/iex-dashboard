@@ -149,7 +149,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
             })) : [];
 
             detail = {
-              month: selectedMonth && selectedMonth !== 'all' ? selectedMonth : (validMonths[validMonths.length - 1] || "Current"),
+              month: selectedMonth && selectedMonth !== 'all' ? selectedMonth : (validMonths[validMonths.length - 1]?.month || "Current"),
               settlementPeriod: "Generated from API",
               consumption: marketDecisionResult.totalEnergyKwh,
               oaRegional: marketDecisionResult.totalMarketEnergyKwh,
@@ -212,7 +212,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
             location,
             connectivity,
             period,
-            data: transformedData 
+            data: transformedData,
+            forceView: (!selectedMonth || selectedMonth === 'all') ? 'overall' : `monthly/${selectedMonth}`
           } 
         }, '*');
       }
