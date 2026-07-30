@@ -5,7 +5,7 @@ import { FormControlLabel, Switch, Radio, RadioGroup, FormControl, FormLabel, Di
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
   CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment, OutlinedInput, Stack,
-  Accordion, AccordionSummary, AccordionDetails
+  Accordion, AccordionSummary, AccordionDetails, Select
 } from '@mui/material';
 import { 
   Calculate as CalculateIcon, 
@@ -161,6 +161,8 @@ export default function SavingsCalculatorPage() {
   
   // Form Fields State
   const [clientName, setClientName] = useState('');
+  const [clientPrefix, setClientPrefix] = useState('Mr.');
+  const [hasReachedSummary, setHasReachedSummary] = useState(false);
   const [industryName, setIndustryName] = useState('');
   const [address, setAddress] = useState('');
   const [sanctionedLoadKw, setSanctionedLoadKw] = useState('');
@@ -494,6 +496,7 @@ export default function SavingsCalculatorPage() {
 
   const resetForm = () => {
     setClientName('');
+    setClientPrefix('Mr.');
     setIndustryName('');
     setAddress('');
     setSanctionedLoadKw('');
@@ -543,7 +546,18 @@ export default function SavingsCalculatorPage() {
         navigate(`/savings-calculator/view/${entry.id}`);
         return;
       }
-      setClientName(entry.clientName);
+      let loadedName = entry.clientName;
+      let loadedTitle = 'Mr.';
+      const titles = ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'M/s'];
+      for (const t of titles) {
+        if (loadedName.startsWith(t + ' ')) {
+          loadedTitle = t;
+          loadedName = loadedName.substring(t.length + 1);
+          break;
+        }
+      }
+      setClientPrefix(loadedTitle);
+      setClientName(loadedName);
       setIndustryName(entry.industryName);
       setAddress(entry.address);
       const kwValue = entry.sanctionedLoadKw ? String(entry.sanctionedLoadKw) : '';
@@ -585,10 +599,12 @@ export default function SavingsCalculatorPage() {
       setCurrentLpsc(entry.currentLpsc !== undefined && entry.currentLpsc !== null ? String(entry.currentLpsc) : '');
       setBillDate(entry.billDate || '');
 
+      setHasReachedSummary(true);
       setActiveStep(7); 
     } else {
       setSelectedEntry(null);
       resetForm();
+      setHasReachedSummary(false);
       setActiveStep(0); 
     }
   };
@@ -678,8 +694,8 @@ export default function SavingsCalculatorPage() {
 
     try {
       setSubmitting(true);
-      const payload = {
-        clientName: clientName.trim(),
+      const payload: any = {
+        clientName: clientPrefix ? `${clientPrefix} ${clientName.trim()}` : clientName.trim(),
         industryName: industryName.trim(),
         address: address.trim(),
         sanctionedLoadKw: sanctionedLoadKw.trim() ? parseFloat(sanctionedLoadKw) : undefined,
@@ -1041,7 +1057,9 @@ export default function SavingsCalculatorPage() {
               variant="contained"
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex === 5) {
+                  if (hasReachedSummary && stepIndex < 7) {
+                    setActiveStep(7);
+                  } else if (stepIndex === 5) {
                     // After Sanction Load, open TOD Consumption dialog
                     setTodDialogOpen(true);
                   } else if (stepIndex < 5) {
@@ -1057,7 +1075,7 @@ export default function SavingsCalculatorPage() {
                   }
                 }
               }}
-              endIcon={stepIndex === 6 ? undefined : <ArrowForwardIcon />}
+              endIcon={stepIndex === 6 ? undefined : (hasReachedSummary ? undefined : <ArrowForwardIcon />)}
               sx={{ 
                 textTransform: 'none', 
                 borderRadius: 2.5, 
@@ -1068,7 +1086,7 @@ export default function SavingsCalculatorPage() {
                 }
               }}
             >
-              {stepIndex === 6 ? 'Next' : 'Continue'}
+              {hasReachedSummary && stepIndex < 7 ? 'Return to Summary' : (stepIndex === 6 ? 'Next' : 'Continue')}
             </Button>
           </Box>
         </Card>
@@ -1323,6 +1341,27 @@ export default function SavingsCalculatorPage() {
                   required
                   variant="outlined"
                   size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Select
+                          value={clientPrefix}
+                          onChange={(e) => setClientPrefix(e.target.value)}
+                          variant="standard"
+                          disableUnderline
+                          displayEmpty
+                          sx={{ '& .MuiSelect-select': { py: 0, pr: 1, color: 'text.secondary' } }}
+                        >
+                          <MenuItem value=""><em>None</em></MenuItem>
+                          <MenuItem value="Mr.">Mr.</MenuItem>
+                          <MenuItem value="Ms.">Ms.</MenuItem>
+                          <MenuItem value="Mrs.">Mrs.</MenuItem>
+                          <MenuItem value="Dr.">Dr.</MenuItem>
+                          <MenuItem value="M/s">M/s</MenuItem>
+                        </Select>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <TextField
                   label="Industry Name"
@@ -2893,21 +2932,6 @@ export default function SavingsCalculatorPage() {
                       <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
                     </Grid>
                   </Grid>
-                  {changes.length > 0 && (
-                    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
-                      <Typography variant="subtitle2" color="text.secondary" mb={1}>Changes from Version {previousVersion?.version}:</Typography>
-                      <Stack spacing={1}>
-                        {changes.map(c => (
-                          <Box key={c.label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" fontWeight={600}>{c.label}:</Typography>
-                            <Typography variant="body2" color="error.main" sx={{ textDecoration: 'line-through' }}>{c.old ?? 'None'}</Typography>
-                            <ArrowRightAltIcon fontSize="small" color="action" />
-                            <Typography variant="body2" color="success.main" fontWeight={600}>{c.new ?? 'None'}</Typography>
-                          </Box>
-                        ))}
-                      </Stack>
-                    </Box>
-                  )}
                 </Paper>
               );
             })}

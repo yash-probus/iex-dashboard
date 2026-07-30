@@ -32,10 +32,10 @@ export default function UserManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
   
-  // Tabs State
   const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form State
   const [username, setUsername] = useState('');
@@ -109,6 +109,7 @@ export default function UserManagementPage() {
 
   const handleSubmit = async () => {
     try {
+      setIsSaving(true);
       if (editingUser) {
         const payload: any = { username, email, role, hiddenModules, readOnlyModules };
         if (password) payload.password = password;
@@ -122,6 +123,8 @@ export default function UserManagementPage() {
       fetchUsers();
     } catch (error: any) {
       toast.error('Failed to save user', { description: error.response?.data?.message || error.message });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -392,8 +395,8 @@ export default function UserManagementPage() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit}>Save</Button>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
