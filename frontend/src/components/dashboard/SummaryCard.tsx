@@ -9,10 +9,11 @@ interface SummaryCardProps {
   isPositive?: boolean;
   accentColor?: string;
   icon?: React.ReactNode;
+  titleAction?: React.ReactNode;
   sx?: any;
 }
 
-export default function SummaryCard({ title, value, change, isPositive = true, accentColor = 'primary.main', icon, sx }: SummaryCardProps) {
+export default function SummaryCard({ title, value, change, isPositive = true, accentColor = 'primary.main', icon, titleAction, sx }: SummaryCardProps) {
   // Try to use accentColor if it's a valid hex, or fallback to it directly. We assume accentColor is passed as hex.
   const isHex = accentColor.startsWith('#');
   const safeColor = isHex ? accentColor : '#3B8FF3';
@@ -55,9 +56,16 @@ export default function SummaryCard({ title, value, change, isPositive = true, a
             {icon}
           </Box>
         )}
-        <Typography variant="subtitle1" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1.2 }}>
-          {title}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexGrow: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {title}
+          </Typography>
+          {titleAction && (
+            <Box onClick={(e) => e.stopPropagation()} sx={{ cursor: 'pointer' }}>
+              {titleAction}
+            </Box>
+          )}
+        </Box>
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mt: 0.5, width: '100%' }}>

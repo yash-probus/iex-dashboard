@@ -1,8 +1,9 @@
-import React from 'react';
-import { Box, Card, Typography } from '@mui/material';
-import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, AreaChart, Area } from 'recharts';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import BarChartIcon from '@mui/icons-material/BarChart';
+import React, { useMemo } from 'react';
+import { Box, Card, Typography, Grid } from '@mui/material';
+import { 
+  ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, 
+  ComposedChart, Line, ScatterChart, Scatter, ZAxis, Cell
+} from 'recharts';
 
 export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMonth?: string }> = ({ clientOverview, selectedMonth }) => {
   if (!clientOverview || !clientOverview.months) return null;
@@ -12,10 +13,6 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
     validMonths = validMonths.filter((m: any) => m.month === selectedMonth);
   }
 
-  const formatIndianNumber = (num: number) => {
-    return new Intl.NumberFormat('en-IN').format(num);
-  };
-
   const formatCurrency = (num: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -23,123 +20,166 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
       maximumFractionDigits: 0,
     }).format(num);
   };
+  
+  const formatLakhs = (val: number) => `₹${(val / 100000).toFixed(1)}L`;
 
+  // Process data for charts
   const chartData = validMonths.map((m: any) => {
-    // We assume Actual is 100% DISCOM since it's a simulation
-    const actualDiscom = m.totalEnergyKwh || 0;
-    const actualOa = 0;
-    const recOa = m.totalMarketEnergyKwh || 0;
-    const recDiscom = actualDiscom - recOa;
+    const coverage = m.totalEnergyKwh ? (m.totalMarketEnergyKwh || 0) / m.totalEnergyKwh * 100 : 0;
+    const netRate = m.totalEnergyKwh ? m.savings / m.totalEnergyKwh : 0;
+    const grossRate = m.totalEnergyKwh ? (m.grossSavings || m.savings) / m.totalEnergyKwh : 0;
     
-    // Estimate baseline cost and optimized cost
-    // For Spend comparison:
-    // In Savings Calculator, Baseline is actualDiscom * some rate. Let's use a default rate if not available, or calculate from savings.
-    // We can just use dummy values if needed, or deduce from savings.
-    // Wait, the clientOverview doesn't have the baseline cost directly per month.
-    // Let's use savings to estimate: savings = Baseline - Optimized.
-    // This is just a visual approximation if we don't have the exact cost.
-    const optimizedCost = (m.totalEnergyKwh || 0) * 5.5; // Roughly 5.5 Rs per kWh optimized
-    const actualCost = optimizedCost + (m.savings || 0);
-
     return {
       monthLabel: m.month,
-      actualDiscom,
-      actualOa,
-      recDiscom,
-      recOa,
-      totalUnits: m.totalEnergyKwh || 0,
-      actualCost,
-      recCost: optimizedCost
+      monthShort: m.month.split('-')[0], // e.g. "Mar-25" -> "Mar"
+      clientSaving: m.savings || 0,
+      grossSaving: m.grossSavings || (m.savings || 0),
+      coverage: coverage,
+      netRate: netRate,
+      grossRate: grossRate
     };
   });
 
-  const totalSavings = validMonths.reduce((acc: number, m: any) => acc + (m.savings || 0), 0);
-  const totalOptimizedCost = chartData.reduce((acc: number, item: any) => acc + item.recCost, 0);
-  const totalActualCost = chartData.reduce((acc: number, item: any) => acc + item.actualCost, 0);
-  const reductionPercentage = totalActualCost > 0 ? ((totalSavings / totalActualCost) * 100).toFixed(1) : '0.0';
+  // Calculate Insights
+  const bestMonth = chartData.reduce((prev: any, current: any) => (prev.clientSaving > current.clientSaving) ? prev : current, chartData[0]);
+  const strongestSpreadMonth = chartData.reduce((prev: any, current: any) => (prev.grossRate > current.grossRate) ? prev : current, chartData[0]);
+  const lowestCoverageMonth = chartData.reduce((prev: any, current: any) => (prev.coverage < current.coverage) ? prev : current, chartData[0]);
 
   return (
-    <Box sx={{ mt: 4, mb: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Summary Header */}
-      <Box sx={{ 
-        bgcolor: '#EEF2FF', 
-        borderRadius: 4, 
-        p: 3, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center',
-        border: '1px solid #E0E7FF'
-      }}>
-        <Typography variant="body1" sx={{ fontWeight: 600, color: '#3730A3', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <span role="img" aria-label="party">🎉</span> Great news! Your bill could drop by {formatCurrency(totalSavings)} ({reductionPercentage}% reduction)
-        </Typography>
-        <Typography variant="caption" sx={{ color: '#6B7280', mt: 0.5, mb: 3 }}>
-          Total projected savings for {validMonths.length > 0 ? (validMonths.length === 1 ? validMonths[0].month : `${validMonths[0].month} - ${validMonths[validMonths.length - 1].month}`) : ''}
-        </Typography>
+    <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      
+      {/* 1. Monthly savings and Open Access coverage */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0.5 }}>
+              Monthly savings and Open Access coverage
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Click a month in the matrix below to open its linked sub-report.
+            </Typography>
+            
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={formatLakhs} />
+                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val}%`} domain={[0, 100]} />
+                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+                <Bar yAxisId="left" dataKey="grossSaving" name="Gross saving" fill="#93c5fd" radius={[4, 4, 0, 0]} barSize={20} />
+                <Bar yAxisId="left" dataKey="clientSaving" name="Client saving" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                <Line yAxisId="right" type="monotone" dataKey="coverage" name="Coverage" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0.5 }}>
+              Overall insights
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Commercial priorities derived from the 12-month summary
+            </Typography>
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+              <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #86efac', borderLeft: '4px solid #22c55e' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Best client-saving month: {bestMonth?.month}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formatLakhs(bestMonth?.clientSaving)} final saving with {bestMonth?.coverage.toFixed(0)}% OA coverage.
+                </Typography>
+              </Box>
+              
+              <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #3b82f6' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Strongest price advantage: {strongestSpreadMonth?.month}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  ₹{strongestSpreadMonth?.grossRate.toFixed(2)}/kWh gross saving per consumed unit.
+                </Typography>
+              </Box>
+              
+              <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #eab308' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Lowest coverage: {lowestCoverageMonth?.month}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {lowestCoverageMonth?.coverage.toFixed(0)}% OA coverage. Review scheduling, approvals, availability and forecasting constraints.
+                </Typography>
+              </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#FFFFFF', p: 1, borderRadius: '999px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', px: 3 }}>
-            <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600, fontSize: '0.65rem', letterSpacing: '0.05em' }}>ACTUAL SPEND</Typography>
-            <Typography variant="body1" sx={{ fontWeight: 700, color: '#111827' }}>{formatCurrency(totalActualCost)}</Typography>
-          </Box>
-          <Box sx={{ color: '#D1D5DB' }}>→</Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', px: 3, bgcolor: '#ECFDF5', borderRadius: '999px', py: 1 }}>
-            <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, fontSize: '0.65rem', letterSpacing: '0.05em' }}>PROLT OPTIMIZED SPEND</Typography>
-            <Typography variant="body1" sx={{ fontWeight: 700, color: '#059669' }}>{formatCurrency(totalOptimizedCost)}</Typography>
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Monthly Consumption Mix */}
-      <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <BarChartIcon sx={{ color: '#0EA5E9', mr: 1 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Monthly Consumption Mix - DISCOM vs OA
-          </Typography>
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: -2, mb: 2 }}>
-          Compare your actual energy source mix with Prolt's recommended distribution
-        </Typography>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-            <XAxis dataKey="monthLabel" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} tickFormatter={(v) => formatIndianNumber(v)} />
-            <Tooltip
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-            />
-            <Legend wrapperStyle={{ paddingTop: '10px' }} />
-            <Bar dataKey="actualDiscom" name="Actual DISCOM" stackId="actual" fill="#94A3B8" />
-            <Bar dataKey="actualOa" name="Actual OA" stackId="actual" fill="#4ADE80" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="recDiscom" name="Prolt DISCOM" stackId="recommended" fill="#475569" />
-            <Bar dataKey="recOa" name="Prolt OA" stackId="recommended" fill="#16A34A" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      {/* Monthly Spend Comparison */}
-      <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <TrendingUpIcon sx={{ color: '#0EA5E9', mr: 1 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Monthly Spend Comparison
-          </Typography>
-        </Box>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-            <XAxis dataKey="monthLabel" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} tickFormatter={(v) => formatCurrency(v)} />
-            <Tooltip
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              formatter={(val: number) => formatCurrency(val)}
-            />
-            <Bar dataKey="actualCost" name="Actual" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="recCost" name="Optimized" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
+              <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #6366f1' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Volume and price must be optimized together</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  High coverage does not always guarantee the highest saving if market prices are unfavorable.
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
+      
+      {/* 2. Price spread versus coverage */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0.5 }}>
+              Price spread versus coverage
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Months in the upper-left area offer strong price advantage but may still have volume headroom.
+            </Typography>
+            
+            <ResponsiveContainer width="100%" height={300}>
+              <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis type="number" dataKey="coverage" name="Coverage" unit="%" domain={[30, 90]} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <YAxis type="number" dataKey="grossRate" name="Price spread" unit="₹" domain={['dataMin - 0.2', 'dataMax + 0.2']} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <ZAxis type="category" dataKey="monthShort" name="Month" />
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ borderRadius: '8px' }} />
+                <Scatter name="Months" data={chartData} fill="#3b82f6">
+                  {chartData.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.coverage < 60 && entry.grossRate > 1.0 ? '#10b981' : '#3b82f6'} />
+                  ))}
+                </Scatter>
+              </ScatterChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0.5 }}>
+              Recommended focus
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Rules that can be implemented directly in the application
+            </Typography>
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #10b981' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Prioritize high-spread, sub-target months</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Trigger when gross saving rate is at least ₹1.00/kWh and Open Access coverage is below 65%.
+                </Typography>
+              </Box>
+              
+              <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #fef08a', borderLeft: '4px solid #eab308' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Investigate low coverage</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Trigger below 50% coverage and route the case to forecasting, scheduling and commercial operations.
+                </Typography>
+              </Box>
+              
+              <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #64748b' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Replicate high-performing procurement</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Capture the market mix, TOD pattern and scheduling decisions from months delivering at least ₹1.00/kWh net saving.
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
+      
     </Box>
   );
 };

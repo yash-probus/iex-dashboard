@@ -82,6 +82,7 @@ export default function ForecastPage() {
   const [summaryMetrics, setSummaryMetrics] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showWmape, setShowWmape] = useState(true);
 
   // Popover state for Calendar
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
@@ -542,28 +543,32 @@ export default function ForecastPage() {
               )}
             </Box>
 
-            {/* MAPE Card */}
+            {/* MAPE / WMAPE Card */}
             <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
-                  title="MAPE"
-                  value={summaryMetrics.mape || 'N/A'}
+                  title={showWmape ? "WMAPE" : "MAPE"}
+                  value={showWmape ? (summaryMetrics.wmape || 'N/A') : (summaryMetrics.mape || 'N/A')}
                   icon={<ShowChart fontSize="small" />}
-                  accentColor="#F59E0B"
+                  accentColor={showWmape ? "#3B82F6" : "#F59E0B"}
                   sx={{ p: 1.75 }}
-                />
-              )}
-            </Box>
-
-            {/* WMAPE Card */}
-            <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
-              {isLoading ? <SummaryCardSkeleton /> : (
-                <SummaryCard
-                  title="WMAPE"
-                  value={summaryMetrics.wmape || 'N/A'}
-                  icon={<ShowChart fontSize="small" />}
-                  accentColor="#3B82F6"
-                  sx={{ p: 1.75 }}
+                  titleAction={
+                    <Typography
+                      variant="caption"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowWmape(!showWmape);
+                      }}
+                      sx={{ 
+                        color: 'primary.main', 
+                        fontWeight: 'bold', 
+                        cursor: 'pointer',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      Show {showWmape ? "MAPE" : "WMAPE"}
+                    </Typography>
+                  }
                 />
               )}
             </Box>
