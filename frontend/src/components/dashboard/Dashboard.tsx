@@ -15,6 +15,7 @@ import { DashboardBillEconomics } from './native/DashboardBillEconomics';
 import { DashboardTodCoverage } from './native/DashboardTodCoverage';
 import { DashboardHeatmap } from './native/DashboardHeatmap';
 import { DashboardSimulationTabs } from './native/DashboardSimulationTabs';
+import { DashboardEnergySummary } from './native/DashboardEnergySummary';
 
 
 interface DashboardProps {
@@ -257,7 +258,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <DashboardKPIs kpis={kpis} />
       </Box>
 
-
+      {/* Energy Summary (Overall or Monthly) */}
+      <Box sx={{ mt: 2, mb: 1 }}>
+        <DashboardEnergySummary 
+          calcResult={{
+            totalEnergyKwh: totalConsumption,
+            totalMarketEnergyKwh: totalMarketEnergy
+          }} 
+          marketDecisionResult={isOverall ? null : marketDecisionResult} 
+        />
+      </Box>
 
       {/* Tabs / Month Selection Matrix (Always shown to allow switching) */}
       <Box sx={{ mt: 3 }}>
