@@ -324,7 +324,9 @@ export default function UserManagementPage() {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SUPER_ADMIN">SUPER_ADMIN</SelectItem>
+                  {(editingUser?.role === 'SUPER_ADMIN') && (
+                    <SelectItem value="SUPER_ADMIN">SUPER_ADMIN</SelectItem>
+                  )}
                   <SelectItem value="ADMIN">ADMIN</SelectItem>
                   <SelectItem value="CLIENT">CLIENT</SelectItem>
                 </SelectContent>

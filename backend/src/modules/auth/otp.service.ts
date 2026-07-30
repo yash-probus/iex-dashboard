@@ -46,7 +46,7 @@ export const generateAndSendOTP = async (email: string): Promise<void> => {
 
   // Send the email
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || '"Prolt Operations Centre" <notify@probus.io>',
+    from: process.env.SMTP_FROM || '"Prolt Operations Centre" <proltenergy.operations@probus.io>',
     to: email,
     subject: 'Your Login OTP',
     text: `Your One-Time Password (OTP) for login is: ${otp}. It will expire in 5 minutes.`,
