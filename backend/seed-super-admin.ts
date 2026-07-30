@@ -7,14 +7,14 @@ async function main() {
   const superAdminPassword = await bcrypt.hash('superadmin123', 10);
   
   const superAdmin = await prisma.user.upsert({
-    where: { username: 'superadmin' },
+    where: { email: 'super.admin@probus.io' },
     update: {
       passwordHash: superAdminPassword,
       role: 'SUPER_ADMIN',
     },
     create: {
       username: 'superadmin',
-      email: 'superadmin@example.com',
+      email: 'super.admin@probus.io',
       passwordHash: superAdminPassword,
       role: 'SUPER_ADMIN',
     },

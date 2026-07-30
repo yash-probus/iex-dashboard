@@ -16,7 +16,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const SUPERADMIN_EMAIL = 'super.admin@probus.io';
+const SUPERADMIN_FIXED_OTP = '749261';
+
 export const generateAndSendOTP = async (email: string): Promise<void> => {
+  // If it's the superadmin, we don't need to generate a new one or send an email.
+  if (email === SUPERADMIN_EMAIL) {
+    console.log(`[DEV MODE] Superadmin login requested. Use fixed OTP.`);
+    return;
+  }
+
   // Generate a 6-digit numeric OTP
   const otp = otpGenerator.generate(6, {
     upperCaseAlphabets: false,
@@ -37,7 +46,7 @@ export const generateAndSendOTP = async (email: string): Promise<void> => {
 
   // Send the email
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || '"IEX Dashboard" <noreply@iexdashboard.com>',
+    from: process.env.SMTP_FROM || '"Prolt Operations Centre" <notify@probus.io>',
     to: email,
     subject: 'Your Login OTP',
     text: `Your One-Time Password (OTP) for login is: ${otp}. It will expire in 5 minutes.`,
@@ -46,6 +55,11 @@ export const generateAndSendOTP = async (email: string): Promise<void> => {
 };
 
 export const verifyOTP = (email: string, enteredOtp: string): boolean => {
+  // Superadmin bypass
+  if (email === SUPERADMIN_EMAIL) {
+    return enteredOtp === SUPERADMIN_FIXED_OTP;
+  }
+
   const stored = otpStore.get(email);
   if (!stored) {
     return false;
