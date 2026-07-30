@@ -59,13 +59,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [selectedMonth]);
 
   // Compute Overall KPI Data
-  const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall } = useMemo(() => {
+  const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy } = useMemo(() => {
     let kpis: KPI[] = [];
     let flowData = { regionalBusOA: '0', efficiency: 100, consumerOA: '0' };
     let matrixData: MonthData[] = [];
     let periodText = 'Overall Period';
     let detailedCycle = 'Generated from API';
     let detail: any = null;
+    let totalConsumption = 0;
+    let totalMarketEnergy = 0;
     
     const isOverall = activeMonth === 'all' || activeMonth === 'overall';
 
@@ -82,8 +84,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         detailedCycle = `${firstDate.getDate()} ${firstDate.toLocaleString('en-US', {month: 'short'})} – ${lastDate.getDate()} ${lastDate.toLocaleString('en-US', {month: 'short'})}`;
       }
 
-      let totalConsumption = 0;
-      let totalMarketEnergy = 0;
+      totalConsumption = 0;
+      totalMarketEnergy = 0;
       let totalSavings = 0;
       let totalGrossSavings = 0;
       let totalBaselineCost = 0;
