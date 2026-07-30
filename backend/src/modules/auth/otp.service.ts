@@ -1,5 +1,6 @@
 import otpGenerator from 'otp-generator';
 import nodemailer from 'nodemailer';
+import path from 'path';
 
 // In-memory store for OTPs. In production, use Redis or DB.
 // Map<email, { otp, expiresAt }>
@@ -53,7 +54,7 @@ export const generateAndSendOTP = async (email: string): Promise<void> => {
     html: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div style="background-color: #0d47a1; padding: 24px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">Prolt <span style="font-weight: 300; font-size: 16px;">by Probus</span></h1>
+          <img src="cid:proltlogo" alt="Prolt Energy by Probus" style="max-height: 50px; width: auto;" />
         </div>
         <div style="padding: 40px 30px; text-align: center;">
           <h2 style="color: #333333; margin-top: 0; font-size: 22px;">Secure Login Verification</h2>
@@ -77,6 +78,13 @@ export const generateAndSendOTP = async (email: string): Promise<void> => {
         </div>
       </div>
     `,
+    attachments: [
+      {
+        filename: 'logo.png',
+        path: path.join(process.cwd(), 'assets', 'logo.png'),
+        cid: 'proltlogo'
+      }
+    ]
   });
 };
 
