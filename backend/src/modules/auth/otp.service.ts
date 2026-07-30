@@ -48,9 +48,35 @@ export const generateAndSendOTP = async (email: string): Promise<void> => {
   await transporter.sendMail({
     from: process.env.SMTP_FROM || '"Prolt Operations Centre" <proltenergy.operations@probus.io>',
     to: email,
-    subject: 'Your Login OTP',
+    subject: 'Your Login OTP - Prolt by Probus',
     text: `Your One-Time Password (OTP) for login is: ${otp}. It will expire in 5 minutes.`,
-    html: `<p>Your One-Time Password (OTP) for login is: <strong>${otp}</strong>.</p><p>It will expire in 5 minutes.</p>`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="background-color: #0d47a1; padding: 24px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">Prolt <span style="font-weight: 300; font-size: 16px;">by Probus</span></h1>
+        </div>
+        <div style="padding: 40px 30px; text-align: center;">
+          <h2 style="color: #333333; margin-top: 0; font-size: 22px;">Secure Login Verification</h2>
+          <p style="color: #666666; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+            You have requested to log in to the Prolt Operations Centre. Please use the One-Time Password (OTP) below to complete your secure sign-in.
+          </p>
+          <div style="background-color: #f4f6f8; border-radius: 8px; padding: 20px; display: inline-block; margin-bottom: 30px; border: 1px dashed #cccccc;">
+            <span style="font-size: 36px; font-weight: bold; color: #0d47a1; letter-spacing: 4px;">${otp}</span>
+          </div>
+          <p style="color: #d32f2f; font-size: 14px; font-weight: 500; margin-bottom: 0;">
+            ⏳ This code will expire in 5 minutes.
+          </p>
+        </div>
+        <div style="background-color: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
+          <p style="color: #999999; font-size: 12px; margin: 0; line-height: 1.5;">
+            If you did not request this login, please ignore this email or contact your administrator immediately.
+          </p>
+          <p style="color: #999999; font-size: 12px; margin: 10px 0 0 0;">
+            &copy; ${new Date().getFullYear()} Probus. All rights reserved.
+          </p>
+        </div>
+      </div>
+    `,
   });
 };
 
