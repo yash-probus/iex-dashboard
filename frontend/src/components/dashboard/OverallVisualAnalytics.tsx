@@ -53,8 +53,43 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
     };
   });
 
+  const totalSavings = validMonths.reduce((acc: number, m: any) => acc + (m.savings || 0), 0);
+  const totalOptimizedCost = chartData.reduce((acc: number, item: any) => acc + item.recCost, 0);
+  const totalActualCost = chartData.reduce((acc: number, item: any) => acc + item.actualCost, 0);
+  const reductionPercentage = totalActualCost > 0 ? ((totalSavings / totalActualCost) * 100).toFixed(1) : '0.0';
+
   return (
     <Box sx={{ mt: 4, mb: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Summary Header */}
+      <Box sx={{ 
+        bgcolor: '#EEF2FF', 
+        borderRadius: 4, 
+        p: 3, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        border: '1px solid #E0E7FF'
+      }}>
+        <Typography variant="body1" sx={{ fontWeight: 600, color: '#3730A3', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <span role="img" aria-label="party">🎉</span> Great news! Your bill could drop by {formatCurrency(totalSavings)} ({reductionPercentage}% reduction)
+        </Typography>
+        <Typography variant="caption" sx={{ color: '#6B7280', mt: 0.5, mb: 3 }}>
+          Total projected savings for {validMonths.length > 0 ? (validMonths.length === 1 ? validMonths[0].month : `${validMonths[0].month} - ${validMonths[validMonths.length - 1].month}`) : ''}
+        </Typography>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#FFFFFF', p: 1, borderRadius: '999px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', px: 3 }}>
+            <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600, fontSize: '0.65rem', letterSpacing: '0.05em' }}>ACTUAL SPEND</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 700, color: '#111827' }}>{formatCurrency(totalActualCost)}</Typography>
+          </Box>
+          <Box sx={{ color: '#D1D5DB' }}>→</Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', px: 3, bgcolor: '#ECFDF5', borderRadius: '999px', py: 1 }}>
+            <Typography variant="caption" sx={{ color: '#059669', fontWeight: 600, fontSize: '0.65rem', letterSpacing: '0.05em' }}>PROLT OPTIMIZED SPEND</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 700, color: '#059669' }}>{formatCurrency(totalOptimizedCost)}</Typography>
+          </Box>
+        </Box>
+      </Box>
+
       {/* Monthly Consumption Mix */}
       <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>

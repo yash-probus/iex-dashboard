@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ClientOverviewResult, MarketDecisionResult, SavingsCalculatorEntry, exportSavingsExcel } from '../../api/savingsCalculator.api';
 import { Box } from '@mui/material';
 import { OverallVisualAnalytics } from './OverallVisualAnalytics';
@@ -14,6 +14,11 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, clientOverview, marketDecisionResult, demandShiftInsights, selectedMonth }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeActiveMonth, setIframeActiveMonth] = useState<string>(selectedMonth || 'all');
+
+  useEffect(() => {
+    setIframeActiveMonth(selectedMonth || 'all');
+  }, [selectedMonth]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -233,14 +238,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
     sendMessage();
 
     const handleMessage = async (event: MessageEvent) => {
-      if (event.data && event.data.type === 'EXPORT_EXCEL') {
-        if (calcEntry?.id) {
-          const monthToExport = event.data.month === 'overall' || event.data.month === 'all' ? undefined : event.data.month;
-          try {
-            await exportSavingsExcel(calcEntry.id, monthToExport);
-          } catch (e) {
-            console.error("Export excel failed:", e);
+      if (event.data) {
+        if (event.data.type === 'EXPORT_EXCEL') {
+          if (calcEntry?.id) {
+            const monthToExport = event.data.month === 'overall' || event.data.month === 'all' ? undefined : event.data.month;
+            try {
+              await exportSavingsExcel(calcEntry.id, monthToExport);
+            } catch (e) {
+              console.error("Export excel failed:", e);
+            }
           }
+        } else if (event.data.type === 'CHANGE_MONTH') {
+          setIframeActiveMonth(event.data.month);
         }
       }
     };
@@ -260,7 +269,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
         style={{ width: '100%', height: '800px', border: 'none', borderRadius: '12px' }}
         title="Dashboard"
       />
-      {clientOverview && (
+      {clientOverview && (iframeActiveMonth === 'all' || iframeActiveMonth === 'overall') && (
         <OverallVisualAnalytics clientOverview={clientOverview} selectedMonth={selectedMonth} />
       )}
     </Box>
