@@ -2329,7 +2329,7 @@ export default function SavingsCalculatorPage() {
                 <Tabs value={calcTab} onChange={(e, v) => setCalcTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 } }}>
                   {selectedSimMonth !== 'all' && <Tab label="Slabs Group Summary (TOD Sorted)" disabled={!calcResult} value={0} />}
                   {selectedSimMonth !== 'all' && <Tab label="Cheapest Month-wide Slots" disabled={!calcResult} value={1} />}
-                  <Tab label={selectedSimMonth === 'all' ? "Summary" : "Market Buy Decision"} disabled={!marketDecisionResult} value={2} />
+                  {selectedSimMonth !== 'all' && <Tab label="Market Buy Decision" disabled={!marketDecisionResult} value={2} />}
                   {selectedSimMonth !== 'all' && <Tab label="Detailed OA Simulation" disabled={!marketDecisionResult?.oaDetailed} value={3} />}
                   <Tab label="Usage Recommendations" disabled={!demandShiftInsights} value={4} />
                   {selectedSimMonth !== 'all' && <Tab label="Visual Analytics" disabled={!marketDecisionResult || !demandShiftInsights} value={5} />}
@@ -2337,15 +2337,9 @@ export default function SavingsCalculatorPage() {
                 </Tabs>
               </Box>
 
-            {selectedSimMonth === 'all' && calcTab === 2 && (
-              <Box sx={{ mt: 3 }}>
-                <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={overviewLoading} />
-              </Box>
-            )}
-
             {calcTab === 6 && (
               <Box sx={{ mt: 3 }}>
-                <Dashboard />
+                <Dashboard calcEntry={null} clientName={clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
               </Box>
             )}
 

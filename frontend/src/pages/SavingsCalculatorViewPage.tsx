@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Typography, Alert, IconButton } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import { ClientOverviewDashboard } from '../components/dashboard/ClientOverviewDashboard';
+import { Dashboard } from '../components/dashboard/Dashboard';
 import { fetchClientOverview, ClientOverviewResult } from '../api/savingsCalculator.api';
 
 export default function SavingsCalculatorViewPage() {
@@ -60,8 +60,8 @@ export default function SavingsCalculatorViewPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-          <ClientOverviewDashboard clientOverview={clientOverview} overviewLoading={loading} />
+        <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider', height: '100vh' }}>
+          <Dashboard calcEntry={null} clientOverview={clientOverview} clientName={clientOverview?.clientName} selectedMonth="all" />
         </Box>
       )}
     </Box>

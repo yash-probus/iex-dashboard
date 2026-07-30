@@ -6,10 +6,11 @@ interface DashboardProps {
   calcEntry?: SavingsCalculatorEntry | null;
   clientOverview?: ClientOverviewResult | null;
   marketDecisionResult?: MarketDecisionResult | null;
+  demandShiftInsights?: any;
   selectedMonth?: string;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, clientOverview, marketDecisionResult, selectedMonth }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, clientOverview, marketDecisionResult, demandShiftInsights, selectedMonth }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -218,6 +219,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
             connectivity,
             period,
             data: transformedData,
+            demandShiftInsights,
             forceView: (!selectedMonth || selectedMonth === 'all') ? 'overall' : `monthly/${selectedMonth}`
           } 
         }, '*');
