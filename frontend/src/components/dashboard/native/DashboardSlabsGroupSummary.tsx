@@ -11,10 +11,8 @@ export const DashboardSlabsGroupSummary: React.FC<DashboardSlabsGroupSummaryProp
   return (
     <Grid container spacing={2}>
       {Object.entries(calcResult.todGroups).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, list]: any) => {
-        const groupCount = Object.keys(calcResult.todGroups).length;
-        const lgValue = groupCount === 4 ? 3 : groupCount === 3 ? 4 : groupCount === 2 ? 6 : 12;
         return (
-          <Grid item xs={6} sm={6} md={lgValue} lg={lgValue} key={groupName}>
+          <Grid item xs={12} sm={6} md={6} lg={4} key={groupName}>
             <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 1.5, height: '100%', bgcolor: 'background.paper' }}>
               <Typography variant="h4" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 1, display: 'flex', justifyContent: 'space-between' }}>
                 <span>{groupName}</span>
