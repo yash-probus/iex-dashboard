@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { ClientOverviewResult, MarketDecisionResult, SavingsCalculatorEntry } from '../../api/savingsCalculator.api';
+import { Box } from '@mui/material';
+import { OverallVisualAnalytics } from './OverallVisualAnalytics';
 
 interface DashboardProps {
   clientName?: string;
@@ -236,11 +238,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ clientName, calcEntry, cli
   }, [clientName, clientOverview, marketDecisionResult, selectedMonth]);
 
   return (
-    <iframe
-      ref={iframeRef}
-      src="/dashboard.html"
-      style={{ width: '100%', height: '800px', border: 'none', borderRadius: '12px' }}
-      title="Dashboard"
-    />
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <iframe
+        ref={iframeRef}
+        src="/dashboard.html"
+        style={{ width: '100%', height: '800px', border: 'none', borderRadius: '12px' }}
+        title="Dashboard"
+      />
+      {(!selectedMonth || selectedMonth === 'all') && clientOverview && (
+        <OverallVisualAnalytics clientOverview={clientOverview} />
+      )}
+    </Box>
   );
 };

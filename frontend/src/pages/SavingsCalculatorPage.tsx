@@ -2340,7 +2340,6 @@ export default function SavingsCalculatorPage() {
 
               {calcTab === 6 && (
                 <Box sx={{ mt: 3 }}>
-                  {selectedSimMonth === 'all' && <OverallVisualAnalytics clientOverview={clientOverview} />}
                   <Dashboard calcEntry={null} clientName={clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
                 </Box>
               )}
