@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Typography, Tabs, Tab } from '@mui/material';
+import { CommercialSummaryTable } from './CommercialSummaryTable';
+import { TodDetailTable } from './TodDetailTable';
+import { OaChargeRegisterTable } from './OaChargeRegisterTable';
+import { DailyMarketSummaryTable } from './DailyMarketSummaryTable';
 
 interface DashboardDataTableProps {
-  // We can pass the raw marketDecisionResult or clientOverview here later
-  data?: any; 
+  detail?: any; 
 }
 
-export const DashboardDataTable: React.FC<DashboardDataTableProps> = ({ data }) => {
-  const [tab, setTab] = React.useState(0);
+export const DashboardDataTable: React.FC<DashboardDataTableProps> = ({ detail }) => {
+  const [tab, setTab] = useState(0);
+
+  const baselineBreakdown = detail?.baselineBreakdown || [];
+  const tod = detail?.tod || [];
+  const oaCharges = detail?.oaCharges || [];
+  const daily = detail?.daily || [];
 
   return (
     <Box sx={{ mt: 2, border: '1px solid #dce5ef', borderRadius: '12px', bgcolor: '#fff' }}>
@@ -21,10 +29,11 @@ export const DashboardDataTable: React.FC<DashboardDataTableProps> = ({ data }) 
         <Tab label="OA charge register" sx={{ textTransform: 'none', fontWeight: 'bold', fontSize: '12px' }} />
         <Tab label="Daily market summary" sx={{ textTransform: 'none', fontWeight: 'bold', fontSize: '12px' }} />
       </Tabs>
-      <Box sx={{ p: 4, textAlign: 'center', bgcolor: '#fbfdff' }}>
-        <Typography variant="body2" color="text.secondary">
-          Data table rendering is currently being migrated to React components.
-        </Typography>
+      <Box sx={{ p: 3, bgcolor: '#fbfdff' }}>
+        {tab === 0 && <CommercialSummaryTable baselineBreakdown={baselineBreakdown} detail={detail} />}
+        {tab === 1 && <TodDetailTable tod={tod} />}
+        {tab === 2 && <OaChargeRegisterTable oaCharges={oaCharges} />}
+        {tab === 3 && <DailyMarketSummaryTable daily={daily} />}
       </Box>
     </Box>
   );

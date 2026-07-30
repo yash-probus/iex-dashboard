@@ -1,0 +1,62 @@
+import React from 'react';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
+
+interface CommercialSummaryTableProps {
+  baselineBreakdown?: any[];
+  detail?: any;
+}
+
+const formatCurrency = (val: number) => {
+  if (val === undefined || val === null) return '-';
+  return '₹' + val.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+};
+
+export const CommercialSummaryTable: React.FC<CommercialSummaryTableProps> = ({ baselineBreakdown, detail }) => {
+  return (
+    <Box>
+      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #dce5ef', borderRadius: '8px' }}>
+        <Table size="small">
+          <TableHead sx={{ backgroundColor: '#f8fafc' }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold', color: '#64748b' }}>Component</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>Baseline</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>After OA</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#64748b' }}>Variance</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {baselineBreakdown && baselineBreakdown.length > 0 ? (
+              baselineBreakdown.map((row, idx) => (
+                <TableRow key={idx} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell align="right">{formatCurrency(row.baseline)}</TableCell>
+                  <TableCell align="right">{formatCurrency(row.afterOA)}</TableCell>
+                  <TableCell align="right" sx={{ color: (row.baseline - row.afterOA) > 0 ? '#10b981' : 'inherit' }}>
+                    {formatCurrency(row.baseline - row.afterOA)}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} align="center" sx={{ py: 3, color: '#94a3b8' }}>
+                  No breakdown data available for this cycle.
+                </TableCell>
+              </TableRow>
+            )}
+            {/* Summary Row */}
+            {detail && (
+              <TableRow sx={{ backgroundColor: '#f1f5f9' }}>
+                <TableCell sx={{ fontWeight: 'bold' }}>Overall Economics</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{formatCurrency(detail.baselineBill)}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{formatCurrency(detail.combinedBill)}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold', color: '#10b981' }}>
+                  {formatCurrency(detail.baselineBill - detail.combinedBill)}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
+};

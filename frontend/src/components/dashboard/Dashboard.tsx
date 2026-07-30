@@ -44,12 +44,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [activeMonth, setActiveMonth] = useState<string>(selectedMonth || 'all');
 
   // Compute Overall KPI Data
-  const { kpis, flowData, matrixData, periodText, detailedCycle } = useMemo(() => {
+  const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall } = useMemo(() => {
     let kpis: KPI[] = [];
     let flowData = { regionalBusOA: '0', efficiency: 100, consumerOA: '0' };
     let matrixData: MonthData[] = [];
     let periodText = 'Overall Period';
     let detailedCycle = 'Generated from API';
+    let detail: any = null;
+    
+    const isOverall = activeMonth === 'all' || activeMonth === 'overall';
 
     if (clientOverview && clientOverview.months) {
       const validMonths = clientOverview.months.filter(m => !m.error);
@@ -70,15 +73,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
       let totalGrossSavings = 0;
       let totalBaselineCost = 0;
 
-      validMonths.forEach(m => {
+      const monthsToProcess = isOverall ? validMonths : validMonths.filter(m => m.month === activeMonth);
+
+      monthsToProcess.forEach(m => {
         totalConsumption += m.totalEnergyKwh || 0;
         totalMarketEnergy += m.totalMarketEnergyKwh || 0;
         totalSavings += m.savings || 0;
         totalGrossSavings += m.grossSavings || 0;
       });
 
-      // From marketDecisionResult (monthly detailed view)
-      if (marketDecisionResult) {
+      // If we are looking at a specific month and have marketDecisionResult for that month
+      if (marketDecisionResult && (!isOverall)) {
         totalBaselineCost = marketDecisionResult.totalBaselineCost || 0;
       }
 
@@ -86,10 +91,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const blendedCost = totalConsumption > 0 ? (totalBaselineCost - totalSavings) / totalConsumption : 0;
       const netSavingRate = totalConsumption > 0 ? (totalSavings / totalConsumption) : 0;
 
+      // When overall, the old dashboard multiplied some things by 12/mCount for "Annual".
+      // But we will stick to aggregate values here to match the old DashboardKPIs props we implemented
       kpis = [
-        { label: 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Summary value after fees', color: 'green' },
-        { label: 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
-        { label: 'OA coverage', value: `${oaCoverage.toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
+        { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Summary value after fees', color: 'green' },
+        { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
+        { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${oaCoverage.toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption / 1000000)} GWh`, sub: 'Billed electricity consumption' },
         { label: 'Blended cost', value: `₹${blendedCost.toFixed(2)}`, sub: 'Average blended rate per kWh' },
         { label: 'Net saving rate', value: `₹${netSavingRate.toFixed(2)}/kWh`, sub: 'Final client saving per consumed unit', color: 'green' },
@@ -101,15 +108,90 @@ export const Dashboard: React.FC<DashboardProps> = ({
         consumerOA: `${formatIndianNumber(totalMarketEnergy / 1000)} MWh`
       };
 
+      // Matrix is always all months
       matrixData = validMonths.map(m => ({
         month: m.month,
         saving: formatIndianCurrency(m.savings || 0),
         coverage: m.totalEnergyKwh ? Math.round(((m.totalMarketEnergyKwh || 0) / m.totalEnergyKwh) * 100) : 0
       }));
+
+      // Compute Detail (Data Tables) - only if not overall and we have detailed result
+      if (!isOverall && marketDecisionResult && marketDecisionResult.slotsData) {
+        const dailyMap: Record<string, any> = {};
+        const marketSummaryMap: Record<string, any> = { DAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, GDAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, RTM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 } };
+        
+        marketDecisionResult.slotsData.forEach((slot: any) => {
+          const dParts = slot.date.split('-');
+          let dateStr = slot.date;
+          if (dParts.length === 3) {
+              if (dParts[0].length === 4) dateStr = `${dParts[2]}-${new Date(slot.date).toLocaleString('en-US', {month: 'short'})}`;
+              else if (dParts[2].length === 4) dateStr = `${dParts[0]}-${new Date(dParts[2]+"-"+dParts[1]+"-"+dParts[0]).toLocaleString('en-US', {month: 'short'})}`;
+              else dateStr = slot.date.substring(0, 6);
+          } else if (slot.date.length > 6) {
+              dateStr = slot.date.substring(0, 6);
+          }
+          const date = dateStr;
+
+          if (!dailyMap[date]) {
+            dailyMap[date] = { date, iso: date, qty: 0, DAM: 0, GDAM: 0, RTM: 0, activeSlots: 0, sumWeighted: 0, dominantMarket: 'DAM' };
+          }
+          
+          if (slot.marketSource && slot.marketSource !== 'DISCOM' && slot.marketEnergy > 0) {
+            const qtyMWh = slot.marketEnergy / 1000;
+            const rate = slot.marketSource === 'GDAM' ? (slot.gdamLanding || 0) : slot.marketSource === 'RTM' ? (slot.rtmLanding || 0) : (slot.damLanding || 0);
+            const mkt = slot.marketSource as 'DAM' | 'GDAM' | 'RTM';
+            
+            dailyMap[date].qty += qtyMWh;
+            dailyMap[date][mkt] += qtyMWh;
+            dailyMap[date].activeSlots += 1;
+            dailyMap[date].sumWeighted += qtyMWh * rate;
+
+            marketSummaryMap[mkt].qtyMWh += qtyMWh;
+            marketSummaryMap[mkt].activeSlots += 1;
+            marketSummaryMap[mkt].activeDays.add(date);
+            marketSummaryMap[mkt].sumWeighted += qtyMWh * rate;
+          }
+        });
+
+        const daily = Object.values(dailyMap).map(d => {
+          d.weightedRate = d.qty > 0 ? d.sumWeighted / d.qty : 0;
+          d.dominantMarket = d.RTM > d.DAM && d.RTM > d.GDAM ? 'RTM' : d.GDAM > d.DAM && d.GDAM > d.RTM ? 'GDAM' : 'DAM';
+          return d;
+        });
+
+        const tod = marketDecisionResult.todSummaries ? marketDecisionResult.todSummaries.map(t => ({
+          tod: t.slabName,
+          actualUnits: t.totalEnergyKwh || 0,
+          baselineBill: (t as any).baselineCost || 0,
+          oaRegional: t.marketEnergyKwh || 0,
+          oaConsumer: t.marketEnergyKwh || 0,
+          oaEnergyCharges: t.marketCostBase || 0,
+          discomAfterOA: (t.totalEnergyKwh || 0) - (t.marketEnergyKwh || 0),
+          coverage: t.totalEnergyKwh ? (t.marketEnergyKwh / t.totalEnergyKwh * 100) : 0,
+          deliveredEfficiency: 100,
+          avoidedDiscomBill: (t as any).savings || 0
+        })) : [];
+
+        const oaCharges = marketDecisionResult.oaDetailed?.breakdown ? marketDecisionResult.oaDetailed.breakdown.map(b => ({
+          name: b.slabName,
+          amount: b.oaBill,
+          rate: "---",
+          basis: `${b.oaUnits} kWh`
+        })) : [];
+
+        detail = {
+          baselineBill: marketDecisionResult.totalBaselineCost,
+          combinedBill: marketDecisionResult.totalBaselineCost - marketDecisionResult.totalSavings,
+          daily,
+          tod,
+          baselineBreakdown: [],
+          oaCharges,
+        };
+      }
     }
 
-    return { kpis, flowData, matrixData, periodText, detailedCycle };
-  }, [clientOverview, marketDecisionResult]);
+    return { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall };
+  }, [clientOverview, marketDecisionResult, activeMonth]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -121,7 +203,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         detailedCycle={detailedCycle}
       />
 
-      {/* Tabs / Month Selection Matrix */}
+      {/* Tabs / Month Selection Matrix (Always shown to allow switching) */}
       <Box sx={{ mt: 1 }}>
         <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
           <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 'bold' }}>
@@ -133,9 +215,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             sx={{ 
               cursor: 'pointer', 
               fontSize: '14px', 
-              fontWeight: activeMonth === 'all' ? 'bold' : 'normal',
-              color: activeMonth === 'all' ? '#1769e0' : '#65758b',
-              textDecoration: activeMonth === 'all' ? 'underline' : 'none',
+              fontWeight: isOverall ? 'bold' : 'normal',
+              color: isOverall ? '#1769e0' : '#65758b',
+              textDecoration: isOverall ? 'underline' : 'none',
               textUnderlineOffset: '4px'
             }}
           >
@@ -152,42 +234,48 @@ export const Dashboard: React.FC<DashboardProps> = ({
         />
       </Box>
 
-      {/* KPIs & Flow (Only show in Overall, or we can filter them for month later) */}
+      {/* Dynamic KPIs (Overall or Monthly depending on state) */}
       <Box sx={{ mt: 2 }}>
         <DashboardKPIs kpis={kpis} />
       </Box>
 
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 'bold', mb: 1 }}>
-          Energy flow and Open Access delivery
-        </Typography>
-        <DashboardFlow 
-          regionalBusOA={flowData.regionalBusOA} 
-          efficiency={flowData.efficiency} 
-          consumerOA={flowData.consumerOA} 
-        />
-      </Box>
-
-      {/* Legacy Visual Analytics Components mapped natively */}
-      <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {/* Render Overall Analytics if active tab is all */}
-        {(activeMonth === 'all' || activeMonth === 'overall') && clientOverview && (
-          <OverallVisualAnalytics clientOverview={clientOverview} selectedMonth={selectedMonth} />
-        )}
-
-        {/* Always render VisualAnalyticsCharts to answer the user's request: "why are these 2 graphs not added" */}
-        {marketDecisionResult && demandShiftInsights && (
-          <Box sx={{ mt: 2, p: 3, border: '1px solid #dce5ef', borderRadius: '12px', bgcolor: '#fff' }}>
-            <VisualAnalyticsCharts 
-              marketDecisionResult={marketDecisionResult} 
-              demandShiftInsights={demandShiftInsights}
-              maxEnergyPerSlot={500} 
+      {/* Monthly-only components */}
+      {!isOverall && (
+        <>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 'bold', mb: 1 }}>
+              Energy flow and Open Access delivery
+            </Typography>
+            <DashboardFlow 
+              regionalBusOA={flowData.regionalBusOA} 
+              efficiency={flowData.efficiency} 
+              consumerOA={flowData.consumerOA} 
             />
           </Box>
-        )}
-      </Box>
 
-      <DashboardDataTable />
+          {marketDecisionResult && demandShiftInsights && (
+            <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <Box sx={{ p: 3, border: '1px solid #dce5ef', borderRadius: '12px', bgcolor: '#fff' }}>
+                <VisualAnalyticsCharts 
+                  marketDecisionResult={marketDecisionResult} 
+                  demandShiftInsights={demandShiftInsights}
+                  maxEnergyPerSlot={500} 
+                />
+              </Box>
+            </Box>
+          )}
+
+          {detail && <DashboardDataTable detail={detail} />}
+        </>
+      )}
+
+      {/* Overall-only components */}
+      {isOverall && clientOverview && (
+        <Box sx={{ mt: 4 }}>
+          <OverallVisualAnalytics clientOverview={clientOverview} selectedMonth={selectedMonth} />
+        </Box>
+      )}
+
     </Box>
   );
 };
