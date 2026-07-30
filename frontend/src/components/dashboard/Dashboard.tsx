@@ -244,7 +244,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [clientOverview, marketDecisionResult, activeMonth]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '210mm', margin: '0 auto' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '210mm', margin: '0 auto' }}>
       <DashboardHero 
         clientName={clientName || 'Energy Dashboard'}
         location={calcEntry?.address || 'Location Unavailable'}
