@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { 
-  Box, Typography, TextField, Button, CircularProgress, Alert, InputAdornment, IconButton, Paper
+  Box, Typography, TextField, Button, CircularProgress, Alert, Paper
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../api/auth.api';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'EMAIL' | 'OTP'>('EMAIL');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,25 +23,47 @@ export default function LoginPage() {
     };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const trimmedUser = username.trim();
-    if (!trimmedUser || !password) {
-      setError('Username and password are required.');
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError('Email is required.');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await authApi.login(trimmedUser, password);
+      const response = await authApi.sendOtp(trimmedEmail);
+      if (response.success) {
+        setStep('OTP');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!otp || otp.length !== 6) {
+      setError('Please enter a valid 6-digit OTP.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await authApi.verifyOtp(email.trim(), otp);
       if (response.success) {
         login(response.token, response.user);
         navigate('/dashboard', { replace: true });
       }
     } catch (err: any) {
-      setError(err.message || 'Invalid credentials. Please try again.');
+      setError(err.message || 'Invalid OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -62,7 +83,7 @@ export default function LoginPage() {
         overflow: 'hidden'
       }}
     >
-      {/* Decorative background elements (stars/dots) */}
+      {/* Decorative background elements */}
       <Box sx={{ position: 'absolute', top: '20%', left: '15%', width: 4, height: 4, bgcolor: 'rgba(0,0,0,0.1)', borderRadius: '50%', boxShadow: '0 0 10px 2px rgba(0,0,0,0.05)' }} />
       <Box sx={{ position: 'absolute', top: '40%', left: '30%', width: 3, height: 3, bgcolor: 'rgba(0,0,0,0.05)', borderRadius: '50%', boxShadow: '0 0 8px 1px rgba(0,0,0,0.05)' }} />
       <Box sx={{ position: 'absolute', bottom: '30%', left: '45%', width: 5, height: 5, bgcolor: 'rgba(0,0,0,0.15)', borderRadius: '50%', boxShadow: '0 0 12px 3px rgba(0,0,0,0.08)' }} />
@@ -94,7 +115,6 @@ export default function LoginPage() {
               filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.1))'
             }}
           />
-
         </Box>
       </Box>
 
@@ -129,7 +149,7 @@ export default function LoginPage() {
                 Welcome
               </Typography>
               <Typography variant="body2" sx={{ color: '#555', opacity: 0.8, fontWeight: 500 }}>
-                Sign in to your account
+                {step === 'EMAIL' ? 'Sign in with your email' : 'Enter the OTP sent to your email'}
               </Typography>
             </Box>
 
@@ -139,92 +159,114 @@ export default function LoginPage() {
               </Alert>
             )}
 
-            <Box component="form" onSubmit={handleSubmit} noValidate>
-              <Typography variant="caption" sx={{ color: '#555', fontWeight: 600, mb: 0.5, display: 'block' }}>
-                Email
-              </Typography>
-              <TextField
-                fullWidth
-                id="username"
-                name="username"
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={loading}
-                size="small"
-                sx={{ 
-                  mb: 2.5,
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#f4f6f8',
-                    borderRadius: 1.5,
-                    '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
-                  }
-                }}
-              />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <Typography variant="caption" sx={{ color: '#555', fontWeight: 600 }}>
-                  Password
+            {step === 'EMAIL' ? (
+              <Box component="form" onSubmit={handleSendOtp} noValidate>
+                <Typography variant="caption" sx={{ color: '#555', fontWeight: 600, mb: 0.5, display: 'block' }}>
+                  Email Address
                 </Typography>
-              </Box>
-              <TextField
-                fullWidth
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                size="small"
-                sx={{ 
-                  mb: 3,
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#f4f6f8',
-                    borderRadius: 1.5,
-                    '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
-                  }
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        size="small"
-                        >
-                        {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+                <TextField
+                  fullWidth
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  size="small"
+                  sx={{ 
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: '#f4f6f8',
+                      borderRadius: 1.5,
+                      '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
+                    }
+                  }}
+                />
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading}
-                sx={{ 
-                  mt: 1, 
-                  mb: 1, 
-                  py: 1.2, 
-                  bgcolor: '#4CAF50', 
-                  color: '#fff',
-                  fontWeight: 'bold',
-                  borderRadius: 1.5,
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  boxShadow: '0 4px 14px rgba(76, 175, 80, 0.3)',
-                  '&:hover': {
-                    bgcolor: '#45a049',
-                    boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
-                  }
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
-              </Button>
-            </Box>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading}
+                  sx={{ 
+                    mb: 1, 
+                    py: 1.2, 
+                    bgcolor: '#4CAF50', 
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    borderRadius: 1.5,
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 14px rgba(76, 175, 80, 0.3)',
+                    '&:hover': {
+                      bgcolor: '#45a049',
+                      boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
+                    }
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : 'Send OTP'}
+                </Button>
+              </Box>
+            ) : (
+              <Box component="form" onSubmit={handleVerifyOtp} noValidate>
+                <Typography variant="caption" sx={{ color: '#555', fontWeight: 600, mb: 0.5, display: 'block' }}>
+                  6-Digit OTP
+                </Typography>
+                <TextField
+                  fullWidth
+                  id="otp"
+                  name="otp"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  disabled={loading}
+                  size="small"
+                  placeholder="Enter 6-digit code"
+                  inputProps={{ style: { letterSpacing: '0.2em', textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 } }}
+                  sx={{ 
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: '#f4f6f8',
+                      borderRadius: 1.5,
+                      '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
+                    }
+                  }}
+                />
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading || otp.length !== 6}
+                  sx={{ 
+                    mb: 2, 
+                    py: 1.2, 
+                    bgcolor: '#4CAF50', 
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    borderRadius: 1.5,
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 14px rgba(76, 175, 80, 0.3)',
+                    '&:hover': {
+                      bgcolor: '#45a049',
+                      boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
+                    }
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : 'Verify & Login'}
+                </Button>
+                
+                <Button 
+                  fullWidth 
+                  variant="text" 
+                  onClick={() => { setStep('EMAIL'); setOtp(''); }}
+                  sx={{ textTransform: 'none', color: '#555', fontWeight: 600 }}
+                >
+                  Back to Email
+                </Button>
+              </Box>
+            )}
           </Box>
         </Paper>
       </Box>

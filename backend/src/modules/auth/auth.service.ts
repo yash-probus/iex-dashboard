@@ -45,3 +45,54 @@ export const loginUser = async (dto: LoginDTO): Promise<AuthResponse> => {
     },
   };
 };
+
+import { generateAndSendOTP, verifyOTP } from './otp.service';
+
+export const sendOtpForUser = async (email: string): Promise<void> => {
+  // Check if user exists
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new AppError('User with this email not found', 404);
+  }
+
+  await generateAndSendOTP(email);
+};
+
+export const loginWithOtp = async (email: string, otp: string): Promise<AuthResponse> => {
+  const isValid = verifyOTP(email, otp);
+  if (!isValid) {
+    throw new AppError('Invalid or expired OTP', 401);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  const token = generateToken({ 
+    id: user.id, 
+    username: user.username, 
+    role: user.role, 
+    hiddenModules: user.hiddenModules,
+    readOnlyModules: user.readOnlyModules
+  });
+
+  return {
+    success: true,
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      hiddenModules: user.hiddenModules,
+      readOnlyModules: user.readOnlyModules
+    },
+  };
+};

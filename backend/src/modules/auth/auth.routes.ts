@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { login, getMe } from './auth.controller';
+import { login, getMe, sendOtp, verifyOtp } from './auth.controller';
 import { validateLoginDTO } from './auth.validation';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { authMiddleware } from '../../middleware/auth.middleware';
@@ -17,6 +17,8 @@ const loginLimiter = rateLimit({
 });
 
 router.post('/login', loginLimiter, validateLoginDTO, asyncHandler(login));
+router.post('/send-otp', loginLimiter, asyncHandler(sendOtp));
+router.post('/verify-otp', loginLimiter, asyncHandler(verifyOtp));
 router.get('/me', authMiddleware, asyncHandler(getMe));
 
 export default router;
