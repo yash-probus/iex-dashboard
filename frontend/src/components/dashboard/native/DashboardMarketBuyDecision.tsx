@@ -33,14 +33,14 @@ export const DashboardMarketBuyDecision: React.FC<DashboardMarketBuyDecisionProp
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Date</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Time</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>TOD Slab</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Source</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Landing (₹)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DISCOM Landing (₹)</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Buy from Market?</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Savings/kWh (₹)</TableCell>
+              <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Date</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Time</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>TOD</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Source</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Mkt Land<br/>(₹)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>DISCOM<br/>(₹)</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Buy?</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Savings<br/>(₹)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -50,43 +50,43 @@ export const DashboardMarketBuyDecision: React.FC<DashboardMarketBuyDecisionProp
               
               return (
                 <TableRow key={idx} hover sx={{ '&:nth-of-type(odd)': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
-                  <TableCell>{row.date}</TableCell>
-                  <TableCell align="center">{row.timeStr || `${String(row.hour).padStart(2, '0')}:${String((row.timeblock - 1) * 15 % 60).padStart(2, '0')}`}</TableCell>
-                  <TableCell align="center">
-                    <span style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700, color: 'text.secondary' }}>
+                  <TableCell sx={{ fontSize: '11px', px: 1 }}>{row.date}</TableCell>
+                  <TableCell align="center" sx={{ fontSize: '11px', px: 1 }}>{row.timeStr || `${String(row.hour).padStart(2, '0')}:${String((row.timeblock - 1) * 15 % 60).padStart(2, '0')}`}</TableCell>
+                  <TableCell align="center" sx={{ px: 1 }}>
+                    <span style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700, color: '#64748b' }}>
                       {row.tod}
                     </span>
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" sx={{ px: 1 }}>
                     <span style={{ 
                       textTransform: 'uppercase', 
-                      fontSize: '10px', 
+                      fontSize: '9px', 
                       fontWeight: 800, 
                       color: row.marketSource === 'DAM' ? '#3B82F6' : row.marketSource === 'GDAM' ? '#10B981' : '#8B5CF6',
                       backgroundColor: row.marketSource === 'DAM' ? '#EFF6FF' : row.marketSource === 'GDAM' ? '#ECFDF5' : '#F5F3FF',
-                      padding: '2px 6px',
+                      padding: '2px 4px',
                       borderRadius: '4px'
                     }}>
                       {row.marketSource}
                     </span>
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>₹{row.bestMarketLanding > 0 ? row.bestMarketLanding.toFixed(4) : '-'}</TableCell>
-                  <TableCell align="right">₹{row.discomLanding.toFixed(4)}</TableCell>
-                  <TableCell align="center">
+                  <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>₹{row.bestMarketLanding > 0 ? row.bestMarketLanding.toFixed(2) : '-'}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.discomLanding.toFixed(2)}</TableCell>
+                  <TableCell align="center" sx={{ px: 1 }}>
                     <span style={{ 
                       textTransform: 'uppercase', 
-                      fontSize: '10px', 
+                      fontSize: '9px', 
                       fontWeight: 800, 
                       color: buyDecision ? '#16A34A' : '#DC2626',
                       backgroundColor: buyDecision ? '#DCFCE7' : '#FEE2E2',
-                      padding: '2px 6px',
+                      padding: '2px 4px',
                       borderRadius: '4px'
                     }}>
-                      {buyDecision ? 'Yes' : 'No'}
+                      {buyDecision ? 'Y' : 'N'}
                     </span>
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : 'inherit' }}>
-                    {row.savingsPerKwh > 0 ? `₹${row.savingsPerKwh.toFixed(4)}` : '-'}
+                  <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : 'inherit', fontSize: '11px', px: 1 }}>
+                    {row.savingsPerKwh > 0 ? `₹${row.savingsPerKwh.toFixed(2)}` : '-'}
                   </TableCell>
                 </TableRow>
               );

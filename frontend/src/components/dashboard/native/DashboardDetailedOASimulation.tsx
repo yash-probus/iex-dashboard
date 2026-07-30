@@ -32,45 +32,45 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>TOD Slab</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Total Sourced (DISCOM Units)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Market Sourced (OA Units)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>DISCOM Bill (Total)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>Prolt DISCOM Bill (Net)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>OA Consumer Bus Units</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC' }}>OA Bill</TableCell>
+              <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>TOD Slab</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Total<br/>(DISCOM)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Market<br/>(OA Units)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>DISCOM<br/>Bill</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Prolt<br/>DISCOM</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>OA Cons.<br/>Bus</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>OA Bill</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {marketDecisionResult.oaDetailed.breakdown.map((row: any, idx: number) => (
               <TableRow key={idx} hover>
-                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>{row.slabName}</TableCell>
-                <TableCell align="right">{row.discomUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
-                <TableCell align="right">{row.oaUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
-                <TableCell align="right">₹{row.discomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
-                <TableCell align="right">₹{row.proltDiscomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
-                <TableCell align="right">{row.consumerBusUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
-                <TableCell align="right">₹{row.oaBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', fontSize: '11px', px: 1 }}>{row.slabName}</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{row.discomUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{row.oaUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.discomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.proltDiscomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{row.consumerBusUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.oaBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
               </TableRow>
             ))}
             <TableRow sx={{ backgroundColor: '#F8FAFC' }}>
-              <TableCell sx={{ fontWeight: 700 }}>Total</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>Total</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
                 {marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.discomUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
                 {marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
                 ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.discomBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
                 ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.proltDiscomBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
                 {marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.consumerBusUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
                 ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
             </TableRow>

@@ -35,17 +35,17 @@ export const OverallMonthlyRegisterTable: React.FC<OverallMonthlyRegisterTablePr
         <Table size="small">
           <TableHead sx={{ bgcolor: '#f8fafc' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Month</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Consumption</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>OA cleared</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Coverage</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>DISCOM ₹/kWh</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>With OA ₹/kWh</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Gross saving</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Fees</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Client saving</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Net ₹/kWh</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, color: '#64748b', fontSize: '12px' }}>Drill-down</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Month</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Consump.</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>OA Clear</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Cover</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>DISC.<br/>(₹/kWh)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>OA<br/>(₹/kWh)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Gross<br/>(₹)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Fees<br/>(₹)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Saving<br/>(₹)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Net<br/>(₹/kWh)</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, color: '#64748b', fontSize: '11px', px: 1 }}>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -64,17 +64,17 @@ export const OverallMonthlyRegisterTable: React.FC<OverallMonthlyRegisterTablePr
 
               return (
                 <TableRow key={m.month} hover>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '13px' }}>{m.month}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>{formatNumber(consumption)}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>{formatNumber(oaCleared)}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>{coverage}%</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>₹{formatNumber(discomRate, 2)}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>₹{formatNumber(withOaRate, 2)}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>₹{formatNumber(grossSaving)}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>₹{formatNumber(fees)}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, fontSize: '13px' }}>₹{formatNumber(clientSaving)}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '13px' }}>₹{formatNumber(netRate, 2)}</TableCell>
-                  <TableCell align="center">
+                  <TableCell sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>{m.month}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(consumption)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(oaCleared)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{coverage}%</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(discomRate, 2)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(withOaRate, 2)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(grossSaving)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(fees)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>{formatNumber(clientSaving)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(netRate, 2)}</TableCell>
+                  <TableCell align="center" sx={{ px: 1 }}>
                     <Button 
                       variant="outlined" 
                       size="small"
@@ -83,9 +83,9 @@ export const OverallMonthlyRegisterTable: React.FC<OverallMonthlyRegisterTablePr
                         textTransform: 'none', 
                         borderRadius: 2, 
                         py: 0.25,
-                        px: 2,
+                        px: 1,
                         minWidth: 0,
-                        fontSize: '12px',
+                        fontSize: '11px',
                         color: '#64748b',
                         borderColor: '#cbd5e1'
                       }}

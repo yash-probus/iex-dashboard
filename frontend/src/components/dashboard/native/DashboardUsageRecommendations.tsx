@@ -114,42 +114,42 @@ export const DashboardUsageRecommendations: React.FC<DashboardUsageRecommendatio
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              <TableCell sx={{ fontWeight: 600 }}>TOD Slab</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>Original Energy (kWh)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>Orig Market (kWh)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>New Energy (kWh)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>New Market (kWh)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>Difference (kWh)</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>TOD</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>Orig.<br/>(kWh)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>Orig. Mkt<br/>(kWh)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>New<br/>(kWh)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>New Mkt<br/>(kWh)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>Diff.<br/>(kWh)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {demandShiftInsights.todShiftSummary.map((row: any) => (
               <TableRow key={row.tod}>
-                <TableCell>{row.tod}</TableCell>
-                <TableCell align="right">{row.originalEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
-                <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.originalMarketEnergy?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || 0}</TableCell>
-                <TableCell align="right">{row.newEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
-                <TableCell align="right" sx={{ color: 'text.secondary' }}>{row.newMarketEnergy?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || 0}</TableCell>
-                <TableCell align="right" sx={{ color: row.diff > 0 ? '#16A34A' : row.diff < 0 ? '#DC2626' : 'inherit', fontWeight: row.diff !== 0 ? 600 : 400 }}>
+                <TableCell sx={{ px: 1, fontSize: '12px' }}>{row.tod}</TableCell>
+                <TableCell align="right" sx={{ px: 1, fontSize: '12px' }}>{row.originalEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell align="right" sx={{ color: 'text.secondary', px: 1, fontSize: '12px' }}>{row.originalMarketEnergy?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || 0}</TableCell>
+                <TableCell align="right" sx={{ px: 1, fontSize: '12px' }}>{row.newEnergy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell align="right" sx={{ color: 'text.secondary', px: 1, fontSize: '12px' }}>{row.newMarketEnergy?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || 0}</TableCell>
+                <TableCell align="right" sx={{ px: 1, fontSize: '12px', color: row.diff > 0 ? '#16A34A' : row.diff < 0 ? '#DC2626' : 'inherit', fontWeight: row.diff !== 0 ? 600 : 400 }}>
                   {row.diff > 0 ? '+' : ''}{row.diff.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                 </TableCell>
               </TableRow>
             ))}
             <TableRow sx={{ bgcolor: '#F1F5F9' }}>
-              <TableCell sx={{ fontWeight: 700 }}>Total</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell sx={{ fontWeight: 700, px: 1, fontSize: '12px' }}>Total</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, px: 1, fontSize: '12px' }}>
                 {demandShiftInsights.todShiftSummary.reduce((sum: number, row: any) => sum + (row.originalEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+              <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', px: 1, fontSize: '12px' }}>
                 {demandShiftInsights.todShiftSummary.reduce((sum: number, row: any) => sum + (row.originalMarketEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, px: 1, fontSize: '12px' }}>
                 {demandShiftInsights.todShiftSummary.reduce((sum: number, row: any) => sum + (row.newEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+              <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', px: 1, fontSize: '12px' }}>
                 {demandShiftInsights.todShiftSummary.reduce((sum: number, row: any) => sum + (row.newMarketEnergy || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, px: 1, fontSize: '12px' }}>
                 {(() => {
                   const totalDiff = demandShiftInsights.todShiftSummary.reduce((sum: number, row: any) => sum + (row.diff || 0), 0);
                   return (
