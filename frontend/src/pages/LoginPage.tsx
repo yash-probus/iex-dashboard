@@ -13,6 +13,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Captcha states
+  const [captchaNum1, setCaptchaNum1] = useState(Math.floor(Math.random() * 10) + 1);
+  const [captchaNum2, setCaptchaNum2] = useState(Math.floor(Math.random() * 10) + 1);
+  const [userCaptcha, setUserCaptcha] = useState('');
+
+  // Resend cooldown state
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -23,8 +31,25 @@ export default function LoginPage() {
     };
   }, []);
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handle countdown timer for Resend OTP
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [resendCooldown]);
+
+  const generateNewCaptcha = () => {
+    setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
+    setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
+    setUserCaptcha('');
+  };
+
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError(null);
 
     const trimmedEmail = email.trim();
@@ -33,11 +58,21 @@ export default function LoginPage() {
       return;
     }
 
+    if (step === 'EMAIL') {
+      const correctAnswer = captchaNum1 + captchaNum2;
+      if (parseInt(userCaptcha) !== correctAnswer) {
+        setError('Incorrect CAPTCHA. Please try again.');
+        generateNewCaptcha();
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const response = await authApi.sendOtp(trimmedEmail);
       if (response.success) {
         setStep('OTP');
+        setResendCooldown(30); // Start 30s cooldown
       }
     } catch (err: any) {
       setError(err.message || 'Failed to send OTP. Please try again.');
@@ -184,6 +219,29 @@ export default function LoginPage() {
                   }}
                 />
 
+                <Typography variant="caption" sx={{ color: '#555', fontWeight: 600, mb: 0.5, display: 'block' }}>
+                  What is {captchaNum1} + {captchaNum2}? (Security Check)
+                </Typography>
+                <TextField
+                  fullWidth
+                  id="captcha"
+                  name="captcha"
+                  type="number"
+                  placeholder="Enter answer"
+                  value={userCaptcha}
+                  onChange={(e) => setUserCaptcha(e.target.value)}
+                  disabled={loading}
+                  size="small"
+                  sx={{ 
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: '#f4f6f8',
+                      borderRadius: 1.5,
+                      '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
+                    }
+                  }}
+                />
+
                 <Button
                   type="submit"
                   fullWidth
@@ -257,14 +315,30 @@ export default function LoginPage() {
                   {loading ? <CircularProgress size={24} color="inherit" /> : 'Verify & Login'}
                 </Button>
                 
-                <Button 
-                  fullWidth 
-                  variant="text" 
-                  onClick={() => { setStep('EMAIL'); setOtp(''); }}
-                  sx={{ textTransform: 'none', color: '#555', fontWeight: 600 }}
-                >
-                  Back to Email
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    disabled={resendCooldown > 0 || loading}
+                    onClick={() => handleSendOtp()}
+                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
+                  >
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+                  </Button>
+
+                  <Button 
+                    fullWidth 
+                    variant="text" 
+                    onClick={() => { 
+                      setStep('EMAIL'); 
+                      setOtp(''); 
+                      generateNewCaptcha(); 
+                    }}
+                    sx={{ textTransform: 'none', color: '#555', fontWeight: 600 }}
+                  >
+                    Back to Email
+                  </Button>
+                </Box>
               </Box>
             )}
           </Box>
