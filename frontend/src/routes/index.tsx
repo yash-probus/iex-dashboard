@@ -54,7 +54,6 @@ export default function AppRoutes() {
           <Route path="savings-calculator" element={<SavingsCalculatorPage />} />
           <Route path="savings-calculator/view/:id" element={<SavingsCalculatorViewPage />} />
           <Route path="savings-calculator/analysis/:id" element={<SavingsCalculatorAnalysisPage />} />
-          <Route path="forecast" element={<ForecastPage />} />
           
           {/* Module Layout wrapping all module sub-pages */}
           <Route element={<ModuleLayout />}>
