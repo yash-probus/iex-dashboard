@@ -336,7 +336,7 @@ const exportInsightsToExcel = async () => {
 
   return (
     <Box sx={{ p: 3, width: '100%', maxWidth: '100%', mx: 'auto' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+      <Box className="no-print" sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
         <IconButton 
           onClick={() => navigate('/savings-calculator')}
           sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
@@ -366,7 +366,7 @@ const exportInsightsToExcel = async () => {
       </Box>
 
       <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider', minHeight: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
+        <Box className="no-print" sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
              <TextField
               select
               label="Version"
@@ -456,7 +456,7 @@ const exportInsightsToExcel = async () => {
 
 
             {Object.keys(cachedResults).length > 0 && (
-              <Box sx={{ width: '100%', mt: 2, borderTop: 1, borderColor: 'divider' }}>
+              <Box className="no-print" sx={{ width: '100%', mt: 2, borderTop: 1, borderColor: 'divider' }}>
                 <Tabs 
                   value={selectedSimMonth} 
                   onChange={(e, v) => setSelectedSimMonth(v)}
@@ -478,7 +478,7 @@ const exportInsightsToExcel = async () => {
           </Box>
 
           {marketDecisionResult && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: -2, mb: 2 }}>
+            <Box className="no-print" sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: -2, mb: 2 }}>
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 

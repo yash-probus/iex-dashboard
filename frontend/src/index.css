@@ -128,3 +128,32 @@ h1, h2, h3, h4, h5, h6 {
   flex-grow: 1 !important;
   min-height: 400px !important;
 }
+
+/* Print Styles */
+@media print {
+  .no-print, .no-print * {
+    display: none !important;
+  }
+  .MuiDrawer-root,
+  .MuiAppBar-root {
+    display: none !important;
+  }
+  body, html {
+    background-color: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .MuiCard-root, .MuiPaper-root, .MuiBox-root {
+    page-break-inside: avoid;
+  }
+  #module-content-wrapper > div {
+    min-height: auto !important;
+    height: auto !important;
+  }
+}
