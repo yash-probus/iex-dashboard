@@ -11,12 +11,19 @@ export const DashboardHeatmap: React.FC<DashboardHeatmapProps> = ({ detail }) =>
   const records = detail.heatmapRecords;
   const days = detail.daily.map((d: any) => d.date);
 
-  // Timeblocks: 00:00 to 23:00 (every hour)
-  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00');
+  // Timeblocks: 1 to 96
+  const blocks = Array.from({ length: 96 }, (_, i) => i + 1);
 
-  const getCellData = (date: string, hour: string) => {
-    // This is a simplified block matching for hour
-    return records.find((r: any) => r.date === date && r.time.startsWith(hour));
+  const getCellData = (date: string, block: number) => {
+    return records.find((r: any) => r.date === date && r.timeblock === block);
+  };
+
+  const getHourLabel = (block: number) => {
+    if (block % 4 === 1) {
+      const hour = Math.floor(block / 4);
+      return String(hour).padStart(2, '0') + ':00';
+    }
+    return '';
   };
 
   const mktColor = (m: string) => m === 'DAM' ? '#eab308' : m === 'GDAM' ? '#10b981' : m === 'RTM' ? '#f43f5e' : '#fef08a';
@@ -43,26 +50,29 @@ export const DashboardHeatmap: React.FC<DashboardHeatmapProps> = ({ detail }) =>
           ))}
         </Box>
         
-        {hours.map(hour => (
-          <Box key={hour} sx={{ display: 'grid', gridTemplateColumns: `40px repeat(${days.length}, 1fr)`, gap: '2px', mb: '2px' }}>
-            <Typography sx={{ fontSize: '8px', color: '#94a3b8', textAlign: 'right', pr: 1, pt: '2px' }}>{hour}</Typography>
-            {days.map((day: string) => {
-              const cell = getCellData(day, hour);
-              return (
-                <Box 
-                  key={`${day}-${hour}`} 
-                  title={cell ? `${cell.time} | ${cell.market} | ${cell.qty} MWh | ₹${cell.rate}` : ''}
-                  sx={{ 
-                    bgcolor: cell ? mktColor(cell.market) : 'transparent',
-                    border: cell ? 'none' : '1px solid #f1f5f9',
-                    height: '12px',
-                    opacity: cell && cell.qty === 0 ? 0.3 : 1
-                  }} 
-                />
-              );
-            })}
-          </Box>
-        ))}
+        {blocks.map(block => {
+          const hourLabel = getHourLabel(block);
+          return (
+            <Box key={block} sx={{ display: 'grid', gridTemplateColumns: `40px repeat(${days.length}, 1fr)`, gap: '2px', mb: '2px' }}>
+              <Typography sx={{ fontSize: '8px', color: '#94a3b8', textAlign: 'right', pr: 1, pt: '0px' }}>{hourLabel}</Typography>
+              {days.map((day: string) => {
+                const cell = getCellData(day, block);
+                return (
+                  <Box 
+                    key={`${day}-${block}`} 
+                    title={cell ? `Block ${block} | ${cell.market} | ${cell.qty.toFixed(2)} MWh | ₹${cell.rate.toFixed(2)}` : ''}
+                    sx={{ 
+                      bgcolor: cell ? mktColor(cell.market) : 'transparent',
+                      border: cell ? 'none' : '1px solid #f1f5f9',
+                      height: '8px',
+                      opacity: cell && cell.qty === 0 ? 0.3 : 1
+                    }} 
+                  />
+                );
+              })}
+            </Box>
+          );
+        })}
       </Box>
     </Paper>
   );

@@ -14,6 +14,7 @@ import { DashboardMarketMix } from './native/DashboardMarketMix';
 import { DashboardBillEconomics } from './native/DashboardBillEconomics';
 import { DashboardTodCoverage } from './native/DashboardTodCoverage';
 import { DashboardHeatmap } from './native/DashboardHeatmap';
+import { DashboardSimulationTabs } from './native/DashboardSimulationTabs';
 
 interface DashboardProps {
   clientName?: string;
@@ -22,6 +23,7 @@ interface DashboardProps {
   marketDecisionResult?: MarketDecisionResult | null;
   demandShiftInsights?: any;
   selectedMonth?: string;
+  calcResult?: any;
 }
 
 const formatIndianCurrency = (num: number) => {
@@ -44,7 +46,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   clientOverview, 
   marketDecisionResult, 
   demandShiftInsights, 
-  selectedMonth 
+  selectedMonth,
+  calcResult
 }) => {
   const [activeMonth, setActiveMonth] = useState<string>(selectedMonth || 'all');
 
@@ -163,10 +166,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             marketSummaryMap[mkt].activeDays.add(date);
             marketSummaryMap[mkt].sumWeighted += qtyMWh * rate;
 
-            const timeStr = slot.timeBlock || slot.date;
             heatmapRecords.push({
               date: date,
-              time: timeStr,
+              timeblock: slot.timeblock,
               qty: qtyMWh,
               rate: rate,
               market: mkt
@@ -330,6 +332,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
           )}
 
           {detail && <DashboardDataTable detail={detail} />}
+          
+          <DashboardSimulationTabs 
+            calcResult={calcResult}
+            marketDecisionResult={marketDecisionResult}
+            demandShiftInsights={demandShiftInsights}
+          />
         </Box>
       )}
 

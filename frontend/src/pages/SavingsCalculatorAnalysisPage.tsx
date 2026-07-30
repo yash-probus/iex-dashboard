@@ -612,7 +612,7 @@ const exportInsightsToExcel = async () => {
 
               {calcTab === 6 && (
                 <Box sx={{ mt: 3 }}>
-                  <Dashboard calcEntry={calcEntry} clientName={calcEntry?.clientName || clientOverview?.clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
+                  <Dashboard calcResult={calcResult} calcEntry={calcEntry} clientName={calcEntry?.clientName || clientOverview?.clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
                 </Box>
               )}
 
