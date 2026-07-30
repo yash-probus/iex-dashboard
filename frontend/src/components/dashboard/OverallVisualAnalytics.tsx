@@ -23,12 +23,25 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
   
   const formatLakhs = (val: number) => `₹${(val / 100000).toFixed(1)}L`;
 
+  const formatIndianNumber = (num: number) => {
+    return new Intl.NumberFormat('en-IN').format(num);
+  };
+
   // Process data for charts
   const chartData = validMonths.map((m: any) => {
     const coverage = m.totalEnergyKwh ? (m.totalMarketEnergyKwh || 0) / m.totalEnergyKwh * 100 : 0;
     const netRate = m.totalEnergyKwh ? m.savings / m.totalEnergyKwh : 0;
     const grossRate = m.totalEnergyKwh ? (m.grossSavings || m.savings) / m.totalEnergyKwh : 0;
     
+    // For old charts
+    const actualDiscom = m.totalEnergyKwh || 0;
+    const actualOa = 0;
+    const recOa = m.totalMarketEnergyKwh || 0;
+    const recDiscom = actualDiscom - recOa;
+    
+    const optimizedCost = (m.totalEnergyKwh || 0) * 5.5; 
+    const actualCost = optimizedCost + (m.savings || 0);
+
     return {
       monthLabel: m.month,
       monthShort: m.month.split('-')[0], // e.g. "Mar-25" -> "Mar"
@@ -36,7 +49,14 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
       grossSaving: m.grossSavings || (m.savings || 0),
       coverage: coverage,
       netRate: netRate,
-      grossRate: grossRate
+      grossRate: grossRate,
+      actualDiscom,
+      actualOa,
+      recDiscom,
+      recOa,
+      totalUnits: m.totalEnergyKwh || 0,
+      actualCost,
+      recCost: optimizedCost
     };
   });
 
@@ -176,6 +196,64 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
                 </Typography>
               </Box>
             </Box>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* 3. Original Charts: Monthly Consumption Mix & Monthly Spend Comparison */}
+      <Grid container spacing={3}>
+        {/* Monthly Consumption Mix */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0.5 }}>
+              Monthly Consumption Mix - DISCOM vs OA
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Compare your actual energy source mix with Prolt's recommended distribution
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData} barCategoryGap="20%" margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(v) => formatIndianNumber(v)} />
+                <Tooltip
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+                <Bar dataKey="actualDiscom" name="Actual DISCOM" stackId="actual" fill="#94A3B8" />
+                <Bar dataKey="actualOa" name="Actual OA" stackId="actual" fill="#4ADE80" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="recDiscom" name="Prolt DISCOM" stackId="recommended" fill="#475569" />
+                <Bar dataKey="recOa" name="Prolt OA" stackId="recommended" fill="#16A34A" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid>
+
+        {/* Monthly Spend Comparison */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0.5 }}>
+              Monthly Spend Comparison
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Compare actual costs versus the estimated optimized costs.
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(v) => formatLakhs(v)} />
+                <Tooltip
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  formatter={(val: number) => formatCurrency(val)}
+                />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+                <Bar dataKey="actualCost" name="Actual" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="recCost" name="Optimized" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </Card>
         </Grid>
       </Grid>

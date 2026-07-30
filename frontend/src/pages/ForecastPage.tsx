@@ -553,21 +553,30 @@ export default function ForecastPage() {
                   accentColor={showWmape ? "#3B82F6" : "#F59E0B"}
                   sx={{ p: 1.75 }}
                   titleAction={
-                    <Typography
-                      variant="caption"
-                      onClick={(e) => {
+                    <ToggleButtonGroup
+                      size="small"
+                      value={showWmape ? 'wmape' : 'mape'}
+                      exclusive
+                      onChange={(e, newVal) => {
                         e.stopPropagation();
-                        setShowWmape(!showWmape);
+                        if (newVal !== null) {
+                          setShowWmape(newVal === 'wmape');
+                        }
                       }}
                       sx={{ 
-                        color: 'primary.main', 
-                        fontWeight: 'bold', 
-                        cursor: 'pointer',
-                        '&:hover': { textDecoration: 'underline' }
+                        height: 24,
+                        '& .MuiToggleButton-root': {
+                          px: 1,
+                          py: 0,
+                          fontSize: '0.65rem',
+                          fontWeight: 'bold',
+                          lineHeight: 1
+                        }
                       }}
                     >
-                      Show {showWmape ? "MAPE" : "WMAPE"}
-                    </Typography>
+                      <ToggleButton value="mape">MAPE</ToggleButton>
+                      <ToggleButton value="wmape">WMAPE</ToggleButton>
+                    </ToggleButtonGroup>
                   }
                 />
               )}
