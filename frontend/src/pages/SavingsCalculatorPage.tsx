@@ -1829,8 +1829,8 @@ export default function SavingsCalculatorPage() {
               setProltDialogOpen(true);
             }}
             sx={{
-              bgcolor: '#F87171',
-              '&:hover': { bgcolor: '#EF4444' },
+              bgcolor: '#8B5CF6',
+              '&:hover': { bgcolor: '#7C3AED' },
               borderRadius: 2,
               textTransform: 'none',
               height: 48,

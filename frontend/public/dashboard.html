@@ -549,7 +549,8 @@
             display: block;
             height: 100%;
             border-radius: 99px;
-            background: var(--green)
+            background: var(--green);
+            transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .market-cards {
@@ -841,7 +842,7 @@
                     <div><b>Location</b><span id="clientLocation">Kasna Ecotech 1 Extension, Greater Noida</span></div>
                     <div><b>Connectivity</b><span id="clientConnectivity">33 kV</span></div>
                     <div><b>Overall period</b><span id="clientPeriod">Mar 2025 – Feb 2026</span></div>
-                    <div><b>Detailed cycle loaded</b><span>Mar-25 · 19 Mar–18 Apr</span></div>
+                    <div><b>Detailed cycle loaded</b><span id="clientDetailedCycle">Mar-25 · 19 Mar–18 Apr</span></div>
                 </div>
             </div>
         </header>
@@ -1202,19 +1203,22 @@
     <article class="kpi"><div class="label">Total consumption</div><div class="value">${energy(o.consumption[i])}</div><div class="sub">Billed monthly electricity consumption</div></article>
     <article class="kpi"><div class="label">Blended cost</div><div class="value">₹${o.platformRate[i].toFixed(2)}</div><div class="sub">Compared with ₹${o.discomRate[i].toFixed(2)}/kWh baseline</div></article>
     <article class="kpi"><div class="label">Net saving rate</div><div class="value">${rate(o.netPerUnit[i])}</div><div class="sub">Final client saving per consumed unit</div></article>`;
-            renderDetailed();
+            renderDetailed(i);
         }
-        function renderDetailed() {
-            const d = DATA.detail;
+        function renderDetailed(i) {
+            const d = DATA.detail, o = DATA.overall;
+            const coverage = i >= 0 ? o.coverage[i] : d.oaCoverage;
+            const consumption = i >= 0 ? o.consumption[i] : d.consumption;
+            const cleared = i >= 0 ? o.cleared[i] : d.oaConsumer;
             $("energyFlow").innerHTML = `
     <div class="flow">
       <div class="flow-box"><span>Regional bus OA</span><b>${energy(d.oaRegional)}</b><div class="note">Scheduled and cleared upstream</div></div>
       <div class="arrow">→</div>
-      <div class="flow-box"><span>Consumer bus OA</span><b>${energy(d.oaConsumer)}</b><div class="note">${pct(d.deliveryEfficiency)} delivered · ${pct(d.busLoss)} loss</div></div>
+      <div class="flow-box"><span>Consumer bus OA</span><b>${energy(cleared)}</b><div class="note">${pct(d.deliveryEfficiency)} delivered · ${pct(d.busLoss)} loss</div></div>
       <div class="arrow">→</div>
-      <div class="flow-box"><span>Total consumption</span><b>${energy(d.consumption)}</b><div class="note">${pct(d.oaCoverage)} supplied through OA</div></div>
+      <div class="flow-box"><span>Total consumption</span><b>${energy(consumption)}</b><div class="note">${coverage}% supplied through OA</div></div>
     </div>
-    <div><div class="note">Open Access coverage</div><div class="progress"><i style="width:${d.oaCoverage}%"></i></div></div>`;
+    <div><div class="note">Open Access coverage</div><div class="progress"><i style="width:${coverage}%"></i></div></div>`;
             renderMonthlyInsights(); renderMarketCards(); drawDaily(); drawTod(); renderWaterfall(); drawHeatmap(); renderDetailTables();
         }
         function renderMonthlyInsights() {
@@ -1347,6 +1351,36 @@
             if(document.getElementById("clientConnectivity")) document.getElementById("clientConnectivity").textContent = CLIENT_INFO.connectivity;
             if(document.getElementById("clientPeriod")) document.getElementById("clientPeriod").textContent = CLIENT_INFO.period;
         }
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'UPDATE_CLIENT') {
+                const payload = event.data.payload;
+                if (payload.name) {
+                    CLIENT_INFO.name = payload.name;
+                    CLIENT_INFO.csvNamePrefix = payload.name.replace(/[^a-zA-Z0-9]/g, '_');
+                    if(document.getElementById("pageTitle")) document.getElementById("pageTitle").textContent = CLIENT_INFO.name + " | Energy Insight Suite";
+                    if(document.getElementById("clientName")) document.getElementById("clientName").textContent = CLIENT_INFO.name;
+                }
+                if (payload.location && document.getElementById("clientLocation")) document.getElementById("clientLocation").textContent = payload.location;
+                if (payload.connectivity && document.getElementById("clientConnectivity")) document.getElementById("clientConnectivity").textContent = payload.connectivity;
+                if (payload.period && document.getElementById("clientPeriod")) document.getElementById("clientPeriod").textContent = payload.period;
+                
+                if (payload.data) {
+                    // Update global DATA object
+                    if (payload.data.overall) DATA.overall = payload.data.overall;
+                    if (payload.data.detail) {
+                        DATA.detail = payload.data.detail;
+                        if (document.getElementById("clientDetailedCycle")) document.getElementById("clientDetailedCycle").textContent = DATA.detail.month + " · " + DATA.detail.settlementPeriod;
+                    }
+                    
+                    // Re-render everything with new data
+                    initSelect();
+                    renderOverall();
+                    route();
+                }
+            }
+        });
+
         initSelect(); renderOverall(); route();
         window.addEventListener("resize", () => { if ($("overallView").classList.contains("active")) { drawOverallTrend(); drawSpreadCoverage() } else if (currentMonth === DATA.detail.month) { drawDaily(); drawTod(); drawHeatmap() } });
     </script>
