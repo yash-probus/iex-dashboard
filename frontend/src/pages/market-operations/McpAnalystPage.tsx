@@ -4,6 +4,7 @@ import {
   TableContainer, TableHead, TableRow, CircularProgress,
   Button, Card, CardContent, Divider, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
 import Papa from 'papaparse';
 import { fetchMarketOperations, MarketOperation } from '../../api/marketOperations.api';
 import { formatTimeblock } from '../../utils/date';
@@ -185,6 +186,56 @@ export default function McpAnalystPage() {
 
   const { totalSavings, clearancePercentage, clearedBids, totalBids } = calculateKPIs();
 
+  const handleDownload = () => {
+    if (parsedData.length === 0) return;
+    
+    const csvData = parsedData.map(row => {
+      const op = marketData.find(m => m.timeblock === row.timeblock);
+      const damMcp = getMarketVal(op, 'DAM');
+      const gdamMcp = getMarketVal(op, 'GDAM');
+      const rtmMcp = getMarketVal(op, 'RTM');
+      
+      let actualPaidPrice: number | null = null;
+      if (market === 'DAM') actualPaidPrice = damMcp;
+      else if (market === 'RTM') actualPaidPrice = rtmMcp;
+      else if (market === 'GDAM') actualPaidPrice = gdamMcp;
+
+      let blockSavings = 0;
+      let cleared = 'No';
+      if (actualPaidPrice !== null && row.bidPrice !== null && actualPaidPrice <= row.bidPrice) {
+        cleared = 'Yes';
+        const validMcps = [damMcp, gdamMcp, rtmMcp].filter(v => v !== null) as number[];
+        if (validMcps.length > 0 && row.amount) {
+          const lowestMcp = Math.min(...validMcps);
+          const savings = (actualPaidPrice - lowestMcp) * (row.amount / 4);
+          if (savings > 0) blockSavings = savings;
+        }
+      }
+
+      return {
+        'Timeblock': formatTimeblock(row.timeblock),
+        'Amount (MW)': row.amount !== null ? row.amount : '-',
+        'Bid Price (₹/MWh)': row.bidPrice !== null ? row.bidPrice : '-',
+        'DAM MCP (₹/MWh)': damMcp !== null ? damMcp : '-',
+        'GDAM MCP (₹/MWh)': gdamMcp !== null ? gdamMcp : '-',
+        'RTM MCP (₹/MWh)': rtmMcp !== null ? rtmMcp : '-',
+        'Cleared': cleared,
+        'Savings (₹)': blockSavings.toFixed(2)
+      };
+    });
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('url'); // dummy element, using standard anchor tag approach below
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `MCP_Analysis_${market}_${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' }}>
       <Card
@@ -261,6 +312,17 @@ export default function McpAnalystPage() {
               >
                 Analyze
               </Button>
+              
+              {parsedData.length > 0 && (
+                <Button
+                  variant="outlined"
+                  onClick={handleDownload}
+                  startIcon={<DownloadIcon />}
+                  sx={{ px: 3, height: '42px', borderRadius: '10px', textTransform: 'none', fontWeight: 600, color: 'primary.main', borderColor: 'primary.main' }}
+                >
+                  Download
+                </Button>
+              )}
             </Box>
           </Box>
 
