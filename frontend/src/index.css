@@ -149,7 +149,7 @@ h1, h2, h3, h4, h5, h6 {
     width: 100% !important;
     max-width: 383mm !important;
   }
-  .MuiCard-root, .MuiPaper-root, .MuiBox-root {
+  .MuiCard-root {
     page-break-inside: avoid;
   }
   #module-content-wrapper > div {
