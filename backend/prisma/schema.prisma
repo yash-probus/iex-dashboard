@@ -774,11 +774,11 @@ model ForecastRtm {
   date           String   @db.VarChar(10)
   intervalNumber Int      @db.SmallInt
   intervalTime   String   @db.VarChar(15)
-  purchaseBid    Decimal  @db.Decimal(18, 4)
-  sellBid        Decimal  @db.Decimal(18, 4)
-  mcv            Decimal  @db.Decimal(18, 4)
-  fsv            Decimal  @db.Decimal(18, 4)
-  mcp            Decimal  @db.Decimal(18, 4)
+  purchaseBid    Decimal? @db.Decimal(18, 4)
+  sellBid        Decimal? @db.Decimal(18, 4)
+  mcv            Decimal? @db.Decimal(18, 4)
+  fsv            Decimal? @db.Decimal(18, 4)
+  mcp            Decimal? @db.Decimal(18, 4)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
