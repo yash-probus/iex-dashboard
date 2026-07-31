@@ -108,7 +108,7 @@ export default function McpAnalystPage() {
   };
 
   // Helper function to color code based on lowest (green), medium (yellow), highest (red)
-  const getColor = (val: number | null, other1: number, other2: number) => {
+  const getColor = (val: number | null, other1: number | null, other2: number | null) => {
     if (val === null) return 'inherit';
     const values = Array.from(new Set([val, other1, other2].filter(v => v !== null && !isNaN(v)))).sort((a, b) => a - b);
     
@@ -130,12 +130,16 @@ export default function McpAnalystPage() {
   const col1 = marketsToCompare[0];
   const col2 = marketsToCompare[1];
 
-  const getMarketVal = (op: MarketOperation | undefined, m: string): number => {
-    if (!op) return 0;
-    if (m === 'DAM') return Number(op.damMcp) || 0;
-    if (m === 'RTM') return Number(op.rtmMcp) || 0;
-    if (m === 'GDAM') return Number(op.gdamMcp) || 0;
-    return 0;
+  const getMarketVal = (op: MarketOperation | undefined, m: string): number | null => {
+    if (!op) return null;
+    let val: number | null = null;
+    if (m === 'DAM') val = Number(op.damMcp);
+    else if (m === 'RTM') val = Number(op.rtmMcp);
+    else if (m === 'GDAM') val = Number(op.gdamMcp);
+    
+    // If the value is 0 (or NaN), it usually means the data hasn't been scraped yet for this block
+    if (val === 0 || isNaN(val)) return null;
+    return val;
   };
 
   return (
@@ -256,18 +260,18 @@ export default function McpAnalystPage() {
                       <TableRow key={row.timeblock} hover sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell align="center">{formatTimeblock(row.timeblock)}</TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getColor(boughtRate, val1, val2), fontWeight: 600 }}>
+                          <Box component="span" sx={{ color: getColor(boughtRate, val1 ?? null, val2 ?? null), fontWeight: 600 }}>
                             {boughtRate !== null ? boughtRate.toFixed(2) : '-'}
                           </Box>
                         </TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getColor(val1, boughtRate ?? Infinity, val2), fontWeight: 600 }}>
-                            {val1.toFixed(2)}
+                          <Box component="span" sx={{ color: getColor(val1, boughtRate ?? null, val2 ?? null), fontWeight: 600 }}>
+                            {val1 !== null ? val1.toFixed(2) : '-'}
                           </Box>
                         </TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getColor(val2, boughtRate ?? Infinity, val1), fontWeight: 600 }}>
-                            {val2.toFixed(2)}
+                          <Box component="span" sx={{ color: getColor(val2, boughtRate ?? null, val1 ?? null), fontWeight: 600 }}>
+                            {val2 !== null ? val2.toFixed(2) : '-'}
                           </Box>
                         </TableCell>
                       </TableRow>
