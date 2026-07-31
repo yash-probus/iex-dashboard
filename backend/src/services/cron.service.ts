@@ -34,6 +34,53 @@ export class CronService {
       }
     });
 
+    // Run every hour for RTM Scraper
+    cron.schedule('0 * * * *', async () => {
+      console.log('[Cron] Running hourly RTM scraper');
+      try {
+        const { ScraperService } = await import('../modules/scraper/scraper.service');
+        const { PersistenceService } = await import('../modules/persistence/persistence.service');
+        
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+        const dateStr = formatter.format(new Date());
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const deliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+
+        // Scrape and persist RTM
+        try {
+          const rtmRecords = await ScraperService.scrapeRtm();
+          if (rtmRecords.length > 0) {
+            const existing = await prisma.dataset.findFirst({
+              where: { market: 'RTM', deliveryDate, status: 'ACTIVE' }
+            });
+            await PersistenceService.persistDataset({
+              market: 'RTM',
+              deliveryDate,
+              fileName: `scraped_rtm_${dateStr}.csv`,
+              records: rtmRecords,
+              action: existing ? 'replace' : undefined
+            });
+            console.log(`[Cron] Successfully scraped and saved ${rtmRecords.length} RTM records`);
+            await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'SUCCESS', `Successfully scraped and saved ${rtmRecords.length} RTM records`);
+          } else {
+            await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'SUCCESS', 'Scraper returned 0 records');
+          }
+        } catch (e: any) {
+          console.error('[Cron] RTM scrape failed:', e);
+          await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'ERROR', e.message || String(e));
+        }
+      } catch (error) {
+        console.error('[Cron] Error in hourly RTM scraper schedule:', error);
+      }
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
     // Run every day at midnight for Weather Historical
     cron.schedule('0 0 * * *', async () => {
       console.log('[Cron] Running daily midnight tasks');
@@ -135,29 +182,7 @@ export class CronService {
           await ApiLogService.createLog('IEX GDAM Scraper', 'https://www.iexindia.com/market-data/green-day-ahead-market/market-snapshot', 'ERROR', e.message || String(e));
         }
 
-        // Scrape and persist RTM
-        try {
-          const rtmRecords = await ScraperService.scrapeRtm();
-          if (rtmRecords.length > 0) {
-            const existing = await prisma.dataset.findFirst({
-              where: { market: 'RTM', deliveryDate, status: 'ACTIVE' }
-            });
-            await PersistenceService.persistDataset({
-              market: 'RTM',
-              deliveryDate,
-              fileName: `scraped_rtm_${dateStr}.csv`,
-              records: rtmRecords,
-              action: existing ? 'replace' : undefined
-            });
-            console.log(`[Cron] Successfully scraped and saved ${rtmRecords.length} RTM records`);
-            await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'SUCCESS', `Successfully scraped and saved ${rtmRecords.length} RTM records`);
-          } else {
-            await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'SUCCESS', 'Scraper returned 0 records');
-          }
-        } catch (e: any) {
-          console.error('[Cron] RTM scrape failed:', e);
-          await ApiLogService.createLog('IEX RTM Scraper', 'https://www.iexindia.com/market-data/real-time-market/market-snapshot', 'ERROR', e.message || String(e));
-        }
+        // RTM scraper has been moved to an hourly cron job
 
       } catch (error) {
         console.error('[Cron] Error in Market Data scraper schedule:', error);
