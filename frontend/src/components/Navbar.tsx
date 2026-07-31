@@ -513,18 +513,6 @@ export default function Navbar() {
             sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: 1 }}
             aria-label="Home"
           >
-            {location.pathname !== '/dashboard' && location.pathname !== '/' && (
-              <IconButton 
-                onClick={() => navigate(-1)} 
-                sx={{ 
-                  color: '#1a237e', 
-                  '&:hover': { backgroundColor: alpha('#1a237e', 0.1) },
-                  padding: '4px'
-                }}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-            )}
             <Box
               component="img"
               src="/assets/logo.png"
