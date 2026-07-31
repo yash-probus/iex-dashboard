@@ -143,9 +143,12 @@ export default function McpAnalystPage() {
     return val;
   };
 
-  // Calculate total savings
-  const calculateTotalSavings = () => {
+  // Calculate total savings and clearance percentage
+  const calculateKPIs = () => {
     let totalSavings = 0;
+    let totalBids = 0;
+    let clearedBids = 0;
+
     parsedData.forEach(row => {
       const op = marketData.find(m => m.timeblock === row.timeblock);
       if (!op || row.bidPrice === null || row.amount === null) return;
@@ -159,8 +162,11 @@ export default function McpAnalystPage() {
       else if (market === 'RTM') actualPaidPrice = rtmMcp;
       else if (market === 'GDAM') actualPaidPrice = gdamMcp;
 
-      // Only calculate if the bid cleared (Bid Price >= Actual Paid Price)
-      if (actualPaidPrice !== null && row.bidPrice >= actualPaidPrice) {
+      totalBids++;
+
+      // Only calculate if the bid cleared (Actual Paid Price <= Bid Price)
+      if (actualPaidPrice !== null && actualPaidPrice <= row.bidPrice) {
+        clearedBids++;
         const validMcps = [damMcp, gdamMcp, rtmMcp].filter(v => v !== null) as number[];
         if (validMcps.length > 0) {
           const lowestMcp = Math.min(...validMcps);
@@ -171,10 +177,13 @@ export default function McpAnalystPage() {
         }
       }
     });
-    return totalSavings;
+
+    const clearancePercentage = totalBids > 0 ? (clearedBids / totalBids) * 100 : 0;
+
+    return { totalSavings, clearancePercentage, clearedBids, totalBids };
   };
 
-  const totalSavings = calculateTotalSavings();
+  const { totalSavings, clearancePercentage, clearedBids, totalBids } = calculateKPIs();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' }}>
@@ -202,9 +211,6 @@ export default function McpAnalystPage() {
             </Box>
             
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#2e7d32', mr: 2 }}>
-                Total Potential Savings: ₹{totalSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </Typography>
               <input
                 type="date"
                 value={date}
@@ -257,6 +263,27 @@ export default function McpAnalystPage() {
               </Button>
             </Box>
           </Box>
+
+          {/* KPI Cards */}
+          {parsedData.length > 0 && (
+            <Box sx={{ display: 'flex', gap: 3, mb: 1, flexWrap: 'wrap' }}>
+              <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid #E2E8F0', flex: 1, minWidth: '200px', bgcolor: '#F8FAFC' }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={600}>Total Potential Savings</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: '#2e7d32', mt: 1 }}>
+                  ₹{totalSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
+              </Paper>
+              <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid #E2E8F0', flex: 1, minWidth: '200px', bgcolor: '#F8FAFC' }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={600}>Bid Clearance</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: clearancePercentage >= 80 ? '#2e7d32' : clearancePercentage >= 50 ? '#f57f17' : '#c62828', mt: 1 }}>
+                  {clearancePercentage.toFixed(1)}%
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {clearedBids} out of {totalBids} blocks cleared
+                </Typography>
+              </Paper>
+            </Box>
+          )}
 
           <Divider />
 
