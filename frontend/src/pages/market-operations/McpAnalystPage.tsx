@@ -107,14 +107,21 @@ export default function McpAnalystPage() {
     }
   };
 
-  // Helper function to find minimum and return green color
-  const getMinColor = (val: number | null, other1: number, other2: number) => {
+  // Helper function to color code based on lowest (green), medium (yellow), highest (red)
+  const getColor = (val: number | null, other1: number, other2: number) => {
     if (val === null) return 'inherit';
-    const values = [val, other1, other2].filter(v => v !== null && !isNaN(v));
-    if (values.length === 0) return 'inherit';
+    const values = Array.from(new Set([val, other1, other2].filter(v => v !== null && !isNaN(v)))).sort((a, b) => a - b);
     
-    const min = Math.min(...values);
-    if (val === min) return '#2e7d32'; // Green text for the lowest
+    if (values.length <= 1) return 'inherit';
+    
+    const min = values[0];
+    const max = values[values.length - 1];
+    
+    if (val === min) return '#2e7d32'; // Green
+    if (val === max) return '#c62828'; // Red
+    
+    if (values.length === 3 && val === values[1]) return '#f57f17'; // Yellow/Orange
+    
     return 'inherit';
   };
 
@@ -249,17 +256,17 @@ export default function McpAnalystPage() {
                       <TableRow key={row.timeblock} hover sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell align="center">{formatTimeblock(row.timeblock)}</TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getMinColor(boughtRate, val1, val2), fontWeight: 600 }}>
+                          <Box component="span" sx={{ color: getColor(boughtRate, val1, val2), fontWeight: 600 }}>
                             {boughtRate !== null ? boughtRate.toFixed(2) : '-'}
                           </Box>
                         </TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getMinColor(val1, boughtRate ?? Infinity, val2), fontWeight: 600 }}>
+                          <Box component="span" sx={{ color: getColor(val1, boughtRate ?? Infinity, val2), fontWeight: 600 }}>
                             {val1.toFixed(2)}
                           </Box>
                         </TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getMinColor(val2, boughtRate ?? Infinity, val1), fontWeight: 600 }}>
+                          <Box component="span" sx={{ color: getColor(val2, boughtRate ?? Infinity, val1), fontWeight: 600 }}>
                             {val2.toFixed(2)}
                           </Box>
                         </TableCell>
