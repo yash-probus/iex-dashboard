@@ -42,8 +42,9 @@ export const DashboardHeatmap: React.FC<DashboardHeatmapProps> = ({ detail }) =>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box sx={{ width: 8, height: 8, bgcolor: '#fef08a', borderRadius: '1px' }}/><Typography sx={{ fontSize: '9px' }}>Light cell = zero scheduled quantity</Typography></Box>
       </Box>
 
-      <Box sx={{ width: '100%' }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: `40px repeat(${days.length}, 1fr)`, gap: '2px', mb: '4px' }}>
+      <Box sx={{ width: '100%', overflowX: 'auto', pb: 2 }}>
+        <Box sx={{ minWidth: 'max-content' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: `40px repeat(${days.length}, 24px)`, gap: '2px', mb: '4px' }}>
           <Box />
           {days.map((d: string) => (
             <Typography key={d} sx={{ fontSize: '8px', color: '#64748b', transform: 'rotate(-45deg)', transformOrigin: 'bottom left', mt: 2, mb: 1, whiteSpace: 'nowrap' }}>{d}</Typography>
@@ -53,7 +54,7 @@ export const DashboardHeatmap: React.FC<DashboardHeatmapProps> = ({ detail }) =>
         {blocks.map(block => {
           const hourLabel = getHourLabel(block);
           return (
-            <Box key={block} sx={{ display: 'grid', gridTemplateColumns: `40px repeat(${days.length}, 1fr)`, gap: '2px', mb: '2px' }}>
+            <Box key={block} sx={{ display: 'grid', gridTemplateColumns: `40px repeat(${days.length}, 24px)`, gap: '2px', mb: '2px' }}>
               <Typography sx={{ fontSize: '8px', color: '#94a3b8', textAlign: 'right', pr: 1, pt: '0px' }}>{hourLabel}</Typography>
               {days.map((day: string) => {
                 const cell = getCellData(day, block);
@@ -73,6 +74,7 @@ export const DashboardHeatmap: React.FC<DashboardHeatmapProps> = ({ detail }) =>
             </Box>
           );
         })}
+        </Box>
       </Box>
     </Paper>
   );

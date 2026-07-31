@@ -22,8 +22,8 @@ export const DashboardSimulationTabs: React.FC<DashboardSimulationTabsProps> = (
 }) => {
   // Handlers for dialogs and exports (mocked or handled internally if needed, or pass them in)
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
-  const [demandShiftGraphOpen, setDemandShiftGraphOpen] = useState(false);
-  const [dynamicDemandShiftGraphOpen, setDynamicDemandShiftGraphOpen] = useState(false);
+  const [demandShiftGraphOpen, setDemandShiftGraphOpen] = useState(true);
+  const [dynamicDemandShiftGraphOpen, setDynamicDemandShiftGraphOpen] = useState(true);
 
   const handleExportDetailedOA = () => {
     // We can implement actual export here if needed, or just let it fail gracefully
