@@ -219,6 +219,7 @@ export default function RECPage() {
             <FilterContainer
               accentColor={REC_ACCENT}
               filters={filters}
+              maxDays={36500}
               onSearch={(newFilters, selectedState) => {
                 if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
                 if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);

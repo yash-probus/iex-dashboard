@@ -12,6 +12,7 @@ interface FilterContainerProps {
   onSearch: (filters: MarketFilters, selectedState?: string) => void;
   onManageData?: () => void;
   hideHourlyDaily?: boolean;
+  maxDays?: number;
 }
 
 export default function FilterContainer({ 
@@ -19,7 +20,8 @@ export default function FilterContainer({
   filters,
   onSearch,
   onManageData,
-  hideHourlyDaily
+  hideHourlyDaily,
+  maxDays
 }: FilterContainerProps) {
   const [localStartDate, setLocalStartDate] = useState(filters.startDate);
   const [localEndDate, setLocalEndDate] = useState(filters.endDate);
@@ -45,6 +47,7 @@ export default function FilterContainer({
       <DateRangePicker 
         startDate={localStartDate}
         endDate={localEndDate}
+        maxDays={maxDays}
         onChange={(s, e) => {
           setLocalStartDate(s);
           setLocalEndDate(e);
