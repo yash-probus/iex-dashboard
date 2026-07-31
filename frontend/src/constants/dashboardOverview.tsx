@@ -66,11 +66,15 @@ export const MARKET_ITEMS: OverviewItemConfig[] = [
 export const MARKET_OPERATIONS_ITEMS: OverviewItemConfig[] = [
   {
     key: 'market-operations',
-    title: 'Market Trend',
+    title: 'Market Operations',
     description: 'Compare and upload MCP data across DAM, RTM, and GDAM.',
-    path: '/market-operations',
+    path: '/market-operations/trend',
     icon: <SettingsIcon fontSize="medium" />,
-    color: '#FF7043'
+    color: '#FF7043',
+    subItems: [
+      { key: 'market-trend', title: 'Market Trend', path: '/market-operations/trend', icon: <SettingsIcon fontSize="small" /> },
+      { key: 'mcp-analyst', title: 'MCP Analyst', path: '/market-operations/mcp-analyst', icon: <ChartIcon fontSize="small" /> }
+    ]
   }
 ];
 
