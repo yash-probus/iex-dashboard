@@ -484,8 +484,8 @@ const exportInsightsToExcel = async () => {
                 startIcon={<DownloadIcon />} 
                 onClick={() => {
                   const originalTitle = document.title;
-                  if (calcEntry?.customerName) {
-                    document.title = `${calcEntry.customerName} - Savings Analysis`;
+                  if (calcEntry?.clientName) {
+                    document.title = `${calcEntry.clientName} - Savings Analysis`;
                   }
                   window.print();
                   document.title = originalTitle;
@@ -514,7 +514,7 @@ const exportInsightsToExcel = async () => {
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
-                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry.customerName);
+                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry.clientName);
                   } catch (err: any) {
                     setSnackbar({
                       open: true,

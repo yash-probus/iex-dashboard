@@ -2215,7 +2215,7 @@ export default function SavingsCalculatorPage() {
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
-                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry.customerName);
+                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry.clientName);
                   } catch (err: any) {
                     setSnackbar({
                       open: true,
