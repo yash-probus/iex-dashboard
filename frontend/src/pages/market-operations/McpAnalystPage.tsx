@@ -10,7 +10,8 @@ import { formatTimeblock } from '../../utils/date';
 
 interface ParsedBlock {
   timeblock: number;
-  boughtRate: number | null;
+  bidPrice: number | null;
+  amount: number | null;
 }
 
 export default function McpAnalystPage() {
@@ -67,24 +68,27 @@ export default function McpAnalystPage() {
             // Stop if empty row
             if (!row || row.length < 3 || !row[0]) continue;
 
-            let boughtRate: number | null = null;
+            let bidPrice: number | null = null;
+            let amount: number | null = null;
             
             // Search for first non-zero bid starting from column 3
             for (let i = 3; i < row.length; i++) {
               const val = parseFloat(row[i]);
               if (!isNaN(val) && val !== 0) {
-                // Found a non-zero bid. The price bucket is at the same index in row 1
+                // Found a non-zero bid (Amount). The price bucket is at the same index in row 1
+                amount = val;
                 const price = parseFloat(priceBucketsRow[i]);
                 if (!isNaN(price)) {
-                  boughtRate = price;
-                  break;
+                  bidPrice = price;
                 }
+                break;
               }
             }
 
             blocks.push({
               timeblock: timeblockCounter,
-              boughtRate
+              bidPrice,
+              amount
             });
 
             timeblockCounter++;
@@ -107,9 +111,9 @@ export default function McpAnalystPage() {
     }
   };
 
-  const getColor = (val: number | null, other1: number | null, other2: number | null) => {
+  const getColor = (val: number | null, allMarkets: (number | null)[]) => {
     if (val === null) return 'inherit';
-    const validValues = [val, other1, other2].filter((v): v is number => v !== null && !isNaN(v));
+    const validValues = allMarkets.filter((v): v is number => v !== null && !isNaN(v));
     const values = Array.from(new Set(validValues)).sort((a, b) => a - b);
     
     if (values.length <= 1) return 'inherit';
@@ -125,10 +129,7 @@ export default function McpAnalystPage() {
     return 'inherit';
   };
 
-  // Derived dynamic columns based on selected market
-  const marketsToCompare = ['DAM', 'RTM', 'GDAM'].filter(m => m !== market);
-  const col1 = marketsToCompare[0];
-  const col2 = marketsToCompare[1];
+
 
   const getMarketVal = (op: MarketOperation | undefined, m: string): number | null => {
     if (!op) return null;
@@ -141,6 +142,39 @@ export default function McpAnalystPage() {
     if (val === 0 || val === null || isNaN(val)) return null;
     return val;
   };
+
+  // Calculate total savings
+  const calculateTotalSavings = () => {
+    let totalSavings = 0;
+    parsedData.forEach(row => {
+      const op = marketData.find(m => m.timeblock === row.timeblock);
+      if (!op || row.bidPrice === null || row.amount === null) return;
+      
+      const damMcp = getMarketVal(op, 'DAM');
+      const gdamMcp = getMarketVal(op, 'GDAM');
+      const rtmMcp = getMarketVal(op, 'RTM');
+      
+      let actualPaidPrice: number | null = null;
+      if (market === 'DAM') actualPaidPrice = damMcp;
+      else if (market === 'RTM') actualPaidPrice = rtmMcp;
+      else if (market === 'GDAM') actualPaidPrice = gdamMcp;
+
+      // Only calculate if the bid cleared (Bid Price >= Actual Paid Price)
+      if (actualPaidPrice !== null && row.bidPrice >= actualPaidPrice) {
+        const validMcps = [damMcp, gdamMcp, rtmMcp].filter(v => v !== null) as number[];
+        if (validMcps.length > 0) {
+          const lowestMcp = Math.min(...validMcps);
+          const blockSavings = (actualPaidPrice - lowestMcp) * (row.amount / 4);
+          if (blockSavings > 0) {
+            totalSavings += blockSavings;
+          }
+        }
+      }
+    });
+    return totalSavings;
+  };
+
+  const totalSavings = calculateTotalSavings();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' }}>
@@ -167,8 +201,10 @@ export default function McpAnalystPage() {
               </Typography>
             </Box>
             
-            {/* Controls */}
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: '#2e7d32', mr: 2 }}>
+                Total Potential Savings: ₹{totalSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
               <input
                 type="date"
                 value={date}
@@ -230,21 +266,22 @@ export default function McpAnalystPage() {
               <TableHead>
                 <TableRow>
                   <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Timeblock</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>{market} Bought Rate (₹/MWh)</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>{col1} MCP (₹/MWh)</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>{col2} MCP (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>Bid Price (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>DAM MCP (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>GDAM MCP (₹/MWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#F8FAFC' }}>RTM MCP (₹/MWh)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
                       <CircularProgress />
                     </TableCell>
                   </TableRow>
                 ) : parsedData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                    <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                       Upload a CSV and click Analyze to view data.
                     </TableCell>
                   </TableRow>
@@ -252,26 +289,34 @@ export default function McpAnalystPage() {
                   parsedData.map((row) => {
                     // Match with marketData by timeblock
                     const op = marketData.find(m => m.timeblock === row.timeblock);
-                    const boughtRate = row.boughtRate;
-                    const val1 = getMarketVal(op, col1);
-                    const val2 = getMarketVal(op, col2);
+                    const bidPrice = row.bidPrice;
+                    const damMcp = getMarketVal(op, 'DAM');
+                    const gdamMcp = getMarketVal(op, 'GDAM');
+                    const rtmMcp = getMarketVal(op, 'RTM');
+                    
+                    const allMarkets = [damMcp, gdamMcp, rtmMcp];
 
                     return (
                       <TableRow key={row.timeblock} hover sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell align="center">{formatTimeblock(row.timeblock)}</TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getColor(boughtRate, val1 ?? null, val2 ?? null), fontWeight: 600 }}>
-                            {boughtRate !== null ? boughtRate.toFixed(2) : '-'}
+                          <Box component="span" sx={{ fontWeight: 600 }}>
+                            {bidPrice !== null ? bidPrice.toFixed(2) : '-'}
                           </Box>
                         </TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getColor(val1, boughtRate ?? null, val2 ?? null), fontWeight: 600 }}>
-                            {val1 !== null ? val1.toFixed(2) : '-'}
+                          <Box component="span" sx={{ color: getColor(damMcp, allMarkets), fontWeight: 600 }}>
+                            {damMcp !== null ? damMcp.toFixed(2) : '-'}
                           </Box>
                         </TableCell>
                         <TableCell align="center">
-                          <Box component="span" sx={{ color: getColor(val2, boughtRate ?? null, val1 ?? null), fontWeight: 600 }}>
-                            {val2 !== null ? val2.toFixed(2) : '-'}
+                          <Box component="span" sx={{ color: getColor(gdamMcp, allMarkets), fontWeight: 600 }}>
+                            {gdamMcp !== null ? gdamMcp.toFixed(2) : '-'}
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Box component="span" sx={{ color: getColor(rtmMcp, allMarkets), fontWeight: 600 }}>
+                            {rtmMcp !== null ? rtmMcp.toFixed(2) : '-'}
                           </Box>
                         </TableCell>
                       </TableRow>
