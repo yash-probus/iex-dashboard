@@ -107,10 +107,10 @@ export default function McpAnalystPage() {
     }
   };
 
-  // Helper function to color code based on lowest (green), medium (yellow), highest (red)
   const getColor = (val: number | null, other1: number | null, other2: number | null) => {
     if (val === null) return 'inherit';
-    const values = Array.from(new Set([val, other1, other2].filter(v => v !== null && !isNaN(v)))).sort((a, b) => a - b);
+    const validValues = [val, other1, other2].filter((v): v is number => v !== null && !isNaN(v));
+    const values = Array.from(new Set(validValues)).sort((a, b) => a - b);
     
     if (values.length <= 1) return 'inherit';
     
@@ -138,7 +138,7 @@ export default function McpAnalystPage() {
     else if (m === 'GDAM') val = Number(op.gdamMcp);
     
     // If the value is 0 (or NaN), it usually means the data hasn't been scraped yet for this block
-    if (val === 0 || isNaN(val)) return null;
+    if (val === 0 || val === null || isNaN(val)) return null;
     return val;
   };
 
