@@ -347,6 +347,7 @@ export default function ForecastPage() {
               <Box sx={{ p: 2, '& .rdp': { '--rdp-accent-color': accentColor } }}>
                 <DayPicker
                   mode="single"
+                  required
                   selected={localStartDate ? (localStartDate.split('-')[0].length === 2 ? new Date(localStartDate.split('-').reverse().join('-')) : parseISO(localStartDate)) : undefined}
                   onSelect={(date) => {
                     if (date) {
@@ -359,8 +360,10 @@ export default function ForecastPage() {
                       setLocalStartDate(val);
                       setLocalEndDate(val);
                       setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
-                      handleCalendarClose();
                     }
+                    // Always close the calendar whether a new date was selected,
+                    // or the same date was unselected (date = undefined)
+                    handleCalendarClose();
                   }}
                   modifiers={{
                     available: (date) => availableDates.some(d => {
