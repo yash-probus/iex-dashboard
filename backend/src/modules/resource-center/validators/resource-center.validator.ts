@@ -49,7 +49,7 @@ const parseMonth = (val: any): number => {
 const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
   'region-state': ['stateName'],
   'discom-list': ['legalName'],
-  'ists-charges': ['state'],
+  'ists-charges': ['startDate', 'endDate', 'istsLossPercent'],
   'iex-fees': ['month'],
   'prolt-margin': ['month', 'customerId'],
   'ctu-charges': ['month', 'year', 'pdfUrl'],
