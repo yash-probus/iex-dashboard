@@ -159,7 +159,7 @@ export class DashboardService {
       } else if (market.toUpperCase() === 'RTM') {
         records = await prisma.rtmRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
       } else if (market.toUpperCase() === 'REC') {
-        records = await prisma.recRecord.findMany({ where: { datasetId: ds.id }, orderBy: { intervalNumber: 'asc' } });
+        records = await prisma.recRecord.findMany({ where: { datasetId: ds.id }, orderBy: [{ year: 'asc' }, { month: 'asc' }] });
       }
 
       const dateString = ds.deliveryDate.toISOString().split('T')[0];

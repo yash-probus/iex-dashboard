@@ -236,6 +236,7 @@ model IstsCharges {
   istsLossPercent Decimal  @map("ists_loss_percent") @db.Decimal(6, 4)
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
 
+  @@unique([startDate, endDate], map: "uq_ists_charges_dates")
   @@map("ists_charges")
   @@schema("public")
 }
