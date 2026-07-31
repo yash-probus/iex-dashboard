@@ -482,7 +482,14 @@ const exportInsightsToExcel = async () => {
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
-                onClick={() => window.print()}
+                onClick={() => {
+                  const originalTitle = document.title;
+                  if (calcEntry?.customerName) {
+                    document.title = `${calcEntry.customerName} - Savings Analysis`;
+                  }
+                  window.print();
+                  document.title = originalTitle;
+                }}
                 sx={{ 
                   textTransform: 'none', 
                   borderRadius: 2.5, 
@@ -507,7 +514,7 @@ const exportInsightsToExcel = async () => {
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
-                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
+                    await exportSavingsExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry.customerName);
                   } catch (err: any) {
                     setSnackbar({
                       open: true,

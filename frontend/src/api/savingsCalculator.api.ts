@@ -237,7 +237,7 @@ export const calculateMarketDecision = async (id: string, month?: string, versio
   return response.data;
 };
 
-export const exportSavingsExcel = async (id: string, targetMonth?: string, version?: number): Promise<void> => {
+export const exportSavingsExcel = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
   const response = await apiClient.get('/savings-calculator/' + id + '/export-excel', {
     params: { month: targetMonth, version },
     responseType: 'blob',
@@ -248,8 +248,8 @@ export const exportSavingsExcel = async (id: string, targetMonth?: string, versi
   link.href = url;
   
   const contentDisposition = response.headers['content-disposition'];
-  let filename = 'Savings_Analysis.xlsx';
-  if (contentDisposition) {
+  let filename = customerName ? `${customerName}_Savings_Analysis.xlsx` : 'Savings_Analysis.xlsx';
+  if (contentDisposition && !customerName) {
     const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
     if (filenameMatch && filenameMatch.length === 2)
         filename = filenameMatch[1];
