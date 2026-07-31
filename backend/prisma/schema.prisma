@@ -758,6 +758,7 @@ model DamForecasting {
   forecast_date   DateTime
   predicted_mcp   Decimal  @db.Decimal(18, 4)
   confidence_pct  Decimal? @db.Decimal(5, 2)
+  price_range     String?  @db.VarChar(50)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
 

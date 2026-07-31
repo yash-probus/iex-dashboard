@@ -12,6 +12,7 @@ export interface ForecastIntervalData {
   mcp: number;
   actualMcp?: number | null;
   confidence?: string;
+  priceRange?: string;
 }
 
 export interface DemandForecastIntervalData {
@@ -209,7 +210,8 @@ export class ForecastService {
               fsv: 0,
               mcp,
               actualMcp,
-              confidence: r.confidence_pct !== undefined && r.confidence_pct !== null ? String(r.confidence_pct) : 'N/A'
+              confidence: r.confidence_pct !== undefined && r.confidence_pct !== null ? String(r.confidence_pct) : 'N/A',
+              priceRange: r.price_range || 'N/A'
             };
           });
 
