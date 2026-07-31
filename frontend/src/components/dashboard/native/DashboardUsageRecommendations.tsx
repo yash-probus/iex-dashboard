@@ -24,51 +24,6 @@ export const DashboardUsageRecommendations: React.FC<DashboardUsageRecommendatio
     <Box sx={{ mt: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" fontWeight={700}>Usage Recommendations: Demand Shifting</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<BarChartIcon />}
-            onClick={() => setDemandShiftGraphOpen((prev: any) => !prev)}
-            sx={{ 
-              textTransform: 'none', 
-              borderRadius: 2, 
-              bgcolor: '#F59E0B',
-              '&:hover': { bgcolor: '#D97706' }
-            }}
-          >
-            Slot-wise Heatmap
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<BarChartIcon />}
-            onClick={() => setDynamicDemandShiftGraphOpen((prev: any) => !prev)}
-            sx={{ 
-              textTransform: 'none', 
-              borderRadius: 2, 
-              bgcolor: '#8B5CF6',
-              '&:hover': { bgcolor: '#7C3AED' }
-            }}
-          >
-            Dynamic Heatmap
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={exportInsightsToExcel}
-            sx={{ 
-              textTransform: 'none', 
-              borderRadius: 2, 
-              borderColor: 'divider', 
-              color: '#10B981',
-              '&:hover': {
-                borderColor: '#059669',
-                bgcolor: '#F0FDF4'
-              }
-            }}
-          >
-            Export Excel
-          </Button>
-        </Box>
       </Box>
       
       <Grid container spacing={3}>
