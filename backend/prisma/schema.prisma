@@ -185,21 +185,20 @@ model RtmRecord {
 }
 
 model RecRecord {
-  id             String  @id @default(uuid())
-  datasetId      String
-  intervalNumber Int     @db.SmallInt
-  intervalTime   String  @db.VarChar(15)
-  purchaseBid    Decimal @db.Decimal(18, 4)
-  sellBid        Decimal @db.Decimal(18, 4)
-  mcv            Decimal @db.Decimal(18, 4)
-  fsv            Decimal @db.Decimal(18, 4)
-  mcp            Decimal @db.Decimal(18, 4)
-  dataset        Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  id               String  @id @default(uuid())
+  datasetId        String
+  year             Int     @db.SmallInt
+  month            String  @db.VarChar(50)
+  type             String  @db.VarChar(50)
+  buyBids          Decimal @db.Decimal(18, 4)
+  sellBids         Decimal @db.Decimal(18, 4)
+  clearedVolume    Decimal @db.Decimal(18, 4)
+  clearedPrice     Decimal @db.Decimal(18, 4)
+  noOfParticipants Int     @db.Integer
+  dataset          Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
-  @@unique([datasetId, intervalNumber])
+  @@unique([datasetId, year, month, type])
   @@index([datasetId])
-  @@index([intervalNumber])
-  @@index([intervalTime])
   @@schema("public")
 }
 

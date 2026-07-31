@@ -71,14 +71,15 @@ export interface RtmIntervalRecord {
   mcp: number;
 }
 
-export interface RecIntervalRecord {
-  intervalNumber: number;
-  intervalTime: string;
-  purchaseBid: number;
-  sellBid: number;
-  mcv: number;
-  fsv: number;
-  mcp: number;
+export interface RecMonthlyRecord {
+  year: number;
+  month: string;
+  type: string;
+  buyBids: number;
+  sellBids: number;
+  clearedVolume: number;
+  clearedPrice: number;
+  noOfParticipants: number;
 }
 
 export interface TransformationResult {

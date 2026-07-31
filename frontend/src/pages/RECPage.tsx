@@ -136,36 +136,29 @@ export default function RECPage() {
         }
       },
       {
-        field: 'month',
-        headerName: 'Month',
+        field: 'year',
+        headerName: 'Year',
         sticky: true,
         width: 100,
         align: 'center',
         renderCell: (row: any) => {
-          const d = new Date(row.date);
-          if (isNaN(d.getTime())) return '-';
           return (
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {d.toLocaleString('default', { month: 'long' })}
+            <Typography variant="body2" color="text.secondary">
+              {row.year || '-'}
             </Typography>
           );
         }
       },
       {
-        field: 'date',
-        headerName: 'Date',
+        field: 'month',
+        headerName: 'Month',
         sticky: true,
         width: 120,
         align: 'center',
         renderCell: (row: any) => {
-          const d = new Date(row.date);
-          if (isNaN(d.getTime())) return '-';
-          const day = String(d.getDate()).padStart(2, '0');
-          const mm = String(d.getMonth() + 1).padStart(2, '0');
-          const yyyy = d.getFullYear();
           return (
-            <Typography variant="body2" color="text.secondary">
-              {`${day}-${mm}-${yyyy}`}
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {row.month || '-'}
             </Typography>
           );
         }
@@ -175,13 +168,13 @@ export default function RECPage() {
         headerName: 'Type',
         width: 100,
         align: 'center',
-        renderCell: () => 'REC'
+        renderCell: (row: any) => row.type || 'REC'
       },
-      { field: 'purchaseBid', headerName: 'Buy Bids (REC)', width: 140, align: 'center', valueFormatter: formatNum },
-      { field: 'sellBid', headerName: 'Sell Bids (REC)', width: 140, align: 'center', valueFormatter: formatNum },
-      { field: 'mcv', headerName: 'Cleared Volume (REC)', width: 160, align: 'center', valueFormatter: formatNum },
-      { field: 'mcp', headerName: 'Cleared Price(Rs/REC)', width: 160, align: 'center', valueFormatter: formatNum },
-      { field: 'participants', headerName: 'No. Of Participants', width: 140, align: 'center', valueFormatter: (v: any) => v || '-' },
+      { field: 'buyBids', headerName: 'Buy Bids (REC)', width: 140, align: 'center', valueFormatter: formatNum },
+      { field: 'sellBids', headerName: 'Sell Bids (REC)', width: 140, align: 'center', valueFormatter: formatNum },
+      { field: 'clearedVolume', headerName: 'Cleared Volume (REC)', width: 160, align: 'center', valueFormatter: formatNum },
+      { field: 'clearedPrice', headerName: 'Cleared Price(Rs/REC)', width: 160, align: 'center', valueFormatter: formatNum },
+      { field: 'noOfParticipants', headerName: 'No. Of Participants', width: 140, align: 'center', valueFormatter: (v: any) => v || '-' },
     ];
   };
 

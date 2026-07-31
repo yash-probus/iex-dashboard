@@ -10,8 +10,8 @@ export const triggerScraper = async (req: Request, res: Response) => {
   try {
     const { market } = req.body;
     
-    if (!market || !['DAM', 'GDAM', 'RTM'].includes(market)) {
-      throw new AppError('Invalid market specified. Must be DAM, GDAM, or RTM.', 400);
+    if (!market || !['DAM', 'GDAM', 'RTM', 'REC'].includes(market)) {
+      throw new AppError('Invalid market specified. Must be DAM, GDAM, RTM, or REC.', 400);
     }
 
     logger.info(`Manual scraper triggered for market: ${market}`);
@@ -24,6 +24,8 @@ export const triggerScraper = async (req: Request, res: Response) => {
       records = await ScraperService.scrapeGdam();
     } else if (market === 'RTM') {
       records = await ScraperService.scrapeRtm();
+    } else if (market === 'REC') {
+      records = await ScraperService.scrapeRec();
     }
     
     if (records.length === 0) {

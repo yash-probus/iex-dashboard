@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { DamIntervalRecord, GdamNewIntervalRecord, RtmIntervalRecord } from '../transformation/transformation.types';
+import { DamIntervalRecord, GdamNewIntervalRecord, RtmIntervalRecord, RecMonthlyRecord } from '../transformation/transformation.types';
 import { logger } from '../../logger';
 
 export class ScraperService {
@@ -224,6 +224,72 @@ export class ScraperService {
 
     } catch (error: any) {
       logger.error(`Error scraping RTM: ${error.message}`);
+      throw error;
+    } finally {
+      await browser.close();
+    }
+  }
+
+  public static async scrapeRec(): Promise<RecMonthlyRecord[]> {
+    logger.info('Starting Puppeteer for REC Market Data Scrape...');
+    const browser = await puppeteer.launch({
+      headless: true,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    });
+
+    try {
+      const page = await browser.newPage();
+      await page.goto('https://www.iexindia.com/market-data/REC-market-from-dec22', {
+        waitUntil: 'networkidle2',
+        timeout: 60000
+      });
+
+      await page.waitForSelector('table', { timeout: 15000 });
+
+      const data = await page.evaluate(() => {
+        const rows = Array.from(document.querySelectorAll('table tbody tr'));
+        return rows.map(row => {
+          const columns = Array.from(row.querySelectorAll('td'));
+          return columns.map(c => (c as HTMLElement).innerText.trim());
+        });
+      });
+
+      const records: RecMonthlyRecord[] = [];
+      for (const row of data) {
+        if (row.length < 8) continue; // Basic validation
+        
+        const yearStr = row[0];
+        const monthRaw = row[1]; // 'January\n10-01-2024' or similar
+        const type = row[2];
+        const buyBids = row[3];
+        const sellBids = row[4];
+        const clearedVolume = row[5];
+        const clearedPrice = row[6];
+        const noOfParticipants = row[7];
+        
+        if (!yearStr || !monthRaw || !type) continue;
+        
+        const year = parseInt(yearStr, 10);
+        const month = monthRaw.split('\n')[0].trim(); // Extract 'January' from 'January\n...'
+        
+        records.push({
+          year,
+          month,
+          type,
+          buyBids: this.parseNumber(buyBids),
+          sellBids: this.parseNumber(sellBids),
+          clearedVolume: this.parseNumber(clearedVolume),
+          clearedPrice: this.parseNumber(clearedPrice),
+          noOfParticipants: parseInt(noOfParticipants, 10) || 0
+        });
+      }
+
+      logger.info(`Successfully scraped ${records.length} REC records`);
+      return records;
+
+    } catch (error: any) {
+      logger.error(`Error scraping REC: ${error.message}`);
       throw error;
     } finally {
       await browser.close();

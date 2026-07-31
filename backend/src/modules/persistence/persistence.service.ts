@@ -5,7 +5,7 @@ import { AppError } from '../../utils/AppError';
 import { logger } from '../../logger';
 import { PersistDatasetParams, DamDbPayload, GdamDbPayload, GdamNewDbPayload, RtmDbPayload, RecDbPayload } from './persistence.types';
 import { toDecimal } from '../../utils/prisma-decimal';
-import { DamIntervalRecord, GdamIntervalRecord, GdamNewIntervalRecord, RtmIntervalRecord, RecIntervalRecord } from '../transformation/transformation.types';
+import { DamIntervalRecord, GdamIntervalRecord, GdamNewIntervalRecord, RtmIntervalRecord, RecMonthlyRecord } from '../transformation/transformation.types';
 
 export class PersistenceService {
   /**
@@ -193,15 +193,16 @@ export class PersistenceService {
           insertedCount = result.count;
         }
         else if (market === 'REC') {
-          const dbRecords: RecDbPayload[] = (records as RecIntervalRecord[]).map((r) => ({
+          const dbRecords: RecDbPayload[] = (records as RecMonthlyRecord[]).map((r) => ({
             datasetId: dataset.id,
-            intervalNumber: r.intervalNumber,
-            intervalTime: r.intervalTime,
-            purchaseBid: toDecimal(r.purchaseBid),
-            sellBid: toDecimal(r.sellBid),
-            mcv: toDecimal(r.mcv),
-            fsv: toDecimal(r.fsv),
-            mcp: toDecimal(r.mcp),
+            year: r.year,
+            month: r.month,
+            type: r.type,
+            buyBids: toDecimal(r.buyBids),
+            sellBids: toDecimal(r.sellBids),
+            clearedVolume: toDecimal(r.clearedVolume),
+            clearedPrice: toDecimal(r.clearedPrice),
+            noOfParticipants: r.noOfParticipants,
           }));
 
           const result = await tx.recRecord.createMany({ data: dbRecords });
