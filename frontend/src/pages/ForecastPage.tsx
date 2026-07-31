@@ -347,10 +347,15 @@ export default function ForecastPage() {
               <Box sx={{ p: 2, '& .rdp': { '--rdp-accent-color': accentColor } }}>
                 <DayPicker
                   mode="single"
-                  selected={localStartDate ? parseISO(localStartDate) : undefined}
+                  selected={localStartDate ? (localStartDate.split('-')[0].length === 2 ? new Date(localStartDate.split('-').reverse().join('-')) : parseISO(localStartDate)) : undefined}
                   onSelect={(date) => {
                     if (date) {
-                      const val = format(date, 'yyyy-MM-dd');
+                      const ymd = format(date, 'yyyy-MM-dd');
+                      const orig = availableDates.find(d => {
+                        const dYmd = d.split('-')[0].length === 2 ? d.split('-').reverse().join('-') : d;
+                        return dYmd === ymd;
+                      });
+                      const val = orig || ymd;
                       setLocalStartDate(val);
                       setLocalEndDate(val);
                       setFilters(prev => ({ ...prev, startDate: val, endDate: val }));
@@ -358,14 +363,23 @@ export default function ForecastPage() {
                     }
                   }}
                   modifiers={{
-                    available: (date) => availableDates.includes(format(date, 'yyyy-MM-dd')),
-                    unavailable: (date) => !availableDates.includes(format(date, 'yyyy-MM-dd'))
+                    available: (date) => availableDates.some(d => {
+                      const ymd = d.split('-')[0].length === 2 ? d.split('-').reverse().join('-') : d;
+                      return ymd === format(date, 'yyyy-MM-dd');
+                    }),
+                    unavailable: (date) => !availableDates.some(d => {
+                      const ymd = d.split('-')[0].length === 2 ? d.split('-').reverse().join('-') : d;
+                      return ymd === format(date, 'yyyy-MM-dd');
+                    })
                   }}
                   modifiersStyles={{
                     unavailable: { opacity: 0.3, cursor: 'not-allowed' },
                     available: { fontWeight: 'bold' }
                   }}
-                  disabled={(date) => !availableDates.includes(format(date, 'yyyy-MM-dd'))}
+                  disabled={(date) => !availableDates.some(d => {
+                    const ymd = d.split('-')[0].length === 2 ? d.split('-').reverse().join('-') : d;
+                    return ymd === format(date, 'yyyy-MM-dd');
+                  })}
                 />
               </Box>
             </Popover>
