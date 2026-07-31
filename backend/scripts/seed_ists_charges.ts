@@ -5,7 +5,7 @@ import csv from 'csv-parser';
 const prisma = new PrismaClient();
 
 async function run() {
-  const filePath = '../backend_tables_saving_calculator_ver1 - ists_charges (2).csv';
+  const filePath = '../backend_tables_updated - ists_losses.csv';
   
   const records: any[] = [];
   
