@@ -16,6 +16,7 @@ import { DashboardTodCoverage } from './native/DashboardTodCoverage';
 import { DashboardHeatmap } from './native/DashboardHeatmap';
 import { DashboardSimulationTabs } from './native/DashboardSimulationTabs';
 import { DashboardEnergySummary } from './native/DashboardEnergySummary';
+import { OverallMonthlyRegisterTable } from './native/OverallMonthlyRegisterTable';
 
 
 interface DashboardProps {
@@ -360,6 +361,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {isOverall && clientOverview && (
         <Box sx={{ mt: 4 }}>
           <OverallVisualAnalytics clientOverview={clientOverview} selectedMonth={selectedMonth} />
+          <OverallMonthlyRegisterTable clientOverview={clientOverview} onDrillDown={(m) => setActiveMonth(m)} />
         </Box>
       )}
 
