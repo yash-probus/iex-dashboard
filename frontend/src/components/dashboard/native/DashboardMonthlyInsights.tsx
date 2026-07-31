@@ -81,7 +81,7 @@ export const DashboardMonthlyInsights: React.FC<DashboardMonthlyInsightsProps> =
       <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 'bold' }}>Monthly management insights</Typography>
       <Typography variant="body2" sx={{ color: '#65758b', fontSize: '11px', mb: 2 }}>Actions supported by the detailed cycle data</Typography>
       
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
         {insights.map((ins, idx) => (
           <Box key={idx} sx={{ border: '1px solid #dce5ef', borderRadius: '6px', p: 1.5, borderLeft: `4px solid ${ins.color}` }}>
             <Typography sx={{ fontWeight: 'bold', fontSize: '13px', color: '#1e293b' }}>{ins.title}</Typography>

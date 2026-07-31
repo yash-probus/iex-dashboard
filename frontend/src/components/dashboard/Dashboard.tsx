@@ -304,18 +304,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Monthly-only components */}
       {!isOverall && (
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {/* Energy Flow & Monthly Insights Row */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '61fr 39fr', gap: 3 }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 'bold', mb: 1 }}>
-                Energy flow and Open Access delivery
-              </Typography>
-              <DashboardFlow 
-                regionalBusOA={flowData.regionalBusOA} 
-                efficiency={flowData.efficiency} 
-                consumerOA={flowData.consumerOA} 
-              />
-            </Box>
+          {/* Monthly Insights Row */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 3 }}>
             <Box>
               <DashboardMonthlyInsights detail={detail} />
             </Box>
