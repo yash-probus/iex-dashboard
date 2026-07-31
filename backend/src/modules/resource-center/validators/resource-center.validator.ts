@@ -146,6 +146,21 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
     }
   }
 
+  // Convert DateTime fields into Date objects for Prisma
+  const dateObjFields = ['startDate', 'endDate', 'fromDate', 'toDate'];
+  for (const dateField of dateObjFields) {
+    if (data[dateField] !== undefined && data[dateField] !== null) {
+      const val = String(data[dateField]);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        data[dateField] = new Date(`${val}T00:00:00.000Z`);
+      } else if (!isNaN(Date.parse(val))) {
+        data[dateField] = new Date(val);
+      } else {
+        throw new AppError(`Validation error: ${dateField} must be a valid date string (e.g. YYYY-MM-DD)`, 400);
+      }
+    }
+  }
+
   // 4. Decimal/Number Validation
   const numericFields = [
     'istsLossPercent', 'exchangeFees', 'exchangeFeesGst',
