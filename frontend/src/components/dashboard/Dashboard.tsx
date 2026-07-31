@@ -277,19 +277,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             Monthly savings and Open Access coverage
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
-          <Typography 
-            onClick={() => setActiveMonth('all')}
-            sx={{ 
-              cursor: 'pointer', 
-              fontSize: '14px', 
-              fontWeight: isOverall ? 'bold' : 'normal',
-              color: isOverall ? '#1769e0' : '#65758b',
-              textDecoration: isOverall ? 'underline' : 'none',
-              textUnderlineOffset: '4px'
-            }}
-          >
-            View Overall Report
-          </Typography>
+
         </Box>
         <Typography sx={{ fontSize: '12px', color: '#65758b', mb: 2, mt: -1 }}>
           Click a month in the matrix below to open its linked sub-report.
