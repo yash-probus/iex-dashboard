@@ -29,7 +29,7 @@ export const DashboardMarketBuyDecision: React.FC<DashboardMarketBuyDecisionProp
         </Button>
       </Box>
       
-      <Box sx={{ maxHeight: 500, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
+      <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>

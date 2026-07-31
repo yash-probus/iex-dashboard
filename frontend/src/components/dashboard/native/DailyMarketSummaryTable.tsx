@@ -18,7 +18,7 @@ const formatCurrency = (val: number) => {
 export const DailyMarketSummaryTable: React.FC<DailyMarketSummaryTableProps> = ({ daily }) => {
   return (
     <Box>
-      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #dce5ef', borderRadius: '8px', maxHeight: '500px' }}>
+      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #dce5ef', borderRadius: '8px', overflowX: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
