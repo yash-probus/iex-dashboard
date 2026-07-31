@@ -1,6 +1,6 @@
 import { ColumnDefinition } from '../../../../components/dashboard/TableContainer';
 
-export type FieldType = 'text' | 'number' | 'dropdown';
+export type FieldType = 'text' | 'number' | 'dropdown' | 'date';
 
 export interface FormField {
   name: string;
@@ -84,8 +84,8 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     ],
     fields: [
       { name: 'id', label: 'ID', type: 'text' },
-      { name: 'startDate', label: 'Start Date', type: 'text' },
-      { name: 'endDate', label: 'End Date', type: 'text' },
+      { name: 'startDate', label: 'Start Date', type: 'date' },
+      { name: 'endDate', label: 'End Date', type: 'date' },
       { name: 'istsLossPercent', label: 'ISTS Loss %', type: 'number' },
     ]
   },
@@ -187,8 +187,8 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { name: 'subCategory', label: 'Sub Category', type: 'text' },
       { name: 'supplyVoltageCategory', label: 'Supply Voltage Category', type: 'text' },
       { name: 'voltageLevel', label: 'Voltage Level', type: 'text' },
-      { name: 'fromDate', label: 'From Date', type: 'text' },
-      { name: 'toDate', label: 'To Date', type: 'text' },
+      { name: 'fromDate', label: 'From Date', type: 'date' },
+      { name: 'toDate', label: 'To Date', type: 'date' },
       { name: 'demandFixedChargeKvaPerMonthRs', label: 'Demand Fixed Charge', type: 'number' },
       { name: 'crossSubsidy', label: 'Cross Subsidy', type: 'number' },
       { name: 'distributionWheelingCharges', label: 'Dist Wheeling Charges', type: 'number' },

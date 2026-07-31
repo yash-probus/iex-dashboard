@@ -103,13 +103,14 @@ export default function ResourceFormModal({
                 <TextField
                   fullWidth
                   label={field.label}
-                  type={field.type === 'number' ? 'number' : 'text'}
+                  type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
                   value={formData[field.name] === undefined ? '' : formData[field.name]}
                   onChange={(e) => handleChange(field.name, e.target.value, field.type)}
                   variant="outlined"
                   size="small"
                   disabled={isSubmitting || (field.name === 'id' && !!initialData)}
                   inputProps={field.type === 'number' ? { step: 'any' } : {}}
+                  InputLabelProps={field.type === 'date' ? { shrink: true } : undefined}
                 />
               )}
             </Grid>
