@@ -21,51 +21,15 @@ function formatDateToDDMMYYYY(date: Date): string {
 async function scrapeDay(page: Page, dateStr: string) {
   console.log(`\n--- Scraping ${dateStr} ---`);
   
-  await page.goto('https://www.iexindia.com/market-data/real-time-market/market-snapshot', { waitUntil: 'networkidle2' });
+  const targetUrl = `https://www.iexindia.com/market-data/real-time-market/market-snapshot?interval=ONE_FOURTH_HOUR&dp=SELECT_RANGE&showGraph=false&toDate=${dateStr}&fromDate=${dateStr}`;
+  await page.goto(targetUrl, { waitUntil: 'networkidle2' });
   
-  const selectHandles = await page.$$('.MuiSelect-select');
-  if (selectHandles.length >= 2) {
-    await selectHandles[1].click();
-    await new Promise(r => setTimeout(r, 500));
-    
-    // click -Select Range-
-    const options = await page.$$('li[role="option"]');
-    for (const opt of options) {
-      const text = await page.evaluate((el: any) => el.textContent, opt);
-      if (text === '-Select Range-') {
-        await opt.click();
-        break;
-      }
-    }
-    await new Promise(r => setTimeout(r, 1000));
-    
-    await page.evaluate((targetDate: string) => {
-       const inputs = Array.from(document.querySelectorAll('input')).filter(i => i.placeholder === 'DD-MM-YYYY');
-       if (inputs.length >= 2) {
-         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
-         if (nativeInputValueSetter) {
-             nativeInputValueSetter.call(inputs[0], targetDate);
-             inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
-             nativeInputValueSetter.call(inputs[1], targetDate);
-             inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
-         }
-       }
-    }, dateStr);
-    
-    await new Promise(r => setTimeout(r, 500));
-    
-    await page.evaluate(() => {
-      const btns = Array.from(document.querySelectorAll('button'));
-      const updateBtn = btns.find(b => b.innerText.includes('Update Report'));
-      if (updateBtn) updateBtn.click();
-    });
-    
-    // Zoom out the page to force the virtualized table to render all rows instantly
-    await page.evaluate(() => {
-      (document.body.style as any).zoom = '0.1';
-    });
-    
-    console.log(`Waiting for table to load...`);
+  // Zoom out the page to force the virtualized table to render all rows instantly
+  await page.evaluate(() => {
+    (document.body.style as any).zoom = '0.1';
+  });
+  
+  console.log(`Waiting for table to load...`);
     
     // Wait until at least 90 rows are present in the table, or timeout after 15 seconds
     try {
@@ -91,8 +55,6 @@ async function scrapeDay(page: Page, dateStr: string) {
     });
 
     return data;
-  }
-  return [];
 }
 
 async function runChunkedScraper(startDateStr: string, endDateStr: string) {
