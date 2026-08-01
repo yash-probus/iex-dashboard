@@ -61,7 +61,21 @@ async function scrapeDay(page: Page, dateStr: string) {
     });
     
     console.log(`Waiting for table to load...`);
-    await new Promise(r => setTimeout(r, 5000));
+    
+    // Wait until at least 90 rows are present in the table, or timeout after 15 seconds
+    try {
+      await page.waitForFunction(
+        () => {
+          const rows = document.querySelectorAll('table tbody tr');
+          return rows.length >= 90;
+        },
+        { timeout: 15000 }
+      );
+      // Extra wait just in case it's still rendering the last few rows
+      await new Promise(r => setTimeout(r, 2000));
+    } catch (e) {
+      console.log('Timeout waiting for 90+ rows. Scraping whatever loaded...');
+    }
     
     const data = await page.evaluate(() => {
       const rows = Array.from(document.querySelectorAll('table tbody tr'));
