@@ -60,6 +60,11 @@ async function scrapeDay(page: Page, dateStr: string) {
       if (updateBtn) updateBtn.click();
     });
     
+    // Zoom out the page to force the virtualized table to render all rows instantly
+    await page.evaluate(() => {
+      (document.body.style as any).zoom = '0.1';
+    });
+    
     console.log(`Waiting for table to load...`);
     
     // Wait until at least 90 rows are present in the table, or timeout after 15 seconds
@@ -77,34 +82,12 @@ async function scrapeDay(page: Page, dateStr: string) {
       console.log('Timeout waiting for 90+ rows. Scraping whatever loaded...');
     }
     
-    const data = await page.evaluate(async () => {
-      const tableContainer = document.querySelector('table')?.parentElement;
-      if (!tableContainer) return [];
-      
-      const resultSet = new Map(); // deduplicate by stringified row
-      
-      let previousScrollTop = -1;
-      let scrollAttempts = 0;
-      
-      // Scroll until we hit the bottom, but limit to 20 attempts just in case
-      while (tableContainer.scrollTop !== previousScrollTop && scrollAttempts < 20) {
-        previousScrollTop = tableContainer.scrollTop;
-        scrollAttempts++;
-        
-        // Extract visible rows
-        const rows = Array.from(document.querySelectorAll('table tbody tr'));
-        for (const row of rows) {
-          const columns = Array.from(row.querySelectorAll('td')).map(c => (c as HTMLElement).innerText.trim());
-          if (columns.length >= 5) {
-            resultSet.set(columns.join('|'), columns);
-          }
-        }
-        
-        // Scroll down 500px
-        tableContainer.scrollBy(0, 500);
-        await new Promise(r => setTimeout(r, 500));
-      }
-      return Array.from(resultSet.values());
+    const data = await page.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('table tbody tr'));
+      return rows.map(row => {
+        const columns = Array.from(row.querySelectorAll('td'));
+        return columns.map(c => (c as HTMLElement).innerText.trim());
+      });
     });
 
     return data;
