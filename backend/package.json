@@ -13,6 +13,7 @@
     "seed:weather": "ts-node scripts/seed2YearsWeather.ts",
     "seed:state-demand": "ts-node scripts/seedHistoricalStateDemand.ts",
     "seed:rtm": "ts-node src/scripts/seedRtmSnapshot.ts",
+    "scrape:rtm-history": "ts-node src/scripts/scrapeHistoricalRTM.ts",
     "test": "jest"
   },
   "keywords": [],
