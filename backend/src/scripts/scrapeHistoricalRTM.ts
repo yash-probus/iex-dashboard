@@ -97,7 +97,7 @@ async function runChunkedScraper(startDateStr: string, endDateStr: string) {
   });
   
   const page = await browser.newPage();
-  await page.setViewport({ width: 1280, height: 800 });
+  await page.setViewport({ width: 1920, height: 5000 });
 
   let currentDate = new Date(startDateStr);
   const endDate = new Date(endDateStr);
