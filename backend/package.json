@@ -12,6 +12,7 @@
     "seed:lmv": "ts-node scripts/seed-lmv-1-10.ts",
     "seed:weather": "ts-node scripts/seed2YearsWeather.ts",
     "seed:state-demand": "ts-node scripts/seedHistoricalStateDemand.ts",
+    "seed:rtm": "ts-node src/scripts/seedRtmSnapshot.ts",
     "test": "jest"
   },
   "keywords": [],

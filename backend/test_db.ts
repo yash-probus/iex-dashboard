@@ -1,15 +1,20 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-async function main() {
-  const tariffs = await prisma.stateTariff.findMany({
-    select: { consumerCategory: true, subCategory: true }
+
+(async () => {
+  const rtmForecasts = await prisma.forecastRtm.groupBy({
+    by: ['date'],
+    _count: { intervalNumber: true }
   });
-  const unique = new Set();
-  tariffs.forEach(t => {
-    if (t.consumerCategory.startsWith('LMV') || t.consumerCategory.startsWith('HV')) {
-      unique.add(`${t.consumerCategory} | ${t.subCategory}`);
-    }
+  console.log('RTM Forecasts by date:', rtmForecasts);
+
+  const rtmDatasets = await prisma.dataset.findMany({
+    where: { market: 'RTM' },
+    select: { id: true, deliveryDate: true, fileName: true, rtmRecords: true }
   });
-  console.log(Array.from(unique).sort());
-}
-main().catch(console.error).finally(() => prisma.$disconnect());
+  console.log('RTM Actuals datasets:');
+  for (const ds of rtmDatasets) {
+    const recs = ds.rtmRecords as any[];
+    console.log(`- ${ds.deliveryDate.toISOString().split('T')[0]}: ${recs ? recs.length : 0} records`);
+  }
+})();
