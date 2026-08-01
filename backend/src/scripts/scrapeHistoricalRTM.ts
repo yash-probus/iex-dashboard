@@ -90,6 +90,7 @@ async function runChunkedScraper(startDateStr: string, endDateStr: string) {
         const offset = timeBlockIdx;
 
         recordsToInsert.push({
+          date: dateStr,
           intervalNumber,
           intervalTime: start.trim(),
           sessionId: String(row[offset - 1] || '1'),
