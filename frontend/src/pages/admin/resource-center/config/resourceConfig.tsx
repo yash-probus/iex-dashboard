@@ -1,19 +1,18 @@
 import { ColumnDefinition } from '../../../../components/dashboard/TableContainer';
 import { INDIAN_STATES, DISCOMS, UP_DISCOMS, MAHARASHTRA_DISCOMS } from '../../../../lib/profileUtils';
 
-const STATE_OPTIONS = INDIAN_STATES.map((s: string) => ({ label: s, value: s.toUpperCase() }));
+const STATE_OPTIONS = INDIAN_STATES.map((s: string) => ({ label: s, value: s }));
 
 const getDiscomOptions = (formData: any) => {
   const state = formData?.state;
   if (!state) return [];
   
-  if (state === 'UTTAR PRADESH') return UP_DISCOMS.map(d => ({ label: d, value: d }));
-  if (state === 'MAHARASHTRA') return MAHARASHTRA_DISCOMS.map(d => ({ label: d, value: d }));
+  if (state === 'Uttar Pradesh') return UP_DISCOMS.map(d => ({ label: d, value: d }));
+  if (state === 'Maharashtra') return MAHARASHTRA_DISCOMS.map(d => ({ label: d, value: d }));
   
   // Generic matching based on state name in parentheses
-  // e.g. "BSES Rajdhani (Delhi)" for "DELHI"
-  const formattedState = state.charAt(0) + state.slice(1).toLowerCase(); // basic capitalization
-  const matched = DISCOMS.filter(d => d.toUpperCase().includes(`(${state})`));
+  // e.g. "BSES Rajdhani (Delhi)" for "Delhi"
+  const matched = DISCOMS.filter(d => d.toUpperCase().includes(`(${state.toUpperCase()})`));
   
   if (matched.length > 0) return matched.map(d => ({ label: d, value: d }));
   return [{ label: 'Other', value: 'Other' }];
