@@ -48,6 +48,22 @@ const MARKET_SEGMENT_MAPPING = {
   [MarketType.RTM]: '3'
 };
 
+const ZONE_TO_STATES: Record<string, { representativeOption: string; states: string[] }> = {
+  'N1': { representativeOption: 'N1_J&K', states: ['Jammu and Kashmir', 'Himachal Pradesh', 'Chandigarh', 'Haryana'] },
+  'N2': { representativeOption: 'N2_Delhi', states: ['Delhi', 'Uttar Pradesh', 'Uttarakhand', 'Rajasthan'] },
+  'N3': { representativeOption: 'N3_Punjab', states: ['Punjab'] },
+  'E1': { representativeOption: 'E1_West Bengal', states: ['West Bengal', 'Sikkim', 'Bihar', 'Jharkhand'] },
+  'E2': { representativeOption: 'E2_Odisha', states: ['Odisha'] },
+  'W1': { representativeOption: 'W1_MP', states: ['Madhya Pradesh'] },
+  'W2': { representativeOption: 'W2_Maharashtra', states: ['Maharashtra', 'Gujarat', 'Daman and Diu', 'Dadra and Nagar Haveli', 'Goa'] },
+  'W3': { representativeOption: 'W3_Chhattisgarh', states: ['Chhattisgarh'] },
+  'S1': { representativeOption: 'S1_AP', states: ['Andhra Pradesh', 'Telangana', 'Karnataka'] },
+  'S2': { representativeOption: 'S2_Tamil Nadu', states: ['Tamil Nadu', 'Puducherry'] },
+  'S3': { representativeOption: 'S3_Kerala', states: ['Kerala'] },
+  'A1': { representativeOption: 'A1_Tripura', states: ['Tripura', 'Meghalaya', 'Manipur', 'Mizoram', 'Nagaland'] },
+  'A2': { representativeOption: 'A2_Assam', states: ['Assam', 'Arunachal Pradesh'] }
+};
+
 export class IexScraperService {
   
   async fetchMarketData(market: MarketType, dateString: string) {
@@ -70,25 +86,24 @@ export class IexScraperService {
       await page.goto('https://iexrtmprice.com/DSM_Data/', { waitUntil: 'networkidle2' });
       await page.select('select[name="segment"]', MARKET_SEGMENT_MAPPING[market as keyof typeof MARKET_SEGMENT_MAPPING]);
       
-      for (const stateName of dbStates) {
-        const iexValue = IEX_STATE_MAPPING[stateName];
-        if (!iexValue) {
-          console.warn(`[IEX Scraper] No IEX mapping found for state: ${stateName}`);
-          continue;
-        }
+      for (const [zone, config] of Object.entries(ZONE_TO_STATES)) {
+        const activeStates = config.states.filter(s => dbStates.includes(s));
+        if (activeStates.length === 0) continue;
 
-        console.log(`[IEX Scraper] Scraping ${stateName} (${iexValue})...`);
+        console.log(`[IEX Scraper] Scraping zone ${zone} using option ${config.representativeOption} for: ${activeStates.join(', ')}`);
         
         // Select Area
-        await page.select('#mySelect', iexValue);
+        await page.select('#mySelect', config.representativeOption);
         
         // Set dates
         await page.$eval('#fromDate', (el: any, d) => el.value = d, dateString);
         await page.$eval('#toDate', (el: any, d) => el.value = d, dateString);
         
-        // Submit
-        await page.click('#submit_btn');
-        await setTimeout(4000); // Wait for table to load
+        // Submit and wait for the page reload to complete
+        await Promise.all([
+          page.click('#submit_btn'),
+          page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 })
+        ]);
         
         // Extract table
         const tableData = await page.$$eval('#example tbody tr', rows => {
@@ -107,62 +122,64 @@ export class IexScraperService {
         });
 
         if (tableData.length === 0) {
-          console.log(`[IEX Scraper] No data found for ${stateName} on ${dateString}`);
+          console.log(`[IEX Scraper] No data found for zone ${zone} on ${dateString}`);
           continue;
         }
 
-        // Upsert into DB
-        let successCount = 0;
-        const upsertedRecords = [];
-        for (let i = 0; i < tableData.length; i++) {
-          const row = tableData[i];
-          if (!row) continue;
-          
-          const isoDate = new Date(dateString.split('-').reverse().join('-') + 'T00:00:00Z');
-          
-          await prisma.stateMarketRecord.upsert({
-            where: {
-              market_area_deliveryDate_intervalNumber: {
+        // Save and dispatch for each state mapped to this zone
+        for (const stateName of activeStates) {
+          let successCount = 0;
+          const upsertedRecords = [];
+          for (let i = 0; i < tableData.length; i++) {
+            const row = tableData[i];
+            if (!row) continue;
+            
+            const isoDate = new Date(dateString.split('-').reverse().join('-') + 'T00:00:00Z');
+            
+            await prisma.stateMarketRecord.upsert({
+              where: {
+                market_area_deliveryDate_intervalNumber: {
+                  market,
+                  area: stateName,
+                  deliveryDate: isoDate,
+                  intervalNumber: i + 1
+                }
+              },
+              update: {
+                purchaseBid: row.purchaseBid,
+                sellBid: row.sellBid,
+                clearedVolume: row.mcv,
+                price: row.mcp,
+                intervalTime: row.timePeriod.split(' - ')[0]?.trim() || row.timePeriod.split('-')[0]?.trim() || row.timePeriod
+              },
+              create: {
                 market,
                 area: stateName,
                 deliveryDate: isoDate,
-                intervalNumber: i + 1
+                intervalNumber: i + 1,
+                intervalTime: row.timePeriod.split(' - ')[0]?.trim() || row.timePeriod.split('-')[0]?.trim() || row.timePeriod,
+                purchaseBid: row.purchaseBid,
+                sellBid: row.sellBid,
+                clearedVolume: row.mcv,
+                price: row.mcp
               }
-            },
-            update: {
-              purchaseBid: row.purchaseBid,
-              sellBid: row.sellBid,
-              clearedVolume: row.mcv,
-              price: row.mcp,
-              intervalTime: row.timePeriod.split(' - ')[0]?.trim() || row.timePeriod.split('-')[0]?.trim() || row.timePeriod
-            },
-            create: {
+            });
+            successCount++;
+            upsertedRecords.push(row);
+          }
+          console.log(`[IEX Scraper] Saved ${successCount} records for ${stateName}`);
+
+          // Dispatch to webhook receivers
+          if (upsertedRecords.length > 0) {
+            const isoDate = new Date(dateString.split('-').reverse().join('-') + 'T00:00:00Z');
+            const { WebhookDispatcher } = require('../utils/webhook-dispatcher');
+            await WebhookDispatcher.dispatch('state-market-records', {
               market,
               area: stateName,
               deliveryDate: isoDate,
-              intervalNumber: i + 1,
-              intervalTime: row.timePeriod.split(' - ')[0]?.trim() || row.timePeriod.split('-')[0]?.trim() || row.timePeriod,
-              purchaseBid: row.purchaseBid,
-              sellBid: row.sellBid,
-              clearedVolume: row.mcv,
-              price: row.mcp
-            }
-          });
-          successCount++;
-          upsertedRecords.push(row);
-        }
-        console.log(`[IEX Scraper] Saved ${successCount} records for ${stateName}`);
-
-        // Dispatch to webhook receivers
-        if (upsertedRecords.length > 0) {
-          const isoDate = new Date(dateString.split('-').reverse().join('-') + 'T00:00:00Z');
-          const { WebhookDispatcher } = require('../utils/webhook-dispatcher');
-          await WebhookDispatcher.dispatch('state-market-records', {
-            market,
-            area: stateName,
-            deliveryDate: isoDate,
-            records: upsertedRecords
-          });
+              records: upsertedRecords
+            });
+          }
         }
       }
     } catch (error) {
