@@ -309,11 +309,7 @@ export class ForecastService {
           }
         } else {
           // RTM uses Prisma Model
-          const [forecastRows, dayaheadRows, nowcastRows] = await Promise.all([
-            prisma.forecastRtm.findMany({
-              where: { date: { gte: startDateStr, lte: endDateStr } },
-              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
-            }),
+          const [dayaheadRows, nowcastRows] = await Promise.all([
             prisma.rtmDayahead.findMany({
               where: { date: { gte: startDateStr, lte: endDateStr } },
               orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
@@ -340,12 +336,11 @@ export class ForecastService {
           for (const dStr of dates) {
             for (let t = 1; t <= 96; t++) {
               const key = `${dStr}_${t}`;
-              const fRow = forecastRows.find(r => r.date === dStr && r.intervalNumber === t);
               const dRow = dayaheadMap.get(key);
               const nRow = nowcastMap.get(key);
               const actMcp = actualMap.has(key) ? actualMap.get(key) : null;
               
-              if (!fRow && !dRow && !nRow && actMcp === null) {
+              if (!dRow && !nRow && actMcp === null) {
                 continue; // no data for this block
               }
               
@@ -353,7 +348,6 @@ export class ForecastService {
               const hour = hourNum.toString().padStart(2, '0');
               const timeBlock = this.getIntervalTime(t);
               
-              const mcp = fRow?.mcp !== null && fRow?.mcp !== undefined ? parseFloat((Number(fRow.mcp) / 1000.0).toFixed(2)) : null;
               const mcpDayahead = dRow?.predictedMcp !== null && dRow?.predictedMcp !== undefined ? parseFloat((Number(dRow.predictedMcp) / 1000.0).toFixed(2)) : null;
               const mcpNowcast = nRow?.predictedMcp !== null && nRow?.predictedMcp !== undefined ? parseFloat((Number(nRow.predictedMcp) / 1000.0).toFixed(2)) : null;
 
@@ -362,11 +356,11 @@ export class ForecastService {
                 hour,
                 timeBlock,
                 intervalNumber: t,
-                purchaseBid: fRow ? Number(fRow.purchaseBid || 0) : 0,
-                sellBid: fRow ? Number(fRow.sellBid || 0) : 0,
-                mcv: fRow ? Number(fRow.mcv || 0) : 0,
-                fsv: fRow ? Number(fRow.fsv || 0) : 0,
-                mcp,
+                purchaseBid: 0,
+                sellBid: 0,
+                mcv: 0,
+                fsv: 0,
+                mcp: null, // rtm_forecasting removed
                 mcpDayahead,
                 mcpNowcast,
                 actualMcp: actMcp,

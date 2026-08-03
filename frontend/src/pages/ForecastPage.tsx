@@ -218,8 +218,6 @@ export default function ForecastPage() {
     const metrics: ChartMetric[] = [];
     
     if (subType.toUpperCase() === 'RTM') {
-      metrics.push({key: 'mcp', name: 'RTM Forecast (₹/MWh)', color: '#F97316', type: 'line', yAxisId: 'right'});
-      
       const hasDayahead = data.some(d => d.mcpDayahead !== null && d.mcpDayahead !== undefined);
       if (hasDayahead) {
         metrics.push({key: 'mcpDayahead', name: 'Dayahead Forecast (₹/MWh)', color: '#3B82F6', type: 'line', yAxisId: 'right'});
