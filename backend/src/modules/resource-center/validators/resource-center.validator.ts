@@ -27,17 +27,32 @@ const parseMonth = (val: any): number => {
     return num;
   }
 
-  // Check pattern YYYY-MM or MM/YYYY
+  // Check pattern YYYY-MM
   const dashMatch = str.match(/^(\d{4})-(\d{2})$/);
-  if (dashMatch) return parseInt(dashMatch[2], 10);
+  if (dashMatch) {
+    const y = parseInt(dashMatch[1], 10);
+    const m = parseInt(dashMatch[2], 10);
+    return y * 100 + m;
+  }
   
+  // Check pattern MM/YYYY
   const slashMatch = str.match(/^(\d{2})\/(\d{4})$/);
-  if (slashMatch) return parseInt(slashMatch[1], 10);
+  if (slashMatch) {
+    const m = parseInt(slashMatch[1], 10);
+    const y = parseInt(slashMatch[2], 10);
+    return y * 100 + m;
+  }
 
-  // Check if it matches a month name directly or as substring
-  // We check full names first to avoid matching parts (though not strictly necessary here)
+  // Extract a 4-digit year if present (e.g. 2025 or 2026)
+  const yearMatch = str.match(/\b(20\d{2})\b/);
+  const year = yearMatch ? parseInt(yearMatch[1], 10) : null;
+
+  // Check if it matches a month name directly or as substring (e.g. "Jun 2026", "June 2026")
   for (const [key, mNum] of Object.entries(MONTH_MAP)) {
     if (str.includes(key)) {
+      if (year) {
+        return year * 100 + mNum;
+      }
       return mNum;
     }
   }
@@ -97,6 +112,17 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
 
   // Clone payload to mutate
   const data = { ...payload };
+
+  // Map month key variations (e.g. Bill Month, bill_month, Month) to "month"
+  if (data.month === undefined || data.month === null) {
+    for (const key in data) {
+      const lowerKey = key.toLowerCase().replace(/[\s_-]/g, '');
+      if (lowerKey === 'billmonth' || lowerKey === 'month') {
+        data.month = data[key];
+        break;
+      }
+    }
+  }
 
   // Remove ID if present to avoid updating/creating primary keys
   delete data.id;
