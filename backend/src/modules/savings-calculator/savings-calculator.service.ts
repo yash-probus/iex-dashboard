@@ -521,7 +521,12 @@ export class SavingsCalculatorService {
       const [yearStr, monthStr] = yearMonth.split('-');
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
-      const yyyymmMonth = parseInt(`${yearStr}${monthStr.padStart(2, '0')}`, 10);
+      
+      // Bill month is the next calendar month
+      const nextMonthDate = new Date(year, month, 1);
+      const nextYear = nextMonthDate.getFullYear();
+      const nextMonth = nextMonthDate.getMonth() + 1;
+      const yyyymmMonth = nextYear * 100 + nextMonth;
 
       if (isNaN(year) || isNaN(month) || isNaN(yyyymmMonth)) {
         throw new Error(`Invalid consumption month format: ${yearMonth}. Expected YYYY-MM.`);
@@ -1005,7 +1010,12 @@ export class SavingsCalculatorService {
         month = parseInt(parts[1], 10);
       }
     }
-    const yyyymmMonth = parseInt(`${year}${String(month).padStart(2, '0')}`, 10);
+    
+    // Bill month is the next calendar month
+    const nextMonthDate = new Date(year, month, 1);
+    const nextYear = nextMonthDate.getFullYear();
+    const nextMonth = nextMonthDate.getMonth() + 1;
+    const yyyymmMonth = nextYear * 100 + nextMonth;
     const stateCode = entry.stateCode || '';
     const category = entry.consumerCategory || '';
     const voltageLevel = entry.voltageLevel || '';
