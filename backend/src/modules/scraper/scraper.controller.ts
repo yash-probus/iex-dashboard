@@ -71,3 +71,101 @@ export const triggerScraper = async (req: Request, res: Response) => {
     throw error;
   }
 };
+
+export const importScrapedData = async (req: Request, res: Response) => {
+  const config = require('../../config').default;
+  const token = req.headers['x-webhook-token'];
+  if (!token || token !== config.webhookSecret) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
+  const { type, payload } = req.body;
+  if (!type || !payload) {
+    return res.status(400).json({ success: false, message: 'Missing type or payload' });
+  }
+
+  logger.info(`[Webhook Import] Received event: ${type}`);
+
+  try {
+    if (type === 'dataset') {
+      const { market, deliveryDate, fileName, records, action } = payload;
+      const parsedDeliveryDate = new Date(deliveryDate);
+      
+      const existing = await prisma.dataset.findFirst({
+        where: { market, deliveryDate: parsedDeliveryDate, status: 'ACTIVE' }
+      });
+
+      const dataset = await PersistenceService.persistDataset({
+        market,
+        deliveryDate: parsedDeliveryDate,
+        fileName,
+        records,
+        action: existing ? 'replace' : action
+      });
+
+      logger.success(`[Webhook Import] Successfully imported dataset for ${market} on ${deliveryDate}`);
+      return res.status(200).json({ success: true, datasetId: dataset.id });
+    }
+    
+    if (type === 'state-demand') {
+      const { records } = payload;
+      if (records && records.length > 0) {
+        await prisma.stateDemandData.createMany({
+          data: records,
+          skipDuplicates: true
+        });
+        logger.success(`[Webhook Import] Successfully imported ${records.length} state-demand records`);
+        return res.status(200).json({ success: true, count: records.length });
+      }
+      return res.status(200).json({ success: true, count: 0 });
+    }
+
+    if (type === 'state-market-records') {
+      const { market, area, deliveryDate, records } = payload;
+      const parsedDeliveryDate = new Date(deliveryDate);
+      
+      let successCount = 0;
+      for (let i = 0; i < records.length; i++) {
+        const row = records[i];
+        if (!row) continue;
+
+        await prisma.stateMarketRecord.upsert({
+          where: {
+            market_area_deliveryDate_intervalNumber: {
+              market,
+              area,
+              deliveryDate: parsedDeliveryDate,
+              intervalNumber: i + 1
+            }
+          },
+          update: {
+            purchaseBid: row.purchaseBid,
+            sellBid: row.sellBid,
+            clearedVolume: row.mcv,
+            price: row.mcp,
+            intervalTime: row.timePeriod?.split(' - ')[0]?.trim() || row.timePeriod?.split('-')[0]?.trim() || row.timePeriod || row.intervalTime
+          },
+          create: {
+            market,
+            area,
+            deliveryDate: parsedDeliveryDate,
+            intervalNumber: i + 1,
+            intervalTime: row.timePeriod?.split(' - ')[0]?.trim() || row.timePeriod?.split('-')[0]?.trim() || row.timePeriod || row.intervalTime,
+            purchaseBid: row.purchaseBid,
+            sellBid: row.sellBid,
+            clearedVolume: row.mcv,
+            price: row.mcp
+          }
+        });
+        successCount++;
+      }
+      logger.success(`[Webhook Import] Successfully imported ${successCount} state-market-records for ${area} (${market})`);
+      return res.status(200).json({ success: true, count: successCount });
+    }
+
+    return res.status(400).json({ success: false, message: `Unknown import event type: ${type}` });
+  } catch (error: any) {
+    logger.error(`[Webhook Import Error]: ${error.message}`);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

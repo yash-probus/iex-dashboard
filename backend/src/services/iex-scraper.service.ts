@@ -113,6 +113,7 @@ export class IexScraperService {
 
         // Upsert into DB
         let successCount = 0;
+        const upsertedRecords = [];
         for (let i = 0; i < tableData.length; i++) {
           const row = tableData[i];
           if (!row) continue;
@@ -148,8 +149,21 @@ export class IexScraperService {
             }
           });
           successCount++;
+          upsertedRecords.push(row);
         }
         console.log(`[IEX Scraper] Saved ${successCount} records for ${stateName}`);
+
+        // Dispatch to webhook receivers
+        if (upsertedRecords.length > 0) {
+          const isoDate = new Date(dateString.split('-').reverse().join('-') + 'T00:00:00Z');
+          const { WebhookDispatcher } = require('../utils/webhook-dispatcher');
+          await WebhookDispatcher.dispatch('state-market-records', {
+            market,
+            area: stateName,
+            deliveryDate: isoDate,
+            records: upsertedRecords
+          });
+        }
       }
     } catch (error) {
       console.error(`[IEX Scraper] Error scraping ${market}:`, error);

@@ -3,6 +3,8 @@ import { MarketType } from '@prisma/client';
 import { iexScraperService } from '../services/iex-scraper.service';
 import { logger } from '../logger';
 
+import config from '../config';
+
 // Helper to get today's date in YYYY-MM-DD
 function getTodayDateString(): string {
   const d = new Date();
@@ -10,6 +12,10 @@ function getTodayDateString(): string {
 }
 
 export function initCronJobs() {
+  if (!config.runScraper) {
+    logger.info('RUN_SCRAPER is false. Skipping daily/hourly scraper cron jobs.');
+    return;
+  }
   logger.info('Initializing cron jobs...');
 
   // 1. DAM and GDAM - Run once a day at 01:00 AM

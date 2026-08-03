@@ -7,10 +7,16 @@ import { seedCtuCharges } from '../scripts/seed-ctu';
 import { ApiLogService } from '../modules/api-log/api-log.service';
 import { NppAdjustmentService } from '../modules/dataset/npp-adjustment.service';
 
+import config from '../config';
+
 const prisma = new PrismaClient();
 
 export class CronService {
   public static init() {
+    if (!config.runScraper) {
+      console.log('[CronService] RUN_SCRAPER is false. Skipping cron jobs initialization.');
+      return;
+    }
     console.log('[CronService] Initializing background cron jobs...');
     
     // Run every 5 minutes

@@ -12,6 +12,9 @@ interface Config {
     expiresIn: string;
   };
   corsOrigin: string | string[];
+  runScraper: boolean;
+  webhookReceivers: string[];
+  webhookSecret: string;
 }
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -31,6 +34,11 @@ const config: Config = {
       ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
       : process.env.CORS_ORIGIN
     : '*',
+  runScraper: process.env.RUN_SCRAPER === 'true',
+  webhookReceivers: process.env.WEBHOOK_RECEIVERS
+    ? process.env.WEBHOOK_RECEIVERS.split(',').map(s => s.trim()).filter(Boolean)
+    : [],
+  webhookSecret: process.env.WEBHOOK_SECRET || 'super_secret_webhook_token_123',
 };
 
 export default config;

@@ -404,6 +404,10 @@ export class VidyutPravahScraper {
         skipDuplicates: true
       });
       console.log(`[ScraperService] Inserted ${records.length} state records.`);
+
+      // Dispatch to webhook receivers
+      const { WebhookDispatcher } = require('../utils/webhook-dispatcher');
+      await WebhookDispatcher.dispatch('state-demand', { records });
     }
   }
 }
