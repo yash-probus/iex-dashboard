@@ -390,15 +390,24 @@ export default function SavingsCalculatorPage() {
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
         (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
       if (matchState && row.consumerCategory) {
-        if (row.subCategory) {
-          categoriesSet.add(`${row.consumerCategory} | ${row.subCategory}`);
+        const sub = row.subCategory && row.subCategory.trim();
+        if (sub && sub !== '-' && sub !== '') {
+          categoriesSet.add(`${row.consumerCategory} | ${sub}`);
         } else {
           categoriesSet.add(row.consumerCategory);
         }
       }
     });
 
-    return Array.from(categoriesSet).sort();
+    const list = Array.from(categoriesSet);
+    const filtered = list.filter(item => {
+      if (!item.includes(' | ')) {
+        return !list.some(other => other.startsWith(`${item} | `));
+      }
+      return true;
+    });
+
+    return filtered.sort();
   }, [tariffData, stateCode]);
 
   const uniqueVoltageLevels = React.useMemo(() => {
