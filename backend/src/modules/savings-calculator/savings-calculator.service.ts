@@ -648,12 +648,19 @@ export class SavingsCalculatorService {
       });
 
       // Fetch FPPA percent (using current month for simulation accuracy)
-      const fppaData = await prisma.fppaCharges.findFirst({
+      const fppaDataList = await prisma.fppaCharges.findMany({
         where: {
           state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
           month: yyyymmMonth
         }
       });
+      let fppaData = fppaDataList.find(f => f.discom === entry.discom);
+      if (!fppaData) {
+        fppaData = fppaDataList.find(f => !f.discom || f.discom === '');
+      }
+      if (!fppaData && fppaDataList.length > 0) {
+        fppaData = fppaDataList[0];
+      }
       const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
 
       // Fetch matching StateTariff slabs from DB
@@ -1146,12 +1153,19 @@ export class SavingsCalculatorService {
     if (stateCharges.wheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
 
     // Fetch FPPA percent (using current month for simulation accuracy)
-    const fppaData = await prisma.fppaCharges.findFirst({
+    const fppaDataList = await prisma.fppaCharges.findMany({
       where: {
         state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
         month: yyyymmMonth
       }
     });
+    let fppaData = fppaDataList.find(f => f.discom === entry.discom);
+    if (!fppaData) {
+      fppaData = fppaDataList.find(f => !f.discom || f.discom === '');
+    }
+    if (!fppaData && fppaDataList.length > 0) {
+      fppaData = fppaDataList[0];
+    }
     const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
 
     const ctuCharge = Number(ctuCharges.ctu_charges_rs_per_kwh);
