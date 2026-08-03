@@ -1642,13 +1642,38 @@ export default function SavingsCalculatorPage() {
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'flex-start' }}>
+        <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between', width: '100%' }}>
           <Button
             onClick={handleCloseDialog}
             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
           >
             {dialogMode === 'view' ? 'Close' : 'Cancel'}
           </Button>
+          {dialogMode === 'edit' && activeStep === 7 && (
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Button
+                variant="outlined"
+                onClick={() => setTodDialogOpen(true)}
+                sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, borderColor: '#8B5CF6', color: '#8B5CF6', '&:hover': { borderColor: '#7C3AED', color: '#7C3AED' } }}
+              >
+                Edit TOD Consumption
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setProltDialogOpen(true)}
+                sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, borderColor: '#8B5CF6', color: '#8B5CF6', '&:hover': { borderColor: '#7C3AED', color: '#7C3AED' } }}
+              >
+                Edit ProLT Margin
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSubmit}
+                sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' } }}
+              >
+                Save Entry
+              </Button>
+            </Box>
+          )}
         </DialogActions>
       </Dialog>
 
