@@ -106,6 +106,12 @@ export default function MarketOperationsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const avgDam = records.length ? records.reduce((acc, r) => acc + Number(r.damMcp), 0) / records.length : 0;
+  const avgRtm = records.length ? records.reduce((acc, r) => acc + Number(r.rtmMcp), 0) / records.length : 0;
+  const avgGdam = records.length ? records.reduce((acc, r) => acc + Number(r.gdamMcp), 0) / records.length : 0;
+  const avgDamVsRtm = records.length ? records.reduce((acc, r) => acc + (Number(r.damMcp) - Number(r.rtmMcp)), 0) / records.length : 0;
+  const avgDamVsGdam = records.length ? records.reduce((acc, r) => acc + (Number(r.damMcp) - Number(r.gdamMcp)), 0) / records.length : 0;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' }}>
       <Card
@@ -232,6 +238,26 @@ export default function MarketOperationsPage() {
                       </TableRow>
                     );
                   })
+                )}
+                {records.length > 0 && !loading && (
+                  <TableRow sx={{ backgroundColor: '#F1F5F9', borderTop: '2px solid #E2E8F0' }}>
+                    <TableCell colSpan={2} align="center" sx={{ fontWeight: 'bold' }}>Average</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {avgDam.toFixed(2)}
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {avgRtm.toFixed(2)}
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {avgGdam.toFixed(2)}
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', color: getDiffColor(avgDamVsRtm) }}>
+                      {formatDiff(avgDamVsRtm)}
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', color: getDiffColor(avgDamVsGdam) }}>
+                      {formatDiff(avgDamVsGdam)}
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>
