@@ -50,6 +50,10 @@ export default function IstsChargesPage() {
       String(row.endDate || '').toLowerCase().includes(lowerQuery) ||
       String(row.istsLossPercent).includes(lowerQuery)
     );
+  }).sort((a: IstsCharges, b: IstsCharges) => {
+    const dateA = new Date(a.startDate || '').getTime();
+    const dateB = new Date(b.startDate || '').getTime();
+    return dateB - dateA; // latest to oldest
   });
 
   const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : v;
