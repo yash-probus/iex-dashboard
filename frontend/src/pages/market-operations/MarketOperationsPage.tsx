@@ -4,6 +4,8 @@ import {
   TableContainer, TableHead, TableRow, CircularProgress,
   Button, TextField, Card, CardContent, Divider, TablePagination
 } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
+import Papa from 'papaparse';
 import { fetchMarketOperations, MarketOperation } from '../../api/marketOperations.api';
 import { formatOverviewDate, formatTimeblock } from '../../utils/date';
 import DateRangePicker from '../../components/common/DateRangePicker';
@@ -72,6 +74,38 @@ export default function MarketOperationsPage() {
     return `${sign}${diff.toFixed(2)}`;
   };
 
+  const handleExport = () => {
+    if (records.length === 0) return;
+    
+    const csvData = records.map(row => {
+      const dam = Number(row.damMcp);
+      const rtm = Number(row.rtmMcp);
+      const gdam = Number(row.gdamMcp);
+      const damVsRtm = dam - rtm;
+      const damVsGdam = dam - gdam;
+      
+      return {
+        'Date': formatOverviewDate(row.date),
+        'Timeblock': formatTimeblock(row.timeblock),
+        'DAM MCP (₹/MWh)': dam.toFixed(2),
+        'RTM MCP (₹/MWh)': rtm.toFixed(2),
+        'GDAM MCP (₹/MWh)': gdam.toFixed(2),
+        'DAM vs RTM': formatDiff(damVsRtm),
+        'DAM vs GDAM': formatDiff(damVsGdam)
+      };
+    });
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Market_Operations_${startDate}_to_${endDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' }}>
       <Card
@@ -115,7 +149,15 @@ export default function MarketOperationsPage() {
               >
                 Submit
               </Button>
-              {/* Clear Filters removed */}
+              <Button
+                variant="outlined"
+                onClick={handleExport}
+                disabled={records.length === 0}
+                startIcon={<DownloadIcon />}
+                sx={{ px: 3, height: '42px', borderRadius: '10px', textTransform: 'none', fontWeight: 600, color: 'primary.main', borderColor: 'primary.main' }}
+              >
+                Export Data
+              </Button>
             </Box>
           </Box>
 

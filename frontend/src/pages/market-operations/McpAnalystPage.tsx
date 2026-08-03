@@ -320,7 +320,7 @@ export default function McpAnalystPage() {
                   startIcon={<DownloadIcon />}
                   sx={{ px: 3, height: '42px', borderRadius: '10px', textTransform: 'none', fontWeight: 600, color: 'primary.main', borderColor: 'primary.main' }}
                 >
-                  Download
+                  Export Data
                 </Button>
               )}
             </Box>
