@@ -686,12 +686,20 @@ export class ForecastService {
       }
     } else if (market.toUpperCase() === 'RTM') {
       try {
-        const rows = await prisma.rtmDayahead.findMany({
-          select: { date: true },
-          distinct: ['date'],
-          orderBy: { date: 'desc' }
-        });
-        return rows.map((r: any) => r.date);
+        const [dayaheadRows, nowcastRows] = await Promise.all([
+          prisma.rtmDayahead.findMany({
+            select: { date: true },
+            distinct: ['date']
+          }),
+          prisma.rtmNowcast.findMany({
+            select: { date: true },
+            distinct: ['date']
+          })
+        ]);
+        const allDates = new Set<string>();
+        dayaheadRows.forEach(r => allDates.add(r.date));
+        nowcastRows.forEach(r => allDates.add(r.date));
+        return Array.from(allDates).sort((a, b) => b.localeCompare(a));
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'CONSUMER') {
       try {
