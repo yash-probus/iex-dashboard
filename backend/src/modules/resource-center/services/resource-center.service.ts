@@ -50,7 +50,19 @@ export const getResourceData = async (resourceType: ResourceType) => {
   return serializeDecimals(data);
 };
 
+// Helper to strip state brackets from Discoms (e.g. "NPCL (Uttar Pradesh)" -> "NPCL")
+const sanitizePayload = (payload: any) => {
+  if (payload && typeof payload.discom === 'string') {
+    payload = {
+      ...payload,
+      discom: payload.discom.replace(/\s*\(.*\)\s*/g, '').trim(),
+    };
+  }
+  return payload;
+};
+
 export const createResourceRecord = async (resourceType: ResourceType, payload: any) => {
+  payload = sanitizePayload(payload);
   const tableInfo = RESOURCE_REGISTRY[resourceType];
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
 
@@ -72,7 +84,8 @@ export const createBulkResourceRecords = async (resourceType: ResourceType, payl
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
 
   try {
-    const operations = payloadArray.map((payload) => {
+    const operations = payloadArray.map((rawPayload) => {
+      const payload = sanitizePayload(rawPayload);
       if (payload.id) {
         const { id, ...dataToUpdate } = payload;
         return (delegate as any).upsert({
@@ -98,6 +111,7 @@ export const createBulkResourceRecords = async (resourceType: ResourceType, payl
 };
 
 export const updateResourceRecord = async (resourceType: ResourceType, id: number, payload: any) => {
+  payload = sanitizePayload(payload);
   const tableInfo = RESOURCE_REGISTRY[resourceType];
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
 
