@@ -133,30 +133,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { name: 'otherFixCharges', label: 'Other Fixed Charges', type: 'number' },
     ]
   },
-  'prolt-margin': {
-    title: 'PROLT MARGIN',
-    subtitle: 'Manage ProLT Margin records.',
-    exportFilename: 'prolt-margin',
-    emptyMessage: 'No ProLT Margin data available.',
-    searchPlaceholder: 'Search by customer ID, month, margin...',
-    searchableFields: ['month', 'customerId', 'tradingMargin'],
-    columns: [
-      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
-      { field: 'customerId', headerName: 'Customer ID', align: 'center', width: 200 },
-      { field: 'tradingMargin', headerName: 'Trading Margin', align: 'center', width: 200, valueFormatter: formatNum },
-      { field: 'tradingMarginGst', headerName: 'Trading Margin GST', align: 'center', width: 200, valueFormatter: formatNum },
-      { field: 'proltMargin', headerName: 'ProLT Margin', align: 'center', width: 200, valueFormatter: formatNum },
-      { field: 'proltMarginGst', headerName: 'ProLT Margin GST', align: 'center', width: 200, valueFormatter: formatNum },
-    ],
-    fields: [
-      { name: 'month', label: 'Month', type: 'number' },
-      { name: 'customerId', label: 'Customer ID', type: 'text' },
-      { name: 'tradingMargin', label: 'Trading Margin', type: 'number' },
-      { name: 'tradingMarginGst', label: 'Trading Margin GST', type: 'number' },
-      { name: 'proltMargin', label: 'ProLT Margin', type: 'number' },
-      { name: 'proltMarginGst', label: 'ProLT Margin GST', type: 'number' },
-    ]
-  },
+
   'ctu-charges': {
     title: 'CTU CHARGES',
     subtitle: 'Manage CTU Charges records.',

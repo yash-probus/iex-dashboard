@@ -125,7 +125,7 @@ export const RESOURCE_CENTER_ITEMS: OverviewItemConfig[] = [
     color: '#FB8C00',
     subItems: [
       { key: 'iex-fees', title: 'IEX Fees', path: '/resource-center/iex-fees', icon: <ReceiptIcon fontSize="small" /> },
-      { key: 'prolt-margin', title: 'ProLT Margin', path: '/resource-center/prolt-margin', icon: <WalletIcon fontSize="small" /> },
+
       { key: 'fppa-charges', title: 'FPPA Charges', path: '/resource-center/fppa-charges', icon: <ReceiptIcon fontSize="small" /> }
     ]
   }

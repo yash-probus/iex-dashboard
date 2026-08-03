@@ -27,13 +27,7 @@ export const RESOURCE_CENTER_PAGES = {
     emptyMessage: 'No IEX Fees data available.',
     searchPlaceholder: 'Search by month, fees, charges...',
   },
-  PROLT_MARGIN: {
-    title: 'PROLT MARGIN',
-    subtitle: 'Trading margin and ProLT margin schedules per customer.',
-    exportFilename: 'prolt-margin',
-    emptyMessage: 'No ProLT Margin data available.',
-    searchPlaceholder: 'Search by customer ID, month, margin...',
-  },
+
   CTU_CHARGES: {
     title: 'CTU CHARGES',
     subtitle: 'Central Transmission Utility charges document repository.',

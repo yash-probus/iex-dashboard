@@ -14,7 +14,7 @@ const RegionStatePage = lazy(() => import('../pages/resource-center/RegionStateP
 const DiscomListPage = lazy(() => import('../pages/resource-center/DiscomListPage'));
 const IstsChargesPage = lazy(() => import('../pages/resource-center/IstsChargesPage'));
 const IexFeesPage = lazy(() => import('../pages/resource-center/IexFeesPage'));
-const ProltMarginPage = lazy(() => import('../pages/resource-center/ProltMarginPage'));
+
 const CtuChargesPage = lazy(() => import('../pages/resource-center/CtuChargesPage'));
 const StateChargesPage = lazy(() => import('../pages/resource-center/StateChargesPage'));
 const StateTariffPage = lazy(() => import('../pages/resource-center/StateTariffPage'));
@@ -96,7 +96,7 @@ export default function AppRoutes() {
             <Route path="resource-center/discom-list" element={<DiscomListPage />} />
             <Route path="resource-center/ists-charges" element={<IstsChargesPage />} />
             <Route path="resource-center/iex-fees" element={<IexFeesPage />} />
-            <Route path="resource-center/prolt-margin" element={<ProltMarginPage />} />
+
             <Route path="resource-center/ctu-charges" element={<CtuChargesPage />} />
             <Route path="resource-center/state-charges" element={<StateChargesPage />} />
             <Route path="resource-center/state-tariff" element={<StateTariffPage />} />
