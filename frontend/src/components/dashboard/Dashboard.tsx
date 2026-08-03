@@ -120,7 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Summary value after fees', color: 'green' },
         { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
         { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${oaCoverage.toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
-        { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption / 1000000)} GWh`, sub: 'Billed electricity consumption' },
+        { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: 'Billed electricity consumption' },
         { label: 'Blended cost', value: `₹${blendedCost.toFixed(2)}`, sub: 'Average blended rate per kWh' },
         { label: 'Net saving rate', value: `₹${netSavingRate.toFixed(2)}/kWh`, sub: 'Final client saving per consumed unit', color: 'green' },
       ];
