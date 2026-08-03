@@ -6,7 +6,7 @@ import path from 'path';
 const prisma = new PrismaClient();
 
 async function run() {
-  const filePath = path.join(__dirname, '../../backend_tables_updated - fppa_charges.csv');
+  const filePath = path.join(__dirname, '../../fppa-charges.csv');
   
   const records: any[] = [];
   
@@ -20,30 +20,41 @@ async function run() {
 
   console.log(`Loaded ${records.length} records from CSV.`);
   
+  // Delete old data
+  console.log('Removing old FPPA data...');
+  await prisma.fppaCharges.deleteMany({});
+  
   let success = 0;
   for (const record of records) {
-    if (!record.state || !record.month) continue;
+    if (!record.State || !record.Month) continue;
+
+    const state = record.State.trim();
+    const month = parseInt(record.Month, 10);
+    const discom = record.Discom ? record.Discom.trim() : null;
+    const charge = record['FPPA Charge %'] ? parseFloat(record['FPPA Charge %']) : null;
 
     try {
       await prisma.fppaCharges.upsert({
         where: {
-          state_month: {
-            state: record.state.trim().toUpperCase(),
-            month: parseInt(record.month, 10)
+          state_discom_month: {
+            state: state,
+            discom: discom || '',
+            month: month
           }
         },
         update: {
-          fppaChargePercent: record.fppa_charge_percent ? parseFloat(record.fppa_charge_percent) : null
+          fppaChargePercent: charge
         },
         create: {
-          state: record.state.trim().toUpperCase(),
-          month: parseInt(record.month, 10),
-          fppaChargePercent: record.fppa_charge_percent ? parseFloat(record.fppa_charge_percent) : null
+          state: state,
+          discom: discom || '',
+          month: month,
+          fppaChargePercent: charge
         }
       });
       success++;
     } catch (error) {
-      console.error(`Error processing state: ${record.state}, month: ${record.month}:`, error);
+      console.error(`Error processing state: ${state}, discom: ${discom}, month: ${month}:`, error);
     }
   }
 
