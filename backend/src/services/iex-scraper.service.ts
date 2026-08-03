@@ -60,13 +60,6 @@ export class IexScraperService {
     });
     const dbStates = cityStates.map(s => s.stateName);
 
-    const referenceState = 'Uttar Pradesh';
-    const iexValue = IEX_STATE_MAPPING[referenceState];
-    if (!iexValue) {
-      console.error(`[IEX Scraper] Reference state ${referenceState} mapping not found.`);
-      return;
-    }
-
     const browser = await puppeteer.launch({ 
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -77,68 +70,60 @@ export class IexScraperService {
       await page.goto('https://iexrtmprice.com/DSM_Data/', { waitUntil: 'networkidle2' });
       await page.select('select[name="segment"]', MARKET_SEGMENT_MAPPING[market as keyof typeof MARKET_SEGMENT_MAPPING]);
       
-      console.log(`[IEX Scraper] Scraping reference state: ${referenceState} (${iexValue})...`);
-      
-      // Select Area
-      await page.select('#mySelect', iexValue);
-      
-      // Set dates
-      await page.$eval('#fromDate', (el: any, d) => el.value = d, dateString);
-      await page.$eval('#toDate', (el: any, d) => el.value = d, dateString);
-      
-      // Submit
-      await page.click('#submit_btn');
-      await setTimeout(4000); // Wait for table to load
-      
-      // Extract table
-      const tableData = await page.$$eval('#example tbody tr', rows => {
-        return rows.map(tr => {
-          const tds = tr.querySelectorAll('td');
-          if (tds.length < 8) return null;
-          return {
-            deliveryDate: tds[0].innerText.trim(),
-            timePeriod: tds[1].innerText.trim(),
-            purchaseBid: parseFloat(tds[3].innerText.trim() || '0'),
-            sellBid: parseFloat(tds[4].innerText.trim() || '0'),
-            mcv: parseFloat(tds[5].innerText.trim() || '0'),
-            mcp: parseFloat(tds[7].innerText.trim() || '0'),
-          };
-        }).filter(r => r !== null);
-      });
+      for (const stateName of dbStates) {
+        const iexValue = IEX_STATE_MAPPING[stateName];
+        if (!iexValue) {
+          console.warn(`[IEX Scraper] No IEX mapping found for state: ${stateName}`);
+          continue;
+        }
 
-      if (tableData.length === 0) {
-        console.log(`[IEX Scraper] No data found for reference state ${referenceState} on ${dateString}`);
-        return;
-      }
+        console.log(`[IEX Scraper] Scraping ${stateName} (${iexValue})...`);
+        
+        // Select Area
+        await page.select('#mySelect', iexValue);
+        
+        // Set dates
+        await page.$eval('#fromDate', (el: any, d) => el.value = d, dateString);
+        await page.$eval('#toDate', (el: any, d) => el.value = d, dateString);
+        
+        // Submit
+        await page.click('#submit_btn');
+        await setTimeout(4000); // Wait for table to load
+        
+        // Extract table
+        const tableData = await page.$$eval('#example tbody tr', rows => {
+          return rows.map(tr => {
+            const tds = tr.querySelectorAll('td');
+            if (tds.length < 8) return null;
+            return {
+              deliveryDate: tds[0].innerText.trim(),
+              timePeriod: tds[1].innerText.trim(),
+              purchaseBid: parseFloat(tds[3].innerText.trim() || '0'),
+              sellBid: parseFloat(tds[4].innerText.trim() || '0'),
+              mcv: parseFloat(tds[5].innerText.trim() || '0'),
+              mcp: parseFloat(tds[7].innerText.trim() || '0'),
+            };
+          }).filter(r => r !== null);
+        });
 
-      console.log(`[IEX Scraper] Scraped ${tableData.length} reference records. Duplicating to all ${dbStates.length} states...`);
+        if (tableData.length === 0) {
+          console.log(`[IEX Scraper] No data found for ${stateName} on ${dateString}`);
+          continue;
+        }
 
-      let totalSuccess = 0;
-      for (const targetState of dbStates) {
+        // Upsert into DB
         let successCount = 0;
         for (let i = 0; i < tableData.length; i++) {
           const row = tableData[i];
           if (!row) continue;
           
-          let isoDate: Date;
-          if (dateString.includes('-')) {
-            const parts = dateString.split('-');
-            if (parts[0].length === 4) {
-              // YYYY-MM-DD
-              isoDate = new Date(`${parts[0]}-${parts[1]}-${parts[2]}T00:00:00.000Z`);
-            } else {
-              // DD-MM-YYYY
-              isoDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00.000Z`);
-            }
-          } else {
-            isoDate = new Date(dateString);
-          }
+          const isoDate = new Date(dateString.split('-').reverse().join('-') + 'T00:00:00Z');
           
           await prisma.stateMarketRecord.upsert({
             where: {
               market_area_deliveryDate_intervalNumber: {
                 market,
-                area: targetState,
+                area: stateName,
                 deliveryDate: isoDate,
                 intervalNumber: i + 1
               }
@@ -152,7 +137,7 @@ export class IexScraperService {
             },
             create: {
               market,
-              area: targetState,
+              area: stateName,
               deliveryDate: isoDate,
               intervalNumber: i + 1,
               intervalTime: row.timePeriod.split(' - ')[0]?.trim() || row.timePeriod.split('-')[0]?.trim() || row.timePeriod,
@@ -163,11 +148,9 @@ export class IexScraperService {
             }
           });
           successCount++;
-          totalSuccess++;
         }
-        console.log(`[IEX Scraper] Saved ${successCount} records for ${targetState}`);
+        console.log(`[IEX Scraper] Saved ${successCount} records for ${stateName}`);
       }
-      console.log(`[IEX Scraper] Completed duplication! Total records saved: ${totalSuccess}`);
     } catch (error) {
       console.error(`[IEX Scraper] Error scraping ${market}:`, error);
     } finally {
