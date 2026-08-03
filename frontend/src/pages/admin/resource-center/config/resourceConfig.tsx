@@ -124,7 +124,7 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { field: 'otherFixCharges', headerName: 'Other Fixed Charges', align: 'center', width: 200, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'month', label: 'Month', type: 'number' },
+      { name: 'month', label: 'Month (YYYYMM)', type: 'number' },
       { name: 'exchangeFees', label: 'Exchange Fees', type: 'number' },
       { name: 'exchangeFeesGst', label: 'Exchange Fees GST', type: 'number' },
       { name: 'nldcApplicationFees', label: 'NLDC Application Fees', type: 'number' },
@@ -148,8 +148,8 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { field: 'ctu_charges_rs_per_kwh', headerName: 'CTU Charges (Rs/kWh)', align: 'center', width: 250, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'state', label: 'State', type: 'text' },
-      { name: 'month', label: 'Month', type: 'number' },
+      { name: 'state', label: 'State', type: 'dropdown', options: STATE_OPTIONS },
+      { name: 'month', label: 'Month (YYYYMM)', type: 'number' },
       { name: 'ctu_charges_rs_per_kwh', label: 'CTU Charges (Rs/kWh)', type: 'number' },
     ]
   },
