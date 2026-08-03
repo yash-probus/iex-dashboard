@@ -252,6 +252,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
       <DashboardHero 
         clientName={clientName || 'Energy Dashboard'}
+        industryName={calcEntry?.industryName || clientOverview?.industryName}
         location={calcEntry?.address || 'Location Unavailable'}
         connectivity={calcEntry?.voltageLevel || 'Connectivity Unavailable'}
         overallPeriod={periodText}

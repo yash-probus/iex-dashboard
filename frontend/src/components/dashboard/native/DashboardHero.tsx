@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material';
 
 interface DashboardHeroProps {
   clientName: string;
+  industryName?: string;
   location: string;
   connectivity: string;
   overallPeriod: string;
@@ -11,6 +12,7 @@ interface DashboardHeroProps {
 
 export const DashboardHero: React.FC<DashboardHeroProps> = ({
   clientName,
+  industryName,
   location,
   connectivity,
   overallPeriod,
@@ -64,8 +66,20 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
             fontWeight: 'bold',
           }}
         >
-          {clientName}
+          {industryName || clientName}
         </Typography>
+        {industryName && (
+          <Typography
+            sx={{
+              fontSize: '18px',
+              fontWeight: 500,
+              color: '#d7e7f6',
+              margin: '0 0 12px 0',
+            }}
+          >
+            {clientName}
+          </Typography>
+        )}
         <Typography
           sx={{
             margin: 0,
