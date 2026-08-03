@@ -653,28 +653,12 @@ export class SavingsCalculatorService {
       });
 
       // Fetch FPPA percent (using current month for simulation accuracy)
-      let fppaDataList = await prisma.fppaCharges.findMany({
+      const fppaDataList = await prisma.fppaCharges.findMany({
         where: {
           state: { in: stateFormats },
           month: yyyymmMonth
         }
       });
-
-      if (fppaDataList.length === 0) {
-        const latestRecord = await prisma.fppaCharges.findFirst({
-          where: { state: { in: stateFormats } },
-          orderBy: { month: 'desc' }
-        });
-        if (latestRecord) {
-          fppaDataList = await prisma.fppaCharges.findMany({
-            where: {
-              state: { in: stateFormats },
-              month: latestRecord.month
-            }
-          });
-        }
-      }
-
       let fppaData = fppaDataList.find(f => f.discom === entry.discom);
       if (!fppaData) {
         fppaData = fppaDataList.find(f => !f.discom || f.discom === '');
@@ -1176,28 +1160,12 @@ export class SavingsCalculatorService {
     if (stateCharges.wheelingLossPercent == null) throw new Error('Wheeling Loss Percent value is missing.');
 
     // Fetch FPPA percent (using current month for simulation accuracy)
-    let fppaDataList = await prisma.fppaCharges.findMany({
+    const fppaDataList = await prisma.fppaCharges.findMany({
       where: {
         state: { in: stateFormats },
         month: yyyymmMonth
       }
     });
-
-    if (fppaDataList.length === 0) {
-      const latestRecord = await prisma.fppaCharges.findFirst({
-        where: { state: { in: stateFormats } },
-        orderBy: { month: 'desc' }
-      });
-      if (latestRecord) {
-        fppaDataList = await prisma.fppaCharges.findMany({
-          where: {
-            state: { in: stateFormats },
-            month: latestRecord.month
-          }
-        });
-      }
-    }
-
     let fppaData = fppaDataList.find(f => f.discom === entry.discom);
     if (!fppaData) {
       fppaData = fppaDataList.find(f => !f.discom || f.discom === '');
