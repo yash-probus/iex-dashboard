@@ -68,7 +68,7 @@ const VALID_FIELDS: Record<ResourceType, string[]> = {
   'ctu-charges': ['month', 'year', 'pdfUrl'],
   'state-charges': ['state', 'category', 'subCategory', 'supplyVoltageCategory', 'voltageLevel', 'fromDate', 'toDate', 'demandFixedChargeKvaPerMonthRs', 'crossSubsidy', 'distributionWheelingCharges', 'stuCharges', 'stuLossPercent', 'wheelingLossPercent', 'additionalCharge'],
   'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges'],
-  'fppa-charges': ['state', 'month', 'fppaChargePercent']
+  'fppa-charges': ['state', 'discom', 'month', 'fppaChargePercent']
 };
 
 /**

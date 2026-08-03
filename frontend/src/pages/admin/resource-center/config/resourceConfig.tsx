@@ -1,4 +1,23 @@
 import { ColumnDefinition } from '../../../../components/dashboard/TableContainer';
+import { INDIAN_STATES, DISCOMS, UP_DISCOMS, MAHARASHTRA_DISCOMS } from '../../../../lib/profileUtils';
+
+const STATE_OPTIONS = INDIAN_STATES.map((s: string) => ({ label: s, value: s.toUpperCase() }));
+
+const getDiscomOptions = (formData: any) => {
+  const state = formData?.state;
+  if (!state) return [];
+  
+  if (state === 'UTTAR PRADESH') return UP_DISCOMS.map(d => ({ label: d, value: d }));
+  if (state === 'MAHARASHTRA') return MAHARASHTRA_DISCOMS.map(d => ({ label: d, value: d }));
+  
+  // Generic matching based on state name in parentheses
+  // e.g. "BSES Rajdhani (Delhi)" for "DELHI"
+  const formattedState = state.charAt(0) + state.slice(1).toLowerCase(); // basic capitalization
+  const matched = DISCOMS.filter(d => d.toUpperCase().includes(`(${state})`));
+  
+  if (matched.length > 0) return matched.map(d => ({ label: d, value: d }));
+  return [{ label: 'Other', value: 'Other' }];
+};
 
 export type FieldType = 'text' | 'number' | 'dropdown' | 'date';
 
@@ -6,7 +25,7 @@ export interface FormField {
   name: string;
   label: string;
   type: FieldType;
-  options?: { label: string; value: string }[];
+  options?: { label: string; value: string }[] | ((formData: any) => { label: string; value: string }[]);
 }
 
 export interface ResourceConfig {
@@ -244,12 +263,14 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     columns: [
       { field: 'id', headerName: 'ID', align: 'center', width: 100 },
       { field: 'state', headerName: 'State', align: 'center', width: 250 },
+      { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
       { field: 'month', headerName: 'Month', align: 'center', width: 150 },
-      { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
+      { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 200, valueFormatter: formatNum },
     ],
     fields: [
-      { name: 'state', label: 'State', type: 'text' },
-      { name: 'month', label: 'Month', type: 'number' },
+      { name: 'state', label: 'State', type: 'dropdown', options: STATE_OPTIONS },
+      { name: 'discom', label: 'Discom', type: 'dropdown', options: getDiscomOptions },
+      { name: 'month', label: 'Month (YYYYMM)', type: 'number' },
       { name: 'fppaChargePercent', label: 'FPPA Charge %', type: 'number' },
     ]
   }

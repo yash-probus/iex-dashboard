@@ -703,11 +703,12 @@ model StateMarketRecord {
 model FppaCharges {
   id                Int      @id @default(autoincrement())
   state             String   @db.VarChar(100)
+  discom            String?  @db.VarChar(200)
   month             Int
   fppaChargePercent Decimal? @map("fppa_charge_percent") @db.Decimal(12, 6)
   updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@unique([state, month], map: "uq_fppa_charges_state_month")
+  @@unique([state, discom, month], map: "uq_fppa_charges_state_discom_month")
   @@map("fppa_charges")
   @@schema("public")
 }

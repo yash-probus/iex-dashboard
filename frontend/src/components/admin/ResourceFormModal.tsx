@@ -93,7 +93,11 @@ export default function ResourceFormModal({
                   size="small"
                   disabled={isSubmitting || (field.name === 'id' && !!initialData)}
                 >
-                  {field.options?.map((opt) => (
+                  {typeof field.options === 'function' ? field.options(formData).map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  )) : field.options?.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </MenuItem>

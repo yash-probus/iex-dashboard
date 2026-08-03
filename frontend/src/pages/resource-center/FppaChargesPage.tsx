@@ -29,6 +29,7 @@ export default function FppaChargesPage() {
   const columns: ColumnDefinition[] = [
     { field: 'id', headerName: 'ID', align: 'center', width: 100 },
     { field: 'state', headerName: 'State', align: 'center', width: 250 },
+    { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
     { field: 'month', headerName: 'Month', align: 'center', width: 150 },
     { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
   ];
@@ -37,6 +38,7 @@ export default function FppaChargesPage() {
     const exportData = filteredData.map((row: any) => ({
       'ID': row.id,
       'State': row.state,
+      'Discom': row.discom || '-',
       'Month': row.month,
       'FPPA Charge %': row.fppaChargePercent
     }));
