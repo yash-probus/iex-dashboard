@@ -12,4 +12,5 @@ export interface PersistDatasetParams {
   fileName: string;
   records: unknown[]; // Raw interval objects mapped from the transformation engine
   action?: string;
+  isWebhookImport?: boolean;
 }

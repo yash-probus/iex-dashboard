@@ -230,15 +230,17 @@ export class PersistenceService {
         }
       }
 
-      // Dispatch to webhook receivers
-      const { WebhookDispatcher } = require('../../utils/webhook-dispatcher');
-      await WebhookDispatcher.dispatch('dataset', {
-        market,
-        deliveryDate,
-        fileName,
-        records,
-        action
-      });
+      // Dispatch to webhook receivers (only if this is not a webhook import to prevent infinite loops)
+      if (!params.isWebhookImport) {
+        const { WebhookDispatcher } = require('../../utils/webhook-dispatcher');
+        await WebhookDispatcher.dispatch('dataset', {
+          market,
+          deliveryDate,
+          fileName,
+          records,
+          action
+        });
+      }
 
       return transactionResult;
 

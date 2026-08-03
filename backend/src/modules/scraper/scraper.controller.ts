@@ -100,7 +100,8 @@ export const importScrapedData = async (req: Request, res: Response) => {
         deliveryDate: parsedDeliveryDate,
         fileName,
         records,
-        action: existing ? 'replace' : action
+        action: existing ? 'replace' : action,
+        isWebhookImport: true
       });
 
       logger.success(`[Webhook Import] Successfully imported dataset for ${market} on ${deliveryDate}`);
