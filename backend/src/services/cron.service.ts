@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { VidyutPravahScraper } from './scraper.service';
 import { WeatherEngine } from './weather.service';
 import { seedCtuCharges } from '../scripts/seed-ctu';
-import { seedIstsCharges } from '../scripts/seed-ists';
+
 import { ApiLogService } from '../modules/api-log/api-log.service';
 import { NppAdjustmentService } from '../modules/dataset/npp-adjustment.service';
 
@@ -93,17 +93,6 @@ export class CronService {
       timezone: 'Asia/Kolkata'
     });
     
-    // Run every 7 days (Weekly on Sunday at 1:00 AM) for ISTS Transmission Losses
-    cron.schedule('0 1 * * 0', async () => {
-      console.log('[Cron] Running weekly ISTS (Transmission Losses) schedule');
-      try {
-        await seedIstsCharges();
-      } catch (error) {
-        console.error('[Cron] Error in weekly ISTS schedule:', error);
-      }
-    }, {
-      timezone: 'Asia/Kolkata'
-    });
 
     // Run on the 1st of every month at 2:00 AM for CTU Charges
     cron.schedule('0 2 1 * *', async () => {
