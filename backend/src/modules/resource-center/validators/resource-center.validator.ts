@@ -189,7 +189,7 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
       if (!Number.isFinite(val)) {
         throw new AppError(`Validation error: ${field} must be a finite number`, 400);
       }
-      if (val < 0) {
+      if (val < 0 && field !== 'fppaChargePercent') {
         throw new AppError(`Validation error: ${field} cannot be negative`, 400);
       }
       if (percentageFields.includes(field) && val > 100) {
