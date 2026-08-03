@@ -1849,6 +1849,7 @@ export class SavingsCalculatorService {
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalBaselineCost,
+      fppaPercent,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
       totalSavings: finalSavings,
