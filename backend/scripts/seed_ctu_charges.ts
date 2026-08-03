@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse } from 'csv-parse/sync';
 
 const prisma = new PrismaClient();
 
@@ -16,11 +15,17 @@ async function main() {
 
   const fileContent = fs.readFileSync(csvPath, 'utf-8');
   
-  // Parse CSV
-  const records = parse(fileContent, {
-    columns: true,
-    skip_empty_lines: true,
-    trim: true,
+  // Parse CSV manually
+  const lines = fileContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  const headers = lines[0].split(',');
+  
+  const records = lines.slice(1).map(line => {
+    const values = line.split(',');
+    return {
+      state: values[0],
+      month: values[1],
+      ctu_charges_rs_per_kwh: values[2]
+    };
   });
 
   console.log(`Found ${records.length} records in CSV. Inserting...`);
