@@ -279,33 +279,48 @@ export class ForecastService {
             orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
           });
           
-          if (forecastRows && forecastRows.length > 0) {
-            const formatted = forecastRows.map((r: any) => {
-              const hourNum = Math.floor((r.intervalNumber - 1) / 4) + 1;
+          const forecastMap = new Map();
+          for (const r of forecastRows) {
+            forecastMap.set(`${r.date}_${r.intervalNumber}`, r);
+          }
+          
+          const dates = this.getDatesInRange(startDateStr, endDateStr);
+          const rawFormatted = [];
+          
+          for (const dStr of dates) {
+            for (let t = 1; t <= 96; t++) {
+              const key = `${dStr}_${t}`;
+              const fRow = forecastMap.get(key);
+              const actMcp = actualMap.has(key) ? actualMap.get(key) : null;
+              
+              if (!fRow && actMcp === null) {
+                continue;
+              }
+              
+              const hourNum = Math.floor((t - 1) / 4) + 1;
               const hour = hourNum.toString().padStart(2, '0');
-              const timeBlock = this.getIntervalTime(r.intervalNumber);
+              const timeBlock = this.getIntervalTime(t);
               
-              const mcp = r.mcp !== null && r.mcp !== undefined ? parseFloat((Number(r.mcp) / 1000.0).toFixed(2)) : null;
+              const mcp = fRow?.predictedMcp !== null && fRow?.predictedMcp !== undefined ? parseFloat((Number(fRow.predictedMcp) / 1000.0).toFixed(2)) : null;
               
-              const dateStr = r.date;
-              const key = `${dateStr}_${r.intervalNumber}`;
-              const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
-
-              return {
-                date: dateStr,
+              rawFormatted.push({
+                date: dStr,
                 hour,
                 timeBlock,
-                intervalNumber: r.intervalNumber,
-                purchaseBid: Number(r.purchaseBid),
-                sellBid: Number(r.sellBid),
-                mcv: Number(r.mcv),
-                fsv: Number(r.fsv),
+                intervalNumber: t,
+                purchaseBid: fRow ? Number(fRow.purchaseBid) : 0,
+                sellBid: fRow ? Number(fRow.sellBidTotal || fRow.sellBid || 0) : 0,
+                mcv: fRow ? Number(fRow.mcvTotal || fRow.mcv || 0) : 0,
+                fsv: fRow ? Number(fRow.fsvTotal || fRow.fsv || 0) : 0,
                 mcp,
                 actualMcp,
                 confidence: 'N/A'
-              };
-            });
-            intervals.push(...this.aggregatePriceIntervals(formatted, interval));
+              });
+            }
+          }
+          
+          if (rawFormatted.length > 0) {
+            intervals.push(...this.aggregatePriceIntervals(rawFormatted, interval));
           }
         } else {
           // RTM uses Prisma Model
@@ -674,12 +689,26 @@ export class ForecastService {
       }
     } else if (market.toUpperCase() === 'GDAM') {
       try {
-        const rows = await prisma.forecastGdam.findMany({
-          select: { date: true },
-          distinct: ['date'],
-          orderBy: { date: 'desc' }
+        const [forecastRows, actualRows] = await Promise.all([
+          prisma.forecastGdam.findMany({
+            select: { date: true },
+            distinct: ['date']
+          }),
+          prisma.dataset.findMany({
+            where: { market: 'GDAM', status: 'ACTIVE' },
+            select: { deliveryDate: true },
+            distinct: ['deliveryDate']
+          })
+        ]);
+        const allDates = new Set<string>();
+        forecastRows.forEach(r => allDates.add(r.date));
+        actualRows.forEach(r => {
+          const dStr = r.deliveryDate instanceof Date 
+            ? r.deliveryDate.toISOString().split('T')[0] 
+            : new Date(r.deliveryDate).toISOString().split('T')[0];
+          allDates.add(dStr);
         });
-        return rows.map(r => r.date);
+        return Array.from(allDates).sort((a, b) => b.localeCompare(a));
       } catch (e) { 
         console.error('[ForecastService] Error in GDAM dates:', e);
         return []; 
