@@ -623,6 +623,11 @@ export class SavingsCalculatorService {
         endMonth = nextMonthDate.getMonth() + 1;
       }
       
+      const maxDays = new Date(endYear, endMonth, 0).getDate();
+      if (endDay > maxDays) {
+        endDay = maxDays;
+      }
+      
       let endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
 
       // Fetch stateCharges for losses
