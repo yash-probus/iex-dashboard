@@ -18,9 +18,8 @@ const server = app.listen(config.port, async () => {
     await prisma.$connect();
     logger.success('Prisma connected successfully');
     
-    // Initialize scheduled cron jobs
-    const { initCronJobs } = require('./cron');
-    initCronJobs();
+    // Only CronService (which scrapes the official iexindia.com snapshot) is initialized in app.ts
+    logger.info('Server initializations complete.');
   } catch (error) {
     logger.error('Prisma connection failed', error);
   }
