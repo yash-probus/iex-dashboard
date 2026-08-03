@@ -10,10 +10,7 @@ import { CircularProgress } from '@mui/material';
 import { RESOURCE_CENTER_PAGES } from './constants/resourceCenter.constants';
 import { IexFees } from './types/resourceCenter.types';
 
-const formatMonth = (m: any) => {
-  const date = new Date(2026, m - 1);
-  return date.toLocaleString('default', { month: 'short' }) + ' 2026';
-};
+import { formatYYYYMM as formatMonth } from '../../utils/common';
 
 export default function IexFeesPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<IexFees>('iex-fees');

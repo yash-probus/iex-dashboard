@@ -8,6 +8,7 @@ import { exportToCSV } from '../../utils/export';
 import { useResourceData } from '../../hooks/useResourceData';
 import { RESOURCE_CENTER_PAGES } from './constants/resourceCenter.constants';
 import { FppaCharges } from './types/resourceCenter.types';
+import { formatYYYYMM as formatMonth } from '../../utils/common';
 
 export default function FppaChargesPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<FppaCharges>('fppa-charges');
@@ -17,10 +18,12 @@ export default function FppaChargesPage() {
   const filteredData = data.filter((row: FppaCharges) => {
     if (!searchQuery) return true;
     const lowerQuery = searchQuery.toLowerCase();
+    const monthStr = formatMonth(row.month).toLowerCase();
     return (
-      String(row.id || '').toLowerCase().includes(lowerQuery) ||
-      String(row.state || '').toLowerCase().includes(lowerQuery) ||
-      String(row.month || '').toLowerCase().includes(lowerQuery)
+      String(row.state).toLowerCase().includes(lowerQuery) ||
+      (row.discom && String(row.discom).toLowerCase().includes(lowerQuery)) ||
+      monthStr.includes(lowerQuery) ||
+      String(row.fppaChargePercent).toLowerCase().includes(lowerQuery)
     );
   });
 
@@ -30,7 +33,7 @@ export default function FppaChargesPage() {
     { field: 'id', headerName: 'ID', align: 'center', width: 100 },
     { field: 'state', headerName: 'State', align: 'center', width: 250 },
     { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
-    { field: 'month', headerName: 'Month', align: 'center', width: 150 },
+    { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
     { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
   ];
 
@@ -39,7 +42,7 @@ export default function FppaChargesPage() {
       'ID': row.id,
       'State': row.state,
       'Discom': row.discom || '-',
-      'Month': row.month,
+      'Month': formatMonth(row.month),
       'FPPA Charge %': row.fppaChargePercent
     }));
     exportToCSV(exportData, config.exportFilename);

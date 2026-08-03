@@ -9,18 +9,7 @@ import { exportToCSV } from '../../utils/export';
 import { useResourceData } from '../../hooks/useResourceData';
 import { RESOURCE_CENTER_PAGES } from './constants/resourceCenter.constants';
 import { StateTariff } from './types/resourceCenter.types';
-
-// month is stored as YYYYMM integer (e.g. 202604)
-const formatMonth = (m: any) => {
-  const s = String(m);
-  if (s.length === 6) {
-    const year = s.slice(0, 4);
-    const mon = parseInt(s.slice(4), 10);
-    const date = new Date(parseInt(year), mon - 1);
-    return date.toLocaleString('default', { month: 'short' }) + ' ' + year;
-  }
-  return String(m);
-};
+import { formatYYYYMM as formatMonth } from '../../utils/common';
 
 export default function StateTariffPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<StateTariff>('state-tariff');

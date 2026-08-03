@@ -72,6 +72,26 @@ export function formatMonthYear(value: string) {
   });
 }
 
+export const formatYYYYMM = (m: any) => {
+  if (!m) return '-';
+  const str = String(m);
+  if (str.length === 6) {
+    const year = str.substring(0, 4);
+    const monthIndex = parseInt(str.substring(4, 6), 10) - 1;
+    const date = new Date(Number(year), monthIndex);
+    return date.toLocaleString('default', { month: 'short' }) + ' ' + year;
+  }
+  
+  // fallback for older 1-12 format if any
+  const num = Number(m);
+  if (num >= 1 && num <= 12) {
+      const date = new Date(2026, num - 1);
+      return date.toLocaleString('default', { month: 'short' }) + ' 2026';
+  }
+  
+  return str;
+};
+
 export const formatToTwoDecimals = (
   value: string | number,
   decimal: number = 2,

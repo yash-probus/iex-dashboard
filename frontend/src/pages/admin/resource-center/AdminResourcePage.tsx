@@ -19,6 +19,7 @@ import { RESOURCE_CONFIG } from './config/resourceConfig';
 import { useResourceData } from '../../../hooks/useResourceData';
 import { useCreateResourceRecord, useUpdateResourceRecord, useDeleteResourceRecord } from '../../../hooks/useResourceMutations';
 import { CircularProgress, Snackbar, Alert } from '@mui/material';
+import { formatYYYYMM } from '../../../utils/common';
 
 export default function AdminResourcePage() {
   const { resourceType } = useParams<{ resourceType: string }>();
@@ -82,8 +83,7 @@ export default function AdminResourcePage() {
       const val = row[field];
       if (val === null || val === undefined) return false;
       if (field === 'month' && typeof val === 'number') {
-        const date = new Date(2026, val - 1);
-        const monthStr = date.toLocaleString('default', { month: 'short' }) + ' 2026';
+        const monthStr = formatYYYYMM(val);
         return monthStr.toLowerCase().includes(lowerQuery);
       }
       return String(val).toLowerCase().includes(lowerQuery);
