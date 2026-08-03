@@ -30,6 +30,7 @@ const DatabasePage = lazy(() => import('../pages/DatabasePage'));
 const LoginPage = lazy(() => import('../pages/LoginPage'));
 const MarketOperationsPage = lazy(() => import('../pages/market-operations/MarketOperationsPage'));
 const McpAnalystPage = lazy(() => import('../pages/market-operations/McpAnalystPage'));
+const BiddingStrategyPage = lazy(() => import('../pages/market-operations/BiddingStrategyPage'));
 const SavingsCalculatorPage = lazy(() => import('../pages/SavingsCalculatorPage'));
 const SavingsCalculatorViewPage = lazy(() => import('../pages/SavingsCalculatorViewPage'));
 const SavingsCalculatorAnalysisPage = lazy(() => import('../pages/SavingsCalculatorAnalysisPage'));
@@ -79,6 +80,7 @@ export default function AppRoutes() {
             <Route path="market-operations" element={<Navigate to="/market-operations/trend" replace />} />
             <Route path="market-operations/trend" element={<MarketOperationsPage />} />
             <Route path="market-operations/mcp-analyst" element={<McpAnalystPage />} />
+            <Route path="market-operations/bidding-strategy" element={<BiddingStrategyPage />} />
             <Route path="markets" element={<Navigate to="/dam" replace />} />
             
             {/* Forecast Sub-pages */}

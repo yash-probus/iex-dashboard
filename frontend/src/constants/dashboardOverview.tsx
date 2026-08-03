@@ -73,7 +73,8 @@ export const MARKET_OPERATIONS_ITEMS: OverviewItemConfig[] = [
     color: '#FF7043',
     subItems: [
       { key: 'market-trend', title: 'Market Trend', path: '/market-operations/trend', icon: <SettingsIcon fontSize="small" /> },
-      { key: 'mcp-analyst', title: 'MCP Analyst', path: '/market-operations/mcp-analyst', icon: <ChartIcon fontSize="small" /> }
+      { key: 'mcp-analyst', title: 'MCP Analyst', path: '/market-operations/mcp-analyst', icon: <ChartIcon fontSize="small" /> },
+      { key: 'bidding-strategy', title: 'Bidding Strategy', path: '/market-operations/bidding-strategy', icon: <PriceCheckIcon fontSize="small" /> }
     ]
   }
 ];
