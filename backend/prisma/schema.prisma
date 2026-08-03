@@ -790,6 +790,51 @@ model ForecastRtm {
   @@schema("forecasting")
 }
 
+model RtmDayahead {
+  id              String   @id @default(uuid())
+  date            String   @db.VarChar(10)
+  intervalNumber  Int      @db.SmallInt
+  intervalTime    String   @db.VarChar(15)
+  forecastingFor  DateTime @db.Date
+  forecastDate    DateTime @db.Timestamp(6)
+  predictedMcp    Decimal  @db.Decimal(18, 4)
+  predictedMcpP10 Decimal? @db.Decimal(18, 4)
+  predictedMcpP50 Decimal? @db.Decimal(18, 4)
+  predictedMcpP90 Decimal? @db.Decimal(18, 4)
+  confidence      Decimal? @db.Decimal(18, 4)
+  price_range     String?  @db.VarChar(50)
+  modelVersion    String?  @db.VarChar(50)
+  modelNumber     Int      @default(1)
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt @db.Timestamp(6)
+
+  @@unique([date, intervalNumber], map: "rtm_dayahead_date_block_uidx")
+  @@map("rtm_dayahead")
+  @@schema("forecasting")
+}
+
+model RtmNowcast {
+  id              String   @id @default(uuid())
+  date            String   @db.VarChar(10)
+  intervalNumber  Int      @db.SmallInt
+  intervalTime    String   @db.VarChar(15)
+  forecastedAt    DateTime @db.Timestamp(6)
+  currentBlock    Int?     @db.SmallInt
+  predictedMcp    Decimal  @db.Decimal(18, 4)
+  predictedMcpP10 Decimal? @db.Decimal(18, 4)
+  predictedMcpP50 Decimal? @db.Decimal(18, 4)
+  predictedMcpP90 Decimal? @db.Decimal(18, 4)
+  confidence      Decimal? @db.Decimal(18, 4)
+  price_range     String?  @db.VarChar(50)
+  modelVersion    String?  @db.VarChar(50)
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt @db.Timestamp(6)
+
+  @@index([date, intervalNumber, forecastedAt(sort: Desc)], map: "rtm_nowcast_date_block_idx")
+  @@map("rtm_nowcast")
+  @@schema("forecasting")
+}
+
 model ForecastConsumerDemand {
   id                       String   @id @default(uuid())
   date                     String   @db.VarChar(10)

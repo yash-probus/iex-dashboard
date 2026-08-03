@@ -10,6 +10,8 @@ export interface ForecastIntervalData {
   mcv: number;
   fsv: number;
   mcp: number | null;
+  mcpDayahead?: number | null;
+  mcpNowcast?: number | null;
   actualMcp?: number | null;
   confidence?: string;
   priceRange?: string;
@@ -90,6 +92,16 @@ export class ForecastService {
           ? (sumConf / confRecords.length).toFixed(2)
           : 'N/A';
 
+        // Aggregate dayahead
+        const dayaheadRecords = hourRecords.filter(r => r.mcpDayahead !== null && r.mcpDayahead !== undefined);
+        const sumDayahead = dayaheadRecords.reduce((sum, r) => sum + (r.mcpDayahead as number), 0);
+        const mcpDayahead = dayaheadRecords.length > 0 ? parseFloat((sumDayahead / dayaheadRecords.length).toFixed(2)) : null;
+
+        // Aggregate nowcast
+        const nowcastRecords = hourRecords.filter(r => r.mcpNowcast !== null && r.mcpNowcast !== undefined);
+        const sumNowcast = nowcastRecords.reduce((sum, r) => sum + (r.mcpNowcast as number), 0);
+        const mcpNowcast = nowcastRecords.length > 0 ? parseFloat((sumNowcast / nowcastRecords.length).toFixed(2)) : null;
+
         hourlyData.push({
           date: hourRecords[0].date,
           hour: hourStr,
@@ -100,6 +112,8 @@ export class ForecastService {
           mcv: Math.round(sumMcv / hourRecords.length),
           fsv: Math.round(sumFsv / hourRecords.length),
           mcp: mcpRecords.length > 0 ? parseFloat((sumMcp / mcpRecords.length).toFixed(2)) : null,
+          mcpDayahead,
+          mcpNowcast,
           actualMcp,
           confidence
         });
@@ -129,6 +143,16 @@ export class ForecastService {
       ? (sumConf / confRecords.length).toFixed(2)
       : 'N/A';
 
+    // Aggregate dayahead
+    const dayaheadRecords = records.filter(r => r.mcpDayahead !== null && r.mcpDayahead !== undefined);
+    const sumDayahead = dayaheadRecords.reduce((sum, r) => sum + (r.mcpDayahead as number), 0);
+    const mcpDayahead = dayaheadRecords.length > 0 ? parseFloat((sumDayahead / dayaheadRecords.length).toFixed(2)) : null;
+
+    // Aggregate nowcast
+    const nowcastRecords = records.filter(r => r.mcpNowcast !== null && r.mcpNowcast !== undefined);
+    const sumNowcast = nowcastRecords.reduce((sum, r) => sum + (r.mcpNowcast as number), 0);
+    const mcpNowcast = nowcastRecords.length > 0 ? parseFloat((sumNowcast / nowcastRecords.length).toFixed(2)) : null;
+
     return [{
       date: records[0].date,
       hour: '00',
@@ -139,6 +163,8 @@ export class ForecastService {
       mcv: Math.round(sumMcv / records.length),
       fsv: Math.round(sumFsv / records.length),
       mcp: mcpRecords.length > 0 ? parseFloat((sumMcp / mcpRecords.length).toFixed(2)) : null,
+      mcpDayahead,
+      mcpNowcast,
       actualMcp,
       confidence
     }];
@@ -283,38 +309,74 @@ export class ForecastService {
           }
         } else {
           // RTM uses Prisma Model
-          const forecastRows = await prisma.forecastRtm.findMany({
-            where: { date: { gte: startDateStr, lte: endDateStr } },
-            orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
-          });
-              
-          if (forecastRows && forecastRows.length > 0) {
-            const formatted = forecastRows.map((r: any) => {
-              const hourNum = Math.floor((r.intervalNumber - 1) / 4) + 1;
-              const hour = hourNum.toString().padStart(2, '0');
-              const timeBlock = this.getIntervalTime(r.intervalNumber);
-              
-              const mcp = r.mcp !== null && r.mcp !== undefined ? parseFloat((Number(r.mcp) / 1000.0).toFixed(2)) : null;
-              
-              const dateStr = r.date;
-              const key = `${dateStr}_${r.intervalNumber}`;
-              const actualMcp = actualMap.has(key) ? actualMap.get(key) : null;
+          const [forecastRows, dayaheadRows, nowcastRows] = await Promise.all([
+            prisma.forecastRtm.findMany({
+              where: { date: { gte: startDateStr, lte: endDateStr } },
+              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+            }),
+            prisma.rtmDayahead.findMany({
+              where: { date: { gte: startDateStr, lte: endDateStr } },
+              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+            }),
+            prisma.rtmNowcast.findMany({
+              where: { date: { gte: startDateStr, lte: endDateStr } },
+              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }, { forecastedAt: 'asc' }] // ascending so last overwrites
+            })
+          ]);
+          
+          const dayaheadMap = new Map();
+          for (const r of dayaheadRows) {
+            dayaheadMap.set(`${r.date}_${r.intervalNumber}`, r);
+          }
+          
+          const nowcastMap = new Map();
+          for (const r of nowcastRows) {
+            nowcastMap.set(`${r.date}_${r.intervalNumber}`, r);
+          }
 
-              return {
-                date: dateStr,
+          const dates = this.getDatesInRange(startDateStr, endDateStr);
+          const rawFormatted = [];
+          
+          for (const dStr of dates) {
+            for (let t = 1; t <= 96; t++) {
+              const key = `${dStr}_${t}`;
+              const fRow = forecastRows.find(r => r.date === dStr && r.intervalNumber === t);
+              const dRow = dayaheadMap.get(key);
+              const nRow = nowcastMap.get(key);
+              const actMcp = actualMap.has(key) ? actualMap.get(key) : null;
+              
+              if (!fRow && !dRow && !nRow && actMcp === null) {
+                continue; // no data for this block
+              }
+              
+              const hourNum = Math.floor((t - 1) / 4) + 1;
+              const hour = hourNum.toString().padStart(2, '0');
+              const timeBlock = this.getIntervalTime(t);
+              
+              const mcp = fRow?.mcp !== null && fRow?.mcp !== undefined ? parseFloat((Number(fRow.mcp) / 1000.0).toFixed(2)) : null;
+              const mcpDayahead = dRow?.predictedMcp !== null && dRow?.predictedMcp !== undefined ? parseFloat((Number(dRow.predictedMcp) / 1000.0).toFixed(2)) : null;
+              const mcpNowcast = nRow?.predictedMcp !== null && nRow?.predictedMcp !== undefined ? parseFloat((Number(nRow.predictedMcp) / 1000.0).toFixed(2)) : null;
+
+              rawFormatted.push({
+                date: dStr,
                 hour,
                 timeBlock,
-                intervalNumber: r.intervalNumber,
-                purchaseBid: Number(r.purchaseBid),
-                sellBid: Number(r.sellBid),
-                mcv: Number(r.mcv),
-                fsv: Number(r.fsv),
+                intervalNumber: t,
+                purchaseBid: fRow ? Number(fRow.purchaseBid || 0) : 0,
+                sellBid: fRow ? Number(fRow.sellBid || 0) : 0,
+                mcv: fRow ? Number(fRow.mcv || 0) : 0,
+                fsv: fRow ? Number(fRow.fsv || 0) : 0,
                 mcp,
-                actualMcp,
+                mcpDayahead,
+                mcpNowcast,
+                actualMcp: actMcp,
                 confidence: 'N/A'
-              };
-            });
-            intervals.push(...this.aggregatePriceIntervals(formatted, interval));
+              });
+            }
+          }
+          
+          if (rawFormatted.length > 0) {
+            intervals.push(...this.aggregatePriceIntervals(rawFormatted, interval));
           }
         }
       } catch (e) {
@@ -323,6 +385,8 @@ export class ForecastService {
     }
 
     // If no forecast intervals were created, but we have actual data, let's create intervals for them
+    // Note: for RTM this shouldn't happen because we iterate all 96 blocks in the RTM branch if there is any data.
+    // This mostly applies to GDAM now.
     if (intervals.length === 0 && actualMap.size > 0) {
       const defaultFormatted = [];
       for (const [key, actualMcp] of actualMap.entries()) {

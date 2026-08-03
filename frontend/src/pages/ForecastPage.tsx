@@ -215,9 +215,23 @@ export default function ForecastPage() {
       return metrics;
     }
 
-    const metrics: ChartMetric[] = [
-      {key: 'mcp', name: 'Forecasted MCP (₹/MWh)', color: accentColor, type: 'area', yAxisId: 'right'},
-    ];
+    const metrics: ChartMetric[] = [];
+    
+    if (subType.toUpperCase() === 'RTM') {
+      metrics.push({key: 'mcp', name: 'RTM Forecast (₹/MWh)', color: '#F97316', type: 'line', yAxisId: 'right'});
+      
+      const hasDayahead = data.some(d => d.mcpDayahead !== null && d.mcpDayahead !== undefined);
+      if (hasDayahead) {
+        metrics.push({key: 'mcpDayahead', name: 'Dayahead Forecast (₹/MWh)', color: '#3B82F6', type: 'line', yAxisId: 'right'});
+      }
+      
+      const hasNowcast = data.some(d => d.mcpNowcast !== null && d.mcpNowcast !== undefined);
+      if (hasNowcast) {
+        metrics.push({key: 'mcpNowcast', name: 'Nowcast Forecast (₹/MWh)', color: '#8B5CF6', type: 'line', yAxisId: 'right'});
+      }
+    } else {
+      metrics.push({key: 'mcp', name: 'Forecasted MCP (₹/MWh)', color: accentColor, type: 'area', yAxisId: 'right'});
+    }
 
     const hasActual = data.some(d => d.actualMcp !== null && d.actualMcp !== undefined);
     if (hasActual) {
