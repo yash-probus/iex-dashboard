@@ -101,8 +101,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         totalGrossSavings += m.grossSavings || 0;
       });
 
-      // If we are looking at a specific month and have marketDecisionResult for that month
-      if (marketDecisionResult && (!isOverall)) {
+      // Set baseline cost based on active view (Overall vs Monthly)
+      if (isOverall) {
+        if (clientOverview && clientOverview.aggregatedCosts) {
+          totalBaselineCost = clientOverview.aggregatedCosts.totalDiscomCost || 0;
+        }
+      } else if (marketDecisionResult) {
         totalBaselineCost = marketDecisionResult.totalBaselineCost || 0;
       }
 
