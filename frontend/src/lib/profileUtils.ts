@@ -343,6 +343,8 @@ export const DISCOMS = [
   "MVVNL (Uttar Pradesh)",
   "DVVNL (Uttar Pradesh)",
   "PuVVNL (Uttar Pradesh)",
+  "NPCL (Uttar Pradesh)",
+  "KESCO (Uttar Pradesh)",
   "WBSEDCL (West Bengal)",
   "CESC (Kolkata)",
   "JBVNL (Jharkhand)",
@@ -378,6 +380,8 @@ export const UP_DISCOMS = [
   "MVVNL (Uttar Pradesh)",
   "DVVNL (Uttar Pradesh)",
   "PuVVNL (Uttar Pradesh)",
+  "NPCL (Uttar Pradesh)",
+  "KESCO (Uttar Pradesh)",
 ];
 
 // Maharashtra specific DISCOMs
