@@ -1084,9 +1084,14 @@ export class SavingsCalculatorService {
       console.log('[StateCharges Query Debug] ERROR: No matching state charges record found!');
     }
 
-    const ctuCharges = await prisma.ctuCharges.findFirst({
+    let ctuCharges = await prisma.ctuCharges.findFirst({
       where: { month: yyyymmMonth }
     });
+    if (!ctuCharges) {
+      ctuCharges = await prisma.ctuCharges.findFirst({
+        orderBy: { month: 'desc' }
+      });
+    }
 
     const istsCharges = await prisma.istsCharges.findMany({
       where: {
@@ -1096,9 +1101,14 @@ export class SavingsCalculatorService {
       }
     });
 
-    const iexFees = await prisma.iexFees.findFirst({
+    let iexFees = await prisma.iexFees.findFirst({
       where: { month: yyyymmMonth }
     });
+    if (!iexFees) {
+      iexFees = await prisma.iexFees.findFirst({
+        orderBy: { month: 'desc' }
+      });
+    }
 
     const whereClauseTariff: any = {
       state: { in: stateFormats },
@@ -1140,7 +1150,7 @@ export class SavingsCalculatorService {
     const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 0);
 
     if (!ctuCharges) {
-      throw new Error(`CTU Charges not found for month ${month}`);
+      throw new Error(`CTU Charges not found for month ${yyyymmMonth} (or any previous month)`);
     }
     if (!stateCharges) {
       throw new Error(`State Charges not found for state ${stateCode}, category ${category}, voltage ${voltageLevel}, date ${startStr}`);
