@@ -131,6 +131,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Print Styles */
 @media print {
+  @page {
+    margin: 0;
+  }
+  body {
+    padding: 1.5cm !important;
+  }
   .no-print, .no-print * {
     display: none !important;
   }
@@ -140,8 +146,6 @@ h1, h2, h3, h4, h5, h6 {
   }
   body, html {
     background-color: white !important;
-    margin: 0 !important;
-    padding: 0 !important;
   }
   main {
     margin: 0 auto !important;
