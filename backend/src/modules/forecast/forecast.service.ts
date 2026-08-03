@@ -313,7 +313,7 @@ export class ForecastService {
                 mcv: fRow ? Number(fRow.mcvTotal || fRow.mcv || 0) : 0,
                 fsv: fRow ? Number(fRow.fsvTotal || fRow.fsv || 0) : 0,
                 mcp,
-                actualMcp,
+                actualMcp: actMcp,
                 confidence: 'N/A'
               });
             }
