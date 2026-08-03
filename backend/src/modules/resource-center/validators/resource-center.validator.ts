@@ -52,7 +52,7 @@ const REQUIRED_FIELDS: Record<ResourceType, string[]> = {
   'ists-charges': ['startDate', 'endDate', 'istsLossPercent'],
   'iex-fees': ['month'],
   'prolt-margin': ['month', 'customerId'],
-  'ctu-charges': ['month', 'year', 'pdfUrl'],
+  'ctu-charges': ['state', 'month'],
   'state-charges': ['state', 'fromDate', 'toDate'],
   'state-tariff': ['stateCode', 'month', 'state', 'tod'],
   'fppa-charges': ['state', 'month']
@@ -65,7 +65,7 @@ const VALID_FIELDS: Record<ResourceType, string[]> = {
   'ists-charges': ['startDate', 'endDate', 'istsLossPercent'],
   'iex-fees': ['month', 'exchangeFees', 'exchangeFeesGst', 'nldcApplicationFees', 'nldcSchedulingFees', 'sldcSchedulingFees', 'otherFixCharges'],
   'prolt-margin': ['month', 'customerId', 'tradingMargin', 'tradingMarginGst', 'proltMargin', 'proltMarginGst'],
-  'ctu-charges': ['month', 'year', 'pdfUrl'],
+  'ctu-charges': ['state', 'month', 'ctu_charges_rs_per_kwh'],
   'state-charges': ['state', 'category', 'subCategory', 'supplyVoltageCategory', 'voltageLevel', 'fromDate', 'toDate', 'demandFixedChargeKvaPerMonthRs', 'crossSubsidy', 'distributionWheelingCharges', 'stuCharges', 'stuLossPercent', 'wheelingLossPercent', 'additionalCharge'],
   'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges'],
   'fppa-charges': ['state', 'discom', 'month', 'fppaChargePercent']
