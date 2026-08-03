@@ -117,7 +117,19 @@ export class IexScraperService {
           const row = tableData[i];
           if (!row) continue;
           
-          const isoDate = new Date(dateString.split('-').reverse().join('-') + 'T00:00:00Z');
+          let isoDate: Date;
+          if (dateString.includes('-')) {
+            const parts = dateString.split('-');
+            if (parts[0].length === 4) {
+              // YYYY-MM-DD
+              isoDate = new Date(`${parts[0]}-${parts[1]}-${parts[2]}T00:00:00.000Z`);
+            } else {
+              // DD-MM-YYYY
+              isoDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00.000Z`);
+            }
+          } else {
+            isoDate = new Date(dateString);
+          }
           
           await prisma.stateMarketRecord.upsert({
             where: {
