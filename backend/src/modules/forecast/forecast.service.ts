@@ -509,8 +509,6 @@ export class ForecastService {
 
     // Base params
     const isAllIndia = type === 'all-india';
-    let baseLoad = isAllIndia ? 160000 : 150; // All India load in MW, Consumer load in kW
-    let peakMultiplier = isAllIndia ? 40000 : 80;
 
     try {
       if (isAllIndia) {

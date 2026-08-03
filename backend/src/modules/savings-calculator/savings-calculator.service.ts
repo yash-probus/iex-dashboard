@@ -493,8 +493,6 @@ export class SavingsCalculatorService {
     const sanctionedLoad = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
     const category = entry.consumerCategory || 'Industrial';
     const rawVoltage = entry.voltageLevel || '11 kV';
-    const digitsMatch = rawVoltage.match(/^(\d+)/);
-    const voltage = digitsMatch ? `${digitsMatch[1]} kV` : rawVoltage;
 
     // 15-minute slot energy limit in kWh = load (kW) * 0.25 hours
     const maxEnergyPerSlot = sanctionedLoad * 0.25;
@@ -564,8 +562,10 @@ export class SavingsCalculatorService {
         }
       }
 
+      const stateFormats = [stateName, stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_'), stateName.charAt(0).toUpperCase() + stateName.slice(1).toLowerCase()];
+
       const whereClause: any = {
-        state: stateName,
+        state: { in: stateFormats },
         discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         consumerCategory: parsedCategory,
         supplyVoltageCategory: parsedSupplyVoltageCategory,
@@ -628,7 +628,7 @@ export class SavingsCalculatorService {
       // Fetch stateCharges for losses
       const stateCharges = await prisma.stateCharges.findFirst({
         where: {
-          state: stateName.toUpperCase().replace(/\s+/g, '_'),
+          state: { in: stateFormats },
           discom: entry.discom === 'NPCL' ? 'NPCL' : null,
           category: parsedCategory,
           fromDate: { lte: new Date(startStr) },
@@ -650,7 +650,7 @@ export class SavingsCalculatorService {
       // Fetch FPPA percent (using current month for simulation accuracy)
       const fppaDataList = await prisma.fppaCharges.findMany({
         where: {
-          state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
+          state: { in: stateFormats },
           month: yyyymmMonth
         }
       });
@@ -669,7 +669,7 @@ export class SavingsCalculatorService {
       });
 
       if (tariffs.length === 0) {
-        const fallbackWhere: any = { state: stateName, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+        const fallbackWhere: any = { state: { in: stateFormats }, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
         if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
         const allTariffs = await prisma.stateTariff.findMany({
           where: fallbackWhere,
@@ -1012,6 +1012,8 @@ export class SavingsCalculatorService {
       }
     }
 
+    const stateFormats = [stateName, stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_'), stateName.charAt(0).toUpperCase() + stateName.slice(1).toLowerCase()];
+
     const traderMargin = Number(entry.traderMargin || 0);
     const sanctionedLoad = Number(entry.sanctionedLoadKw) || 0;
     const maxEnergyPerSlot = (sanctionedLoad * 0.9 * 0.25);
@@ -1027,7 +1029,7 @@ export class SavingsCalculatorService {
       const endMonth = nextMonthDate.getMonth() + 1;
       endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-18`;
     }
-    const targetDate = new Date(startStr);
+
 
     let parsedSupplyVoltageCategory = voltageLevel;
     if (parsedSupplyVoltageCategory.includes(' - ')) {
@@ -1058,7 +1060,7 @@ export class SavingsCalculatorService {
 
     const stateCharges = await prisma.stateCharges.findFirst({
       where: {
-        state: stateName.toUpperCase().replace(/\s+/g, '_'),
+        state: { in: stateFormats },
         discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         category: parsedCategory,
         fromDate: { lte: new Date(startStr) },
@@ -1069,7 +1071,7 @@ export class SavingsCalculatorService {
       }
     });
 
-    console.log('[StateCharges Query Debug] State:', stateName.toUpperCase().replace(/\s+/g, '_'));
+    console.log('[StateCharges Query Debug] State Formats:', stateFormats);
     console.log('[StateCharges Query Debug] Category:', category);
     console.log('[StateCharges Query Debug] Date Range:', startStr, 'to', endStr);
     console.log('[StateCharges Query Debug] Found:', !!stateCharges);
@@ -1099,7 +1101,7 @@ export class SavingsCalculatorService {
     });
 
     const whereClauseTariff: any = {
-      state: stateName,
+      state: { in: stateFormats },
       discom: entry.discom === 'NPCL' ? 'NPCL' : null,
       consumerCategory: parsedCategory,
       supplyVoltageCategory: parsedSupplyVoltageCategory,
@@ -1111,7 +1113,7 @@ export class SavingsCalculatorService {
     let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
 
     if (tariffs.length === 0) {
-      const fallbackWhere: any = { state: stateName, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+      const fallbackWhere: any = { state: { in: stateFormats }, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
       if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
       const allTariffs = await prisma.stateTariff.findMany({
         where: fallbackWhere,
@@ -1155,7 +1157,7 @@ export class SavingsCalculatorService {
     // Fetch FPPA percent (using current month for simulation accuracy)
     const fppaDataList = await prisma.fppaCharges.findMany({
       where: {
-        state: { in: [stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_')] },
+        state: { in: stateFormats },
         month: yyyymmMonth
       }
     });
@@ -1416,13 +1418,12 @@ export class SavingsCalculatorService {
         marketableSlots.forEach(slot => {
           const maxEnergy = maxEnergyPerSlot;
           let bestCost = slot.discomLanding * maxEnergy; // Default to DISCOM
-          let bestMarket = null;
+
           
           markets.forEach(market => {
             const landing = slot.marketLandings[market as keyof typeof slot.marketLandings];
             if (landing && landing < bestCost) {
               bestCost = landing * maxEnergy;
-              bestMarket = market;
             }
           });
           
@@ -1742,7 +1743,7 @@ export class SavingsCalculatorService {
       const consumerBusUnits = finalMarketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
 
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
-      const avgMarketPrice = finalMarketEnergy > 0 ? exactMarketEnergyCost / finalMarketEnergy : 0;
+
 
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
