@@ -105,6 +105,9 @@ export class IexScraperService {
           page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 })
         ]);
         
+        // Wait for actual table rows to render (skip if empty)
+        await page.waitForSelector('#example tbody tr td:not(.dataTables_empty)', { timeout: 10000 }).catch(() => {});
+        
         // Extract table
         const tableData = await page.$$eval('#example tbody tr', rows => {
           return rows.map(tr => {
