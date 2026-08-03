@@ -1,52 +1,68 @@
 import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
-import csv from 'csv-parser';
+import * as fs from 'fs';
+import * as path from 'path';
+import { parse } from 'csv-parse/sync';
 
 const prisma = new PrismaClient();
 
-async function run() {
-  const filePath = '../backend_tables_saving_calculator_ver1 - ctu_charges (1).csv';
+async function main() {
+  console.log('Starting CTU Charges seed process...');
+  const csvPath = path.join(__dirname, 'ctu_charges.csv');
   
-  const records: any[] = [];
+  if (!fs.existsSync(csvPath)) {
+    console.error(`CSV file not found at ${csvPath}`);
+    process.exit(1);
+  }
+
+  const fileContent = fs.readFileSync(csvPath, 'utf-8');
   
-  await new Promise((resolve, reject) => {
-    fs.createReadStream(filePath)
-      .pipe(csv())
-      .on('data', (data) => records.push(data))
-      .on('end', () => resolve(true))
-      .on('error', (err) => reject(err));
+  // Parse CSV
+  const records = parse(fileContent, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
   });
 
-  console.log(`Loaded ${records.length} records from CSV.`);
-  
-  let success = 0;
+  console.log(`Found ${records.length} records in CSV. Inserting...`);
+
+  let count = 0;
   for (const record of records) {
-    if (!record.state || !record.month) continue;
+    const { state, month, ctu_charges_rs_per_kwh } = record;
+    
+    // ctu_charges_rs_per_kwh might be negative or positive, Parse as float/decimal
+    const parsedCharge = parseFloat(ctu_charges_rs_per_kwh);
+    
+    if (isNaN(parsedCharge)) {
+        console.log(`Skipping invalid charge value: ${ctu_charges_rs_per_kwh} for ${state} ${month}`);
+        continue;
+    }
 
     try {
-      await prisma.ctuCharges.upsert({
-        where: {
-          state_month: {
-            state: record.state,
-            month: parseInt(record.month, 10)
-          }
-        },
-        update: {
-          ctu_charges_rs_per_kwh: record.ctu_charges_rs_per_kwh ? parseFloat(record.ctu_charges_rs_per_kwh) : null
-        },
-        create: {
-          state: record.state,
-          month: parseInt(record.month, 10),
-          ctu_charges_rs_per_kwh: record.ctu_charges_rs_per_kwh ? parseFloat(record.ctu_charges_rs_per_kwh) : null
+      await prisma.ctuCharges.create({
+        data: {
+          state: state,
+          month: parseInt(month, 10),
+          ctu_charges_rs_per_kwh: parsedCharge
         }
       });
-      success++;
-    } catch (error) {
-      console.error(`Error processing state: ${record.state}, month: ${record.month}:`, error);
+      count++;
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        console.log(`Record already exists for ${state} ${month}, skipping.`);
+      } else {
+        console.error(`Error inserting ${state} ${month}:`, error.message);
+      }
     }
   }
 
-  console.log(`Successfully seeded ${success} records into CtuCharges.`);
+  console.log(`\nSuccess! Inserted ${count} new records into ctu_charges.`);
 }
 
-run().catch(console.error).finally(() => prisma.$disconnect());
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
