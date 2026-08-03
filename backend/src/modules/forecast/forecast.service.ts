@@ -688,12 +688,12 @@ export class ForecastService {
       }
     } else if (market.toUpperCase() === 'RTM') {
       try {
-        const rows = await prisma.forecastRtm.findMany({
+        const rows = await prisma.rtmDayahead.findMany({
           select: { date: true },
           distinct: ['date'],
           orderBy: { date: 'desc' }
         });
-        return rows.map(r => r.date);
+        return rows.map((r: any) => r.date);
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'CONSUMER') {
       try {
