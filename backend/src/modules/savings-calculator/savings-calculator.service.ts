@@ -527,6 +527,7 @@ export class SavingsCalculatorService {
       const nextYear = nextMonthDate.getFullYear();
       const nextMonth = nextMonthDate.getMonth() + 1;
       const yyyymmMonth = nextYear * 100 + nextMonth;
+      const calendarMonth = year * 100 + month;
 
       if (isNaN(year) || isNaN(month) || isNaN(yyyymmMonth)) {
         throw new Error(`Invalid consumption month format: ${yearMonth}. Expected YYYY-MM.`);
@@ -661,7 +662,7 @@ export class SavingsCalculatorService {
       const fppaDataList = await prisma.fppaCharges.findMany({
         where: {
           state: { in: stateFormats },
-          month: yyyymmMonth
+          month: calendarMonth
         }
       });
       let fppaData = fppaDataList.find(f => f.discom === entry.discom);
@@ -1016,6 +1017,7 @@ export class SavingsCalculatorService {
     const nextYear = nextMonthDate.getFullYear();
     const nextMonth = nextMonthDate.getMonth() + 1;
     const yyyymmMonth = nextYear * 100 + nextMonth;
+    const calendarMonth = year * 100 + month;
     const stateCode = entry.stateCode || '';
     const category = entry.consumerCategory || '';
     const voltageLevel = entry.voltageLevel || '';
@@ -1173,7 +1175,7 @@ export class SavingsCalculatorService {
     const fppaDataList = await prisma.fppaCharges.findMany({
       where: {
         state: { in: stateFormats },
-        month: yyyymmMonth
+        month: calendarMonth
       }
     });
     let fppaData = fppaDataList.find(f => f.discom === entry.discom);
