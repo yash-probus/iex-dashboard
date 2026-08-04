@@ -24,13 +24,28 @@ function parseCSVLine(line: string): string[] {
 }
 
 async function main() {
-  const csvPath = '/Users/yashgupta/IEX-Dashboard/aayaya.csv';
-  console.log(`Reading CSV file from ${csvPath}...`);
-  
-  if (!fs.existsSync(csvPath)) {
-    console.error(`File not found: ${csvPath}`);
+  const possiblePaths = [
+    '/Users/yashgupta/IEX-Dashboard/aayaya.csv',
+    path.join(__dirname, '../../aayaya.csv'),
+    path.join(__dirname, '../../../aayaya.csv'),
+    path.join(process.cwd(), 'aayaya.csv'),
+    path.join(process.cwd(), '../aayaya.csv')
+  ];
+
+  let csvPath = '';
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      csvPath = p;
+      break;
+    }
+  }
+
+  if (!csvPath) {
+    console.error(`File aayaya.csv not found in any of these paths:`, possiblePaths);
     process.exit(1);
   }
+
+  console.log(`Reading CSV file from ${csvPath}...`);
 
   const content = fs.readFileSync(csvPath, 'utf-8');
   const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
