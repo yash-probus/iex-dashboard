@@ -9,7 +9,7 @@ export const DashboardCheapestSlots: React.FC<DashboardCheapestSlotsProps> = ({ 
   if (!calcResult || !calcResult.sortedMonthlyList) return null;
 
   return (
-    <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
+    <Box sx={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 400, border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
       <Table size="small" stickyHeader>
         <TableHead>
           <TableRow>
