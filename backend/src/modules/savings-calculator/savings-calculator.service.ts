@@ -668,7 +668,7 @@ export class SavingsCalculatorService {
       const fppaDataList = await prisma.fppaCharges.findMany({
         where: {
           state: { in: stateFormats },
-          month: fppaQueryMonth
+          month: yyyymmMonth
         }
       });
       let fppaData = fppaDataList.find(f => f.discom === entry.discom);
@@ -1187,7 +1187,7 @@ export class SavingsCalculatorService {
     const fppaDataList = await prisma.fppaCharges.findMany({
       where: {
         state: { in: stateFormats },
-        month: fppaQueryMonth
+        month: yyyymmMonth
       }
     });
     let fppaData = fppaDataList.find(f => f.discom === entry.discom);
