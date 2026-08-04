@@ -866,7 +866,9 @@ export default function ForecastPage() {
                                       py: 0.75
                                     }}
                                   >
-                                    {displayValue !== undefined && displayValue !== null ? displayValue : '-'}
+                                    {col.renderCell
+                                      ? col.renderCell(row)
+                                      : (displayValue !== undefined && displayValue !== null ? displayValue : '-')}
                                   </TableCell>
                                 );
                               })}
