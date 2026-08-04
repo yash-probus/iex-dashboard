@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Alert, Paper, Grid, ToggleButton, ToggleButtonGroup, Button, TextField, MenuItem, Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableRow, TableHead, Popover, IconButton, InputAdornment } from '@mui/material';
+import { Box, Typography, Alert, Paper, Grid, ToggleButton, ToggleButtonGroup, Button, TextField, MenuItem, Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableRow, TableHead, Popover, IconButton, InputAdornment, Radio, RadioGroup, FormControlLabel } from '@mui/material';
 import {
   Timeline as TimelineIcon,
   FileDownload as DownloadIcon,
@@ -83,6 +83,7 @@ export default function ForecastPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showWmape, setShowWmape] = useState(true);
+  const [rtmForecastType, setRtmForecastType] = useState<'both' | 'dayahead' | 'nowcast'>('both');
 
   // Popover state for Calendar
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
@@ -230,12 +231,12 @@ export default function ForecastPage() {
     
     if (subType.toUpperCase() === 'RTM') {
       const hasDayahead = data.some(d => d.mcpDayahead !== null && d.mcpDayahead !== undefined);
-      if (hasDayahead) {
+      if (hasDayahead && (rtmForecastType === 'both' || rtmForecastType === 'dayahead')) {
         metrics.push({key: 'mcpDayahead', name: 'Dayahead Forecast (₹/MWh)', color: '#3B82F6', type: 'line', yAxisId: 'right'});
       }
       
       const hasNowcast = data.some(d => d.mcpNowcast !== null && d.mcpNowcast !== undefined);
-      if (hasNowcast) {
+      if (hasNowcast && (rtmForecastType === 'both' || rtmForecastType === 'nowcast')) {
         metrics.push({key: 'mcpNowcast', name: 'Nowcast Forecast (₹/MWh)', color: '#8B5CF6', type: 'line', yAxisId: 'right'});
       }
     } else {
@@ -648,6 +649,25 @@ export default function ForecastPage() {
             </>
           ) : (
             <>
+              {!isDemand && subType.toUpperCase() === 'RTM' && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                  <RadioGroup
+                    row
+                    value={rtmForecastType}
+                    onChange={(e) => setRtmForecastType(e.target.value as any)}
+                  >
+                    <FormControlLabel value="both" control={<Radio size="small" />} label={
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Both Forecasts</Typography>
+                    } />
+                    <FormControlLabel value="dayahead" control={<Radio size="small" />} label={
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Dayahead Only</Typography>
+                    } />
+                    <FormControlLabel value="nowcast" control={<Radio size="small" />} label={
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Nowcast Only</Typography>
+                    } />
+                  </RadioGroup>
+                </Box>
+              )}
               <MarketChart
                 title={`${displayTitle} - Graph View`}
                 data={data}
