@@ -529,6 +529,12 @@ export class SavingsCalculatorService {
       const yyyymmMonth = nextYear * 100 + nextMonth;
       const calendarMonth = year * 100 + month;
 
+      // FPPA month is 1 month prior to the calendar month (e.g. Jan FPPA for Feb)
+      const prevMonthDate = new Date(year, month - 2, 1);
+      const prevYear = prevMonthDate.getFullYear();
+      const prevMonthVal = prevMonthDate.getMonth() + 1;
+      const fppaQueryMonth = prevYear * 100 + prevMonthVal;
+
       if (isNaN(year) || isNaN(month) || isNaN(yyyymmMonth)) {
         throw new Error(`Invalid consumption month format: ${yearMonth}. Expected YYYY-MM.`);
       }
@@ -662,7 +668,7 @@ export class SavingsCalculatorService {
       const fppaDataList = await prisma.fppaCharges.findMany({
         where: {
           state: { in: stateFormats },
-          month: calendarMonth
+          month: fppaQueryMonth
         }
       });
       let fppaData = fppaDataList.find(f => f.discom === entry.discom);
