@@ -1596,7 +1596,7 @@ export class SavingsCalculatorService {
     });
 
     const demandChargeRate = stateCharges ? Number(stateCharges.demandFixedChargeKvaPerMonthRs || 0) : 0;
-    const demandCharge = peakDemand * demandChargeRate;
+    const demandCharge = peakDemand * demandChargeRate * (1 + (fppaPercent / 100));
 
     // === PASS 1: Allocate Market Energy per TOD Slab (Forward Banking) ===
     const slotsByTod: Record<string, typeof slotsData> = {};
