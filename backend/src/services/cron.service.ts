@@ -41,8 +41,8 @@ export class CronService {
     });
 
     // Run every 30 minutes for RTM Scraper
-    cron.schedule('0,30 * * * *', async () => {
-      console.log('[Cron] Running hourly RTM scraper');
+    cron.schedule('*/30 * * * *', async () => {
+      console.log('[Cron] Running half-hourly RTM scraper');
       try {
         const { ScraperService } = await import('../modules/scraper/scraper.service');
         const { PersistenceService } = await import('../modules/persistence/persistence.service');

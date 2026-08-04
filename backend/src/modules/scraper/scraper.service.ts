@@ -169,65 +169,74 @@ export class ScraperService {
     }
   }
 
-  public static async scrapeRtm(): Promise<RtmIntervalRecord[]> {
+  public static async scrapeRtm(maxRetries = 3): Promise<RtmIntervalRecord[]> {
     logger.info('Starting Puppeteer for RTM Market Data Scrape...');
-    const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    });
-
-    try {
-      const page = await browser.newPage();
-      await page.goto('https://www.iexindia.com/market-data/real-time-market/market-snapshot', {
-        waitUntil: 'networkidle2',
-        timeout: 60000
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const browser = await puppeteer.launch({
+        headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
       });
 
-      await page.waitForSelector('table', { timeout: 15000 });
-
-      const data = await page.evaluate(() => {
-        const rows = Array.from(document.querySelectorAll('table tbody tr'));
-        return rows.map(row => {
-          const columns = Array.from(row.querySelectorAll('td'));
-          return columns.map(c => (c as HTMLElement).innerText.trim());
+      try {
+        const page = await browser.newPage();
+        await page.goto('https://www.iexindia.com/market-data/real-time-market/market-snapshot', {
+          waitUntil: 'networkidle2',
+          timeout: 60000
         });
-      });
 
-      const records: RtmIntervalRecord[] = [];
-      for (const row of data) {
-        const timeBlockIdx = row.findIndex(c => c && c.includes(':') && c.includes('-'));
-        if (timeBlockIdx === -1) continue;
+        // Increased timeout to 30 seconds to be safer
+        await page.waitForSelector('table', { timeout: 30000 });
 
-        const timeBlock = row[timeBlockIdx];
-        const [start] = timeBlock.split('-');
-        if (!start) continue;
-        const [hh, mm] = start.split(':').map(Number);
-        const intervalNumber = (hh * 4) + (mm / 15) + 1;
-
-        const offset = timeBlockIdx;
-
-        records.push({
-          intervalNumber,
-          intervalTime: start.trim(),
-          sessionId: '1',
-          purchaseBid: this.parseNumber(row[offset + 1] ?? '0'),
-          sellBid:     this.parseNumber(row[offset + 2] ?? '0'),
-          mcv:         this.parseNumber(row[offset + 3] ?? '0'),
-          fsv:         this.parseNumber(row[offset + 4] ?? '0'),
-          mcp:         this.parseNumber(row[offset + 5] ?? '0'),
+        const data = await page.evaluate(() => {
+          const rows = Array.from(document.querySelectorAll('table tbody tr'));
+          return rows.map(row => {
+            const columns = Array.from(row.querySelectorAll('td'));
+            return columns.map(c => (c as HTMLElement).innerText.trim());
+          });
         });
+
+        const records: RtmIntervalRecord[] = [];
+        for (const row of data) {
+          const timeBlockIdx = row.findIndex(c => c && c.includes(':') && c.includes('-'));
+          if (timeBlockIdx === -1) continue;
+
+          const timeBlock = row[timeBlockIdx];
+          const [start] = timeBlock.split('-');
+          if (!start) continue;
+          const [hh, mm] = start.split(':').map(Number);
+          const intervalNumber = (hh * 4) + (mm / 15) + 1;
+
+          const offset = timeBlockIdx;
+
+          records.push({
+            intervalNumber,
+            intervalTime: start.trim(),
+            sessionId: '1',
+            purchaseBid: this.parseNumber(row[offset + 1] ?? '0'),
+            sellBid:     this.parseNumber(row[offset + 2] ?? '0'),
+            mcv:         this.parseNumber(row[offset + 3] ?? '0'),
+            fsv:         this.parseNumber(row[offset + 4] ?? '0'),
+            mcp:         this.parseNumber(row[offset + 5] ?? '0'),
+          });
+        }
+
+        logger.info(`Successfully scraped ${records.length} RTM records on attempt ${attempt}`);
+        return records;
+
+      } catch (error: any) {
+        logger.error(`Error scraping RTM on attempt ${attempt}: ${error.message}`);
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        // Wait before retrying (exponential backoff or just static delay)
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } finally {
+        await browser.close();
       }
-
-      logger.info(`Successfully scraped ${records.length} RTM records`);
-      return records;
-
-    } catch (error: any) {
-      logger.error(`Error scraping RTM: ${error.message}`);
-      throw error;
-    } finally {
-      await browser.close();
     }
+    return [];
   }
 
   public static async scrapeRec(): Promise<RecMonthlyRecord[]> {
