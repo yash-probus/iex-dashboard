@@ -153,8 +153,10 @@ h1, h2, h3, h4, h5, h6 {
     width: 100% !important;
     max-width: 383mm !important;
   }
-  .MuiCard-root {
-    page-break-inside: avoid;
+  .MuiCard-root, .MuiPaper-root, .card, .grid-item, .recharts-responsive-container, [role="region"] {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    break-inside: avoid-page !important;
   }
   #module-content-wrapper > div {
     min-height: auto !important;
