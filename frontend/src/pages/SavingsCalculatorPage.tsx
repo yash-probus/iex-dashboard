@@ -2856,32 +2856,57 @@ export default function SavingsCalculatorPage() {
                         {new Date(v.changedAt).toLocaleString('en-IN')}
                       </Typography>
                     </Box>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" color="text.secondary">Client</Typography>
-                        <Typography variant="body2" fontWeight={600}>{v.clientName}</Typography>
+                    {previousVersion ? (
+                      changes.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {changes.map((c, i) => (
+                            <Grid item xs={12} sm={6} key={i}>
+                              <Typography variant="caption" color="text.secondary">{c.label}</Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'error.main' }}>
+                                  {String(c.old)}
+                                </Typography>
+                                <ArrowRightAltIcon fontSize="small" color="action" />
+                                <Typography variant="body2" fontWeight={600} color="success.main">
+                                  {String(c.new)}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                          No trackable changes in this version (might be TOD updates or other nested edits).
+                        </Typography>
+                      )
+                    ) : (
+                      <Grid container spacing={2}>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Client</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.clientName}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Industry</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.industryName}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">State</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.stateCode}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Load</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.sanctionedLoadKw} kW</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Discom</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.discom}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">PROLT / Trader Margin</Typography>
+                          <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" color="text.secondary">Industry</Typography>
-                        <Typography variant="body2" fontWeight={600}>{v.industryName}</Typography>
-                      </Grid>
-                      <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" color="text.secondary">State</Typography>
-                        <Typography variant="body2" fontWeight={600}>{v.stateCode}</Typography>
-                      </Grid>
-                      <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" color="text.secondary">Load</Typography>
-                        <Typography variant="body2" fontWeight={600}>{v.sanctionedLoadKw} kW</Typography>
-                      </Grid>
-                      <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" color="text.secondary">Discom</Typography>
-                        <Typography variant="body2" fontWeight={600}>{v.discom}</Typography>
-                      </Grid>
-                      <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" color="text.secondary">PROLT / Trader Margin</Typography>
-                        <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
-                      </Grid>
-                    </Grid>
+                    )}
                   </Paper>
                 );
               })}
