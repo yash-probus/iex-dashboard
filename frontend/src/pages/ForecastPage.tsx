@@ -185,6 +185,17 @@ export default function ForecastPage() {
       }
     }
 
+    if (!isDemand && subType.toUpperCase() === 'RTM') {
+      return [
+        ...baseColumns,
+        { field: 'mcpDayahead', headerName: 'Dayahead Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+        { field: 'mcpNowcast', headerName: 'Nowcast Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+        { field: 'actualMcp', headerName: 'Actual MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+        { field: 'priceRange', headerName: 'Price Range', align: 'center' },
+        { field: 'confidence', headerName: 'Confidence', align: 'center' },
+      ];
+    }
+
     return [
       ...baseColumns,
       { field: 'mcp', headerName: 'Forecasted MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
