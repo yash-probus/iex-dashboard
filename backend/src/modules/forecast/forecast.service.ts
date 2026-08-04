@@ -366,6 +366,11 @@ export class ForecastService {
               const mcpDayahead = dRow?.predictedMcp !== null && dRow?.predictedMcp !== undefined ? parseFloat((Number(dRow.predictedMcp) / 1000.0).toFixed(2)) : null;
               const mcpNowcast = nRow?.predictedMcp !== null && nRow?.predictedMcp !== undefined ? parseFloat((Number(nRow.predictedMcp) / 1000.0).toFixed(2)) : null;
 
+              const confidenceDayahead = dRow?.confidence !== null && dRow?.confidence !== undefined ? String(dRow.confidence) : 'N/A';
+              const priceRangeDayahead = dRow?.price_range || 'N/A';
+              const confidenceNowcast = nRow?.confidence !== null && nRow?.confidence !== undefined ? String(nRow.confidence) : 'N/A';
+              const priceRangeNowcast = nRow?.price_range || 'N/A';
+
               rawFormatted.push({
                 date: dStr,
                 hour,
@@ -379,7 +384,12 @@ export class ForecastService {
                 mcpDayahead,
                 mcpNowcast,
                 actualMcp: actMcp,
-                confidence: 'N/A'
+                confidenceDayahead,
+                priceRangeDayahead,
+                confidenceNowcast,
+                priceRangeNowcast,
+                confidence: 'N/A',
+                priceRange: 'N/A'
               });
             }
           }

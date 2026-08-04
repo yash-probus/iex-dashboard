@@ -199,8 +199,30 @@ export default function ForecastPage() {
 
       rtmColumns.push(
         { field: 'actualMcp', headerName: 'Actual MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
-        { field: 'priceRange', headerName: 'Price Range', align: 'center' },
-        { field: 'confidence', headerName: 'Confidence', align: 'center' }
+        { 
+          field: 'priceRange', 
+          headerName: 'Price Range', 
+          align: 'center',
+          renderCell: (row: any) => {
+            if (rtmForecastType === 'dayahead') return row.priceRangeDayahead || 'N/A';
+            if (rtmForecastType === 'nowcast') return row.priceRangeNowcast || 'N/A';
+            return row.priceRangeDayahead && row.priceRangeDayahead !== 'N/A' 
+              ? row.priceRangeDayahead 
+              : (row.priceRangeNowcast || 'N/A');
+          }
+        },
+        { 
+          field: 'confidence', 
+          headerName: 'Confidence', 
+          align: 'center',
+          renderCell: (row: any) => {
+            if (rtmForecastType === 'dayahead') return row.confidenceDayahead || 'N/A';
+            if (rtmForecastType === 'nowcast') return row.confidenceNowcast || 'N/A';
+            return row.confidenceDayahead && row.confidenceDayahead !== 'N/A' 
+              ? row.confidenceDayahead 
+              : (row.confidenceNowcast || 'N/A');
+          }
+        }
       );
       
       return rtmColumns;
@@ -302,8 +324,15 @@ export default function ForecastPage() {
         if (mcp < minForecast) minForecast = mcp;
       }
 
-      if (row.confidence && row.confidence !== 'N/A') {
-        sumConf += Number(row.confidence);
+      let rowConf = row.confidence;
+      if (subType.toUpperCase() === 'RTM') {
+        if (rtmForecastType === 'dayahead') rowConf = row.confidenceDayahead;
+        else if (rtmForecastType === 'nowcast') rowConf = row.confidenceNowcast;
+        else rowConf = (row.confidenceDayahead && row.confidenceDayahead !== 'N/A') ? row.confidenceDayahead : row.confidenceNowcast;
+      }
+
+      if (rowConf && rowConf !== 'N/A') {
+        sumConf += Number(rowConf);
         confCount++;
       }
 

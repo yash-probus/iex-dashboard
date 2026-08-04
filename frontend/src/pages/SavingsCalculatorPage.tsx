@@ -2340,7 +2340,7 @@ export default function SavingsCalculatorPage() {
                             </Typography>
                           </Typography>
 
-                          <Box sx={{ maxHeight: 350, overflowY: 'auto', overflowX: 'hidden' }}>
+                          <Box sx={{ overflowX: 'hidden' }}>
                             <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
                               <TableHead>
                                 <TableRow>

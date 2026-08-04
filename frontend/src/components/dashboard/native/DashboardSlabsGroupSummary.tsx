@@ -21,7 +21,7 @@ export const DashboardSlabsGroupSummary: React.FC<DashboardSlabsGroupSummaryProp
                 </Typography>
               </Typography>
               
-              <Box sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 320 }}>
+              <Box sx={{ overflowX: 'hidden' }}>
                 <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
