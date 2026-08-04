@@ -8,6 +8,7 @@ interface SlotData {
   shouldBuyFromMarket: boolean;
   marketEnergy?: number;
   discomEnergy?: number;
+  tod?: string;
 }
 
 interface SlotWiseMarketHeatmapProps {
@@ -160,6 +161,9 @@ export const SlotWiseMarketHeatmap: React.FC<SlotWiseMarketHeatmapProps> = ({ sl
                           height: 12,
                           bgcolor: getCellColor(slot),
                           cursor: 'pointer',
+                          borderLeft: (idx > 0 && slot?.tod && slots[idx-1]?.tod && slot.tod !== slots[idx-1]?.tod) 
+                            ? '2px solid #334155' 
+                            : 'none',
                           '&:hover': {
                             opacity: 0.8,
                             boxShadow: '0 0 0 1px rgba(0,0,0,0.2) inset'

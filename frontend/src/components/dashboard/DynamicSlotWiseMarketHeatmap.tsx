@@ -8,6 +8,7 @@ interface SlotData {
   shouldBuyFromMarket: boolean;
   marketEnergy?: number;
   discomEnergy?: number;
+  tod?: string;
 }
 
 interface DynamicSlotWiseMarketHeatmapProps {
@@ -156,7 +157,9 @@ export const DynamicSlotWiseMarketHeatmap: React.FC<DynamicSlotWiseMarketHeatmap
                           height: 12,
                           bgcolor: getCellColor(slot),
                           cursor: 'pointer',
-                          border: slot && (!slot.shouldBuyFromMarket ? (slot.discomEnergy || 0) : (slot.marketEnergy || 0)) === 0 ? '1px solid #f1f5f9' : 'none',
+                          borderLeft: (idx > 0 && slot?.tod && slots[idx-1]?.tod && slot.tod !== slots[idx-1]?.tod) 
+                            ? '2px solid #334155' 
+                            : 'none',
                           '&:hover': {
                             opacity: 1,
                             transform: 'scale(1.1)',
