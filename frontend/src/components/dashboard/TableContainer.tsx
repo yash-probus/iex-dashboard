@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Paper, Box, Typography, Button, Skeleton,
   Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, TableSortLabel, alpha 
@@ -31,11 +31,46 @@ interface TableContainerProps {
 }
 
 export default function TableContainer({ title, data, columns, onExport, emptyStateMessage, loading = false, sortBy, sortOrder = 'asc', onSort }: TableContainerProps) {
+  const [internalSortBy, setInternalSortBy] = useState<string | undefined>(undefined);
+  const [internalSortOrder, setInternalSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const activeSortBy = onSort ? sortBy : internalSortBy;
+  const activeSortOrder = onSort ? sortOrder : internalSortOrder;
+
+  const handleSort = (field: string) => {
+    if (onSort) {
+      onSort(field);
+    } else {
+      const isAsc = activeSortBy === field && activeSortOrder === 'asc';
+      setInternalSortOrder(isAsc ? 'desc' : 'asc');
+      setInternalSortBy(field);
+    }
+  };
+
+  const sortedData = useMemo(() => {
+    if (onSort || !activeSortBy) return data;
+    return [...data].sort((a, b) => {
+      let aVal = a[activeSortBy];
+      let bVal = b[activeSortBy];
+      
+      // Default to empty strings for null/undefined to avoid crash
+      if (aVal === undefined || aVal === null) aVal = '';
+      if (bVal === undefined || bVal === null) bVal = '';
+      
+      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+      
+      if (aVal < bVal) return activeSortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return activeSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [data, activeSortBy, activeSortOrder, onSort]);
+
   // Calculate sticky left offsets
   let currentLeftOffset = 0;
   let currentRightOffset = 0;
 
-  const columnsWithOffsets = columns.map(col => ({ ...col, leftOffset: 0, rightOffset: 0 }));
+  const columnsWithOffsets = columns.map(col => ({ ...col, leftOffset: 0, rightOffset: 0, isSortable: col.sortable !== false }));
 
   // Left offsets
   columnsWithOffsets.forEach(col => {
@@ -104,16 +139,16 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                     left: col.sticky ? col.leftOffset : 'auto',
                     right: col.stickyRight ? col.rightOffset : 'auto',
                     zIndex: (col.sticky || col.stickyRight) ? 40 : 30,
-                    cursor: col.sortable ? 'pointer' : 'default',
+                    cursor: col.isSortable ? 'pointer' : 'default',
                     userSelect: 'none',
                   }}
-                  onClick={col.sortable && onSort ? () => onSort(col.field) : undefined}
+                  onClick={col.isSortable ? () => handleSort(col.field) : undefined}
                 >
-                  {col.sortable && onSort ? (
+                  {col.isSortable ? (
                     <TableSortLabel
-                      active={sortBy === col.field}
-                      direction={sortBy === col.field ? sortOrder : 'asc'}
-                      onClick={() => onSort(col.field)}
+                      active={activeSortBy === col.field}
+                      direction={activeSortBy === col.field ? activeSortOrder : 'asc'}
+                      onClick={(e) => { e.stopPropagation(); handleSort(col.field); }}
                       sx={{
                         fontSize: '11px',
                         letterSpacing: '0.5px',
@@ -142,7 +177,7 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                   </TableCell>
                 </TableRow>
               ))
-            ) : data.length === 0 ? (
+            ) : sortedData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center" sx={{ height: 'auto', borderBottom: 'none' }}>
                   {emptyStateMessage || (
@@ -151,7 +186,7 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((row, index) => (
+              sortedData.map((row, index) => (
                 <TableRow 
                   key={index}
                   hover
