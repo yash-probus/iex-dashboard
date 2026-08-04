@@ -215,7 +215,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
           </Text>
         </View>
 
-        <View style={styles.kpiRow}>
+        <View style={styles.kpiRow} wrap={false}>
           <View style={styles.kpiCardActual}>
             <Text style={styles.kpiLabelActual}>Actual Spend</Text>
             <Text style={styles.kpiValueActual}>{formatCurrency(result.totalBaselineCost)}</Text>
@@ -231,7 +231,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
           </View>
         </View>
 
-        <View style={styles.chartBox}>
+        <View style={styles.chartBox} wrap={false}>
           <Text style={styles.chartTitle}>Monthly Consumption Mix — DISCOM vs OA</Text>
           <Text style={{ fontSize: 10, color: '#6B7280', marginBottom: 10 }}>Your actual energy source mix vs Prolt's recommended distribution — {displayMonth}.</Text>
           {charts.consumptionMix ? (
@@ -243,7 +243,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
       </Page>
 
       <Page size="A4" style={styles.page}>
-        <View style={styles.chartBox}>
+        <View style={styles.chartBox} wrap={false}>
           <Text style={styles.chartTitle}>Monthly Spend Comparison</Text>
           {charts.spendComparison ? (
             <Image style={styles.image} src={charts.spendComparison} />
@@ -259,14 +259,14 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
           A day-by-day view of the same month. The first panel shows how much you could save on each day; the two panels below compare how energy was actually purchased against Prolt's recommended split.
         </Text>
 
-        <View style={styles.chartBox}>
+        <View style={styles.chartBox} wrap={false}>
           <Text style={styles.chartTitle}>Daily Savings Opportunity — {displayMonth}</Text>
           {charts.dailySavings ? (
             <Image style={{ width: '100%', height: 140, objectFit: 'contain' }} src={charts.dailySavings} />
           ) : null}
         </View>
 
-        <View style={styles.chartBox}>
+        <View style={styles.chartBox} wrap={false}>
           <Text style={styles.chartTitle}>How You Should Purchase</Text>
           {charts.purchaseComparison ? (
             <Image style={{ width: '100%', height: 140, objectFit: 'contain' }} src={charts.purchaseComparison} />
@@ -278,7 +278,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
         <Text style={styles.chartTitle}>Prolt Suggested Daily Breakdown</Text>
         
         <View style={styles.table}>
-          <View style={styles.tableHeader}>
+          <View style={styles.tableHeader} wrap={false}>
             <Text style={[styles.col1, styles.colHeader]}>DAY</Text>
             <Text style={[styles.col2, styles.colHeader]}>TOTAL UNITS</Text>
             <Text style={[styles.col3, styles.colHeader]}>OA UNITS</Text>
@@ -289,7 +289,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
           </View>
           
           {dailyData.slice(0, 31).map((row: any, i) => (
-            <View style={styles.tableRow} key={i}>
+            <View style={styles.tableRow} key={i} wrap={false}>
               <Text style={styles.col1}>Day {row.dayLabel}</Text>
               <Text style={styles.col2}>{(row.totalUnits/1000).toFixed(2)}K</Text>
               <Text style={styles.col3}>{row.oaUnits > 0 ? row.oaUnits.toFixed(2) : '-'}</Text>
@@ -306,7 +306,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
           Showing full daily breakdown available in your Prolt dashboard.
         </Text>
 
-        <View style={styles.glossaryBox}>
+        <View style={styles.glossaryBox} wrap={false}>
           <View style={styles.glossaryLeft}>
             <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: 'bold', marginBottom: 10, letterSpacing: 1 }}>TERMS USED</Text>
             <Text style={styles.glossaryTerm}>DISCOM</Text>
