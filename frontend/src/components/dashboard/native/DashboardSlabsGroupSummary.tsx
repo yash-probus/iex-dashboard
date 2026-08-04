@@ -25,9 +25,9 @@ export const DashboardSlabsGroupSummary: React.FC<DashboardSlabsGroupSummaryProp
                 <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>Date/Time</TableCell>
-                      <TableCell align="right" sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>Lowest Price</TableCell>
-                      <TableCell align="right" sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>DISCOM</TableCell>
+                      <TableCell sx={{ width: '40%', fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC', whiteSpace: 'nowrap' }}>Date/Time</TableCell>
+                      <TableCell align="right" sx={{ width: '40%', fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC', whiteSpace: 'nowrap' }}>Lowest Price</TableCell>
+                      <TableCell align="right" sx={{ width: '20%', fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC', whiteSpace: 'nowrap' }}>DISCOM</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
