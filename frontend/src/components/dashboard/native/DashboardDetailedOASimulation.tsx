@@ -28,7 +28,7 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
           Export Detailed Report CSV
         </Button>
       </Box>
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2.5, overflow: 'hidden' }}>
+      <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5, overflow: 'hidden' }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -76,53 +76,54 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
             </TableRow>
           </TableBody>
         </Table>
-      </Box>
-      <Box sx={{ display: 'flex', gap: 4, mt: 2, p: 2, backgroundColor: '#F1F5F9', borderRadius: 2 }}>
-        <Box>
-          <Typography variant="caption" color="text.secondary" display="block">SLDC Scheduling Cost</Typography>
-          <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
-        </Box>
-        <Box>
-          <Typography variant="caption" color="text.secondary" display="block">NLDC Scheduling Cost</Typography>
-          <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.nldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
-        </Box>
-        <Box>
-          <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
-          <Typography variant="body2" fontWeight={700} color="#7C3AED">
-            ₹{(
-              marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaBill, 0) + 
-              marketDecisionResult.oaDetailed.dailyFixedOverhead + 
-              marketDecisionResult.oaDetailed.bidApplicationFees
-            ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-          </Typography>
-        </Box>
-        <Box>
-          <Typography variant="caption" color="text.secondary" display="block">Total Gross Bill (Net Landed OA Cost)</Typography>
-          <Typography variant="body2" fontWeight={700} color="#E11D48">
-            ₹{(
-              marketDecisionResult.totalLandedExchangeCost + 
-              marketDecisionResult.oaDetailed.dailyFixedOverhead + 
-              marketDecisionResult.oaDetailed.bidApplicationFees
-            ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-          </Typography>
-        </Box>
-        <Box>
-          <Typography variant="caption" color="text.secondary" display="block">Net Savings</Typography>
-          {(() => {
-            const rawSavings = marketDecisionResult.totalSavings - marketDecisionResult.oaDetailed.dailyFixedOverhead - marketDecisionResult.oaDetailed.bidApplicationFees;
-            if (rawSavings <= 0) {
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, p: 2, backgroundColor: '#F8FAFC', borderTop: '1px solid', borderColor: 'divider', minWidth: 'max-content' }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">SLDC Scheduling Cost</Typography>
+            <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">NLDC Scheduling Cost</Typography>
+            <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.nldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
+            <Typography variant="body2" fontWeight={700} color="#7C3AED">
+              ₹{(
+                marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaBill, 0) + 
+                marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                marketDecisionResult.oaDetailed.bidApplicationFees
+              ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Total Gross Bill (Net Landed OA Cost)</Typography>
+            <Typography variant="body2" fontWeight={700} color="#E11D48">
+              ₹{(
+                marketDecisionResult.totalLandedExchangeCost + 
+                marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                marketDecisionResult.oaDetailed.bidApplicationFees
+              ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Net Savings</Typography>
+            {(() => {
+              const rawSavings = marketDecisionResult.totalSavings - marketDecisionResult.oaDetailed.dailyFixedOverhead - marketDecisionResult.oaDetailed.bidApplicationFees;
+              if (rawSavings <= 0) {
+                return (
+                  <Typography variant="body2" fontWeight={700} color="#DC2626">
+                    Not Eligible for OA
+                  </Typography>
+                );
+              }
               return (
-                <Typography variant="body2" fontWeight={700} color="#DC2626">
-                  Not Eligible for OA
+                <Typography variant="body2" fontWeight={700} color="#16A34A">
+                  ₹{rawSavings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                 </Typography>
               );
-            }
-            return (
-              <Typography variant="body2" fontWeight={700} color="#16A34A">
-                ₹{rawSavings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-              </Typography>
-            );
-          })()}
+            })()}
+          </Box>
         </Box>
       </Box>
     </Box>
