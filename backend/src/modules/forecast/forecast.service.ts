@@ -447,7 +447,12 @@ export class ForecastService {
     let confidenceCount = 0;
 
     for (const row of intervals) {
-      const mcp = row.mcp !== null && row.mcp !== undefined ? Number(row.mcp) : null;
+      let mcpVal: any = row.mcp;
+      if (mcpVal === null || mcpVal === undefined) {
+        // Fallback to mcpDayahead for RTM Forecast
+        mcpVal = row.mcpDayahead;
+      }
+      const mcp = (mcpVal !== null && mcpVal !== undefined) ? Number(mcpVal) : null;
       const actualMcp = row.actualMcp !== null && row.actualMcp !== undefined ? Number(row.actualMcp) : null;
       const fsv = Number(row.fsv || 0);
       const mcv = Number(row.mcv || 0);
