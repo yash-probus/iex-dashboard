@@ -109,7 +109,7 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">Net Savings</Typography>
             {(() => {
-              const rawSavings = marketDecisionResult.totalSavings - marketDecisionResult.oaDetailed.dailyFixedOverhead - marketDecisionResult.oaDetailed.bidApplicationFees;
+              const rawSavings = marketDecisionResult.totalSavings;
               if (rawSavings <= 0) {
                 return (
                   <Typography variant="body2" fontWeight={700} color="#DC2626">
