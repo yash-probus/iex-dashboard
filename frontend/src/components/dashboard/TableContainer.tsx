@@ -76,7 +76,7 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
       )}
 
       {/* Render all rows directly. High performance container. */}
-      <MuiTableContainer sx={{ backgroundColor: 'background.paper', height: 'fit-content' }}>
+      <MuiTableContainer sx={{ backgroundColor: 'background.paper', maxHeight: 'calc(100vh - 300px)' }}>
         <Table stickyHeader size="small" sx={{ minWidth: 'max-content' }}>
           <TableHead>
             <TableRow>

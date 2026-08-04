@@ -21,8 +21,8 @@ export const DashboardSlabsGroupSummary: React.FC<DashboardSlabsGroupSummaryProp
                 </Typography>
               </Typography>
               
-              <Box sx={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 320 }}>
-                <Table size="small" stickyHeader>
+              <Box sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 320 }}>
+                <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ fontSize: '10px', fontWeight: 700, backgroundColor: '#F8FAFC' }}>Date/Time</TableCell>

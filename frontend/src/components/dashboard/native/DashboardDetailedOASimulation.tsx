@@ -28,8 +28,8 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
           Export Detailed Report CSV
         </Button>
       </Box>
-      <Box sx={{ overflowX: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2.5, overflow: 'hidden' }}>
-        <Table size="small">
+      <Box sx={{ overflowX: 'hidden', border: '1px solid', borderColor: 'divider', borderRadius: 2.5, overflow: 'hidden' }}>
+        <Table size="small" sx={{ tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>TOD Slab</TableCell>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Typography, Alert, Paper, Grid, ToggleButton, ToggleButtonGroup, Button, TextField, MenuItem, Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableRow, TableHead, Popover, IconButton, InputAdornment, Radio, RadioGroup, FormControlLabel } from '@mui/material';
 import {
   Timeline as TimelineIcon,
@@ -187,14 +187,23 @@ export default function ForecastPage() {
     }
 
     if (!isDemand && subType.toUpperCase() === 'RTM') {
-      return [
-        ...baseColumns,
-        { field: 'mcpDayahead', headerName: 'Dayahead Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
-        { field: 'mcpNowcast', headerName: 'Nowcast Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+      const rtmColumns: ColumnDefinition[] = [...baseColumns];
+      
+      if (rtmForecastType === 'both' || rtmForecastType === 'dayahead') {
+        rtmColumns.push({ field: 'mcpDayahead', headerName: 'Dayahead Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') });
+      }
+      
+      if (rtmForecastType === 'both' || rtmForecastType === 'nowcast') {
+        rtmColumns.push({ field: 'mcpNowcast', headerName: 'Nowcast Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') });
+      }
+
+      rtmColumns.push(
         { field: 'actualMcp', headerName: 'Actual MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
         { field: 'priceRange', headerName: 'Price Range', align: 'center' },
-        { field: 'confidence', headerName: 'Confidence', align: 'center' },
-      ];
+        { field: 'confidence', headerName: 'Confidence', align: 'center' }
+      );
+      
+      return rtmColumns;
     }
 
     return [
@@ -258,6 +267,80 @@ export default function ForecastPage() {
   };
 
   const chartMetrics = getChartMetrics();
+
+  const displayMetrics = useMemo(() => {
+    if (isDemand || subType.toUpperCase() !== 'RTM' || data.length === 0) return summaryMetrics;
+
+    let sumForecast = 0;
+    let sumActual = 0;
+    let forecastCount = 0;
+    let actualCount = 0;
+    let minForecast = Infinity;
+    let minActual = Infinity;
+    let sumAbsErr = 0;
+    let sumPctErr = 0;
+    let errCount = 0;
+    let sumConf = 0;
+    let confCount = 0;
+
+    data.forEach(row => {
+      let fVal = null;
+      if (rtmForecastType === 'nowcast') {
+        fVal = row.mcpNowcast;
+      } else if (rtmForecastType === 'dayahead') {
+        fVal = row.mcpDayahead;
+      } else {
+        fVal = row.mcpDayahead !== null && row.mcpDayahead !== undefined ? row.mcpDayahead : row.mcpNowcast;
+      }
+
+      const mcp = fVal !== null && fVal !== undefined ? Number(fVal) : null;
+      const act = row.actualMcp !== null && row.actualMcp !== undefined ? Number(row.actualMcp) : null;
+
+      if (mcp !== null) {
+        sumForecast += mcp;
+        forecastCount++;
+        if (mcp < minForecast) minForecast = mcp;
+      }
+
+      if (row.confidence && row.confidence !== 'N/A') {
+        sumConf += Number(row.confidence);
+        confCount++;
+      }
+
+      if (act !== null) {
+        sumActual += act;
+        actualCount++;
+        if (act < minActual) minActual = act;
+
+        if (mcp !== null) {
+          const absErr = Math.abs(act - mcp);
+          sumAbsErr += absErr;
+          if (act > 0) {
+            sumPctErr += (absErr / act);
+            errCount++;
+          }
+        }
+      }
+    });
+
+    const avgForecast = forecastCount > 0 ? sumForecast / forecastCount : 0;
+    const avgActual = actualCount > 0 ? sumActual / actualCount : null;
+    const mae = actualCount > 0 ? sumAbsErr / actualCount : null;
+    const mape = errCount > 0 ? (sumPctErr / errCount) * 100 : null;
+    const wmape = sumActual > 0 ? (sumAbsErr / sumActual) * 100 : null;
+
+    return {
+      ...summaryMetrics,
+      averageMcpForecasted: parseFloat(avgForecast.toFixed(2)),
+      averageMcpActual: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : 'N/A',
+      minMcpForecasted: minForecast === Infinity ? 0 : parseFloat(minForecast.toFixed(2)),
+      minMcpActual: minActual === Infinity ? null : parseFloat(minActual.toFixed(2)),
+      mae: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
+      mape: mape !== null ? `${mape.toFixed(2)}%` : 'N/A',
+      wmape: wmape !== null ? `${wmape.toFixed(2)}%` : 'N/A',
+      confidence: confCount > 0 ? (sumConf / confCount).toFixed(2) : 'N/A',
+    };
+  }, [data, summaryMetrics, rtmForecastType, isDemand, subType]);
 
   const handleExport = () => {
     exportToCSV(data, `${subType.toUpperCase()}_Forecast_${filters.startDate}_to_${filters.endDate}`, columns);
@@ -476,7 +559,7 @@ export default function ForecastPage() {
                   {isLoading ? <SummaryCardSkeleton /> : (
                     <SummaryCard
                       title={subType === 'consumer' ? "Average Apparent Energy" : "Average Demand"}
-                      value={summaryMetrics.averageDemand ? `${summaryMetrics.averageDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
+                      value={displayMetrics.averageDemand ? `${displayMetrics.averageDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
                       icon={<TrendingUp fontSize="small" />}
                       accentColor={accentColor}
                       sx={{ p: 1.75 }}
@@ -487,7 +570,7 @@ export default function ForecastPage() {
                   {isLoading ? <SummaryCardSkeleton /> : (
                     <SummaryCard
                       title={subType === 'consumer' ? "Minimum Apparent Energy" : "Minimum Demand"}
-                      value={summaryMetrics.minDemand ? `${summaryMetrics.minDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
+                      value={displayMetrics.minDemand ? `${displayMetrics.minDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
                       icon={<TrendingDown fontSize="small" />}
                       accentColor={accentColor}
                       sx={{ p: 1.75 }}
@@ -498,7 +581,7 @@ export default function ForecastPage() {
                   {isLoading ? <SummaryCardSkeleton /> : (
                     <SummaryCard
                       title={subType === 'consumer' ? "Maximum Apparent Energy" : "Maximum Demand"}
-                      value={summaryMetrics.maxDemand ? `${summaryMetrics.maxDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
+                      value={displayMetrics.maxDemand ? `${displayMetrics.maxDemand.toLocaleString('en-IN')} ${subType === 'consumer' ? 'kVA' : 'MW'}` : 'N/A'}
                       icon={<TrendingUp fontSize="small" />}
                       accentColor={accentColor}
                       sx={{ p: 1.75 }}
@@ -518,15 +601,15 @@ export default function ForecastPage() {
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
                             <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                              ₹{Number(summaryMetrics.averageMcpForecasted || summaryMetrics.averageMcp || 0).toFixed(2)}
+                              ₹{Number(displayMetrics.averageMcpForecasted || displayMetrics.averageMcp || 0).toFixed(2)}
                             </Typography>
                           </Box>
                           <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
                             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
                             <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                              {summaryMetrics.averageMcpActual === 'N/A' || summaryMetrics.averageMcpActual === undefined || summaryMetrics.averageMcpActual === null
+                              {displayMetrics.averageMcpActual === 'N/A' || displayMetrics.averageMcpActual === undefined || displayMetrics.averageMcpActual === null
                                 ? 'N/A'
-                                : `₹${Number(summaryMetrics.averageMcpActual).toFixed(2)}`}
+                                : `₹${Number(displayMetrics.averageMcpActual).toFixed(2)}`}
                             </Typography>
                           </Box>
                         </Box>
@@ -548,15 +631,15 @@ export default function ForecastPage() {
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
                             <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                              ₹{Number(summaryMetrics.minMcpForecasted || summaryMetrics.minMcp || 0).toFixed(2)}
+                              ₹{Number(displayMetrics.minMcpForecasted || displayMetrics.minMcp || 0).toFixed(2)}
                             </Typography>
                           </Box>
                           <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
                             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
                             <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
-                              {summaryMetrics.minMcpActual === 'N/A' || summaryMetrics.minMcpActual === undefined || summaryMetrics.minMcpActual === null
+                              {displayMetrics.minMcpActual === 'N/A' || displayMetrics.minMcpActual === undefined || displayMetrics.minMcpActual === null
                                 ? 'N/A'
-                                : `₹${Number(summaryMetrics.minMcpActual).toFixed(2)}`}
+                                : `₹${Number(displayMetrics.minMcpActual).toFixed(2)}`}
                             </Typography>
                           </Box>
                         </Box>
@@ -575,8 +658,8 @@ export default function ForecastPage() {
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title="MAE"
-                  value={summaryMetrics.mae !== undefined && summaryMetrics.mae !== null && summaryMetrics.mae !== 'N/A' 
-                    ? (isDemand ? Number(summaryMetrics.mae).toFixed(2) : `₹${Number(summaryMetrics.mae).toFixed(2)}`) 
+                  value={displayMetrics.mae !== undefined && displayMetrics.mae !== null && displayMetrics.mae !== 'N/A' 
+                    ? (isDemand ? Number(displayMetrics.mae).toFixed(2) : `₹${Number(displayMetrics.mae).toFixed(2)}`) 
                     : 'N/A'}
                   icon={<ShowChart fontSize="small" />}
                   accentColor="#EF4444"
@@ -590,7 +673,7 @@ export default function ForecastPage() {
               {isLoading ? <SummaryCardSkeleton /> : (
                 <SummaryCard
                   title={showWmape ? "WMAPE" : "MAPE"}
-                  value={showWmape ? (summaryMetrics.wmape || 'N/A') : (summaryMetrics.mape || 'N/A')}
+                  value={showWmape ? (displayMetrics.wmape || 'N/A') : (displayMetrics.mape || 'N/A')}
                   icon={<ShowChart fontSize="small" />}
                   accentColor={showWmape ? "#3B82F6" : "#F59E0B"}
                   sx={{ p: 1.75 }}
@@ -630,7 +713,7 @@ export default function ForecastPage() {
                 {isLoading ? <SummaryCardSkeleton /> : (
                   <SummaryCard
                     title="Confidence"
-                    value={summaryMetrics.confidence || 'N/A'}
+                    value={displayMetrics.confidence || 'N/A'}
                     icon={<ShowChart fontSize="small" />}
                     accentColor="#8B5CF6"
                     sx={{ p: 1.75 }}
