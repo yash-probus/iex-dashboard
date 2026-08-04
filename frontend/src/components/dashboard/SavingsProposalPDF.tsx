@@ -11,6 +11,18 @@ const styles = StyleSheet.create({
   },
   titleSection: {
     marginBottom: 20,
+    marginTop: 10,
+  },
+  fixedHeader: {
+    position: 'absolute',
+    top: 30,
+    left: 40,
+    right: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 10,
   },
   redSubtitle: {
     color: '#EF4444',
@@ -194,10 +206,30 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
   savingsPerc,
   displayMonth,
   charts,
-}) => {
+  }) => {
+  const renderFixedHeader = () => (
+    <View style={styles.fixedHeader} fixed>
+      <View>
+        <Text style={{ fontSize: 10, color: '#6B7280', fontWeight: 'bold' }}>PROLT SAVINGS REPORT</Text>
+        <Text style={{ fontSize: 8, color: '#9CA3AF' }}>{displayMonth}</Text>
+      </View>
+      <View style={{ flexDirection: 'row' }}>
+        <View style={{ alignItems: 'flex-end', marginRight: 20 }}>
+          <Text style={{ fontSize: 8, color: '#6B7280', textTransform: 'uppercase' }}>Actual Spend</Text>
+          <Text style={{ fontSize: 12, color: '#111827', fontWeight: 'bold' }}>{formatCurrency(result.totalBaselineCost)}</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: 8, color: '#0369A1', textTransform: 'uppercase' }}>Net Saving</Text>
+          <Text style={{ fontSize: 12, color: '#0284C7', fontWeight: 'bold' }}>{netSavings > 0 ? (netSavings >= 100000 ? formatCurrency(netSavings) : formatThousands(netSavings)) : 'Rs 0'}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {renderFixedHeader()}
         <View style={styles.titleSection}>
           <Text style={styles.redSubtitle}>SAVINGS ANALYSIS / {displayMonth}</Text>
           {netSavings > 0 ? (
@@ -243,6 +275,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
       </Page>
 
       <Page size="A4" style={styles.page}>
+        {renderFixedHeader()}
         <View style={styles.chartBox} wrap={false}>
           <Text style={styles.chartTitle}>Monthly Spend Comparison</Text>
           {charts.spendComparison ? (
@@ -254,6 +287,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
       </Page>
 
       <Page size="A4" style={styles.page}>
+        {renderFixedHeader()}
         <Text style={styles.redSubtitle}>02 MONTHLY DETAILS — {displayMonth}</Text>
         <Text style={styles.description}>
           A day-by-day view of the same month. The first panel shows how much you could save on each day; the two panels below compare how energy was actually purchased against Prolt's recommended split.
@@ -275,6 +309,7 @@ export const SavingsProposalPDF: React.FC<SavingsProposalPDFProps> = ({
       </Page>
 
       <Page size="A4" style={styles.page}>
+        {renderFixedHeader()}
         <Text style={styles.chartTitle}>Prolt Suggested Daily Breakdown</Text>
         
         <View style={styles.table}>

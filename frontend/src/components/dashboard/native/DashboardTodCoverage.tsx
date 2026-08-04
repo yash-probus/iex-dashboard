@@ -22,7 +22,7 @@ export const DashboardTodCoverage: React.FC<DashboardTodCoverageProps> = ({ deta
             <Box key={i} sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography sx={{ width: '40px', fontSize: '10px', fontWeight: 'bold', color: '#64748b' }}>{t.tod}</Typography>
               <Box sx={{ flexGrow: 1, position: 'relative', height: '14px', mr: 2 }}>
-                <Box sx={{ position: 'absolute', left: 0, top: 0, width: `${widthPct}%`, height: '100%', bgcolor: '#f1f5f9', borderRadius: '4px' }} />
+                <Box sx={{ position: 'absolute', left: 0, top: 0, width: `${widthPct}%`, height: '100%', bgcolor: '#475569', borderRadius: '4px' }} />
                 <Box sx={{ position: 'absolute', left: 0, top: 0, width: `${(t.coverage / 100) * widthPct}%`, height: '100%', bgcolor: t.coverage > 20 ? '#10b981' : '#f59e0b', borderRadius: '4px', display: 'flex', alignItems: 'center', px: 1 }}>
                   <Typography sx={{ color: '#fff', fontSize: '8px', fontWeight: 'bold' }}>{t.coverage > 0 ? t.coverage.toFixed(1) + '%' : ''}</Typography>
                 </Box>
