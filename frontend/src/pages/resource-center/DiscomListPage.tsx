@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
-import { Box, Typography } from '@mui/material';
-import { Domain as DomainIcon } from '@mui/icons-material';
+import { FormControl, Select, MenuItem, InputLabel, Box, Tooltip, IconButton, Snackbar, Alert } from '@mui/material';
+import { Domain as DomainIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import ResourcePageLayout from '../../components/dashboard/ResourcePageLayout';
 import EmptyTableState from '../../components/dashboard/EmptyTableState';
 import TableContainer, { ColumnDefinition } from '../../components/dashboard/TableContainer';
@@ -9,6 +8,11 @@ import { exportToCSV } from '../../utils/export';
 import { useResourceData } from '../../hooks/useResourceData';
 import { RESOURCE_CENTER_PAGES } from './constants/resourceCenter.constants';
 import { DiscomList } from './types/resourceCenter.types';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUpdateResourceRecord, useDeleteResourceRecord } from '../../hooks/useResourceMutations';
+import ResourceFormModal from '../../components/admin/ResourceFormModal';
+import ResourceDeleteDialog from '../../components/admin/ResourceDeleteDialog';
+import { RESOURCE_CONFIG } from '../admin/resource-center/config/resourceConfig';
 
 export default function DiscomListPage() {
   const { data, loading, error, refresh, bulkUpload } = useResourceData<DiscomList>('discom-list');
@@ -16,6 +20,57 @@ export default function DiscomListPage() {
   const [selectedState, setSelectedState] = useState('all');
   const [selectedDiscomType, setSelectedDiscomType] = useState('all');
   const config = RESOURCE_CENTER_PAGES.DISCOM_LIST;
+  const { isAdmin } = useAuth();
+
+  // Modals & mutations state
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' | 'info' });
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleSuccess = (msg: string) => {
+    showSnackbar(msg, 'success');
+    setFormModalOpen(false);
+    setDeleteDialogOpen(false);
+    refresh();
+  };
+
+  const handleError = (err: Error) => {
+    showSnackbar(err.message || 'Something went wrong. Please try again.', 'error');
+  };
+
+  const updateMutation = useUpdateResourceRecord({ resourceType: 'discom-list', onSuccess: handleSuccess, onError: handleError });
+  const deleteMutation = useDeleteResourceRecord({ resourceType: 'discom-list', onSuccess: handleSuccess, onError: handleError });
+
+  const isSubmitting = updateMutation.isSubmitting || deleteMutation.isSubmitting;
+
+  const handleEditClick = (record: any) => {
+    setEditingRecord(record);
+    setFormModalOpen(true);
+  };
+
+  const handleDeleteClick = (record: any) => {
+    setDeletingId(record.id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleSaveRecord = async (formData: any) => {
+    if (editingRecord && editingRecord.id) {
+      await updateMutation.mutate(editingRecord.id, formData);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingId) return;
+    await deleteMutation.mutate(deletingId);
+  };
 
   const uniqueStates = Array.from(new Set(data.map((r: DiscomList) => r.stateCode).filter(Boolean))).sort();
   const uniqueDiscomTypes = Array.from(new Set(data.map((r: DiscomList) => r.discomType).filter(Boolean))).sort();
@@ -35,11 +90,36 @@ export default function DiscomListPage() {
     return matchesSearch && matchesState && matchesDiscomType;
   });
 
-  const columns: ColumnDefinition[] = [
+  const baseColumns: ColumnDefinition[] = [
     { field: 'code', headerName: 'Code', align: 'center', width: 150 },
     { field: 'legalName', headerName: 'Discom Name', align: 'center', width: 400 },
     { field: 'stateCode', headerName: 'State Name', align: 'center', width: 150 },
     { field: 'discomType', headerName: 'Discom Type', align: 'center', width: 200 },
+  ];
+
+  const columns = [
+    ...baseColumns,
+    ...(isAdmin ? [{
+      field: 'actions',
+      headerName: 'Actions',
+      align: 'center' as const,
+      width: 120,
+      sticky: false,
+      renderCell: (row: any) => (
+        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+          <Tooltip title="Edit">
+            <IconButton size="small" onClick={() => handleEditClick(row)} sx={{ color: 'primary.main' }}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton size="small" onClick={() => handleDeleteClick(row)} sx={{ color: 'error.main' }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )
+    }] : [])
   ];
 
   const handleExport = () => {
@@ -119,6 +199,40 @@ export default function DiscomListPage() {
           />
         }
       />
+
+      {RESOURCE_CONFIG['discom-list'] && (
+        <ResourceFormModal
+          open={formModalOpen}
+          title={RESOURCE_CONFIG['discom-list'].title}
+          fields={RESOURCE_CONFIG['discom-list'].fields}
+          initialData={editingRecord}
+          isSubmitting={isSubmitting}
+          onClose={() => setFormModalOpen(false)}
+          onSave={handleSaveRecord}
+        />
+      )}
+
+      <ResourceDeleteDialog
+        open={deleteDialogOpen}
+        isSubmitting={isSubmitting}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+          severity={snackbar.severity} 
+          sx={{ width: '100%', borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </ResourcePageLayout>
   );
 }
