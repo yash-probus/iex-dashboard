@@ -7,7 +7,7 @@ interface DashboardDetailedOASimulationProps {
   exportDetailedOAToCSV: () => void;
 }
 
-export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulationProps> = ({ 
+export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulationProps> = ({
   marketDecisionResult,
   exportDetailedOAToCSV
 }) => {
@@ -19,9 +19,9 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
         <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
           Detailed OA Savings Breakdown
         </Typography>
-        <Button 
-          variant="outlined" 
-          startIcon={<DownloadIcon />} 
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
           onClick={exportDetailedOAToCSV}
           sx={{ textTransform: 'none', borderRadius: 2 }}
         >
@@ -33,11 +33,11 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>TOD Slab</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Total<br/>(DISCOM)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Market<br/>(OA Units)</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>DISCOM<br/>Bill</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Prolt<br/>DISCOM</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>OA Cons.<br/>Bus</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Total<br />(DISCOM)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Market<br />(OA Units)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>DISCOM<br />Bill</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>Prolt<br />DISCOM</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>OA Cons.<br />Bus</TableCell>
               <TableCell align="right" sx={{ fontWeight: 600, backgroundColor: '#F8FAFC', fontSize: '11px', px: 1 }}>OA Bill</TableCell>
             </TableRow>
           </TableHead>
@@ -90,8 +90,8 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
             <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
             <Typography variant="body2" fontWeight={700} color="#7C3AED">
               ₹{(
-                marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaBill, 0) + 
-                marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaBill, 0) +
+                marketDecisionResult.oaDetailed.dailyFixedOverhead +
                 marketDecisionResult.oaDetailed.bidApplicationFees
               ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </Typography>
@@ -100,8 +100,8 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
             <Typography variant="caption" color="text.secondary" display="block">Total Gross Bill (Net Landed OA Cost)</Typography>
             <Typography variant="body2" fontWeight={700} color="#E11D48">
               ₹{(
-                marketDecisionResult.totalLandedExchangeCost + 
-                marketDecisionResult.oaDetailed.dailyFixedOverhead + 
+                marketDecisionResult.totalLandedExchangeCost +
+                marketDecisionResult.oaDetailed.dailyFixedOverhead +
                 marketDecisionResult.oaDetailed.bidApplicationFees
               ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </Typography>
