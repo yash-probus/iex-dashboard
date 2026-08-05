@@ -208,6 +208,7 @@ export class SavingsCalculatorService {
   static async delete(id: string) {
     const res = await prisma.savingsCalculatorEntry.delete({
       where: { id }
+    });
     await invalidateCache(`market:${id}:*`);
     await invalidateCache(`demandshift:${id}:*`);
     await invalidateCache(`calc:savings:${id}:*`);
