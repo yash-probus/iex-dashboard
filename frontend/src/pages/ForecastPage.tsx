@@ -697,44 +697,7 @@ export default function ForecastPage() {
               )}
             </Box>
 
-            {/* MAPE / WMAPE Card */}
-            <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
-              {isLoading ? <SummaryCardSkeleton /> : (
-                <SummaryCard
-                  title={showWmape ? "WMAPE" : "MAPE"}
-                  value={showWmape ? (displayMetrics.wmape || 'N/A') : (displayMetrics.mape || 'N/A')}
-                  icon={<ShowChart fontSize="small" />}
-                  accentColor={showWmape ? "#3B82F6" : "#F59E0B"}
-                  sx={{ p: 1.75 }}
-                  titleAction={
-                    <ToggleButtonGroup
-                      size="small"
-                      value={showWmape ? 'wmape' : 'mape'}
-                      exclusive
-                      onChange={(e, newVal) => {
-                        e.stopPropagation();
-                        if (newVal !== null) {
-                          setShowWmape(newVal === 'wmape');
-                        }
-                      }}
-                      sx={{ 
-                        height: 24,
-                        '& .MuiToggleButton-root': {
-                          px: 1,
-                          py: 0,
-                          fontSize: '0.65rem',
-                          fontWeight: 'bold',
-                          lineHeight: 1
-                        }
-                      }}
-                    >
-                      <ToggleButton value="mape">MAPE</ToggleButton>
-                      <ToggleButton value="wmape">WMAPE</ToggleButton>
-                    </ToggleButtonGroup>
-                  }
-                />
-              )}
-            </Box>
+
 
             {/* Confidence Card (Price Only) */}
             {!isDemand && (
