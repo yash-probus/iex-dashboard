@@ -296,10 +296,10 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
             <Box className="pdf-page" sx={{ backgroundColor: LIGHT_BG, p: '60px 40px' }}>
               <Typography sx={{ color: PRIMARY_GREEN, fontWeight: 700, fontSize: '14px', letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>When you saved</Typography>
               <Typography sx={{ fontSize: '40px', fontWeight: 800, mb: 2 }}>Your savings performance across the day</Typography>
-              <Typography sx={{ color: '#64748B', fontSize: '18px', mb: 8 }}>Open Access worked best where market power covered more of your electricity requirement.</Typography>
+              <Typography sx={{ color: '#64748B', fontSize: '18px', mb: 4 }}>Open Access worked best where market power covered more of your electricity requirement.</Typography>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 8 }}>
-                <Box sx={{ p: 4, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 4 }}>
+                <Box sx={{ p: 3, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <Typography sx={{ fontSize: '24px', fontWeight: 800, mb: 1 }}>10 AM - 7 PM</Typography>
                   <Typography sx={{ color: PRIMARY_GREEN, fontWeight: 700, fontSize: '14px', mb: 1 }}>Best-covered window</Typography>
                   {renderBar(block10to7.used, block10to7.oa, PRIMARY_GREEN)}
@@ -309,7 +309,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                   </Box>
                 </Box>
 
-                <Box sx={{ p: 4, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <Box sx={{ p: 3, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <Typography sx={{ fontSize: '24px', fontWeight: 800, mb: 1 }}>5 AM - 10 AM</Typography>
                   <Typography sx={{ color: LIGHT_GREEN, fontWeight: 700, fontSize: '14px', mb: 1 }}>Strong performance</Typography>
                   {renderBar(block5to10.used, block5to10.oa, LIGHT_GREEN)}
@@ -319,7 +319,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                   </Box>
                 </Box>
 
-                <Box sx={{ p: 4, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <Box sx={{ p: 3, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <Typography sx={{ fontSize: '24px', fontWeight: 800, mb: 1 }}>3 AM - 5 AM</Typography>
                   <Typography sx={{ color: LIGHT_GREEN, fontWeight: 700, fontSize: '14px', mb: 1 }}>Strong performance</Typography>
                   {renderBar(block3to5.used, block3to5.oa, LIGHT_GREEN)}
@@ -329,7 +329,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                   </Box>
                 </Box>
 
-                <Box sx={{ p: 4, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <Box sx={{ p: 3, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <Typography sx={{ fontSize: '24px', fontWeight: 800, mb: 1 }}>7 PM - 3 AM</Typography>
                   <Typography sx={{ color: '#F59E0B', fontWeight: 700, fontSize: '14px', mb: 1 }}>Biggest opportunity</Typography>
                   {renderBar(block7to3.used, block7to3.oa, '#F59E0B')}
@@ -340,7 +340,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                 </Box>
               </Box>
 
-              <Box sx={{ backgroundColor: '#E8F5EE', p: 4, borderRadius: '16px' }}>
+              <Box sx={{ backgroundColor: '#E8F5EE', p: 3, borderRadius: '16px' }}>
                 <Typography sx={{ color: PRIMARY_GREEN, fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase', mb: 2 }}>Focus for next month</Typography>
                 <Typography sx={{ fontSize: '24px', fontWeight: 800, mb: 2 }}>Improve evening and night-time procurement</Typography>
                 <Typography sx={{ color: '#475569', fontSize: '16px' }}>The 7 PM - 3 AM window used {Math.round(block7to3.used/1000).toLocaleString()} MWh, but only {block7to3.used > 0 ? ((block7to3.oa/block7to3.used)*100).toFixed(1) : 0}% was covered through Open Access.</Typography>
