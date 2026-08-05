@@ -2,12 +2,19 @@ import React from 'react';
 import { Box, Typography, Divider } from '@mui/material';
 
 export const RedesignedSavingsReport: React.FC<{ calcEntry: any; marketDecisionResult: any; month: string }> = ({ calcEntry, marketDecisionResult, month }) => {
-  const { results, assumptions } = calcEntry;
-  const metrics = results?.annualMetrics || {};
+  const { assumptions } = calcEntry;
   const clientName = calcEntry.clientName || 'Client';
 
+  const totalSavings = marketDecisionResult?.totalSavings || 0;
+  const totalBaselineCost = marketDecisionResult?.totalBaselineCost || 0;
+  const totalEnergyKwh = marketDecisionResult?.totalEnergyKwh || 0;
+  const totalMarketEnergyKwh = marketDecisionResult?.totalMarketEnergyKwh || 0;
+  
+  const finalCost = totalBaselineCost - totalSavings;
+  const savingsPercentage = totalBaselineCost > 0 ? (totalSavings / totalBaselineCost) * 100 : 0;
+
   return (
-    <Box className="redesigned-pdf-report" sx={{ display: 'none', backgroundColor: '#FFFFFF', color: '#0F172A' }}>
+    <Box className="redesigned-pdf-report" sx={{ backgroundColor: '#FFFFFF', color: '#0F172A' }}>
       
       {/* PAGE 1 */}
       <Box className="pdf-page" sx={{ display: 'flex', flexDirection: 'column', p: 8, height: '100%', justifyContent: 'space-between' }}>
@@ -27,14 +34,14 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; marketDecisionR
           <Box>
             <Typography sx={{ textTransform: 'uppercase', color: '#64748B', fontWeight: 600, mb: 1, letterSpacing: 1 }}>Your Confirmed Savings</Typography>
             <Typography sx={{ fontSize: '36px', color: '#16A34A', fontWeight: 800 }}>
-              ₹{Math.round(metrics.netSavings || 0).toLocaleString('en-IN')}
+              ₹{Math.round(totalSavings).toLocaleString('en-IN')}
             </Typography>
             <Typography sx={{ color: '#64748B', fontSize: '16px' }}>saved in this period</Typography>
           </Box>
           <Box>
             <Typography sx={{ textTransform: 'uppercase', color: '#64748B', fontWeight: 600, mb: 1, letterSpacing: 1 }}>Saving On Your Baseline Bill</Typography>
             <Typography sx={{ fontSize: '36px', color: '#0284C7', fontWeight: 800 }}>
-              {metrics.savingsPercentage?.toFixed(1) || 0}%
+              {savingsPercentage.toFixed(1)}%
             </Typography>
             <Typography sx={{ color: '#64748B', fontSize: '16px' }}>A meaningful reduction</Typography>
           </Box>
@@ -60,31 +67,31 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; marketDecisionR
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, mb: 6 }}>
           <Box sx={{ p: 4, backgroundColor: '#F0FDF4', borderRadius: 3 }}>
             <Typography sx={{ color: '#166534', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Your Confirmed Savings</Typography>
-            <Typography sx={{ color: '#15803D', fontWeight: 800, fontSize: '28px' }}>₹{(Math.round((metrics.netSavings || 0)/1000)/100).toFixed(2)} lakh</Typography>
+            <Typography sx={{ color: '#15803D', fontWeight: 800, fontSize: '28px' }}>₹{(Math.round(totalSavings/1000)/100).toFixed(2)} lakh</Typography>
           </Box>
           <Box sx={{ p: 4, backgroundColor: '#F0F9FF', borderRadius: 3 }}>
             <Typography sx={{ color: '#0369A1', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Savings Per Unit</Typography>
             <Typography sx={{ color: '#0284C7', fontWeight: 800, fontSize: '28px' }}>
-              ₹{((metrics.netSavings || 0) / (metrics.totalConsumption || 1)).toFixed(2)} / kWh
+              ₹{(totalSavings / (totalEnergyKwh || 1)).toFixed(2)} / kWh
             </Typography>
           </Box>
           <Box sx={{ p: 4, backgroundColor: '#F8FAFC', borderRadius: 3 }}>
             <Typography sx={{ color: '#475569', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Your Final Blended Cost</Typography>
             <Typography sx={{ color: '#334155', fontWeight: 800, fontSize: '28px' }}>
-              ₹{((metrics.finalCost || 0) / (metrics.totalConsumption || 1)).toFixed(2)} / kWh
+              ₹{(finalCost / (totalEnergyKwh || 1)).toFixed(2)} / kWh
             </Typography>
           </Box>
           <Box sx={{ p: 4, backgroundColor: '#F8FAFC', borderRadius: 3 }}>
             <Typography sx={{ color: '#475569', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Total Electricity Used</Typography>
-            <Typography sx={{ color: '#334155', fontWeight: 800, fontSize: '28px' }}>{Math.round(metrics.totalConsumption || 0).toLocaleString('en-IN')} kWh</Typography>
+            <Typography sx={{ color: '#334155', fontWeight: 800, fontSize: '28px' }}>{Math.round(totalEnergyKwh).toLocaleString('en-IN')} kWh</Typography>
           </Box>
         </Box>
 
         <Box sx={{ mt: 'auto', p: 4, backgroundColor: '#F8FAFC', borderRadius: 3 }}>
            <Typography sx={{ fontWeight: 700, mb: 2, fontSize: '18px' }}>THE TAKEAWAY</Typography>
            <Typography sx={{ fontSize: '16px', color: '#475569', lineHeight: 1.6 }}>
-             Prolt reduced your electricity cost by nearly ₹{(Math.round((metrics.netSavings || 0)/1000)/100).toFixed(2)} lakh.
-             That is a {(metrics.savingsPercentage || 0).toFixed(1)}% reduction compared with buying the same electricity entirely from the DISCOM.
+             Prolt reduced your electricity cost by nearly ₹{(Math.round(totalSavings/1000)/100).toFixed(2)} lakh.
+             That is a {savingsPercentage.toFixed(1)}% reduction compared with buying the same electricity entirely from the DISCOM.
            </Typography>
         </Box>
         
@@ -102,7 +109,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; marketDecisionR
 
         <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
            <Typography sx={{ fontSize: '64px', fontWeight: 800, color: '#2E51FF' }}>
-             {((metrics.oaConsumption || 0) / (metrics.totalConsumption || 1) * 100).toFixed(1)}%
+             {((totalMarketEnergyKwh / (totalEnergyKwh || 1)) * 100).toFixed(1)}%
            </Typography>
            <Typography sx={{ fontSize: '24px', color: '#64748B', ml: 2, maxWidth: '200px' }}>delivered through Open Access</Typography>
         </Box>
@@ -110,12 +117,12 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; marketDecisionR
         <Box sx={{ mt: 'auto', mb: 4, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
           <Box sx={{ p: 4, backgroundColor: '#F8FAFC', borderRadius: 3, borderLeft: '4px solid #2E51FF' }}>
             <Typography sx={{ color: '#475569', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>OPEN ACCESS DELIVERED</Typography>
-            <Typography sx={{ color: '#0F172A', fontWeight: 800, fontSize: '28px' }}>{Math.round(metrics.oaConsumption || 0).toLocaleString('en-IN')} kWh</Typography>
+            <Typography sx={{ color: '#0F172A', fontWeight: 800, fontSize: '28px' }}>{Math.round(totalMarketEnergyKwh).toLocaleString('en-IN')} kWh</Typography>
             <Typography sx={{ color: '#64748B', fontSize: '14px', mt: 1 }}>Clean market power reaching your facility</Typography>
           </Box>
           <Box sx={{ p: 4, backgroundColor: '#F8FAFC', borderRadius: 3, borderLeft: '4px solid #94A3B8' }}>
             <Typography sx={{ color: '#475569', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>BALANCE FROM DISCOM</Typography>
-            <Typography sx={{ color: '#0F172A', fontWeight: 800, fontSize: '28px' }}>{Math.round((metrics.totalConsumption || 0) - (metrics.oaConsumption || 0)).toLocaleString('en-IN')} kWh</Typography>
+            <Typography sx={{ color: '#0F172A', fontWeight: 800, fontSize: '28px' }}>{Math.round(totalEnergyKwh - totalMarketEnergyKwh).toLocaleString('en-IN')} kWh</Typography>
             <Typography sx={{ color: '#64748B', fontSize: '14px', mt: 1 }}>Reliable supply retained for uncovered demand</Typography>
           </Box>
         </Box>
@@ -135,15 +142,15 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; marketDecisionR
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, justifyContent: 'center' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', pb: 2 }}>
             <Typography sx={{ fontSize: '24px', color: '#64748B' }}>Baseline bill</Typography>
-            <Typography sx={{ fontSize: '24px', fontWeight: 700 }}>₹{Math.round(metrics.baselineCost || 0).toLocaleString('en-IN')}</Typography>
+            <Typography sx={{ fontSize: '24px', fontWeight: 700 }}>₹{Math.round(totalBaselineCost).toLocaleString('en-IN')}</Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', pb: 2 }}>
             <Typography sx={{ fontSize: '24px', color: '#64748B' }}>Final cost</Typography>
-            <Typography sx={{ fontSize: '24px', fontWeight: 700 }}>₹{Math.round(metrics.finalCost || 0).toLocaleString('en-IN')}</Typography>
+            <Typography sx={{ fontSize: '24px', fontWeight: 700 }}>₹{Math.round(finalCost).toLocaleString('en-IN')}</Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
             <Typography sx={{ fontSize: '28px', color: '#16A34A', fontWeight: 700 }}>YOUR NET BENEFIT</Typography>
-            <Typography sx={{ fontSize: '28px', fontWeight: 800, color: '#16A34A' }}>₹{Math.round(metrics.netSavings || 0).toLocaleString('en-IN')}</Typography>
+            <Typography sx={{ fontSize: '28px', fontWeight: 800, color: '#16A34A' }}>₹{Math.round(totalSavings).toLocaleString('en-IN')}</Typography>
           </Box>
         </Box>
         
