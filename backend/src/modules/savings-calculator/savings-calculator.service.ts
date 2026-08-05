@@ -1809,8 +1809,28 @@ export class SavingsCalculatorService {
         if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
         return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
       });
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
+      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
         slabConsumption = Number(monthConsumptions[matchedKey]);
+      } else {
+        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+        const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+        let flatTotal = 0;
+        if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+          flatTotal = Number(monthConsumptions[flatKey]);
+        } else {
+          for (const [k, v] of Object.entries(monthConsumptions)) {
+            if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+              const numVal = Number(v);
+              if (!isNaN(numVal)) {
+                flatTotal += numVal;
+              }
+            }
+          }
+        }
+        if (flatTotal > 0) {
+          const totalSlotsInMonth = slotsData.length;
+          slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+        }
       }
 
       if (slabConsumption <= 0) return;
