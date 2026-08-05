@@ -155,7 +155,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ height: 400, width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={100} outerRadius={140} paddingAngle={2} dataKey="value" stroke="none">
+                    <Pie isAnimationActive={false} data={pieData} cx="50%" cy="50%" innerRadius={100} outerRadius={140} paddingAngle={2} dataKey="value" stroke="none">
                       {pieData.map((entry, i) => (
                         <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
                       ))}
@@ -200,8 +200,8 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                       <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
                       <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} />
                       <Legend iconType="circle" />
-                      <Bar dataKey="baseline" name="Baseline Cost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="final" name="Final Cost" fill="#16A34A" radius={[4, 4, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="baseline" name="Baseline Cost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="final" name="Final Cost" fill="#16A34A" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -230,8 +230,8 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                       <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
                       <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} />
                       <Legend iconType="circle" />
-                      <Bar dataKey="baselineCost" name="Baseline Cost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="finalCost" name="Final Cost" fill="#2E51FF" radius={[4, 4, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="baselineCost" name="Baseline Cost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="finalCost" name="Final Cost" fill="#2E51FF" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -260,10 +260,10 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                       <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
                       <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} />
                       <Legend iconType="circle" />
-                      <Bar dataKey="energyCost" stackId="a" name="Energy Cost" fill="#2E51FF" />
-                      <Bar dataKey="transmission" stackId="a" name="Transmission" fill="#0284C7" />
-                      <Bar dataKey="losses" stackId="a" name="Losses" fill="#0EA5E9" />
-                      <Bar dataKey="others" stackId="a" name="Other Fees" fill="#38BDF8" radius={[4, 4, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="energyCost" stackId="a" name="Energy Cost" fill="#2E51FF" />
+                      <Bar isAnimationActive={false} dataKey="transmission" stackId="a" name="Transmission" fill="#0284C7" />
+                      <Bar isAnimationActive={false} dataKey="losses" stackId="a" name="Losses" fill="#0EA5E9" />
+                      <Bar isAnimationActive={false} dataKey="others" stackId="a" name="Other Fees" fill="#38BDF8" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
