@@ -107,9 +107,6 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
           );
         };
 
-        const platformFee = assumptions?.tradingMargin ? (totalMarketEnergyKwh * assumptions.tradingMargin) : 59267;
-        const totalNetSavings = totalSavings - platformFee;
-
         // Fake scheduled vs delivered logic since we only have marketEnergy (delivered)
         const scheduledOA = totalMarketEnergyKwh * 1.15; // Assume 15% grid losses for the UI
 
@@ -176,7 +173,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                   <Box sx={{ position: 'absolute', top: 0, left: 24, width: '40px', height: '4px', backgroundColor: PRIMARY_GREEN }} />
                   <Typography sx={{ color: '#64748B', fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase', mb: 1, mt: 1 }}>Your Confirmed Savings</Typography>
                   <Typography sx={{ fontSize: '36px', fontWeight: 800, mb: 4 }}>₹{(totalSavings / 100000).toFixed(2)} lakh</Typography>
-                  <Typography sx={{ color: '#94A3B8', fontSize: '14px' }}>After reported platform and service fees</Typography>
+                  <Typography sx={{ color: '#94A3B8', fontSize: '14px' }}>Gross savings generated</Typography>
                 </Box>
                 <Box sx={{ p: 4, backgroundColor: '#FFF', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden' }}>
                   <Box sx={{ position: 'absolute', top: 0, left: 24, width: '40px', height: '4px', backgroundColor: LIGHT_GREEN }} />
@@ -366,27 +363,17 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                     <Typography sx={{ mt: 3, fontWeight: 700, color: '#64748B', fontSize: '14px' }}>Baseline bill</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography sx={{ fontWeight: 800, mb: 2 }}>₹{Math.round(totalBaselineCost - totalSavings).toLocaleString('en-IN')}</Typography>
-                    <Box sx={{ width: '120px', height: `${( (totalBaselineCost - totalSavings) / totalBaselineCost ) * 360}px`, backgroundColor: PRIMARY_GREEN, borderRadius: '16px 16px 0 0' }} />
-                    <Typography sx={{ mt: 3, fontWeight: 700, color: '#64748B', fontSize: '14px' }}>Before fees</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography sx={{ fontWeight: 800, mb: 2 }}>₹{Math.round(finalCost + platformFee).toLocaleString('en-IN')}</Typography>
-                    <Box sx={{ width: '120px', height: `${( (finalCost + platformFee) / totalBaselineCost ) * 360}px`, backgroundColor: '#134E4A', borderRadius: '16px 16px 0 0' }} />
+                    <Typography sx={{ fontWeight: 800, mb: 2 }}>₹{Math.round(finalCost).toLocaleString('en-IN')}</Typography>
+                    <Box sx={{ width: '120px', height: `${( finalCost / totalBaselineCost ) * 360}px`, backgroundColor: '#134E4A', borderRadius: '16px 16px 0 0' }} />
                     <Typography sx={{ mt: 3, fontWeight: 700, color: '#64748B', fontSize: '14px' }}>Final cost</Typography>
                   </Box>
                 </Box>
                 
-                <Box sx={{ width: '300px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <Box sx={{ width: '300px', display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
                   <Box sx={{ p: 4, backgroundColor: '#E8F5EE', borderRadius: '16px' }}>
-                    <Typography sx={{ color: PRIMARY_GREEN, fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase', mb: 2 }}>Savings Created</Typography>
+                    <Typography sx={{ color: PRIMARY_GREEN, fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase', mb: 2 }}>Gross Savings</Typography>
                     <Typography sx={{ fontSize: '36px', fontWeight: 800, color: DARK_BG, mb: 1 }}>₹{(totalSavings/100000).toFixed(2)}L</Typography>
-                    <Typography sx={{ color: '#64748B', fontSize: '14px' }}>before fees</Typography>
-                  </Box>
-                  <Box sx={{ p: 4, backgroundColor: '#FFFBEB', borderRadius: '16px' }}>
-                    <Typography sx={{ color: '#D97706', fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase', mb: 2 }}>Reported Fees</Typography>
-                    <Typography sx={{ fontSize: '36px', fontWeight: 800, color: DARK_BG, mb: 1 }}>₹{(platformFee/100000).toFixed(2)}L</Typography>
-                    <Typography sx={{ color: '#64748B', fontSize: '14px' }}>platform + service</Typography>
+                    <Typography sx={{ color: '#64748B', fontSize: '14px' }}>Value generated this month</Typography>
                   </Box>
                 </Box>
               </Box>
@@ -394,10 +381,10 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ mt: 10, p: 4, backgroundColor: '#FFF', borderRadius: '16px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ width: '300px' }}>
                   <Typography sx={{ color: PRIMARY_GREEN, fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase', mb: 2 }}>Your Net Benefit</Typography>
-                  <Typography sx={{ fontSize: '48px', fontWeight: 800, color: DARK_BG }}>₹{Math.round(totalNetSavings).toLocaleString('en-IN')}</Typography>
+                  <Typography sx={{ fontSize: '48px', fontWeight: 800, color: DARK_BG }}>₹{Math.round(totalSavings).toLocaleString('en-IN')}</Typography>
                 </Box>
                 <Typography sx={{ color: '#64748B', fontSize: '16px', flexGrow: 1, pl: 4, borderLeft: '1px solid #E2E8F0' }}>
-                  The amount retained by you after the reported platform and service fees.
+                  The gross amount saved by procuring electricity through Open Access.
                 </Typography>
               </Box>
 
@@ -595,20 +582,12 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                       <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 2.5 }}>₹{Math.round(totalBaselineCost).toLocaleString('en-IN')}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0', py: 2.5 }}>Savings created before fees</TableCell>
-                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 2.5 }}>₹{Math.round(totalSavings).toLocaleString('en-IN')}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0', py: 2.5 }}>Reported fees</TableCell>
-                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 2.5 }}>₹{Math.round(platformFee).toLocaleString('en-IN')}</TableCell>
-                    </TableRow>
-                    <TableRow>
                       <TableCell sx={{ color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0', py: 2.5 }}>Final customer cost</TableCell>
-                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 2.5 }}>₹{Math.round(finalCost + platformFee).toLocaleString('en-IN')}</TableCell>
+                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 2.5 }}>₹{Math.round(finalCost).toLocaleString('en-IN')}</TableCell>
                     </TableRow>
                     <TableRow sx={{ backgroundColor: '#E8F5EE' }}>
-                      <TableCell sx={{ color: '#0F172A', fontWeight: 800, py: 2.5, borderBottom: 'none' }}>Confirmed customer saving</TableCell>
-                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', py: 2.5, borderBottom: 'none' }}>₹{Math.round(totalNetSavings).toLocaleString('en-IN')}</TableCell>
+                      <TableCell sx={{ color: '#0F172A', fontWeight: 800, py: 2.5, borderBottom: 'none' }}>Confirmed gross saving</TableCell>
+                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', py: 2.5, borderBottom: 'none' }}>₹{Math.round(totalSavings).toLocaleString('en-IN')}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
