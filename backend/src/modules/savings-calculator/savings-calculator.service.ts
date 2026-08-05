@@ -926,6 +926,10 @@ export class SavingsCalculatorService {
 
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           remainingEnergy = Number(monthConsumptions[matchedKey]);
+        } else if (monthConsumptions['FLAT'] !== undefined && monthConsumptions['FLAT'] !== null && monthConsumptions['FLAT'] !== '') {
+          const flatTotal = Number(monthConsumptions['FLAT']);
+          const totalSlotsInMonth = slotsData.length;
+          remainingEnergy = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
         }
 
         // Add the baseline cost for this TOD slab (if they bought it all from DISCOM)
