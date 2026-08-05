@@ -226,7 +226,7 @@ export class SavingsCalculatorService {
     const entry = await prisma.savingsCalculatorEntry.findUnique({
       where: { id }
     });
-    
+
     if (!entry) {
       throw new Error('Entry not found');
     }
@@ -271,7 +271,7 @@ export class SavingsCalculatorService {
         const result = await SavingsCalculatorService.calculateMarketDecision(id, month);
         const netSavings = result.totalSavings;
         const grossSavings = netSavings + (result.oaDetailed?.totals?.proltMarginCost || 0);
-        
+
         aggregatedCosts.cssCharge += result.oaDetailed?.totals?.cssCharge || 0;
         aggregatedCosts.rpoCharge += result.oaDetailed?.totals?.rpoCharge || 0;
         aggregatedCosts.pocCharge += result.oaDetailed?.totals?.pocCharge || 0;
@@ -284,7 +284,7 @@ export class SavingsCalculatorService {
         aggregatedCosts.proltMarginCost += result.oaDetailed?.totals?.proltMarginCost || 0;
         aggregatedCosts.consultancyFee += (result.oaDetailed?.totals as any)?.consultancyFee || 0;
         aggregatedCosts.probusPlatformFee += (result.oaDetailed?.totals as any)?.probusPlatformFee || 0;
-        
+
         aggregatedCosts.totalDiscomCost += result.totalBaselineCost || 0;
         aggregatedCosts.demandAndFixedCharges += result.demandCharge || 0;
         aggregatedCosts.miscellaneousCharges += result.electricityDuty || 0;
@@ -293,7 +293,7 @@ export class SavingsCalculatorService {
         aggregatedCosts.demandChargeRate = result.demandChargeRate || aggregatedCosts.demandChargeRate;
 
         totalSavings += netSavings;
-        
+
         monthsData.push({
           month,
           savings: netSavings,
@@ -329,7 +329,7 @@ export class SavingsCalculatorService {
     if (!entry) throw new Error('Entry not found');
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
-    
+
     const months = Object.keys(todConsumptions).sort();
     let totalSavings = 0;
     let totalBaselineCost = 0;
@@ -341,7 +341,7 @@ export class SavingsCalculatorService {
     let electricityDuty = 0;
     let peakDemand = 0;
     let demandChargeRate = 0;
-    
+
     const aggregatedTotals = {
       cssCharge: 0, cssRate: 0, rpoCharge: 0, pocCharge: 0, stuCharge: 0,
       dcCharge: 0, iexFee: 0, traderMargin: 0, traderMarginGst: 0, proltMarginCost: 0,
@@ -352,7 +352,7 @@ export class SavingsCalculatorService {
     let aggregatedSldc = 0;
     let aggregatedBidFees = 0;
     let aggregatedTotalDaysTraded = 0;
-    
+
     for (const month of months) {
       try {
         const res = await this.calculateMarketDecision(id, month, version);
@@ -367,7 +367,7 @@ export class SavingsCalculatorService {
           electricityDuty += res.electricityDuty;
           peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
           demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
-          
+
           if (res.oaDetailed) {
             const t = res.oaDetailed.totals;
             aggregatedTotals.cssCharge += t.cssCharge;
@@ -381,7 +381,7 @@ export class SavingsCalculatorService {
             aggregatedTotals.proltMarginCost += t.proltMarginCost;
             aggregatedTotals.consultancyFee += (t as any).consultancyFee || 0;
             aggregatedTotals.probusPlatformFee += (t as any).probusPlatformFee || 0;
-            
+
             aggregatedDailyOverhead += res.oaDetailed.dailyFixedOverhead;
             aggregatedNldc += res.oaDetailed.nldcSchedulingCost;
             aggregatedSldc += res.oaDetailed.sldcSchedulingCost;
@@ -393,7 +393,7 @@ export class SavingsCalculatorService {
         console.error("Error calculating month", month, e);
       }
     }
-    
+
     return {
       clientId: entry.id,
       clientName: entry.clientName,
@@ -429,14 +429,14 @@ export class SavingsCalculatorService {
     if (!entry) throw new Error('Entry not found');
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
-    
+
     const months = Object.keys(todConsumptions).sort();
     let totalSavings = 0;
     let totalOptimizedCost = 0;
     let totalBaselineCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
-    
+
     for (const month of months) {
       try {
         const res = await this.calculateSavings(id, month, version);
@@ -451,7 +451,7 @@ export class SavingsCalculatorService {
         console.error("Error calculating month", month, e);
       }
     }
-    
+
     return {
       clientId: entry.id,
       clientName: entry.clientName,
@@ -522,7 +522,7 @@ export class SavingsCalculatorService {
       const [yearStr, monthStr] = yearMonth.split('-');
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
-      
+
       // Bill month is the next calendar month
       const nextMonthDate = new Date(year, month, 1);
       const nextYear = nextMonthDate.getFullYear();
@@ -590,7 +590,7 @@ export class SavingsCalculatorService {
 
       let startDayInput = monthConsumptions['Start Date'];
       let endDayInput = monthConsumptions['End Date'];
-      
+
       let startDay = 1;
       if (startDayInput) {
         if (typeof startDayInput === 'string' && startDayInput.includes('-')) {
@@ -622,10 +622,10 @@ export class SavingsCalculatorService {
       }
 
       let startStr = `${year}-${String(month).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
-      
+
       let endYear = year;
       let endMonth = month;
-      
+
       if (endDay === 0) {
         let lastDay = new Date(year, month, 0).getDate();
         endDay = lastDay;
@@ -635,12 +635,12 @@ export class SavingsCalculatorService {
         endYear = nextMonthDate.getFullYear();
         endMonth = nextMonthDate.getMonth() + 1;
       }
-      
+
       const maxDays = new Date(endYear, endMonth, 0).getDate();
       if (endDay > maxDays) {
         endDay = maxDays;
       }
-      
+
       let endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
 
       // Fetch stateCharges for losses
@@ -775,7 +775,7 @@ export class SavingsCalculatorService {
 
         if (isNpclHv2) {
           const isWinter = month >= 9 || month <= 3;
-          const baseRate = 6.80; 
+          const baseRate = 6.80;
 
           if (isWinter) {
             // TOD1 [22:00 - 04:00] -> Rate 5.78 (-15%)
@@ -786,19 +786,19 @@ export class SavingsCalculatorService {
             // TOD5 [19:00 - 22:00] -> Rate 6.80 (0%)
             if (hour >= 22 || hour < 4) {
               matchedTariffName = 'TOD1';
-              discomLandingPrice = baseRate * 0.85; 
+              discomLandingPrice = baseRate * 0.85;
             } else if (hour >= 4 && hour < 6) {
               matchedTariffName = 'TOD2';
               discomLandingPrice = baseRate;
             } else if (hour >= 6 && hour < 10) {
               matchedTariffName = 'TOD3';
-              discomLandingPrice = baseRate * 1.15; 
+              discomLandingPrice = baseRate * 1.15;
             } else if (hour >= 10 && hour < 17) {
               matchedTariffName = 'TOD4';
               discomLandingPrice = baseRate;
             } else if (hour >= 17 && hour < 19) {
               matchedTariffName = 'TOD6';
-              discomLandingPrice = baseRate * 1.15; 
+              discomLandingPrice = baseRate * 1.15;
             } else if (hour >= 19 && hour < 22) {
               matchedTariffName = 'TOD5';
               discomLandingPrice = baseRate;
@@ -811,13 +811,13 @@ export class SavingsCalculatorService {
             // TOD3 [02:00 - 07:00] -> Rate 6.80 (0%)
             if (hour >= 7 && hour < 16) {
               matchedTariffName = 'TOD4';
-              discomLandingPrice = baseRate * 0.85; 
+              discomLandingPrice = baseRate * 0.85;
             } else if (hour >= 16 && hour < 19) {
               matchedTariffName = 'TOD1';
               discomLandingPrice = baseRate;
             } else if (hour >= 19 || hour < 2) {
               matchedTariffName = 'TOD2';
-              discomLandingPrice = baseRate * 1.15; 
+              discomLandingPrice = baseRate * 1.15;
             } else if (hour >= 2 && hour < 7) {
               matchedTariffName = 'TOD3';
               discomLandingPrice = baseRate;
@@ -916,8 +916,8 @@ export class SavingsCalculatorService {
       });
 
       // 2. Iterate through each TOD slab and allocate energy
-  
-    Object.keys(slotsByTod).forEach(groupKey => {
+
+      Object.keys(slotsByTod).forEach(groupKey => {
         // Find the total energy requirement for this TOD slab from the input
         let remainingEnergy = 0;
         const matchedKey = Object.keys(monthConsumptions).find(k => {
@@ -1035,7 +1035,7 @@ export class SavingsCalculatorService {
         month = parseInt(parts[1], 10);
       }
     }
-    
+
     // Bill month is the next calendar month
     const nextMonthDate = new Date(year, month, 1);
     const nextYear = nextMonthDate.getFullYear();
@@ -1299,7 +1299,7 @@ export class SavingsCalculatorService {
       if (sanctionedLoad < 1000) {
         marketPrices = [gdamLanding].filter(p => p !== null) as number[];
       }
-      
+
       const bestMarketLanding = marketPrices.length > 0 ? Math.min(...marketPrices) : 0;
 
       let marketSource = 'GDAM'; // Default to GDAM if below 1MW
@@ -1308,7 +1308,7 @@ export class SavingsCalculatorService {
         if (bestMarketLanding === rtmLanding) marketSource = 'RTM';
       }
       if (bestMarketLanding === gdamLanding) marketSource = 'GDAM';
-      
+
       // Store all market landing prices for later SLDC optimization
       const marketLandings = {
         DAM: sanctionedLoad >= 1000 ? damLanding : null,
@@ -1324,24 +1324,24 @@ export class SavingsCalculatorService {
 
       if (isNpclHv2) {
         const isWinter = month >= 9 || month <= 3;
-        const baseRate = 6.80; 
+        const baseRate = 6.80;
 
         if (isWinter) {
           if (hour >= 22 || hour < 4) {
             matchedTariffName = 'TOD1';
-            discomBase = baseRate * 0.85; 
+            discomBase = baseRate * 0.85;
           } else if (hour >= 4 && hour < 6) {
             matchedTariffName = 'TOD2';
             discomBase = baseRate;
           } else if (hour >= 6 && hour < 10) {
             matchedTariffName = 'TOD3';
-            discomBase = baseRate * 1.15; 
+            discomBase = baseRate * 1.15;
           } else if (hour >= 10 && hour < 17) {
             matchedTariffName = 'TOD4';
             discomBase = baseRate;
           } else if (hour >= 17 && hour < 19) {
             matchedTariffName = 'TOD6';
-            discomBase = baseRate * 1.15; 
+            discomBase = baseRate * 1.15;
           } else if (hour >= 19 && hour < 22) {
             matchedTariffName = 'TOD5';
             discomBase = baseRate;
@@ -1349,13 +1349,13 @@ export class SavingsCalculatorService {
         } else {
           if (hour >= 7 && hour < 16) {
             matchedTariffName = 'TOD4';
-            discomBase = baseRate * 0.85; 
+            discomBase = baseRate * 0.85;
           } else if (hour >= 16 && hour < 19) {
             matchedTariffName = 'TOD1';
             discomBase = baseRate;
           } else if (hour >= 19 || hour < 2) {
             matchedTariffName = 'TOD2';
-            discomBase = baseRate * 1.15; 
+            discomBase = baseRate * 1.15;
           } else if (hour >= 2 && hour < 7) {
             matchedTariffName = 'TOD3';
             discomBase = baseRate;
@@ -1413,7 +1413,7 @@ export class SavingsCalculatorService {
     // ── SLDC-Aware Market Optimization ──────────────
     // Optimize market selection per date to minimize total cost including SLDC overhead
     const sldcFeePerMarketPerDay = sldcSchedulingFees; // ₹1500 per market per day
-    
+
     // Group slots by date
     const slotsByDate = new Map<string, typeof slotsData>();
     slotsData.forEach(slot => {
@@ -1422,25 +1422,25 @@ export class SavingsCalculatorService {
       }
       slotsByDate.get(slot.date)!.push(slot);
     });
-    
+
     // For each date, optimize market selection considering SLDC costs
     slotsByDate.forEach((dateSlots, date) => {
       const marketableSlots = dateSlots.filter(s => s.shouldBuyFromMarket);
       if (marketableSlots.length === 0) return;
-      
+
       // Calculate total energy cost for each market option
       const marketCosts = {
         DAM: 0,
         RTM: 0,
         GDAM: 0
       };
-      
+
       const marketCounts = {
         DAM: 0,
         RTM: 0,
         GDAM: 0
       };
-      
+
       marketableSlots.forEach(slot => {
         const maxEnergy = maxEnergyPerSlot;
         if (slot.marketLandings.DAM && slot.marketLandings.DAM < slot.discomLanding) {
@@ -1456,30 +1456,30 @@ export class SavingsCalculatorService {
           marketCounts.GDAM++;
         }
       });
-      
+
       // Calculate total cost including SLDC for each market combination
       const calculateTotalCost = (markets: string[]) => {
         let energyCost = 0;
         let sldcCost = markets.length * sldcFeePerMarketPerDay;
-        
+
         marketableSlots.forEach(slot => {
           const maxEnergy = maxEnergyPerSlot;
           let bestCost = slot.discomLanding * maxEnergy; // Default to DISCOM
 
-          
+
           markets.forEach(market => {
             const landing = slot.marketLandings[market as keyof typeof slot.marketLandings];
             if (landing && landing < bestCost) {
               bestCost = landing * maxEnergy;
             }
           });
-          
+
           energyCost += bestCost;
         });
-        
+
         return energyCost + sldcCost;
       };
-      
+
       // Evaluate different market combinations
       const combinations = [
         ['DAM'],
@@ -1490,10 +1490,10 @@ export class SavingsCalculatorService {
         ['RTM', 'GDAM'],
         ['DAM', 'RTM', 'GDAM']
       ];
-      
+
       let bestCombination = ['DAM'];
       let lowestTotalCost = Infinity;
-      
+
       combinations.forEach(combination => {
         const totalCost = calculateTotalCost(combination);
         if (totalCost < lowestTotalCost) {
@@ -1501,15 +1501,15 @@ export class SavingsCalculatorService {
           bestCombination = combination;
         }
       });
-      
+
       console.log(`[SLDC Optimization] Date ${date}: Best markets = ${bestCombination.join(', ')}, Total cost = ${lowestTotalCost.toFixed(2)}`);
-      
+
       // Reassign markets based on optimal combination
       marketableSlots.forEach(slot => {
         const maxEnergy = maxEnergyPerSlot;
         let bestCost = slot.discomLanding * maxEnergy;
         let bestMarket = null;
-        
+
         bestCombination.forEach(market => {
           const landing = slot.marketLandings[market as keyof typeof slot.marketLandings];
           if (landing && landing < bestCost) {
@@ -1517,7 +1517,7 @@ export class SavingsCalculatorService {
             bestMarket = market;
           }
         });
-        
+
         if (bestMarket) {
           slot.marketSource = bestMarket;
           const landing = slot.marketLandings[bestMarket as keyof typeof slot.marketLandings];
@@ -1541,15 +1541,15 @@ export class SavingsCalculatorService {
 
         if (!prevIsRTM && !nextIsRTM) {
           // Isolated RTM slot
-          
+
           // Option 1: Downgrade this slot
           const altPrices = [slot.damLanding, slot.gdamLanding].filter(p => p !== null && p > 0) as number[];
           const bestAltLanding = altPrices.length > 0 ? Math.min(...altPrices) : slot.discomLanding;
-          
+
           let downgradePenalty = Infinity;
           let newDowngradeSource = 'DAM';
           let newDowngradeShouldBuy = false;
-          
+
           if (bestAltLanding < slot.discomLanding) {
             downgradePenalty = bestAltLanding - (slot.rtmLanding as number);
             newDowngradeSource = bestAltLanding === slot.damLanding ? 'DAM' : 'GDAM';
@@ -1620,7 +1620,7 @@ export class SavingsCalculatorService {
 
     // === PASS 1: Allocate Market Energy per TOD Slab (Forward Banking) ===
     const slotsByTod: Record<string, typeof slotsData> = {};
-    
+
     slotsData.forEach(s => {
       const key = s.tod.toUpperCase();
       if (!slotsByTod[key]) slotsByTod[key] = [];
@@ -1661,7 +1661,7 @@ export class SavingsCalculatorService {
         (s as any).marketEnergy = 0; // Total energy BOUGHT in this slot
         (s as any).consumedMarketEnergy = 0; // Total energy CONSUMED in this slot
         (s as any).exactMarketEnergyCost = 0; // Cost of the market energy consumed in this slot
-        
+
         let basePrice = 0;
         if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
         else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
@@ -1671,7 +1671,7 @@ export class SavingsCalculatorService {
 
       // Filter to only cheap slots
       const marketSlots = slotsInGroup.filter(s => s.shouldBuyFromMarket && s.bestMarketLanding > 0);
-      
+
       // Sort by price ascending
       marketSlots.sort((a, b) => (a as any)._tempBasePrice - (b as any)._tempBasePrice);
 
@@ -1686,19 +1686,19 @@ export class SavingsCalculatorService {
           const targetSlot = slotsInGroup[i];
           if ((targetSlot as any).unfulfilledEnergy > 0) {
             const allocation = Math.min(availableToBuy, (targetSlot as any).unfulfilledEnergy);
-            
+
             (targetSlot as any).unfulfilledEnergy -= allocation;
             (targetSlot as any).consumedMarketEnergy += allocation;
             // The cost is calculated based on the price of the slot where we BOUGHT it
             (targetSlot as any).exactMarketEnergyCost += allocation * (buyingSlot as any)._tempBasePrice;
-            
+
             boughtInThisSlot += allocation;
             availableToBuy -= allocation;
-            
+
             if (availableToBuy <= 0) break;
           }
         }
-        
+
         (buyingSlot as any).marketEnergy += boughtInThisSlot;
       });
 
@@ -1724,7 +1724,7 @@ export class SavingsCalculatorService {
 
     const allTradedDates = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]);
     const totalDaysTraded = allTradedDates.size;
-    
+
     const nldcSchedulingCost = nldcSchedulingFees * totalDaysTraded;
     const sldcSchedulingCost = sldcSchedulingFees * (totalDamDays + totalGdamDays + totalRtmDays);
     const dailyFixedOverhead = nldcSchedulingCost + sldcSchedulingCost;
@@ -1757,7 +1757,7 @@ export class SavingsCalculatorService {
 
     sortedTodKeys.forEach(groupKey => {
       const slotsInGroup = slotsByTod[groupKey];
-      
+
       let slabConsumption = 0;
       const matchedKey = Object.keys(monthConsumptions).find(k => {
         if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
@@ -1772,15 +1772,15 @@ export class SavingsCalculatorService {
       let finalMarketEnergy = 0;
       let exactMarketEnergyCost = 0;
       let discomEnergy = 0;
-      
+
       slotsInGroup.forEach(s => {
         finalMarketEnergy += (s as any).marketEnergy || 0;
         exactMarketEnergyCost += (s as any).exactMarketEnergyCost || 0;
         discomEnergy += (s as any).discomEnergy || 0;
       });
-      
+
       const marketSlots = slotsInGroup.filter(s => ((s as any).marketEnergy || 0) > 0);
-      
+
       const avgIstsLoss = marketSlots.length > 0
         ? marketSlots.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / marketSlots.length
         : 0;
@@ -1797,14 +1797,14 @@ export class SavingsCalculatorService {
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
-      
+
       const getDiscountedDemandCharge = (dc: number) => {
         return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
       };
 
       const discountedSlabBill = slabEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
       let applyED = monthConsumptions['Electricity Duty'] !== 'No';
-      
+
       const slabED = applyED ? discountedSlabBill * 0.075 : 0;
       totalElectricityDuty += slabED;
 
@@ -1819,10 +1819,10 @@ export class SavingsCalculatorService {
       const nonGdamMarketEnergy = marketSlots.filter(s => s.marketSource !== 'GDAM').reduce((sum, s: any) => sum + (s.marketEnergy || 0), 0);
       const nonGdamFraction = finalMarketEnergy > 0 ? nonGdamMarketEnergy / finalMarketEnergy : 0;
       const nonGdamConsumerBusUnits = consumerBusUnits * nonGdamFraction;
-      
+
       const rpoCharge = nonGdamConsumerBusUnits * RPO_FLAT_RATE;
       const cssCharge = consumerBusUnits * crossSubsidy;
-      
+
       const pocCharge = finalMarketEnergy * ctuCharge;
       const stuChargeVal = finalMarketEnergy * stuCharge;
       const dcCharge = finalMarketEnergy * wheelingCharge;
@@ -1830,7 +1830,7 @@ export class SavingsCalculatorService {
       const iexFeesTotal = finalMarketEnergy * EXCHANGE_FEES;
       const traderMarginTotal = finalMarketEnergy * TRADER_MARGIN;
       const traderMarginGstTotal = finalMarketEnergy * GST_TRADER_MARGIN;
-      
+
       globalCssCharge += cssCharge;
       globalRpoCharge += rpoCharge;
       globalPocCharge += pocCharge;
@@ -1873,17 +1873,17 @@ export class SavingsCalculatorService {
     const probusPlatformFee = Math.round(totalMarketEnergyKwh * platformFeeRate);
 
     const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
-    
+
     // Treat proltMargin as a percentage of gross savings
     const proltMarginInput = Number(entry.proltMargin || 0);
     const grossSavings = Math.max(0, netSavings);
     const totalProltMarginCost = Math.round(grossSavings * (proltMarginInput / 100));
-    
+
     const totalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - totalProltMarginCost;
-    
+
     // Ensure savings are never negative - if they would be, set to 0
     const finalSavings = Math.max(0, totalSavings);
-    
+
     console.log('[Savings Debug] totalBaselineCost:', totalBaselineCost, 'totalLandedExchangeCost:', totalLandedExchangeCost, 'totalProltMarginCost:', totalProltMarginCost, 'totalSavings:', totalSavings, 'finalSavings:', finalSavings);
 
     const result = {
@@ -1938,15 +1938,15 @@ export class SavingsCalculatorService {
     if (!entry) throw new Error('Entry not found');
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
-    
+
     const months = Object.keys(todConsumptions).sort();
-    
+
     let originalTotalCost = 0;
     let newTotalCost = 0;
     let savingsAchieved = 0;
     let shiftedEnergy = 0;
     const aggregatedTodSummary: Record<string, any> = {};
-    
+
     for (const month of months) {
       try {
         const res = await this.calculateDemandShiftInsights(id, month, version);
@@ -1954,7 +1954,7 @@ export class SavingsCalculatorService {
         newTotalCost += res.newTotalCost;
         savingsAchieved += res.savingsAchieved;
         shiftedEnergy += res.shiftedEnergy;
-        
+
         for (const todSum of res.todShiftSummary) {
           if (!aggregatedTodSummary[todSum.tod]) {
             aggregatedTodSummary[todSum.tod] = { originalEnergy: 0, newEnergy: 0, diff: 0, originalMarketEnergy: 0, newMarketEnergy: 0 };
@@ -1969,7 +1969,7 @@ export class SavingsCalculatorService {
         console.error("Error calculating demand shift for month", month, e);
       }
     }
-    
+
     return {
       clientId: id,
       clientName: entry.clientName,
@@ -1999,15 +1999,15 @@ export class SavingsCalculatorService {
     }
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
-    
+
     const marketResult = await this.calculateMarketDecision(id, targetMonth, version);
     const slotsData = marketResult.slotsData;
-    
+
     const sanctionedLoadKw = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
     const maxEnergyPerSlot = sanctionedLoadKw * 0.25;
 
     let originalTotalCost = 0;
-    
+
     // Enhance slots with shifting metadata
     const shiftableSlots = slotsData.map((s: any, index: number) => {
       const costPerKwh = s.shouldBuyFromMarket ? s.bestMarketLanding : s.discomLanding;
@@ -2016,7 +2016,7 @@ export class SavingsCalculatorService {
       const currentEnergy = originalMarketEnergy + originalDiscomEnergy;
       const headroom = Math.max(0, maxEnergyPerSlot - currentEnergy);
       originalTotalCost += (currentEnergy * costPerKwh);
-      
+
       return {
         originalIndex: index,
         costPerKwh,
@@ -2063,7 +2063,7 @@ export class SavingsCalculatorService {
 
       // We can shift
       const amountToShift = Math.min(expSlot.currentEnergy, cheapSlot.headroom);
-      
+
       expSlot.currentEnergy -= amountToShift;
       // Remove energy from the most expensive source in the expensive slot first
       // If it's a mix, discom is usually the more expensive part if we bought market up to max
@@ -2084,16 +2084,16 @@ export class SavingsCalculatorService {
       } else {
         cheapSlot.currentDiscomEnergy += amountToShift;
       }
-      
+
       shiftedEnergy += amountToShift;
       savingsAchieved += amountToShift * (expSlot.costPerKwh - cheapSlot.costPerKwh);
     }
-    
+
     let newTotalCost = 0;
     shiftableSlots.forEach((s: any) => {
       newTotalCost += (s.currentEnergy * s.costPerKwh);
     });
-    
+
     // Calculate TOD breakdown changes
     const todShiftSummary: Record<string, { originalEnergy: number, newEnergy: number, diff: number, originalMarketEnergy: number, newMarketEnergy: number }> = {};
     shiftableSlots.forEach((s: any) => {
