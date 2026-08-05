@@ -111,7 +111,17 @@ export default function SavingsCalculatorAnalysisPage() {
       }
     };
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    
+    const onAfterPrint = () => {
+      document.body.classList.remove('printing-report');
+      setIsPrintingRedesigned(false);
+    };
+    window.addEventListener('afterprint', onAfterPrint);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      window.removeEventListener('afterprint', onAfterPrint);
+    };
   }, []);
 
   useEffect(() => {
@@ -519,8 +529,6 @@ const exportInsightsToExcel = async () => {
                   document.body.classList.add('printing-report');
                   setTimeout(() => {
                     window.print();
-                    document.body.classList.remove('printing-report');
-                    setIsPrintingRedesigned(false);
                     document.title = originalTitle;
                   }, 500);
                 }}
