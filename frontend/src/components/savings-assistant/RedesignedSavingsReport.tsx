@@ -28,20 +28,18 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
 
         // Data for TOD Chart
         const todData = marketDecisionResult?.todSummaries?.map((t: any) => ({
-          name: t.todName,
-          baselineCost: t.totalBaselineCost,
-          finalCost: t.totalBaselineCost - t.totalSavings,
-          savings: t.totalSavings
+          name: t.slabName || 'Unknown',
+          baselineCost: t.baselineCost || 0,
+          finalCost: (t.baselineCost || 0) - (t.savings || 0),
+          savings: t.savings || 0
         })) || [];
 
         // Data for OA Breakdown
         const oaBreakdown = marketDecisionResult?.oaDetailed?.breakdown?.length > 0 
           ? marketDecisionResult.oaDetailed.breakdown.map((b: any) => ({
-              name: 'OA Components',
-              energyCost: b.energyCost || 0,
-              transmission: b.stuTransmissionCharges || 0,
-              losses: b.transmissionLossCost || 0,
-              others: (b.totalLandedExchangeCost || 0) - (b.energyCost || 0) - (b.stuTransmissionCharges || 0) - (b.transmissionLossCost || 0)
+              name: b.slabName || 'Unknown',
+              oaBill: b.oaBill || 0,
+              proltDiscomBill: b.proltDiscomBill || 0
             }))
           : [];
 
@@ -52,8 +50,15 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
           if (!dailyDataMap[dateStr]) {
             dailyDataMap[dateStr] = { baseline: 0, final: 0, day: dateStr.split('-')[2] || dateStr };
           }
-          dailyDataMap[dateStr].baseline += s.baselineCost || 0;
-          dailyDataMap[dateStr].final += s.totalCost || 0;
+          const marketQty = s.marketEnergy || 0;
+          const discomQty = s.discomEnergy || 0;
+          const totalQty = marketQty + discomQty;
+          
+          const baselineCost = totalQty * (s.discomLanding || 0);
+          const finalCost = (marketQty * (s.bestMarketLanding || 0)) + (discomQty * (s.discomLanding || 0));
+
+          dailyDataMap[dateStr].baseline += baselineCost;
+          dailyDataMap[dateStr].final += finalCost;
         });
         const timelineData = Object.values(dailyDataMap).sort((a, b) => a.day.localeCompare(b.day));
 
@@ -260,10 +265,8 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                       <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
                       <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} />
                       <Legend iconType="circle" />
-                      <Bar isAnimationActive={false} dataKey="energyCost" stackId="a" name="Energy Cost" fill="#2E51FF" />
-                      <Bar isAnimationActive={false} dataKey="transmission" stackId="a" name="Transmission" fill="#0284C7" />
-                      <Bar isAnimationActive={false} dataKey="losses" stackId="a" name="Losses" fill="#0EA5E9" />
-                      <Bar isAnimationActive={false} dataKey="others" stackId="a" name="Other Fees" fill="#38BDF8" radius={[4, 4, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="oaBill" stackId="a" name="OA Bill" fill="#2E51FF" />
+                      <Bar isAnimationActive={false} dataKey="proltDiscomBill" stackId="a" name="Prolt DISCOM Bill" fill="#0284C7" />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
