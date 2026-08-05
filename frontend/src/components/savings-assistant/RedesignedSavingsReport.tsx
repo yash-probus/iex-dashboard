@@ -154,8 +154,12 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ position: 'absolute', bottom: 100, left: 40 }}>
                 <Typography sx={{ color: '#94A3B8', fontSize: '14px', fontWeight: 700, mb: 1 }}>Prepared for</Typography>
                 <Typography sx={{ fontSize: '28px', fontWeight: 800, mb: 1 }}>{clientName}</Typography>
-                <Typography sx={{ color: '#94A3B8', fontSize: '16px', mb: 1 }}>{calcEntry.clientContact || 'Mr. Rajeev Jaiswal'}</Typography>
-                <Typography sx={{ color: '#94A3B8', fontSize: '14px' }}>{calcEntry.clientAddress || 'Meerakh Nagar, Nagram Road, Lucknow, Uttar Pradesh'}</Typography>
+                {calcEntry.industryName && (
+                  <Typography sx={{ color: '#94A3B8', fontSize: '16px', mb: 1 }}>{calcEntry.industryName}</Typography>
+                )}
+                {calcEntry.address && (
+                  <Typography sx={{ color: '#94A3B8', fontSize: '14px' }}>{calcEntry.address}</Typography>
+                )}
               </Box>
 
               {pageFooterDark(1)}
