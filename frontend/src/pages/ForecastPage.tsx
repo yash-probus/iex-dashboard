@@ -697,7 +697,18 @@ export default function ForecastPage() {
               )}
             </Box>
 
-
+            {/* WMAPE Card */}
+            <Box sx={{ flex: '1 1 120px', minWidth: 115 }}>
+              {isLoading ? <SummaryCardSkeleton /> : (
+                <SummaryCard
+                  title="WMAPE"
+                  value={displayMetrics.wmape || 'N/A'}
+                  icon={<ShowChart fontSize="small" />}
+                  accentColor="#3B82F6"
+                  sx={{ p: 1.75 }}
+                />
+              )}
+            </Box>
 
             {/* Confidence Card (Price Only) */}
             {!isDemand && (
