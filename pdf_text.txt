@@ -1,0 +1,216 @@
+MAY 2026
+Your Monthly
+Energy Savings Report
+Smarter power. Lower cost. Clear results.
+YOUR CONFIRMED SAVINGS
+₹2,98,207
+saved in May 2026
+SAVING ON YOUR BASELINE BILL
+21.8%
+A meaningful reduction in one month
+Prepared for
+Titanium Glass Tech Limited
+Mr. Rajeev Jaiswal
+Meerakh Nagar, Nagram Road, Lucknow, Uttar Pradesh
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+01
+
+THE MONTH IN ONE GLANCE
+What Prolt delivered for you
+Your key energy and savings results, without the technical clutter.
+YOUR CONFIRMED SAVINGS
+₹2.98 lakh
+After reported platform and service fees
+SAVINGS PER UNIT
+₹2.24 / kWh
+Saved across every unit consumed
+YOUR FINAL BLENDED COST
+₹8.04 / kWh
+Average cost across DISCOM and Open Access
+TOTAL ELECTRICITY USED
+1,33,125 kWh
+Your billed consumption for May 2026
+Your bill, before and after Prolt
+Without Prolt
+₹1,368,543
+With Prolt
+₹1,070,337
+THE TAKEAWAY
+Prolt reduced your May electricity cost by nearly ₹3 lakh.
+That is a 21.8% reduction compared with buying the same electricity entirely from the DISCOM.
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+02
+
+YOUR POWER MIX
+Where your electricity came from
+We combined Open Access market power with DISCOM supply to lower your overall cost.
+74.2%
+delivered through
+Open Access
+OPEN ACCESS DELIVERED
+98,808 kWh
+Clean market power reaching your facility
+BALANCE FROM DISCOM
+34,317 kWh
+Reliable supply retained for uncovered demand
+Scheduled energy vs. delivered energy
+Scheduled through Open Access
+115,100 kWh
+Delivered at your facility
+98,808 kWh
+WHY IS THERE A DIFFERENCE?
+Open Access energy is scheduled at the source. Grid losses reduce the units that finally reach your facility.
+The May report records 16,292 kWh between scheduled and delivered energy.
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+03
+
+WHEN YOU SAVED
+Your savings performance across the day
+Open Access worked best where market power covered more of your electricity requirement.
+10 AM - 7 PM
+Best-covered window
+71,430 kWh used
+100.0%
+Open Access coverage
+5 AM - 10 AM
+Strong performance
+13,650 kWh used
+98.5%
+Open Access coverage
+3 AM - 5 AM
+Strong performance
+8,055 kWh used
+95.2%
+Open Access coverage
+7 PM - 3 AM
+Biggest opportunity
+39,990 kWh used
+56.4%
+Open Access coverage
+FOCUS FOR NEXT MONTH
+Improve evening and night-time procurement
+The 7 PM - 3 AM window used 40 MWh, but only 56.4% was covered through Open Access.
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+04
+
+HOW YOUR BILL CAME DOWN
+From regular tariff to a smarter energy bill
+A simple reconciliation of the savings story shown in the source report.
+₹1,368,543
+Baseline bill
+₹1,011,070
+Before fees
+₹1,070,337
+Final cost
+SAVINGS CREATED
+₹3.57L
+before fees
+REPORTED FEES
+₹0.59L
+platform + service
+YOUR NET BENEFIT
+₹2,98,207
+The amount retained by you after the reported platform and service
+fees.
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+05
+
+YOUR NEXT SAVINGS FRONTIER
+Another ₹1.61 lakh may be within reach
+This is an opportunity estimate - not savings already realised.
+ESTIMATED ADDITIONAL MONTHLY OPPORTUNITY
+₹1,61,083
+by shifting up to 48,331 kWh into lower-cost time windows
+What the model recommends
+01
+Reduce expensive night-time consumption
+Prioritise the 7 PM - 5 AM window.
+02
+Move flexible operations to daytime
+Use lower-cost 5 AM - 7 PM blocks.
+03
+Validate before changing production
+Check labour, process, capacity and demand-charge impact.
+IMPORTANT
+Operational feasibility must be confirmed before this opportunity is treated as committed savings.
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+06
+
+THE PROLT ADVANTAGE
+How smarter procurement works for you
+Complex energy decisions happen in the background. You see the result: lower cost and clearer control.
+1
+Understand
+We read your 15-minute consumption pattern.
+2
+Compare
+We compare market and DISCOM prices for every time block.
+3
+Optimise
+We buy from the better source while retaining reliability.
+4
+Report
+We show what changed, what you saved and what comes next.
+Plain-English guide
+Open Access
+Power purchased from the market instead of only from the DISCOM.
+GDAM
+Green Day-Ahead Market - renewable power bought for the following day.
+Blended cost
+Your average cost after combining DISCOM and market power.
+ToD window
+A time period in which the DISCOM applies a particular tariff.
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+07
+
+DETAILS FOR YOUR ENERGY TEAM
+Technical summary
+The supporting numbers behind the customer-friendly report.
+Time window
+Consumption
+OA scheduled
+OA delivered
+OA bill
+3 AM - 5 AM
+8,055
+7,665
+6,581
+₹46,616
+7 PM - 3 AM
+39,990
+22,553
+19,374
+₹1,48,143
+5 AM - 10 AM
+13,650
+13,452
+11,551
+₹41,612
+10 AM - 7 PM
+71,430
+71,430
+61,302
+₹2,47,990
+TOTAL
+1,33,125
+1,15,100
+98,808
+₹4,84,362
+Commercial summary from the source report
+DISCOM-only baseline
+₹13,68,543
+Savings created before fees
+₹3,57,473
+Reported fees
+₹59,267
+Final customer cost
+₹10,70,337
+Confirmed customer saving
+₹2,98,207
+DATA NOTE
+The source report contains separate scheduled-energy, consumer-bus and commercial views. This redesign labels each
+view explicitly. Before external issuance, the underlying billing engine should complete a line-by-line reconciliation of OA
+charges, scheduling costs and fees.
+PROLT ENERGY  |  ENERGY PROCUREMENT INTELLIGENCE
+08
+
