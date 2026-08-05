@@ -7,7 +7,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
   const clientName = calcEntry.clientName || 'Client';
 
   return (
-    <Box className="redesigned-pdf-report" sx={{ backgroundColor: '#FFFFFF', color: '#0F172A' }}>
+    <Box className="redesigned-pdf-report" sx={{ backgroundColor: '#FFFFFF', color: '#0F172A', fontFamily: '"Inter", "Roboto", "Helvetica Neue", sans-serif' }}>
       {allResults.map((resultObj, index) => {
         const { month, marketDecisionResult } = resultObj;
         
@@ -115,29 +115,31 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Typography sx={{ color: '#64748B', mb: 8, fontSize: '16px' }}>Your key energy and savings results, without the technical clutter.</Typography>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, mb: 6 }}>
-                <Box sx={{ p: 4, backgroundColor: '#F0FDF4', borderRadius: 3 }}>
+                <Box sx={{ p: 4, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 3, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)', position: 'relative', overflow: 'hidden' }}>
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, #16A34A, #22C55E)' }} />
                   <Typography sx={{ color: '#166534', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Your Confirmed Savings</Typography>
                   <Typography sx={{ color: '#15803D', fontWeight: 800, fontSize: '28px' }}>₹{(Math.round(totalSavings/1000)/100).toFixed(2)} lakh</Typography>
                 </Box>
-                <Box sx={{ p: 4, backgroundColor: '#F0F9FF', borderRadius: 3 }}>
+                <Box sx={{ p: 4, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 3, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)', position: 'relative', overflow: 'hidden' }}>
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, #0284C7, #0EA5E9)' }} />
                   <Typography sx={{ color: '#0369A1', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Savings Per Unit</Typography>
                   <Typography sx={{ color: '#0284C7', fontWeight: 800, fontSize: '28px' }}>
                     ₹{(totalSavings / (totalEnergyKwh || 1)).toFixed(2)} / kWh
                   </Typography>
                 </Box>
-                <Box sx={{ p: 4, backgroundColor: '#F8FAFC', borderRadius: 3 }}>
+                <Box sx={{ p: 4, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 3, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)' }}>
                   <Typography sx={{ color: '#475569', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Your Final Blended Cost</Typography>
                   <Typography sx={{ color: '#334155', fontWeight: 800, fontSize: '28px' }}>
                     ₹{(finalCost / (totalEnergyKwh || 1)).toFixed(2)} / kWh
                   </Typography>
                 </Box>
-                <Box sx={{ p: 4, backgroundColor: '#F8FAFC', borderRadius: 3 }}>
+                <Box sx={{ p: 4, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 3, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)' }}>
                   <Typography sx={{ color: '#475569', fontWeight: 600, mb: 1, textTransform: 'uppercase', fontSize: '12px', letterSpacing: 1 }}>Total Electricity Used</Typography>
                   <Typography sx={{ color: '#334155', fontWeight: 800, fontSize: '28px' }}>{Math.round(totalEnergyKwh).toLocaleString('en-IN')} kWh</Typography>
                 </Box>
               </Box>
 
-              <Box sx={{ mt: 'auto', p: 4, backgroundColor: '#F8FAFC', borderRadius: 3 }}>
+              <Box sx={{ mt: 'auto', p: 4, backgroundColor: '#F8FAFC', borderRadius: 3, border: '1px solid #E2E8F0' }}>
                 <Typography sx={{ fontWeight: 700, mb: 2, fontSize: '18px' }}>THE TAKEAWAY</Typography>
                 <Typography sx={{ fontSize: '16px', color: '#475569', lineHeight: 1.6 }}>
                   Prolt reduced your electricity cost by nearly ₹{(Math.round(totalSavings/1000)/100).toFixed(2)} lakh.
@@ -160,13 +162,23 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ height: 400, width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie isAnimationActive={false} data={pieData} cx="50%" cy="50%" innerRadius={100} outerRadius={140} paddingAngle={2} dataKey="value" stroke="none">
+                    <defs>
+                      <linearGradient id="colorOa" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={1}/>
+                        <stop offset="95%" stopColor="#1D4ED8" stopOpacity={1}/>
+                      </linearGradient>
+                      <linearGradient id="colorDiscom" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#94A3B8" stopOpacity={1}/>
+                        <stop offset="95%" stopColor="#64748B" stopOpacity={1}/>
+                      </linearGradient>
+                    </defs>
+                    <Pie isAnimationActive={false} data={pieData} cx="50%" cy="50%" innerRadius={105} outerRadius={145} paddingAngle={3} dataKey="value" stroke="none">
                       {pieData.map((entry, i) => (
-                        <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                        <Cell key={`cell-${i}`} fill={i === 0 ? "url(#colorOa)" : "url(#colorDiscom)"} style={{ filter: `drop-shadow(0px 4px 6px rgba(0,0,0,0.1))` }} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => `${Math.round(value).toLocaleString('en-IN')} kWh`} />
-                    <Legend />
+                    <Tooltip formatter={(value: number) => `${Math.round(value).toLocaleString('en-IN')} kWh`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </Box>
@@ -199,14 +211,24 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ height: 400, width: '100%' }}>
                 {timelineData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={timelineData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
-                      <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} />
-                      <Legend iconType="circle" />
-                      <Bar isAnimationActive={false} dataKey="baseline" name="Baseline Cost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-                      <Bar isAnimationActive={false} dataKey="final" name="Final Cost" fill="#16A34A" radius={[4, 4, 0, 0]} />
+                    <BarChart data={timelineData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={16}>
+                      <defs>
+                        <linearGradient id="barBaseline" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#94A3B8" stopOpacity={1}/>
+                          <stop offset="95%" stopColor="#64748B" stopOpacity={1}/>
+                        </linearGradient>
+                        <linearGradient id="barFinal" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22C55E" stopOpacity={1}/>
+                          <stop offset="95%" stopColor="#16A34A" stopOpacity={1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="day" axisLine={{stroke: '#E2E8F0'}} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} tick={{fill: '#64748B', fontSize: 12}} dx={-10} />
+                      <Tooltip cursor={{fill: 'rgba(226, 232, 240, 0.4)'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                      <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                      <Bar isAnimationActive={false} dataKey="baseline" name="Baseline Cost" fill="url(#barBaseline)" radius={[6, 6, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="final" name="Final Cost" fill="url(#barFinal)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -229,14 +251,24 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ height: 400, width: '100%' }}>
                 {todData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={todData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
-                      <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} />
-                      <Legend iconType="circle" />
-                      <Bar isAnimationActive={false} dataKey="baselineCost" name="Baseline Cost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-                      <Bar isAnimationActive={false} dataKey="finalCost" name="Final Cost" fill="#2E51FF" radius={[4, 4, 0, 0]} />
+                    <BarChart data={todData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={32}>
+                      <defs>
+                        <linearGradient id="todBaseline" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#94A3B8" stopOpacity={1}/>
+                          <stop offset="95%" stopColor="#64748B" stopOpacity={1}/>
+                        </linearGradient>
+                        <linearGradient id="todFinal" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={1}/>
+                          <stop offset="95%" stopColor="#1D4ED8" stopOpacity={1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="name" axisLine={{stroke: '#E2E8F0'}} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} tick={{fill: '#64748B', fontSize: 12}} dx={-10} />
+                      <Tooltip cursor={{fill: 'rgba(226, 232, 240, 0.4)'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                      <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                      <Bar isAnimationActive={false} dataKey="baselineCost" name="Baseline Cost" fill="url(#todBaseline)" radius={[8, 8, 0, 0]} />
+                      <Bar isAnimationActive={false} dataKey="finalCost" name="Final Cost" fill="url(#todFinal)" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -259,14 +291,24 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ height: 400, width: '100%', maxWidth: '600px', margin: '0 auto' }}>
                 {oaBreakdown.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={oaBreakdown} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={100}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
-                      <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} />
-                      <Legend iconType="circle" />
-                      <Bar isAnimationActive={false} dataKey="oaBill" stackId="a" name="OA Bill" fill="#2E51FF" />
-                      <Bar isAnimationActive={false} dataKey="proltDiscomBill" stackId="a" name="Prolt DISCOM Bill" fill="#0284C7" />
+                    <BarChart data={oaBreakdown} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={48}>
+                      <defs>
+                        <linearGradient id="stackOa" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={1}/>
+                          <stop offset="95%" stopColor="#1D4ED8" stopOpacity={1}/>
+                        </linearGradient>
+                        <linearGradient id="stackDiscom" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0EA5E9" stopOpacity={1}/>
+                          <stop offset="95%" stopColor="#0369A1" stopOpacity={1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="name" axisLine={{stroke: '#E2E8F0'}} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val/1000}k`} tick={{fill: '#64748B', fontSize: 12}} dx={-10} />
+                      <Tooltip cursor={{fill: 'rgba(226, 232, 240, 0.4)'}} formatter={(value: number) => `₹${Math.round(value).toLocaleString()}`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                      <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                      <Bar isAnimationActive={false} dataKey="oaBill" stackId="a" name="OA Bill" fill="url(#stackOa)" />
+                      <Bar isAnimationActive={false} dataKey="proltDiscomBill" stackId="a" name="Prolt DISCOM Bill" fill="url(#stackDiscom)" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
