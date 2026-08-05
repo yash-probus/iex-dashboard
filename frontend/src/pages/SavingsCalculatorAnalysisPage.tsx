@@ -338,6 +338,7 @@ const exportInsightsToExcel = async () => {
 
   return (
     <Box sx={{ p: 3, width: '100%', maxWidth: '383mm', mx: 'auto', '@media print': { maxWidth: '383mm', p: 0 } }}>
+      <Box className="dashboard-content-to-hide">
       <Box className="no-print" sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
         <IconButton 
           onClick={() => navigate('/savings-calculator')}
@@ -707,6 +708,7 @@ const exportInsightsToExcel = async () => {
           )}
         </DialogContent>
       </Dialog>
+      </Box>
 
       {/* Hidden PDF Report component (rendered only for printing) */}
       {isPrintingRedesigned && calcEntry && marketDecisionResult && (
