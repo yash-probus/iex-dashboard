@@ -720,12 +720,19 @@ const exportInsightsToExcel = async () => {
       </Box>
 
       {/* Hidden PDF Report component (rendered only for printing via Portal to bypass layout hiding) */}
-      {isPrintingRedesigned && calcEntry && marketDecisionResult && createPortal(
+      {isPrintingRedesigned && calcEntry && Object.keys(cachedResults).length > 0 && createPortal(
         <Box className="print-container">
           <RedesignedSavingsReport 
             calcEntry={calcEntry} 
-            marketDecisionResult={marketDecisionResult} 
-            month={selectedSimMonth || 'all'}
+            allResults={Object.keys(cachedResults)
+              .sort((a, b) => {
+                if (a === 'all') return -1;
+                if (b === 'all') return 1;
+                return a.localeCompare(b);
+              })
+              .map(key => ({ month: key, marketDecisionResult: cachedResults[key].market }))
+              .filter(res => res.marketDecisionResult !== null)
+            }
           />
         </Box>,
         document.body
