@@ -511,6 +511,37 @@ const exportInsightsToExcel = async () => {
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = '/Rajeev_Jaiswal_Energy_Savings_Report_Redesigned.pdf';
+                  link.download = calcEntry?.clientName 
+                    ? `${calcEntry.clientName}_Energy_Savings_Report.pdf` 
+                    : 'Rajeev_Jaiswal_Energy_Savings_Report_Redesigned.pdf';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                sx={{ 
+                  textTransform: 'none', 
+                  borderRadius: 2.5, 
+                  fontWeight: 600, 
+                  borderColor: 'divider',
+                  backgroundColor: '#FFFFFF',
+                  color: 'text.primary',
+                  px: 4,
+                  py: 1,
+                  minWidth: 220,
+                  '&:hover': {
+                    backgroundColor: '#F8FAFC',
+                    borderColor: 'divider'
+                  }
+                }}
+              >
+                Export PDF Report
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<DownloadIcon />} 
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
