@@ -58,6 +58,7 @@ import {
 
 import EnergyInsightsExplorer from '../components/insights/EnergyInsightsExplorer';
 import { exportToCSV } from '../utils/export';
+import { RedesignedSavingsReport } from '../components/savings-assistant/RedesignedSavingsReport';
 import { getResourceData } from '../api/resourceCenter.api';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -97,6 +98,7 @@ export default function SavingsCalculatorAnalysisPage() {
     message: '',
     severity: 'success'
   });
+  const [isPrintingRedesigned, setIsPrintingRedesigned] = useState(false);
   
   const calcResult = cachedResults[selectedSimMonth]?.calc || null;
   const marketDecisionResult = cachedResults[selectedSimMonth]?.market || null;
@@ -373,8 +375,6 @@ const exportInsightsToExcel = async () => {
               value={selectedCalcVersion}
               onChange={(e) => {
                 setSelectedCalcVersion(Number(e.target.value));
-                
-                
               }}
               size="small"
               sx={{ width: 120, bgcolor: 'background.paper' }}
@@ -402,8 +402,6 @@ const exportInsightsToExcel = async () => {
             >
               {calculating ? 'Analyzing...' : 'View'}
             </Button>
-
-            
 
             {selectedSimMonth !== 'all' && (
               <>
@@ -512,14 +510,18 @@ const exportInsightsToExcel = async () => {
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
                 onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = '/Rajeev_Jaiswal_Energy_Savings_Report_Redesigned.pdf';
-                  link.download = calcEntry?.clientName 
-                    ? `${calcEntry.clientName}_Energy_Savings_Report.pdf` 
-                    : 'Rajeev_Jaiswal_Energy_Savings_Report_Redesigned.pdf';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  const originalTitle = document.title;
+                  if (calcEntry?.clientName) {
+                    document.title = `${calcEntry.clientName}_Energy_Savings_Report`;
+                  }
+                  setIsPrintingRedesigned(true);
+                  document.body.classList.add('printing-report');
+                  setTimeout(() => {
+                    window.print();
+                    document.body.classList.remove('printing-report');
+                    setIsPrintingRedesigned(false);
+                    document.title = originalTitle;
+                  }, 500);
                 }}
                 sx={{ 
                   textTransform: 'none', 
@@ -609,12 +611,6 @@ const exportInsightsToExcel = async () => {
               </Box>
             </Box>
           )}
-          {/* Removed VisualAnalyticsCharts */}
-        
-
-
-      {/* History Dialog */}
-      
 
       {/* Snackbar notification */}
       <Snackbar
@@ -712,18 +708,16 @@ const exportInsightsToExcel = async () => {
         </DialogContent>
       </Dialog>
 
-
-      {/* Snackbar notification */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      {/* Hidden PDF Report component (rendered only for printing) */}
+      {isPrintingRedesigned && calcEntry && marketDecisionResult && (
+        <Box className="print-container">
+          <RedesignedSavingsReport 
+            calcEntry={calcEntry} 
+            marketDecisionResult={marketDecisionResult} 
+            month={selectedSimMonth || 'all'}
+          />
+        </Box>
+      )}
     </Box>
   );
 }

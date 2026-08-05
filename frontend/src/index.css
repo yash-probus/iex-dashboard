@@ -165,3 +165,36 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 auto !important;
   }
 }
+
+/* Redesigned PDF Report Print Styles */
+.redesigned-pdf-report {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+}
+.redesigned-pdf-report .pdf-page {
+  width: 210mm;
+  height: 297mm;
+  page-break-after: always;
+  break-after: page;
+  box-sizing: border-box;
+}
+
+@media print {
+  body.printing-report {
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: white !important;
+  }
+  body.printing-report #root > * {
+    display: none !important;
+  }
+  body.printing-report #root > .print-container {
+    display: block !important;
+  }
+  body.printing-report .redesigned-pdf-report {
+    display: block !important;
+    width: 210mm;
+    margin: 0 !important;
+  }
+}
