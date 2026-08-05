@@ -139,20 +139,7 @@ export default function ForecastPage() {
         
       const res = await apiClient.get(endpoint);
       if (res.data && res.data.success) {
-        const rawIntervals = res.data.data.intervals || [];
-        const convertedIntervals = rawIntervals.map((d: any) => {
-          if (!isDemand) {
-            return {
-              ...d,
-              mcp: typeof d.mcp === 'number' ? d.mcp / 1000 : d.mcp,
-              mcpDayahead: typeof d.mcpDayahead === 'number' ? d.mcpDayahead / 1000 : d.mcpDayahead,
-              mcpNowcast: typeof d.mcpNowcast === 'number' ? d.mcpNowcast / 1000 : d.mcpNowcast,
-              actualMcp: typeof d.actualMcp === 'number' ? d.actualMcp / 1000 : d.actualMcp,
-            };
-          }
-          return d;
-        });
-        setData(convertedIntervals);
+        setData(res.data.data.intervals || []);
         setSummaryMetrics(res.data.data.analytics || {});
       } else {
         setError('Invalid response from server.');
