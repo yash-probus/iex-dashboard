@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
 import { FormControlLabel, Switch, 
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
@@ -718,15 +719,16 @@ const exportInsightsToExcel = async () => {
       </Dialog>
       </Box>
 
-      {/* Hidden PDF Report component (rendered only for printing) */}
-      {isPrintingRedesigned && calcEntry && marketDecisionResult && (
+      {/* Hidden PDF Report component (rendered only for printing via Portal to bypass layout hiding) */}
+      {isPrintingRedesigned && calcEntry && marketDecisionResult && createPortal(
         <Box className="print-container">
           <RedesignedSavingsReport 
             calcEntry={calcEntry} 
             marketDecisionResult={marketDecisionResult} 
             month={selectedSimMonth || 'all'}
           />
-        </Box>
+        </Box>,
+        document.body
       )}
     </Box>
   );
