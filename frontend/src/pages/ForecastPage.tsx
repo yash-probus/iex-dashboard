@@ -139,7 +139,20 @@ export default function ForecastPage() {
         
       const res = await apiClient.get(endpoint);
       if (res.data && res.data.success) {
-        setData(res.data.data.intervals || []);
+        const rawIntervals = res.data.data.intervals || [];
+        const convertedIntervals = rawIntervals.map((d: any) => {
+          if (!isDemand) {
+            return {
+              ...d,
+              mcp: typeof d.mcp === 'number' ? d.mcp / 1000 : d.mcp,
+              mcpDayahead: typeof d.mcpDayahead === 'number' ? d.mcpDayahead / 1000 : d.mcpDayahead,
+              mcpNowcast: typeof d.mcpNowcast === 'number' ? d.mcpNowcast / 1000 : d.mcpNowcast,
+              actualMcp: typeof d.actualMcp === 'number' ? d.actualMcp / 1000 : d.actualMcp,
+            };
+          }
+          return d;
+        });
+        setData(convertedIntervals);
         setSummaryMetrics(res.data.data.analytics || {});
       } else {
         setError('Invalid response from server.');
@@ -190,15 +203,15 @@ export default function ForecastPage() {
       const rtmColumns: ColumnDefinition[] = [...baseColumns];
       
       if (rtmForecastType === 'both' || rtmForecastType === 'dayahead') {
-        rtmColumns.push({ field: 'mcpDayahead', headerName: 'Dayahead Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') });
+        rtmColumns.push({ field: 'mcpDayahead', headerName: 'Dayahead Forecast (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') });
       }
       
       if (rtmForecastType === 'both' || rtmForecastType === 'nowcast') {
-        rtmColumns.push({ field: 'mcpNowcast', headerName: 'Nowcast Forecast (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') });
+        rtmColumns.push({ field: 'mcpNowcast', headerName: 'Nowcast Forecast (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') });
       }
 
       rtmColumns.push(
-        { field: 'actualMcp', headerName: 'Actual MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+        { field: 'actualMcp', headerName: 'Actual MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
         { 
           field: 'priceRange', 
           headerName: 'Price Range', 
@@ -230,8 +243,8 @@ export default function ForecastPage() {
 
     return [
       ...baseColumns,
-      { field: 'mcp', headerName: 'Forecasted MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
-      { field: 'actualMcp', headerName: 'Actual MCP (₹/MWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
+      { field: 'mcp', headerName: 'Forecasted MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
+      { field: 'actualMcp', headerName: 'Actual MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
       { field: 'priceRange', headerName: 'Price Range', align: 'center' },
       { field: 'confidence', headerName: 'Confidence', align: 'center' },
     ];
@@ -263,22 +276,22 @@ export default function ForecastPage() {
     if (subType.toUpperCase() === 'RTM') {
       const hasDayahead = data.some(d => d.mcpDayahead !== null && d.mcpDayahead !== undefined);
       if (hasDayahead && (rtmForecastType === 'both' || rtmForecastType === 'dayahead')) {
-        metrics.push({key: 'mcpDayahead', name: 'Dayahead Forecast (₹/MWh)', color: '#3B82F6', type: 'line', yAxisId: 'right'});
+        metrics.push({key: 'mcpDayahead', name: 'Dayahead Forecast (₹/kWh)', color: '#3B82F6', type: 'line', yAxisId: 'right'});
       }
       
       const hasNowcast = data.some(d => d.mcpNowcast !== null && d.mcpNowcast !== undefined);
       if (hasNowcast && (rtmForecastType === 'both' || rtmForecastType === 'nowcast')) {
-        metrics.push({key: 'mcpNowcast', name: 'Nowcast Forecast (₹/MWh)', color: '#8B5CF6', type: 'line', yAxisId: 'right'});
+        metrics.push({key: 'mcpNowcast', name: 'Nowcast Forecast (₹/kWh)', color: '#8B5CF6', type: 'line', yAxisId: 'right'});
       }
     } else {
-      metrics.push({key: 'mcp', name: 'Forecasted MCP (₹/MWh)', color: accentColor, type: 'area', yAxisId: 'right'});
+      metrics.push({key: 'mcp', name: 'Forecasted MCP (₹/kWh)', color: accentColor, type: 'area', yAxisId: 'right'});
     }
 
     const hasActual = data.some(d => d.actualMcp !== null && d.actualMcp !== undefined);
     if (hasActual) {
       metrics.push({
         key: 'actualMcp',
-        name: 'Actual MCP (₹/MWh)',
+        name: 'Actual MCP (₹/kWh)',
         color: '#10B981', // green for actual
         type: 'line',
         yAxisId: 'right'
