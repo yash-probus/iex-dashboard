@@ -936,7 +936,10 @@ export class SavingsCalculatorService {
           } else {
             for (const [k, v] of Object.entries(monthConsumptions)) {
               if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
-                flatTotal += Number(v);
+                const numVal = Number(v);
+                if (!isNaN(numVal)) {
+                  flatTotal += numVal;
+                }
               }
             }
           }
@@ -1629,13 +1632,35 @@ export class SavingsCalculatorService {
 
     let preTotalEnergyKwh = 0;
     Object.keys(slotsByTod).forEach(groupKey => {
+      let slabConsumption = 0;
       const matchedKey = Object.keys(monthConsumptions).find(k => {
         if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
         return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
       });
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
-        preTotalEnergyKwh += Number(monthConsumptions[matchedKey]);
+      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+        slabConsumption = Number(monthConsumptions[matchedKey]);
+      } else {
+        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+        const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+        let flatTotal = 0;
+        if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+          flatTotal = Number(monthConsumptions[flatKey]);
+        } else {
+          for (const [k, v] of Object.entries(monthConsumptions)) {
+            if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+              const numVal = Number(v);
+              if (!isNaN(numVal)) {
+                flatTotal += numVal;
+              }
+            }
+          }
+        }
+        if (flatTotal > 0) {
+          const totalSlotsInMonth = slotsData.length;
+          slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+        }
       }
+      preTotalEnergyKwh += slabConsumption;
     });
 
     Object.keys(slotsByTod).forEach(groupKey => {
@@ -1645,8 +1670,29 @@ export class SavingsCalculatorService {
         if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
         return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
       });
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== '') {
+      
+      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
         slabConsumption = Number(monthConsumptions[matchedKey]);
+      } else {
+        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+        const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+        let flatTotal = 0;
+        if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+          flatTotal = Number(monthConsumptions[flatKey]);
+        } else {
+          for (const [k, v] of Object.entries(monthConsumptions)) {
+            if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+              const numVal = Number(v);
+              if (!isNaN(numVal)) {
+                flatTotal += numVal;
+              }
+            }
+          }
+        }
+        if (flatTotal > 0) {
+          const totalSlotsInMonth = slotsData.length;
+          slabConsumption = flatTotal * (slotsInGroup.length / totalSlotsInMonth);
+        }
       }
 
       if (slabConsumption <= 0) return;
@@ -1803,9 +1849,15 @@ export class SavingsCalculatorService {
       };
 
       const discountedSlabBill = slabEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
-      let applyED = monthConsumptions['Electricity Duty'] !== 'No';
+      
+      const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
+      let applyED = true;
+      if (edKey && monthConsumptions[edKey] !== undefined && monthConsumptions[edKey] !== null) {
+        applyED = String(monthConsumptions[edKey]).trim().toLowerCase() !== 'no';
+      }
 
-      const slabED = applyED ? discountedSlabBill * 0.075 : 0;
+      const edRate = entry.consumerCategory === 'HV-1' ? 0.05 : 0.075;
+      const slabED = applyED ? discountedSlabBill * edRate : 0;
       totalElectricityDuty += slabED;
 
       const slabTotalDiscomBill = discountedSlabBill + slabED;
