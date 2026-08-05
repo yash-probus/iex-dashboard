@@ -45,13 +45,12 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
             }))
           : [];
 
-        // Data for Timeline
-        // Group slots by day
         const dailyDataMap: Record<string, { baseline: number; final: number; day: string }> = {};
         marketDecisionResult?.slotsData?.forEach((s: any) => {
-          const dateStr = s.dateTime.substring(0, 10);
+          if (!s || !s.date) return;
+          const dateStr = s.date.substring(0, 10);
           if (!dailyDataMap[dateStr]) {
-            dailyDataMap[dateStr] = { baseline: 0, final: 0, day: dateStr.split('-')[2] };
+            dailyDataMap[dateStr] = { baseline: 0, final: 0, day: dateStr.split('-')[2] || dateStr };
           }
           dailyDataMap[dateStr].baseline += s.baselineCost || 0;
           dailyDataMap[dateStr].final += s.totalCost || 0;
