@@ -927,10 +927,23 @@ export class SavingsCalculatorService {
 
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           remainingEnergy = Number(monthConsumptions[matchedKey]);
-        } else if (monthConsumptions['FLAT'] !== undefined && monthConsumptions['FLAT'] !== null && monthConsumptions['FLAT'] !== '') {
-          const flatTotal = Number(monthConsumptions['FLAT']);
-          const totalSlotsInMonth = slotsData.length;
-          remainingEnergy = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+        } else {
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+          const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+          let flatTotal = 0;
+          if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+            flatTotal = Number(monthConsumptions[flatKey]);
+          } else {
+            for (const [k, v] of Object.entries(monthConsumptions)) {
+              if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+                flatTotal += Number(v);
+              }
+            }
+          }
+          if (flatTotal > 0) {
+            const totalSlotsInMonth = slotsData.length;
+            remainingEnergy = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+          }
         }
 
         // Add the baseline cost for this TOD slab (if they bought it all from DISCOM)
