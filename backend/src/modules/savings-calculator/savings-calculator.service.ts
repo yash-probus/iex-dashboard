@@ -1017,7 +1017,7 @@ export class SavingsCalculatorService {
     const cacheVersion = version !== undefined ? version : 'live';
     const cacheKey = `market:${id}:v:${cacheVersion}:m:${targetMonthStr || 'default'}`;
     const cached = await getCache(cacheKey);
-    if (cached) {
+    if (cached && false) {
       return cached;
     }
     const entry = await this.getEntryOrVersion(id, version);
@@ -2046,7 +2046,7 @@ export class SavingsCalculatorService {
     const cacheVersion = version !== undefined ? version : 'live';
     const cacheKey = `demandshift:${id}:v:${cacheVersion}:m:${targetMonth || 'default'}`;
     const cached = await getCache(cacheKey);
-    if (cached) {
+    if (cached && false) {
       return cached;
     }
     const entry = await this.getEntryOrVersion(id, version);
