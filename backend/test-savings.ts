@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function run() {
   try {
-    const res = await SavingsCalculatorService.calculateSavings("fade3c79-434c-4faf-a5aa-5dd45edd1306");
+    const res = await SavingsCalculatorService.calculateSavings("6f8931eb-378a-490b-a213-0546504ad486", "2026-05");
     console.log("Total Savings:", res.totalSavings);
     console.log("Total Baseline:", res.totalBaselineCost);
     console.log("Total Energy:", res.totalEnergyKwh);
