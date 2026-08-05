@@ -83,8 +83,6 @@ export class CronService {
       } catch (error) {
         console.error('[Cron] Error in hourly RTM scraper schedule:', error);
       }
-    }, {
-      timezone: 'Asia/Kolkata'
     });
 
     // Run every day at midnight for Weather Historical
