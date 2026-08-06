@@ -577,11 +577,7 @@ export class SavingsCalculatorService {
 
       const stateFormats = [stateName, stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_'), stateName.charAt(0).toUpperCase() + stateName.slice(1).toLowerCase()];
 
-      let effectiveMonth = nextMonth;
-      const seasonOverride = monthConsumptions['Season'];
-      if (seasonOverride === 'Winter') effectiveMonth = 1;
-      else if (seasonOverride === 'Summer') effectiveMonth = 6;
-      const effectiveYyyymmMonth = nextYear * 100 + effectiveMonth;
+      const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
 
       const whereClause: any = {
         state: { in: stateFormats },
@@ -1156,13 +1152,9 @@ export class SavingsCalculatorService {
       where: { month: yyyymmMonth }
     });
 
-    let effectiveMonth = nextMonth;
     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
-    const seasonOverride = monthConsumptions['Season'];
-    if (seasonOverride === 'Winter') effectiveMonth = 1;
-    else if (seasonOverride === 'Summer') effectiveMonth = 6;
-    const effectiveYyyymmMonth = nextYear * 100 + effectiveMonth;
+    const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
 
     const whereClauseTariff: any = {
       state: { in: stateFormats },
@@ -1342,10 +1334,7 @@ export class SavingsCalculatorService {
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
       if (isNpclHv2) {
-        let isWinter = month >= 9 || month <= 3;
-        const seasonOverride = monthConsumptions['Season'];
-        if (seasonOverride === 'Winter') isWinter = true;
-        else if (seasonOverride === 'Summer') isWinter = false;
+        const isWinter = month >= 9 || month <= 3;
 
         const baseRate = 6.80;
 

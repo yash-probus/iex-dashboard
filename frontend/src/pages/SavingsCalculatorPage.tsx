@@ -440,11 +440,9 @@ export default function SavingsCalculatorPage() {
     return Array.from(levelsSet);
   }, [tariffData, stateCode, consumerCategory]);
 
-  const getTodSlabsForMonth = React.useCallback((targetMonth: number, seasonOverride?: string) => {
+  const getTodSlabsForMonth = React.useCallback((targetMonth: number) => {
     if (discom === 'NPCL') {
       let isWinter = targetMonth >= 9 || targetMonth <= 3;
-      if (seasonOverride === 'Winter') isWinter = true;
-      if (seasonOverride === 'Summer') isWinter = false;
       
       if (isWinter) {
         return ['TOD1', 'TOD2', 'TOD3', 'TOD4', 'TOD5', 'TOD6'];
@@ -479,10 +477,7 @@ export default function SavingsCalculatorPage() {
       // month in new schema is YYYYMM int; targetMonth from todConsumptions is 1-12
       // Match by the last two digits of the stored month
       const storedMonthNum = row.month % 100;
-      let effectiveMonth = targetMonth;
-      if (seasonOverride === 'Winter') effectiveMonth = 1;
-      else if (seasonOverride === 'Summer') effectiveMonth = 6;
-      const matchMonth = storedMonthNum === effectiveMonth;
+      const matchMonth = storedMonthNum === targetMonth;
 
       if (matchState && matchCategory && matchVoltage && matchMonth) {
         // Derive a slab name from tod times: use start-end or 'FLAT' when no TOD
@@ -628,7 +623,7 @@ export default function SavingsCalculatorPage() {
   const isTodValid = () => {
     let hasAtLeastOneValue = false;
     let isConsumptionsValid = true;
-    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty', 'Season', 'Billing Month'];
+    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty', 'Billing Month'];
     Object.values(todConsumptions).forEach(monthData => {
       Object.entries(monthData).forEach(([key, val]) => {
         if (!ignoredKeys.includes(key) && val.trim()) {
@@ -726,7 +721,7 @@ export default function SavingsCalculatorPage() {
         todConsumptions: Object.keys(todConsumptions).length > 0 ?
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => {
-              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month'];
+              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Billing Month'];
               const processed = Object.fromEntries(
                 Object.entries(data)
                   .filter(([_, v]) => v.trim() !== '')
@@ -1722,8 +1717,7 @@ export default function SavingsCalculatorPage() {
 
           {Object.keys(todConsumptions).sort().map((ym, index) => {
             const targetMonth = parseInt(ym.split('-')[1], 10);
-            const seasonOverride = (todConsumptions[ym] as any)['Season'] as string | undefined;
-            const monthSlabs = getTodSlabsForMonth(targetMonth, seasonOverride);
+            const monthSlabs = getTodSlabsForMonth(targetMonth);
             return (
               <Accordion key={ym} expanded={expandedAccordion === 'initial' ? index === 0 : expandedAccordion === ym} onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? ym : false)} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
@@ -1761,18 +1755,6 @@ export default function SavingsCalculatorPage() {
                       >
                         <FormControlLabel value="Yes" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Yes</Typography>} />
                         <FormControlLabel value="No" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">No</Typography>} />
-                      </RadioGroup>
-                    </FormControl>
-
-                    <FormControl component="fieldset" sx={{ mt: 2 }}>
-                      <FormLabel component="legend" sx={{ fontSize: '12px', color: 'text.secondary', mb: 0.5 }}>TOD Season Setting</FormLabel>
-                      <RadioGroup
-                        row
-                        value={(todConsumptions[ym] as any)['Season'] || (parseInt(ym.split('-')[1], 10) >= 9 || parseInt(ym.split('-')[1], 10) <= 3 ? 'Winter' : 'Summer')}
-                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Season': e.target.value } }))}
-                      >
-                        <FormControlLabel value="Summer" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Summer</Typography>} />
-                        <FormControlLabel value="Winter" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Winter</Typography>} />
                       </RadioGroup>
                     </FormControl>
 
@@ -1956,7 +1938,6 @@ export default function SavingsCalculatorPage() {
                         'End Date': defaultEnd,
                         'Electricity Duty': 'Yes',
                         'Miscellaneous Charges': '',
-                        'Season': (entryMonth >= 9 || entryMonth <= 3) ? 'Winter' : 'Summer',
                         'Billing Month': defaultBillingMonth
                       }
                     }));
