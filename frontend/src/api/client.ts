@@ -2,13 +2,25 @@ import axios from 'axios';
 import { AUTH_TOKEN_KEY } from '../constants/auth';
 import { triggerGlobalLogout } from '../utils/events';
 
-const baseURL = (import.meta as any).env.VITE_API_BASE_URL || "http://localhost:5001/api";
+const getBaseURL = () => {
+  const { protocol, hostname, port } = window.location;
+  
+  // Local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5001/api';
+  }
+  
+  // Server deployment mappings:
+  // Prod frontend (8083) -> Prod backend (5002)
+  if (port === '8083') {
+    return `${protocol}//${hostname}:5002/api`;
+  }
+  
+  // Dev frontend (any other port on server) -> Dev backend (5001)
+  return `${protocol}//${hostname}:5001/api`;
+};
 
-if (!baseURL) {
-  const errorMsg = 'VITE_API_BASE_URL is not configured.';
-  console.error(errorMsg);
-  throw new Error(errorMsg);
-}
+const baseURL = getBaseURL();
 
 export const apiClient = axios.create({
   baseURL,

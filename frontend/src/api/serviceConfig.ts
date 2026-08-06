@@ -19,10 +19,18 @@ export function getEnv(): "prod" | "dev" {
 }
 
 function getBaseUrl() {
-  if (getEnv() === "prod") {
+  const { protocol, hostname, port } = window.location;
+  if (hostname === "prolt.energy") {
     return "https://prolt.energy:5001";
   }
-  return "http://localhost:5001";
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return "http://localhost:5001";
+  }
+  // Server IP mappings
+  if (port === '8083') {
+    return `${protocol}//${hostname}:5002`;
+  }
+  return `${protocol}//${hostname}:5001`;
 }
 
 export const SERVICE_CONFIG = {
