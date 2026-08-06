@@ -25,7 +25,9 @@ import config from './config';
 
 // Cross-Origin Resource Sharing
 app.use(cors({
-  origin: config.corsOrigin,
+  origin: (origin, callback) => {
+    callback(null, origin || true);
+  },
   credentials: true,
 }));
 
