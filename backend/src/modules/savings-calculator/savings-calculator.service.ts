@@ -1267,6 +1267,9 @@ export class SavingsCalculatorService {
       return parseInt(val, 10);
     };
 
+    const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
+    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+
     const slotsData = records.map(rec => {
       const deliveryDate = rec.date ? new Date(rec.date) : new Date(startStr);
       const slot = rec.timeblock || rec.timeblock === 0 ? Number(rec.timeblock) : 1;
@@ -1326,7 +1329,11 @@ export class SavingsCalculatorService {
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
       if (isNpclHv2) {
-        const isWinter = month >= 9 || month <= 3;
+        let isWinter = month >= 9 || month <= 3;
+        const seasonOverride = monthConsumptions['Season'];
+        if (seasonOverride === 'Winter') isWinter = true;
+        else if (seasonOverride === 'Summer') isWinter = false;
+
         const baseRate = 6.80;
 
         if (isWinter) {
@@ -1606,9 +1613,7 @@ export class SavingsCalculatorService {
     //                           + (DISCOM-fraction × consumption × DISCOM_rate)
     // This avoids dilution errors from uneven market slot counts.
 
-    const monthKey = targetMonthStr || `${year}-${String(month).padStart(2, '0')}`;
-    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
-
+    // === PASS 1: Allocate Market Energy per TOD Slab (Forward Banking) ===
     let peakDemand = entry.billedDemandKv ? Number(entry.billedDemandKv) : 0;
     if (peakDemand === 0) {
       Object.keys(monthConsumptions).forEach(k => {
@@ -1620,8 +1625,6 @@ export class SavingsCalculatorService {
 
     const demandChargeRate = stateCharges ? Number(stateCharges.demandFixedChargeKvaPerMonthRs || 0) : 0;
     const demandCharge = peakDemand * demandChargeRate;
-
-    // === PASS 1: Allocate Market Energy per TOD Slab (Forward Banking) ===
     const slotsByTod: Record<string, typeof slotsData> = {};
 
     slotsData.forEach(s => {

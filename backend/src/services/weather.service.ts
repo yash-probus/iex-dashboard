@@ -243,6 +243,7 @@ export class WeatherEngine {
             'temperature_2m_min',
             'windspeed_10m_max',
             'precipitation_sum',
+            'rain_sum',
             'precipitation_probability_max',
             'sunshine_duration',
             'relative_humidity_2m_max',
