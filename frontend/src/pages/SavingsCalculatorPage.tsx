@@ -628,7 +628,7 @@ export default function SavingsCalculatorPage() {
   const isTodValid = () => {
     let hasAtLeastOneValue = false;
     let isConsumptionsValid = true;
-    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty'];
+    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty', 'Season', 'Billing Month'];
     Object.values(todConsumptions).forEach(monthData => {
       Object.entries(monthData).forEach(([key, val]) => {
         if (!ignoredKeys.includes(key) && val.trim()) {
@@ -726,7 +726,7 @@ export default function SavingsCalculatorPage() {
         todConsumptions: Object.keys(todConsumptions).length > 0 ?
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => {
-              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date'];
+              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month'];
               const processed = Object.fromEntries(
                 Object.entries(data)
                   .filter(([_, v]) => v.trim() !== '')
@@ -1728,9 +1728,19 @@ export default function SavingsCalculatorPage() {
               <Accordion key={ym} expanded={expandedAccordion === 'initial' ? index === 0 : expandedAccordion === ym} onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? ym : false)} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
-                      {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
-                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
+                        {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                      </Typography>
+                      {todConsumptions[ym]['Billing Month'] && (
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                          Bill Month: {(() => {
+                            const [year, month] = todConsumptions[ym]['Billing Month'].split('-');
+                            return new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1).toLocaleString('default', { month: 'short', year: 'numeric' });
+                          })()}
+                        </Typography>
+                      )}
+                    </Box>
                     <IconButton size="small" onClick={(e) => { e.stopPropagation(); const newTc = { ...todConsumptions }; delete newTc[ym]; setTodConsumptions(newTc); }}>
                       <DeleteIcon fontSize="small" color="action" />
                     </IconButton>
@@ -1765,6 +1775,25 @@ export default function SavingsCalculatorPage() {
                         <FormControlLabel value="Winter" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Winter</Typography>} />
                       </RadioGroup>
                     </FormControl>
+
+                    <Box sx={{ mt: 2 }}>
+                      <TextField
+                        label="Billing Month"
+                        type="month"
+                        value={todConsumptions[ym]['Billing Month'] || (() => {
+                          const parts = ym.split('-');
+                          const y = parseInt(parts[0], 10);
+                          const m = parseInt(parts[1], 10);
+                          const d = new Date(y, m, 1);
+                          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                        })()}
+                        onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Billing Month': e.target.value } }))}
+                        InputLabelProps={{ shrink: true }}
+                        variant="outlined"
+                        size="small"
+                        sx={{ bgcolor: '#FFF', width: { xs: '100%', sm: '50%' } }}
+                      />
+                    </Box>
                   </Box>
 
                   <Divider sx={{ mb: 2.5 }} />
@@ -1917,6 +1946,8 @@ export default function SavingsCalculatorPage() {
                       const lastDay = new Date(entryYear, entryMonth, 0).getDate();
                       defaultEnd = `${entryYear}-${String(entryMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
                     }
+                    const billingMonthDate = new Date(entryYear, entryMonth - 1 + 1, 1);
+                    const defaultBillingMonth = `${billingMonthDate.getFullYear()}-${String(billingMonthDate.getMonth() + 1).padStart(2, '0')}`;
                     setTodConsumptions(prev => ({
                       ...prev,
                       [key]: {
@@ -1925,7 +1956,8 @@ export default function SavingsCalculatorPage() {
                         'End Date': defaultEnd,
                         'Electricity Duty': 'Yes',
                         'Miscellaneous Charges': '',
-                        'Season': (entryMonth >= 9 || entryMonth <= 3) ? 'Winter' : 'Summer'
+                        'Season': (entryMonth >= 9 || entryMonth <= 3) ? 'Winter' : 'Summer',
+                        'Billing Month': defaultBillingMonth
                       }
                     }));
                     setExpandedAccordion(key);
