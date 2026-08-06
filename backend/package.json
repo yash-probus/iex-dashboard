@@ -29,6 +29,7 @@
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "csv-parser": "^3.2.1",
+    "docxtemplater": "^3.69.3",
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",
     "express": "^4.21.2",
@@ -41,6 +42,7 @@
     "node-cron": "^4.5.0",
     "nodemailer": "^9.0.3",
     "otp-generator": "^4.0.1",
+    "pizzip": "^3.2.0",
     "puppeteer": "^25.4.0",
     "xlsx": "^0.18.5"
   },
@@ -62,6 +64,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^8.0.1",
     "@types/otp-generator": "^4.0.2",
+    "@types/pizzip": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^8.65.0",
     "@typescript-eslint/parser": "^8.65.0",
     "eslint": "^10.8.0",

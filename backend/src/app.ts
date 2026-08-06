@@ -50,6 +50,7 @@ import marketOperationsRoutes from './modules/market-operations/market-operation
 import savingsCalculatorRoutes from './modules/savings-calculator/savings-calculator.routes';
 import forecastRoutes from './modules/forecast/forecast.routes';
 import usersRoutes from './modules/users/users.routes';
+import proposalRoutes from './modules/proposal/proposal.routes';
 
 // Initialize scheduled background jobs
 CronService.init();
@@ -68,6 +69,7 @@ app.use('/api/market-operations', marketOperationsRoutes);
 app.use('/api/savings-calculator', savingsCalculatorRoutes);
 app.use('/api/forecast', forecastRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/proposals', proposalRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
