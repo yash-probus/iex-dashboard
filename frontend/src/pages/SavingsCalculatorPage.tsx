@@ -440,11 +440,37 @@ export default function SavingsCalculatorPage() {
     return Array.from(levelsSet);
   }, [tariffData, stateCode, consumerCategory]);
 
-  const getTodSlabsForMonth = React.useCallback((targetMonth: number) => {
+  const getTodSlabsForMonth = React.useCallback((ymOrMonth: string | number) => {
+    let monthsToCheck: number[] = [];
+    if (typeof ymOrMonth === 'number') {
+      monthsToCheck = [ymOrMonth];
+    } else {
+      const entry = todConsumptions[ymOrMonth];
+      const startInput = entry?.['Start Date'];
+      const endInput = entry?.['End Date'];
+      if (startInput && endInput) {
+        const start = new Date(startInput);
+        const end = new Date(endInput);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          // Get all months between start and end
+          const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+          const limit = new Date(end.getFullYear(), end.getMonth(), 1);
+          while (cur <= limit) {
+            monthsToCheck.push(cur.getMonth() + 1);
+            cur.setMonth(cur.getMonth() + 1);
+          }
+        }
+      }
+      if (monthsToCheck.length === 0) {
+        const targetMonth = parseInt(ymOrMonth.split('-')[1], 10);
+        monthsToCheck = [targetMonth];
+      }
+    }
+
     if (discom === 'NPCL') {
-      let isWinter = targetMonth >= 9 || targetMonth <= 3;
+      const hasWinter = monthsToCheck.some(m => m >= 9 || m <= 3);
       
-      if (isWinter) {
+      if (hasWinter) {
         return ['TOD1', 'TOD2', 'TOD3', 'TOD4', 'TOD5', 'TOD6'];
       } else {
         return ['TOD1', 'TOD2', 'TOD3', 'TOD4'];
@@ -474,10 +500,9 @@ export default function SavingsCalculatorPage() {
         parsedVoltageLevel = parsedVoltageLevel.split(' - ')[0];
       }
       const matchVoltage = !voltageLevel || row.supplyVoltageCategory === parsedVoltageLevel;
-      // month in new schema is YYYYMM int; targetMonth from todConsumptions is 1-12
-      // Match by the last two digits of the stored month
+      // month in new schema is YYYYMM int; Match by the last two digits of the stored month
       const storedMonthNum = row.month % 100;
-      const matchMonth = storedMonthNum === targetMonth;
+      const matchMonth = monthsToCheck.includes(storedMonthNum);
 
       if (matchState && matchCategory && matchVoltage && matchMonth) {
         // Derive a slab name from tod times: use start-end or 'FLAT' when no TOD
@@ -492,7 +517,7 @@ export default function SavingsCalculatorPage() {
     // If no slabs found, always include a FLAT slab
     if (slabsSet.size === 0) slabsSet.add('FLAT');
     return Array.from(slabsSet).sort();
-  }, [tariffData, stateCode, consumerCategory, voltageLevel, discom]);
+  }, [tariffData, stateCode, consumerCategory, voltageLevel, discom, todConsumptions]);
 
   const availableSupplyVoltageValues = React.useMemo(() => {
     switch (voltageLevel) {
@@ -623,7 +648,7 @@ export default function SavingsCalculatorPage() {
   const isTodValid = () => {
     let hasAtLeastOneValue = false;
     let isConsumptionsValid = true;
-    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty', 'Billing Month'];
+    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty', 'Season', 'Billing Month'];
     Object.values(todConsumptions).forEach(monthData => {
       Object.entries(monthData).forEach(([key, val]) => {
         if (!ignoredKeys.includes(key) && val.trim()) {
@@ -721,7 +746,7 @@ export default function SavingsCalculatorPage() {
         todConsumptions: Object.keys(todConsumptions).length > 0 ?
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => {
-              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Billing Month'];
+              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month'];
               const processed = Object.fromEntries(
                 Object.entries(data)
                   .filter(([_, v]) => v.trim() !== '')
@@ -1716,8 +1741,7 @@ export default function SavingsCalculatorPage() {
           )}
 
           {Object.keys(todConsumptions).sort().map((ym, index) => {
-            const targetMonth = parseInt(ym.split('-')[1], 10);
-            const monthSlabs = getTodSlabsForMonth(targetMonth);
+            const monthSlabs = getTodSlabsForMonth(ym);
             return (
               <Accordion key={ym} expanded={expandedAccordion === 'initial' ? index === 0 : expandedAccordion === ym} onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? ym : false)} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>

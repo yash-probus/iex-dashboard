@@ -579,17 +579,6 @@ export class SavingsCalculatorService {
 
       const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
 
-      const whereClause: any = {
-        state: { in: stateFormats },
-        discom: entry.discom === 'NPCL' ? 'NPCL' : null,
-        consumerCategory: parsedCategory,
-        supplyVoltageCategory: parsedSupplyVoltageCategory,
-        month: effectiveYyyymmMonth
-      };
-      if (parsedSubCategory) {
-        whereClause.subCategory = { contains: parsedSubCategory };
-      }
-
       let startDayInput = monthConsumptions['Start Date'];
       let endDayInput = monthConsumptions['End Date'];
 
@@ -678,10 +667,32 @@ export class SavingsCalculatorService {
       if (!fppaData) {
         fppaData = fppaDataList.find(f => !f.discom || f.discom === '');
       }
-      if (!fppaData && fppaDataList.length > 0) {
-        fppaData = fppaDataList[0];
-      }
       const fppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
+      const monthsInPlay: number[] = [];
+      const startD = new Date(startStr);
+      const endD = new Date(endStr);
+      if (!isNaN(startD.getTime()) && !isNaN(endD.getTime())) {
+        const cur = new Date(startD.getFullYear(), startD.getMonth(), 1);
+        const limit = new Date(endD.getFullYear(), endD.getMonth(), 1);
+        while (cur <= limit) {
+          monthsInPlay.push(cur.getFullYear() * 100 + (cur.getMonth() + 1));
+          cur.setMonth(cur.getMonth() + 1);
+        }
+      }
+      if (monthsInPlay.length === 0) {
+        monthsInPlay.push(effectiveYyyymmMonth);
+      }
+
+      const whereClause: any = {
+        state: { in: stateFormats },
+        discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+        consumerCategory: parsedCategory,
+        supplyVoltageCategory: parsedSupplyVoltageCategory,
+        month: { in: monthsInPlay }
+      };
+      if (parsedSubCategory) {
+        whereClause.subCategory = { contains: parsedSubCategory };
+      }
 
       // Fetch matching StateTariff slabs from DB
       let tariffs = await prisma.stateTariff.findMany({
@@ -776,7 +787,8 @@ export class SavingsCalculatorService {
         const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
         if (isNpclHv2) {
-          const isWinter = month >= 9 || month <= 3;
+          const slotMonth = deliveryDate.getMonth() + 1;
+          const isWinter = slotMonth >= 9 || slotMonth <= 3;
           const baseRate = 6.80;
 
           if (isWinter) {
@@ -826,7 +838,13 @@ export class SavingsCalculatorService {
             }
           }
         } else if (tariffs.length > 0) {
-          let matched = tariffs.find(t => {
+          const slotMonth = deliveryDate.getFullYear() * 100 + (deliveryDate.getMonth() + 1);
+          let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
+          if (tariffsForMonth.length === 0) {
+            tariffsForMonth = tariffs;
+          }
+
+          let matched = tariffsForMonth.find(t => {
             if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
               return false;
             }
@@ -840,7 +858,7 @@ export class SavingsCalculatorService {
           });
 
           if (!matched) {
-            matched = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+            matched = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
           }
 
           if (matched) {
@@ -1070,17 +1088,62 @@ export class SavingsCalculatorService {
     const sanctionedLoad = Number(entry.sanctionedLoadKw) || 0;
     const maxEnergyPerSlot = (sanctionedLoad * 0.9 * 0.25);
 
-    let startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-    let lastDay = new Date(year, month, 0).getDate();
-    let endStr = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+    const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
+    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
 
-    if (entry.discom === 'NPCL') {
-      startStr = `${year}-${String(month).padStart(2, '0')}-19`;
-      const nextMonthDate = new Date(year, month, 18);
-      const endYear = nextMonthDate.getFullYear();
-      const endMonth = nextMonthDate.getMonth() + 1;
-      endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-18`;
+    let startDayInput = monthConsumptions['Start Date'];
+    let endDayInput = monthConsumptions['End Date'];
+
+    let startDay = 1;
+    if (startDayInput) {
+      if (typeof startDayInput === 'string' && startDayInput.includes('-')) {
+        const parts = startDayInput.split('-');
+        startDay = Number(parts[parts.length - 1]);
+      } else {
+        startDay = Number(startDayInput);
+      }
+    } else {
+      startDay = entry.discom === 'NPCL' ? 19 : 1;
     }
+    if (isNaN(startDay)) {
+      startDay = entry.discom === 'NPCL' ? 19 : 1;
+    }
+
+    let endDay = 0;
+    if (endDayInput) {
+      if (typeof endDayInput === 'string' && endDayInput.includes('-')) {
+        const parts = endDayInput.split('-');
+        endDay = Number(parts[parts.length - 1]);
+      } else {
+        endDay = Number(endDayInput);
+      }
+    } else {
+      endDay = entry.discom === 'NPCL' ? 18 : 0;
+    }
+    if (isNaN(endDay)) {
+      endDay = entry.discom === 'NPCL' ? 18 : 0;
+    }
+
+    let startStr = `${year}-${String(month).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+
+    let endYear = year;
+    let endMonth = month;
+
+    if (endDay === 0) {
+      let lastDay = new Date(year, month, 0).getDate();
+      endDay = lastDay;
+    } else if (endDay <= startDay) {
+      const nextMonthDate = new Date(year, month, endDay);
+      endYear = nextMonthDate.getFullYear();
+      endMonth = nextMonthDate.getMonth() + 1;
+    }
+
+    const maxDays = new Date(endYear, endMonth, 0).getDate();
+    if (endDay > maxDays) {
+      endDay = maxDays;
+    }
+
+    let endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
 
 
     let parsedSupplyVoltageCategory = voltageLevel;
@@ -1152,16 +1215,28 @@ export class SavingsCalculatorService {
       where: { month: yyyymmMonth }
     });
 
-    const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
-    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
     const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
+    const monthsInPlay: number[] = [];
+    const startD = new Date(startStr);
+    const endD = new Date(endStr);
+    if (!isNaN(startD.getTime()) && !isNaN(endD.getTime())) {
+      const cur = new Date(startD.getFullYear(), startD.getMonth(), 1);
+      const limit = new Date(endD.getFullYear(), endD.getMonth(), 1);
+      while (cur <= limit) {
+        monthsInPlay.push(cur.getFullYear() * 100 + (cur.getMonth() + 1));
+        cur.setMonth(cur.getMonth() + 1);
+      }
+    }
+    if (monthsInPlay.length === 0) {
+      monthsInPlay.push(effectiveYyyymmMonth);
+    }
 
     const whereClauseTariff: any = {
       state: { in: stateFormats },
       discom: entry.discom === 'NPCL' ? 'NPCL' : null,
       consumerCategory: parsedCategory,
       supplyVoltageCategory: parsedSupplyVoltageCategory,
-      month: effectiveYyyymmMonth
+      month: { in: monthsInPlay }
     };
     if (parsedSubCategory) {
       whereClauseTariff.subCategory = { contains: parsedSubCategory };
@@ -1334,8 +1409,8 @@ export class SavingsCalculatorService {
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
       if (isNpclHv2) {
-        const isWinter = month >= 9 || month <= 3;
-
+        const slotMonth = deliveryDate.getMonth() + 1;
+        const isWinter = slotMonth >= 9 || slotMonth <= 3;
         const baseRate = 6.80;
 
         if (isWinter) {
@@ -1374,7 +1449,13 @@ export class SavingsCalculatorService {
           }
         }
       } else if (tariffs.length > 0) {
-        let matched = tariffs.find(t => {
+        const slotMonth = deliveryDate.getFullYear() * 100 + (deliveryDate.getMonth() + 1);
+        let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
+        if (tariffsForMonth.length === 0) {
+          tariffsForMonth = tariffs;
+        }
+
+        let matched = tariffsForMonth.find(t => {
           if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
             return false;
           }
@@ -1385,7 +1466,7 @@ export class SavingsCalculatorService {
         });
 
         if (!matched) {
-          matched = tariffs.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+          matched = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
         }
 
         if (matched) {
