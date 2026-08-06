@@ -277,7 +277,10 @@ export class SavingsCalculatorExportService {
     }
     
     sheet.addRow(['Electricity Duty', Math.round(ed)]);
-    if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
+    if (misc > 0) {
+      const miscRow = sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
+      rowMapping['miscellaneousChargesRow'] = miscRow.number;
+    }
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     const totalBaselineWithMisc = (result.totalBaselineCost || 0) + arrear + lpsc;
@@ -699,6 +702,19 @@ export class SavingsCalculatorExportService {
     const discomCostRow = sheet.addRow(discomCostRowData);
     discomCostRow.font = { bold: true };
     const discomCostRowNumber = discomCostRow.number;
+
+    const summaryMiscRowData: any[] = ['Miscellaneous Charges'];
+    allResults.forEach((r, idx) => {
+      const mMapping = monthRowMap[r.monthStr];
+      if (mMapping.miscellaneousChargesRow) {
+        const formula = `'${mMapping.sheetName}'!B${mMapping.miscellaneousChargesRow}`;
+        summaryMiscRowData.push({ formula });
+      } else {
+        summaryMiscRowData.push(0);
+      }
+    });
+    const summaryMiscRow = sheet.addRow(summaryMiscRowData);
+    for (let i = 2; i <= numMonths + 1; i++) summaryMiscRow.getCell(i).numFmt = '"₹"#,##0';
 
     sheet.addRow([]);
 
