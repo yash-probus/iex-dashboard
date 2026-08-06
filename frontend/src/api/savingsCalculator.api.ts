@@ -139,6 +139,7 @@ export interface MarketDecisionResult {
   totalSavings: number;
   demandCharge?: number;
   electricityDuty?: number;
+  miscellaneousCharges?: number;
   peakDemand?: number;
   demandChargeRate?: number;
   todSummaries?: MarketDecisionTodSummary[];

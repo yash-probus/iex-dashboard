@@ -2649,7 +2649,13 @@ export default function SavingsCalculatorPage() {
                       </TableBody>
                     </Table>
                   </Box>
-                  <Box sx={{ display: 'flex', gap: 4, mt: 2, p: 2, backgroundColor: '#F1F5F9', borderRadius: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 4, mt: 2, p: 2, backgroundColor: '#F1F5F9', borderRadius: 2, flexWrap: 'wrap' }}>
+                    {marketDecisionResult.miscellaneousCharges !== undefined && marketDecisionResult.miscellaneousCharges > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Miscellaneous Charges</Typography>
+                        <Typography variant="body2" fontWeight={600}>₹{marketDecisionResult.miscellaneousCharges.toLocaleString('en-IN')}</Typography>
+                      </Box>
+                    )}
                     <Box>
                       <Typography variant="caption" color="text.secondary" display="block">SLDC Scheduling Cost</Typography>
                       <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>

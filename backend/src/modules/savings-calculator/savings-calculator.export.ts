@@ -239,7 +239,8 @@ export class SavingsCalculatorExportService {
     
     const isNpcl = result.discom === 'NPCL';
     
-    let energyCharges = (result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0);
+    const misc = result.miscellaneousCharges || 0;
+    let energyCharges = (result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc;
     let demandCharges = result.demandCharge || 0;
     const ed = result.electricityDuty || 0;
     const arrear = result.arrearAmount || 0;
@@ -276,6 +277,7 @@ export class SavingsCalculatorExportService {
     }
     
     sheet.addRow(['Electricity Duty', Math.round(ed)]);
+    if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     const totalBaselineWithMisc = (result.totalBaselineCost || 0) + arrear + lpsc;
@@ -292,7 +294,7 @@ export class SavingsCalculatorExportService {
     afterHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     afterHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
-    let energyChargesAfterOA = (result.totalDiscomAfterProlt || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0);
+    let energyChargesAfterOA = (result.totalDiscomAfterProlt || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc;
     
     if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;
@@ -323,6 +325,7 @@ export class SavingsCalculatorExportService {
     }
     
     sheet.addRow(['Electricity Duty', Math.round(ed)]);
+    if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     const totalDiscomAfterOAWithMisc = (result.totalDiscomAfterProlt || 0) + arrear + lpsc;
@@ -454,9 +457,9 @@ export class SavingsCalculatorExportService {
     rowMapping['totalBillOADiscomAfterProltRow'] = totalGrossRow.number;
     
     sheet.addRow([]);
-    const netSavings = totalDiscomBRounded - totalGrossBill;
+    const netSavings = (totalDiscomBRounded + (result.miscellaneousCharges || 0)) - totalGrossBill;
     
-    sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0))]);
+    sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0))]);
     const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
     sheet.addRow(['DISCOM Bill After PROLT', Math.round(discomAfterProltWithMisc)]);
     

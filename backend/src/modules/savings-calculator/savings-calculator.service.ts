@@ -287,8 +287,8 @@ export class SavingsCalculatorService {
 
         aggregatedCosts.totalDiscomCost += result.totalBaselineCost || 0;
         aggregatedCosts.demandAndFixedCharges += result.demandCharge || 0;
-        aggregatedCosts.miscellaneousCharges += result.electricityDuty || 0;
-        aggregatedCosts.energyCharges += ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0));
+        aggregatedCosts.miscellaneousCharges += (result.electricityDuty || 0) + (result.miscellaneousCharges || 0);
+        aggregatedCosts.energyCharges += ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - (result.miscellaneousCharges || 0));
         aggregatedCosts.peakDemand = Math.max(aggregatedCosts.peakDemand, result.peakDemand || 0);
         aggregatedCosts.demandChargeRate = result.demandChargeRate || aggregatedCosts.demandChargeRate;
 
@@ -948,7 +948,7 @@ export class SavingsCalculatorService {
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           remainingEnergy = Number(monthConsumptions[matchedKey]);
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
           let flatTotal = 0;
           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -1090,6 +1090,18 @@ export class SavingsCalculatorService {
 
     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+
+    const monthArrear = monthConsumptions['Arrear Amount'] !== undefined && monthConsumptions['Arrear Amount'] !== null
+      ? Number(monthConsumptions['Arrear Amount'])
+      : (entry.arrearAmount ? Number(entry.arrearAmount) : 0);
+
+    const monthLpsc = monthConsumptions['Current LPSC'] !== undefined && monthConsumptions['Current LPSC'] !== null
+      ? Number(monthConsumptions['Current LPSC'])
+      : (entry.currentLpsc ? Number(entry.currentLpsc) : 0);
+
+    const monthMisc = monthConsumptions['Miscellaneous Charges'] !== undefined && monthConsumptions['Miscellaneous Charges'] !== null
+      ? Number(monthConsumptions['Miscellaneous Charges'])
+      : 0;
 
     let startDayInput = monthConsumptions['Start Date'];
     let endDayInput = monthConsumptions['End Date'];
@@ -1726,7 +1738,7 @@ export class SavingsCalculatorService {
       if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
         slabConsumption = Number(monthConsumptions[matchedKey]);
       } else {
-        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
         const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
         let flatTotal = 0;
         if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -1760,7 +1772,7 @@ export class SavingsCalculatorService {
       if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
         slabConsumption = Number(monthConsumptions[matchedKey]);
       } else {
-        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
         const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
         let flatTotal = 0;
         if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -1898,7 +1910,7 @@ export class SavingsCalculatorService {
       if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
         slabConsumption = Number(monthConsumptions[matchedKey]);
       } else {
-        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc'];
+        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
         const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
         let flatTotal = 0;
         if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -2030,6 +2042,10 @@ export class SavingsCalculatorService {
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
     const probusPlatformFee = Math.round(totalMarketEnergyKwh * platformFeeRate);
 
+    totalBaselineCost += monthMisc;
+    totalDiscomAfterProlt += monthMisc;
+    totalLandedExchangeCost += monthMisc;
+
     const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
 
     // Treat proltMargin as a percentage of gross savings
@@ -2057,8 +2073,9 @@ export class SavingsCalculatorService {
       totalSavings: finalSavings,
       demandCharge,
       electricityDuty: totalElectricityDuty,
-      arrearAmount: entry.arrearAmount ? Number(entry.arrearAmount) : 0,
-      currentLpsc: entry.currentLpsc ? Number(entry.currentLpsc) : 0,
+      arrearAmount: monthArrear,
+      currentLpsc: monthLpsc,
+      miscellaneousCharges: monthMisc,
       discom: entry.discom,
       peakDemand,
       demandChargeRate,
