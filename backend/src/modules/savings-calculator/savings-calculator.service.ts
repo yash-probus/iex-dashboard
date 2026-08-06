@@ -577,12 +577,18 @@ export class SavingsCalculatorService {
 
       const stateFormats = [stateName, stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_'), stateName.charAt(0).toUpperCase() + stateName.slice(1).toLowerCase()];
 
+      let effectiveMonth = nextMonth;
+      const seasonOverride = monthConsumptions['Season'];
+      if (seasonOverride === 'Winter') effectiveMonth = 1;
+      else if (seasonOverride === 'Summer') effectiveMonth = 6;
+      const effectiveYyyymmMonth = nextYear * 100 + effectiveMonth;
+
       const whereClause: any = {
         state: { in: stateFormats },
         discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         consumerCategory: parsedCategory,
         supplyVoltageCategory: parsedSupplyVoltageCategory,
-        month: yyyymmMonth
+        month: effectiveYyyymmMonth
       };
       if (parsedSubCategory) {
         whereClause.subCategory = { contains: parsedSubCategory };
@@ -1150,12 +1156,20 @@ export class SavingsCalculatorService {
       where: { month: yyyymmMonth }
     });
 
+    let effectiveMonth = nextMonth;
+    const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
+    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+    const seasonOverride = monthConsumptions['Season'];
+    if (seasonOverride === 'Winter') effectiveMonth = 1;
+    else if (seasonOverride === 'Summer') effectiveMonth = 6;
+    const effectiveYyyymmMonth = nextYear * 100 + effectiveMonth;
+
     const whereClauseTariff: any = {
       state: { in: stateFormats },
       discom: entry.discom === 'NPCL' ? 'NPCL' : null,
       consumerCategory: parsedCategory,
       supplyVoltageCategory: parsedSupplyVoltageCategory,
-      month: yyyymmMonth
+      month: effectiveYyyymmMonth
     };
     if (parsedSubCategory) {
       whereClauseTariff.subCategory = { contains: parsedSubCategory };
@@ -1267,8 +1281,7 @@ export class SavingsCalculatorService {
       return parseInt(val, 10);
     };
 
-    const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
-    const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+    // monthKey and monthConsumptions are declared earlier
 
     const slotsData = records.map(rec => {
       const deliveryDate = rec.date ? new Date(rec.date) : new Date(startStr);

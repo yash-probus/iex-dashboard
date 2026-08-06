@@ -479,7 +479,10 @@ export default function SavingsCalculatorPage() {
       // month in new schema is YYYYMM int; targetMonth from todConsumptions is 1-12
       // Match by the last two digits of the stored month
       const storedMonthNum = row.month % 100;
-      const matchMonth = storedMonthNum === targetMonth;
+      let effectiveMonth = targetMonth;
+      if (seasonOverride === 'Winter') effectiveMonth = 1;
+      else if (seasonOverride === 'Summer') effectiveMonth = 6;
+      const matchMonth = storedMonthNum === effectiveMonth;
 
       if (matchState && matchCategory && matchVoltage && matchMonth) {
         // Derive a slab name from tod times: use start-end or 'FLAT' when no TOD
