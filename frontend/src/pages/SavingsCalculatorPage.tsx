@@ -2334,6 +2334,40 @@ export default function SavingsCalculatorPage() {
               >
                 Export Excel Sheet
               </Button>
+
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={async () => {
+                  if (!calcEntry) return;
+                  try {
+                    await exportDemandShiftExcel(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
+                  } catch (err: any) {
+                    setSnackbar({
+                      open: true,
+                      message: err.message || 'Export failed',
+                      severity: 'error'
+                    });
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#8B5CF6',
+                  color: 'white',
+                  px: 4,
+                  py: 1,
+                  minWidth: 220,
+                  '&:hover': {
+                    backgroundColor: '#7C3AED',
+                    borderColor: 'divider'
+                  }
+                }}
+              >
+                Export TOD Shifting Excel
+              </Button>
             </Box>
           )}
 
