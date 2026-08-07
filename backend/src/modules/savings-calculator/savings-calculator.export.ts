@@ -995,17 +995,92 @@ export class SavingsCalculatorExportService {
     sheet.getColumn(1).width = 40;
   }
 
+  private static async populateDemandShiftSummarySheet(sheet: ExcelJS.Worksheet, entry: any, allResults: any[]) {
+    // Header
+    sheet.addRow([`Industry Name: ${entry.industryName || entry.clientName || ''}`]);
+    sheet.addRow([`Location / Address: ${entry.address || ''}`]);
+    sheet.addRow([`Connectivity: ${entry.voltageLevel || ''}`]);
+    
+    // Make headers bold
+    for (let i = 1; i <= 3; i++) {
+      if (sheet.getCell(`A${i}`)) sheet.getCell(`A${i}`).font = { bold: true };
+    }
+    sheet.addRow([]);
+
+    // Sort results chronologically
+    allResults.sort((a, b) => a.monthStr.localeCompare(b.monthStr));
+
+    const monthHeaders = allResults.map(r => getShortHeaderName(r.monthStr));
+    const numMonths = allResults.length;
+
+    // Header Row
+    const headerRow = sheet.addRow(['Particulars', ...monthHeaders]);
+    headerRow.height = 25;
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.eachCell(c => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      c.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    });
+
+    // Row Mappings from addDemandShiftSheet
+    const rowMappings = {
+      originalTotalCost: 102,
+      newTotalCost: 103,
+      potentialExtraSavings: 104,
+      shiftedEnergy: 105
+    };
+
+    const addMetricRow = (label: string, rowIdx: number, formatAsCurrency: boolean = true) => {
+      const rowData: any[] = [label];
+      allResults.forEach((r) => {
+        const safeSheetName = getLongMonthName(r.monthStr).replace(/[\/*?\[\]]/g, '').substring(0, 31);
+        rowData.push({ formula: `'${safeSheetName}'!B${rowIdx}` });
+      });
+      const addedRow = sheet.addRow(rowData);
+      for (let i = 2; i <= numMonths + 1; i++) {
+        if (formatAsCurrency) {
+          addedRow.getCell(i).numFmt = '"₹"#,##0';
+        } else {
+          addedRow.getCell(i).numFmt = '#,##0';
+        }
+      }
+      return addedRow;
+    };
+
+    addMetricRow('Original Total Cost (₹)', rowMappings.originalTotalCost, true);
+    addMetricRow('New Total Cost (Post-Shift) (₹)', rowMappings.newTotalCost, true);
+    
+    const savingsRow = addMetricRow('Potential Extra Savings (₹)', rowMappings.potentialExtraSavings, true);
+    savingsRow.font = { bold: true, color: { argb: 'FF008000' } };
+
+    addMetricRow('Shifted Energy (kWh)', rowMappings.shiftedEnergy, false);
+
+    sheet.getColumn(1).width = 40;
+    for (let i = 2; i <= numMonths + 1; i++) {
+      sheet.getColumn(i).width = 18;
+    }
+  }
+
   static async exportDemandShiftToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     
     if (monthStr === 'all') {
       const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
       const months = Object.keys(entry?.todConsumptions || {}).sort();
+      
+      const summarySheet = workbook.addWorksheet('Summary');
+      const allResults: any[] = [];
+      
       for (const m of months) {
         const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, m, version);
+        result.monthStr = m; // add month string for summary sheet ordering
+        allResults.push(result);
         const monthName = getLongMonthName(m);
         await SavingsCalculatorExportService.addDemandShiftSheet(workbook, monthName, result);
       }
+      
+      await SavingsCalculatorExportService.populateDemandShiftSummarySheet(summarySheet, entry, allResults);
     } else {
       const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr, version);
       const sheetName = getShortSheetName(monthStr, 'Demand Shift');
