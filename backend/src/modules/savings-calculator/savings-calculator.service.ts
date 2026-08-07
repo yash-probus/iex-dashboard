@@ -324,7 +324,7 @@ export class SavingsCalculatorService {
     };
   }
 
-  static async calculateMarketDecisionAllMonths(id: string, version?: number) {
+  static async calculateMarketDecisionAllMonths(id: string, version?: number, useShiftedProfile: boolean = false, shiftInsights?: any) {
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
     const todConsumptions = entry.todConsumptions as any;
@@ -355,7 +355,7 @@ export class SavingsCalculatorService {
 
     for (const month of months) {
       try {
-        const res = await this.calculateMarketDecision(id, month, version);
+        const res = await this.calculateMarketDecision(id, month, version, useShiftedProfile, shiftInsights);
         if (res) {
           totalSavings += res.totalSavings;
           totalBaselineCost += res.totalBaselineCost;
@@ -424,7 +424,7 @@ export class SavingsCalculatorService {
     };
   }
 
-  static async calculateSavingsAllMonths(id: string, version?: number) {
+  static async calculateSavingsAllMonths(id: string, version?: number, shiftInsights?: any) {
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
     const todConsumptions = entry.todConsumptions as any;
@@ -439,7 +439,7 @@ export class SavingsCalculatorService {
 
     for (const month of months) {
       try {
-        const res = await this.calculateSavings(id, month, version);
+        const res = await this.calculateSavings(id, month, version, false, shiftInsights);
         if (res) {
           totalSavings += res.totalSavings;
           totalOptimizedCost += res.totalOptimizedCost;
@@ -468,27 +468,32 @@ export class SavingsCalculatorService {
   }
 
   // Savings calculation logic
-  static async calculateSavings(id: string, targetMonth?: string, version?: number) {
+  static async calculateSavings(id: string, targetMonth?: string, version?: number, useShiftedProfile: boolean = false, shiftInsights?: any) {
     if (targetMonth === 'all') {
-      return this.calculateSavingsAllMonths(id, version);
+      return this.calculateSavingsAllMonths(id, version, shiftInsights);
     }
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) {
       throw new Error('Entry not found');
     }
 
+    let insights = shiftInsights;
+    if (useShiftedProfile && !insights) {
+      insights = await this.calculateDemandShiftInsights(id, targetMonth, version);
+    }
+
     const category = entry.consumerCategory || 'Industrial';
     if (category.startsWith('HV-1') && category !== 'HV-1 A' && category !== 'HV-1 B') {
-      return this.calculateSavingsHV1(entry, targetMonth);
+      return this.calculateSavingsHV1(entry, targetMonth, insights);
     }
-    return this.calculateSavingsHV2(entry, targetMonth);
+    return this.calculateSavingsHV2(entry, targetMonth, insights);
   }
 
-  static async calculateSavingsHV1(entry: any, targetMonth?: string) {
-    return this.calculateSavingsHV2(entry, targetMonth);
+  static async calculateSavingsHV1(entry: any, targetMonth?: string, shiftInsights?: any) {
+    return this.calculateSavingsHV2(entry, targetMonth, shiftInsights);
   }
 
-  static async calculateSavingsHV2(entry: any, targetMonth?: string) {
+  static async calculateSavingsHV2(entry: any, targetMonth?: string, shiftInsights?: any) {
     const id = entry.id;
     const stateCode = entry.stateCode || 'MH';
     const sanctionedLoad = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
@@ -940,32 +945,38 @@ export class SavingsCalculatorService {
       Object.keys(slotsByTod).forEach(groupKey => {
         // Find the total energy requirement for this TOD slab from the input
         let remainingEnergy = 0;
-        const matchedKey = Object.keys(monthConsumptions).find(k => {
-          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
-          return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
-        });
-
-        if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
-          remainingEnergy = Number(monthConsumptions[matchedKey]);
+        
+        if (shiftInsights) {
+          const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
+          remainingEnergy = todSummary ? todSummary.newEnergy : 0;
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
-          const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
-          let flatTotal = 0;
-          if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
-            flatTotal = Number(monthConsumptions[flatKey]);
+          const matchedKey = Object.keys(monthConsumptions).find(k => {
+            if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+            return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+          });
+
+          if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+            remainingEnergy = Number(monthConsumptions[matchedKey]);
           } else {
-            for (const [k, v] of Object.entries(monthConsumptions)) {
-              if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
-                const numVal = Number(v);
-                if (!isNaN(numVal)) {
-                  flatTotal += numVal;
+            const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+            const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+            let flatTotal = 0;
+            if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+              flatTotal = Number(monthConsumptions[flatKey]);
+            } else {
+              for (const [k, v] of Object.entries(monthConsumptions)) {
+                if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+                  const numVal = Number(v);
+                  if (!isNaN(numVal)) {
+                    flatTotal += numVal;
+                  }
                 }
               }
             }
-          }
-          if (flatTotal > 0) {
-            const totalSlotsInMonth = slotsData.length;
-            remainingEnergy = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+            if (flatTotal > 0) {
+              const totalSlotsInMonth = slotsData.length;
+              remainingEnergy = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+            }
           }
         }
 
@@ -1030,7 +1041,7 @@ export class SavingsCalculatorService {
     };
   }
 
-  static async calculateMarketDecision(id: string, targetMonthStr?: string, version?: number) {
+  static async calculateMarketDecision(id: string, targetMonthStr?: string, version?: number, useShiftedProfile: boolean = false, shiftInsights?: any) {
     if (targetMonthStr === 'all') {
       return this.calculateMarketDecisionAllMonths(id, version);
     }
@@ -1047,6 +1058,10 @@ export class SavingsCalculatorService {
     }
     if (!entry.stateCode) {
       throw new Error('State is required to calculate savings. Please edit this entry to select a state.');
+    }
+
+    if (useShiftedProfile && !shiftInsights) {
+      shiftInsights = await this.calculateDemandShiftInsights(id, targetMonthStr, version);
     }
 
     let year = new Date().getFullYear();
@@ -1731,31 +1746,38 @@ export class SavingsCalculatorService {
     let preTotalEnergyKwh = 0;
     Object.keys(slotsByTod).forEach(groupKey => {
       let slabConsumption = 0;
-      const matchedKey = Object.keys(monthConsumptions).find(k => {
-        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
-        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
-      });
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
-        slabConsumption = Number(monthConsumptions[matchedKey]);
+      
+      if (shiftInsights) {
+        const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
+        slabConsumption = todSummary ? todSummary.newEnergy : 0;
       } else {
-        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
-        const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
-        let flatTotal = 0;
-        if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
-          flatTotal = Number(monthConsumptions[flatKey]);
+        const matchedKey = Object.keys(monthConsumptions).find(k => {
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+        });
+        
+        if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+          slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          for (const [k, v] of Object.entries(monthConsumptions)) {
-            if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
-              const numVal = Number(v);
-              if (!isNaN(numVal)) {
-                flatTotal += numVal;
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+          let flatTotal = 0;
+          if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+            flatTotal = Number(monthConsumptions[flatKey]);
+          } else {
+            for (const [k, v] of Object.entries(monthConsumptions)) {
+              if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+                const numVal = Number(v);
+                if (!isNaN(numVal)) {
+                  flatTotal += numVal;
+                }
               }
             }
           }
-        }
-        if (flatTotal > 0) {
-          const totalSlotsInMonth = slotsData.length;
-          slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+          if (flatTotal > 0) {
+            const totalSlotsInMonth = slotsData.length;
+            slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+          }
         }
       }
       preTotalEnergyKwh += slabConsumption;
@@ -1764,92 +1786,108 @@ export class SavingsCalculatorService {
     Object.keys(slotsByTod).forEach(groupKey => {
       const slotsInGroup = slotsByTod[groupKey];
       let slabConsumption = 0;
-      const matchedKey = Object.keys(monthConsumptions).find(k => {
-        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
-        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
-      });
       
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
-        slabConsumption = Number(monthConsumptions[matchedKey]);
+      if (shiftInsights) {
+        const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
+        slabConsumption = todSummary ? todSummary.newEnergy : 0;
+        
+        if (slabConsumption <= 0) return;
+        
+        slotsInGroup.forEach(s => {
+          const shiftSlot = shiftInsights.slotsData.find((ss: any) => ss.date === s.date && ss.timeblock === s.timeblock);
+          if (shiftSlot) {
+            (s as any).marketEnergy = shiftSlot.marketEnergy || 0;
+            (s as any).consumedMarketEnergy = shiftSlot.marketEnergy || 0;
+            (s as any).discomEnergy = shiftSlot.discomEnergy || 0;
+            let basePrice = 0;
+            if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
+            else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
+            else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
+            (s as any).exactMarketEnergyCost = (shiftSlot.marketEnergy || 0) * basePrice;
+          }
+        });
       } else {
-        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
-        const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
-        let flatTotal = 0;
-        if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
-          flatTotal = Number(monthConsumptions[flatKey]);
+        const matchedKey = Object.keys(monthConsumptions).find(k => {
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+        });
+        
+        if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+          slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          for (const [k, v] of Object.entries(monthConsumptions)) {
-            if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
-              const numVal = Number(v);
-              if (!isNaN(numVal)) {
-                flatTotal += numVal;
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+          let flatTotal = 0;
+          if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+            flatTotal = Number(monthConsumptions[flatKey]);
+          } else {
+            for (const [k, v] of Object.entries(monthConsumptions)) {
+              if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+                const numVal = Number(v);
+                if (!isNaN(numVal)) {
+                  flatTotal += numVal;
+                }
               }
             }
           }
-        }
-        if (flatTotal > 0) {
-          const totalSlotsInMonth = slotsData.length;
-          slabConsumption = flatTotal * (slotsInGroup.length / totalSlotsInMonth);
-        }
-      }
-
-      if (slabConsumption <= 0) return;
-
-      const numSlots = slotsInGroup.length;
-      const requiredEnergyPerSlot = slabConsumption / numSlots;
-      const maxPerSlot = 0.25 * sanctionedLoad;
-
-      slotsInGroup.forEach((s, idx) => {
-        (s as any)._idx = idx;
-        (s as any).unfulfilledEnergy = requiredEnergyPerSlot;
-        (s as any).marketEnergy = 0; // Total energy BOUGHT in this slot
-        (s as any).consumedMarketEnergy = 0; // Total energy CONSUMED in this slot
-        (s as any).exactMarketEnergyCost = 0; // Cost of the market energy consumed in this slot
-
-        let basePrice = 0;
-        if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
-        else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
-        else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
-        (s as any)._tempBasePrice = basePrice;
-      });
-
-      // Filter to only cheap slots
-      const marketSlots = slotsInGroup.filter(s => s.shouldBuyFromMarket && s.bestMarketLanding > 0);
-
-      // Sort by price ascending
-      marketSlots.sort((a, b) => (a as any)._tempBasePrice - (b as any)._tempBasePrice);
-
-      marketSlots.forEach(buyingSlot => {
-        let availableToBuy = maxPerSlot - (buyingSlot as any).marketEnergy;
-        if (availableToBuy <= 0) return;
-
-        let boughtInThisSlot = 0;
-
-        // Fulfill current and future slots chronologically
-        for (let i = (buyingSlot as any)._idx; i < numSlots; i++) {
-          const targetSlot = slotsInGroup[i];
-          if ((targetSlot as any).unfulfilledEnergy > 0) {
-            const allocation = Math.min(availableToBuy, (targetSlot as any).unfulfilledEnergy);
-
-            (targetSlot as any).unfulfilledEnergy -= allocation;
-            (targetSlot as any).consumedMarketEnergy += allocation;
-            // The cost is calculated based on the price of the slot where we BOUGHT it
-            (targetSlot as any).exactMarketEnergyCost += allocation * (buyingSlot as any)._tempBasePrice;
-
-            boughtInThisSlot += allocation;
-            availableToBuy -= allocation;
-
-            if (availableToBuy <= 0) break;
+          if (flatTotal > 0) {
+            const totalSlotsInMonth = slotsData.length;
+            slabConsumption = flatTotal * (slotsInGroup.length / totalSlotsInMonth);
           }
         }
 
-        (buyingSlot as any).marketEnergy += boughtInThisSlot;
-      });
+        if (slabConsumption <= 0) return;
 
-      // Any remaining unfulfilled energy defaults to DISCOM
-      slotsInGroup.forEach(targetSlot => {
-        (targetSlot as any).discomEnergy = (targetSlot as any).unfulfilledEnergy || 0;
-      });
+        const numSlots = slotsInGroup.length;
+        const requiredEnergyPerSlot = slabConsumption / numSlots;
+        const maxPerSlot = 0.25 * sanctionedLoad;
+
+        slotsInGroup.forEach((s, idx) => {
+          (s as any)._idx = idx;
+          (s as any).unfulfilledEnergy = requiredEnergyPerSlot;
+          (s as any).marketEnergy = 0;
+          (s as any).consumedMarketEnergy = 0;
+          (s as any).exactMarketEnergyCost = 0;
+
+          let basePrice = 0;
+          if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
+          else if (s.marketSource === 'RTM') basePrice = s.rtmMcp || 0;
+          else if (s.marketSource === 'GDAM') basePrice = s.gdamMcp || 0;
+          (s as any)._tempBasePrice = basePrice;
+        });
+
+        const marketSlots = slotsInGroup.filter(s => s.shouldBuyFromMarket && s.bestMarketLanding > 0);
+        marketSlots.sort((a, b) => (a as any)._tempBasePrice - (b as any)._tempBasePrice);
+
+        marketSlots.forEach(buyingSlot => {
+          let availableToBuy = maxPerSlot - (buyingSlot as any).marketEnergy;
+          if (availableToBuy <= 0) return;
+
+          let boughtInThisSlot = 0;
+
+          for (let i = (buyingSlot as any)._idx; i < numSlots; i++) {
+            const targetSlot = slotsInGroup[i];
+            if ((targetSlot as any).unfulfilledEnergy > 0) {
+              const allocation = Math.min(availableToBuy, (targetSlot as any).unfulfilledEnergy);
+
+              (targetSlot as any).unfulfilledEnergy -= allocation;
+              (targetSlot as any).consumedMarketEnergy += allocation;
+              (targetSlot as any).exactMarketEnergyCost += allocation * (buyingSlot as any)._tempBasePrice;
+
+              boughtInThisSlot += allocation;
+              availableToBuy -= allocation;
+
+              if (availableToBuy <= 0) break;
+            }
+          }
+
+          (buyingSlot as any).marketEnergy += boughtInThisSlot;
+        });
+
+        slotsInGroup.forEach(targetSlot => {
+          (targetSlot as any).discomEnergy = (targetSlot as any).unfulfilledEnergy || 0;
+        });
+      }
     });
 
     // === PASS 2: Calculate Final Overheads & Aggregates ===
@@ -1903,31 +1941,36 @@ export class SavingsCalculatorService {
       const slotsInGroup = slotsByTod[groupKey];
 
       let slabConsumption = 0;
-      const matchedKey = Object.keys(monthConsumptions).find(k => {
-        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
-        return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
-      });
-      if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
-        slabConsumption = Number(monthConsumptions[matchedKey]);
+      if (shiftInsights) {
+        const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
+        slabConsumption = todSummary ? todSummary.newEnergy : 0;
       } else {
-        const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
-        const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
-        let flatTotal = 0;
-        if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
-          flatTotal = Number(monthConsumptions[flatKey]);
+        const matchedKey = Object.keys(monthConsumptions).find(k => {
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+        });
+        if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+          slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          for (const [k, v] of Object.entries(monthConsumptions)) {
-            if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
-              const numVal = Number(v);
-              if (!isNaN(numVal)) {
-                flatTotal += numVal;
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+          let flatTotal = 0;
+          if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+            flatTotal = Number(monthConsumptions[flatKey]);
+          } else {
+            for (const [k, v] of Object.entries(monthConsumptions)) {
+              if (v !== null && v !== '' && !metadataKeys.includes(k.toLowerCase())) {
+                const numVal = Number(v);
+                if (!isNaN(numVal)) {
+                  flatTotal += numVal;
+                }
               }
             }
           }
-        }
-        if (flatTotal > 0) {
-          const totalSlotsInMonth = slotsData.length;
-          slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+          if (flatTotal > 0) {
+            const totalSlotsInMonth = slotsData.length;
+            slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
+          }
         }
       }
 

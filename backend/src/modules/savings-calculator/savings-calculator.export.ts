@@ -905,186 +905,36 @@ export class SavingsCalculatorExportService {
     });
   }
 
-  private static async addDemandShiftSheet(workbook: ExcelJS.Workbook, monthName: string, result: any) {
-    const { slotsData } = result;
-
-    const safeSheetName = monthName.replace(/[\/*?\[\]]/g, '').substring(0, 31);
-    const sheet = workbook.addWorksheet(safeSheetName, {
-      views: [{ state: 'frozen', xSplit: 1, ySplit: 2 }]
-    });
-
-    // We need all unique days sorted
-    const daysSet = new Set<string>();
-    slotsData.forEach((s: any) => daysSet.add(s.date));
-    const days = Array.from(daysSet).sort();
-
-    // Headers
-    const headerRow1 = ['Blockwise DAM Rates on IEX (Post-Shift)'];
-    const headerRow2 = [''];
-    days.forEach(d => {
-      const dateObj = new Date(d);
-      const dayStr = `${dateObj.getDate()}-${MONTHS_SHORT[dateObj.getMonth()]}`;
-      headerRow1.push(dayStr, '', '');
-      headerRow2.push('Price (₹)', 'Qty (kWh Market)', 'Market');
-    });
-
-    const hr1 = sheet.addRow(headerRow1);
-    const hr2 = sheet.addRow(headerRow2);
-    
-    // Merge cells for headerRow1
-    let colIndex = 2;
-    days.forEach(() => {
-      sheet.mergeCells(1, colIndex, 1, colIndex + 2);
-      sheet.getCell(1, colIndex).alignment = { horizontal: 'center' };
-      colIndex += 3;
-    });
-
-    hr1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    hr1.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
-    
-    hr2.font = { bold: true };
-    hr2.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDDDDD' } });
-
-    const formatBlock = (blockIdx: number) => {
-      const startMin = (blockIdx - 1) * 15;
-      const endMin = blockIdx * 15;
-      const h1 = Math.floor(startMin / 60).toString().padStart(2, '0');
-      const m1 = (startMin % 60).toString().padStart(2, '0');
-      const h2 = Math.floor(endMin / 60).toString().padStart(2, '0');
-      const m2 = (endMin % 60).toString().padStart(2, '0');
-      return `${h1}:${m1} - ${h2}:${m2}`;
-    };
-
-    for (let b = 1; b <= 96; b++) {
-      const row = [formatBlock(b)];
-      days.forEach(day => {
-        const slot = slotsData.find((s: any) => s.date === day && s.timeblock === b) as any;
-        if (slot && slot.shouldBuyFromMarket && slot.marketEnergy > 0) {
-          let mcp = 0;
-          if (slot.marketSource === 'DAM') mcp = slot.damMcp || 0;
-          else if (slot.marketSource === 'RTM') mcp = slot.rtmMcp || 0;
-          else if (slot.marketSource === 'GDAM') mcp = slot.gdamMcp || 0;
-          row.push(mcp.toFixed(2));
-          row.push(Math.round(slot.marketEnergy).toString());
-          row.push(slot.marketSource || '-');
-        } else {
-          row.push('-', '-', '-');
-        }
-      });
-      sheet.addRow(row);
-    }
-
-    sheet.addRow([]);
-    sheet.addRow([]);
-    
-    sheet.addRow(['Summary']);
-    if (sheet.lastRow) {
-      sheet.lastRow.font = { bold: true, size: 14 };
-    }
-    
-    sheet.addRow(['Original Total Cost (₹)', Math.round(result.originalTotalCost)]);
-    sheet.addRow(['New Total Cost (Post-Shift) (₹)', Math.round(result.newTotalCost)]);
-    sheet.addRow(['Potential Extra Savings (₹)', Math.round(result.savingsAchieved)]);
-    sheet.addRow(['Shifted Energy (kWh)', Math.round(result.shiftedEnergy)]);
-    
-    if (sheet.lastRow) {
-      sheet.getCell(sheet.lastRow.number, 1).font = { bold: true };
-      sheet.getCell(sheet.lastRow.number - 1, 1).font = { bold: true, color: { argb: 'FF008000' } };
-    }
-
-    sheet.getColumn(1).width = 40;
-  }
-
-  private static async populateDemandShiftSummarySheet(sheet: ExcelJS.Worksheet, entry: any, allResults: any[]) {
-    // Header
-    sheet.addRow([`Industry Name: ${entry.industryName || entry.clientName || ''}`]);
-    sheet.addRow([`Location / Address: ${entry.address || ''}`]);
-    sheet.addRow([`Connectivity: ${entry.voltageLevel || ''}`]);
-    
-    // Make headers bold
-    for (let i = 1; i <= 3; i++) {
-      if (sheet.getCell(`A${i}`)) sheet.getCell(`A${i}`).font = { bold: true };
-    }
-    sheet.addRow([]);
-
-    // Sort results chronologically
-    allResults.sort((a, b) => a.monthStr.localeCompare(b.monthStr));
-
-    const monthHeaders = allResults.map(r => getShortHeaderName(r.monthStr));
-    const numMonths = allResults.length;
-
-    // Header Row
-    const headerRow = sheet.addRow(['Particulars', ...monthHeaders]);
-    headerRow.height = 25;
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow.eachCell(c => {
-      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
-      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-      c.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-    });
-
-    // Row Mappings from addDemandShiftSheet
-    const rowMappings = {
-      originalTotalCost: 102,
-      newTotalCost: 103,
-      potentialExtraSavings: 104,
-      shiftedEnergy: 105
-    };
-
-    const addMetricRow = (label: string, rowIdx: number, formatAsCurrency: boolean = true) => {
-      const rowData: any[] = [label];
-      allResults.forEach((r) => {
-        const safeSheetName = getLongMonthName(r.monthStr).replace(/[\/*?\[\]]/g, '').substring(0, 31);
-        rowData.push({ formula: `'${safeSheetName}'!B${rowIdx}` });
-      });
-      const addedRow = sheet.addRow(rowData);
-      for (let i = 2; i <= numMonths + 1; i++) {
-        if (formatAsCurrency) {
-          addedRow.getCell(i).numFmt = '"₹"#,##0';
-        } else {
-          addedRow.getCell(i).numFmt = '#,##0';
-        }
-      }
-      return addedRow;
-    };
-
-    addMetricRow('Original Total Cost (₹)', rowMappings.originalTotalCost, true);
-    addMetricRow('New Total Cost (Post-Shift) (₹)', rowMappings.newTotalCost, true);
-    
-    const savingsRow = addMetricRow('Potential Extra Savings (₹)', rowMappings.potentialExtraSavings, true);
-    savingsRow.font = { bold: true, color: { argb: 'FF008000' } };
-
-    addMetricRow('Shifted Energy (kWh)', rowMappings.shiftedEnergy, false);
-
-    sheet.getColumn(1).width = 40;
-    for (let i = 2; i <= numMonths + 1; i++) {
-      sheet.getColumn(i).width = 18;
-    }
-  }
-
   static async exportDemandShiftToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     
     if (monthStr === 'all') {
       const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
       const months = Object.keys(entry?.todConsumptions || {}).sort();
-      
-      const summarySheet = workbook.addWorksheet('Summary');
-      const allResults: any[] = [];
+      const allResults = [];
       
       for (const m of months) {
-        const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, m, version);
-        result.monthStr = m; // add month string for summary sheet ordering
-        allResults.push(result);
-        const monthName = getLongMonthName(m);
-        await SavingsCalculatorExportService.addDemandShiftSheet(workbook, monthName, result);
+        const result = await SavingsCalculatorService.calculateMarketDecision(id, m, version, true);
+        allResults.push({ monthStr: m, result });
       }
       
-      await SavingsCalculatorExportService.populateDemandShiftSummarySheet(summarySheet, entry, allResults);
+      if (allResults.length > 0) {
+        const summarySheet = workbook.addWorksheet('Summary');
+        const monthRowMap: Record<string, any> = {};
+        
+        for (const r of allResults) {
+          const sheetName = getShortSheetName(r.monthStr, 'Demand Shift');
+          const rowMapping = await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, r.result, entry, r.monthStr);
+          monthRowMap[r.monthStr] = { sheetName, ...rowMapping };
+        }
+        
+        await SavingsCalculatorExportService.populateSummarySheet(summarySheet, entry, allResults, monthRowMap);
+      }
     } else {
-      const result = await SavingsCalculatorService.calculateDemandShiftInsights(id, monthStr, version);
+      const entry = await SavingsCalculatorService.getEntryOrVersion(id, version);
+      const result = await SavingsCalculatorService.calculateMarketDecision(id, monthStr, version, true);
       const sheetName = getShortSheetName(monthStr, 'Demand Shift');
-      await SavingsCalculatorExportService.addDemandShiftSheet(workbook, sheetName, result);
+      await SavingsCalculatorExportService.addSavingsSheet(workbook, sheetName, result, entry, monthStr);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
