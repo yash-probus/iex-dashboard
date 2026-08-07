@@ -424,7 +424,7 @@ export class SavingsCalculatorService {
     };
   }
 
-  static async calculateSavingsAllMonths(id: string, version?: number, shiftInsights?: any) {
+  static async calculateSavingsAllMonths(id: string, version?: number, useShiftedProfile: boolean = false, shiftInsights?: any) {
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
     const todConsumptions = entry.todConsumptions as any;
@@ -439,7 +439,7 @@ export class SavingsCalculatorService {
 
     for (const month of months) {
       try {
-        const res = await this.calculateSavings(id, month, version, false, shiftInsights);
+        const res = await this.calculateSavings(id, month, version, useShiftedProfile, shiftInsights);
         if (res) {
           totalSavings += res.totalSavings;
           totalOptimizedCost += res.totalOptimizedCost;
@@ -470,7 +470,7 @@ export class SavingsCalculatorService {
   // Savings calculation logic
   static async calculateSavings(id: string, targetMonth?: string, version?: number, useShiftedProfile: boolean = false, shiftInsights?: any) {
     if (targetMonth === 'all') {
-      return this.calculateSavingsAllMonths(id, version, shiftInsights);
+      return this.calculateSavingsAllMonths(id, version, useShiftedProfile, shiftInsights);
     }
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) {
@@ -1043,7 +1043,7 @@ export class SavingsCalculatorService {
 
   static async calculateMarketDecision(id: string, targetMonthStr?: string, version?: number, useShiftedProfile: boolean = false, shiftInsights?: any) {
     if (targetMonthStr === 'all') {
-      return this.calculateMarketDecisionAllMonths(id, version);
+      return this.calculateMarketDecisionAllMonths(id, version, useShiftedProfile, shiftInsights);
     }
     const cacheVersion = version !== undefined ? version : 'live';
     const cacheKey = `market:${id}:v:${cacheVersion}:m:${targetMonthStr || 'default'}`;
