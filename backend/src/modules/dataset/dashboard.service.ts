@@ -7,7 +7,7 @@ export class DashboardService {
    */
   private static formatRecords(records: any[], dateStr: string) {
     return records.map(record => {
-      const { intervalTime, id, datasetId, intervalNumber, ...rest } = record;
+      const { intervalTime, id, datasetId, intervalNumber, date, ...rest } = record;
       
       const hourNum = Math.floor((intervalNumber - 1) / 4) + 1;
       const hour = hourNum.toString().padStart(2, '0');
