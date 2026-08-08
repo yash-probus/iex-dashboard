@@ -132,6 +132,11 @@ export default function GDAMPage() {
 
   const handleExport = () => exportToCSV(data, `GDAM_Data_${filters.startDate}_to_${filters.endDate}`, columns);
 
+  // Day-Ahead markets allow selecting tomorrow's date
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const maxDate = tomorrow.toISOString().split('T')[0];
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box sx={{ 
@@ -169,6 +174,7 @@ export default function GDAMPage() {
             <FilterContainer 
               accentColor={GDAM_ACCENT} 
               filters={filters}
+              maxDate={maxDate}
               onSearch={(newFilters, selectedState) => {
                 if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) handleDateChange(newFilters.startDate, newFilters.endDate);
                 if (newFilters.interval !== filters.interval) handleIntervalChange(newFilters.interval);

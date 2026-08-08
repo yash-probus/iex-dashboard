@@ -77,11 +77,13 @@ export default function DateRangePicker({
       String(date.getDate()).padStart(2, '0');
   };
 
-  // Formatting date to human-readable format DD/MM/YYYY
+  // Formatting date to human-readable format DD MMM YYYY (unambiguous)
   const toDisplayFormat = (dateStr: string) => {
     if (!dateStr) return '';
     const [y, m, d] = dateStr.split('-');
-    return `${d}/${m}/${y}`;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthAbbr = monthNames[parseInt(m, 10) - 1];
+    return `${d} ${monthAbbr} ${y}`;
   };
 
   // Calculate calendar days

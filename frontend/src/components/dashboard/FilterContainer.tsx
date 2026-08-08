@@ -13,6 +13,7 @@ interface FilterContainerProps {
   onManageData?: () => void;
   hideHourlyDaily?: boolean;
   maxDays?: number;
+  maxDate?: string;
 }
 
 export default function FilterContainer({ 
@@ -21,7 +22,8 @@ export default function FilterContainer({
   onSearch,
   onManageData,
   hideHourlyDaily,
-  maxDays
+  maxDays,
+  maxDate
 }: FilterContainerProps) {
   const [localStartDate, setLocalStartDate] = useState(filters.startDate);
   const [localEndDate, setLocalEndDate] = useState(filters.endDate);
@@ -48,6 +50,7 @@ export default function FilterContainer({
         startDate={localStartDate}
         endDate={localEndDate}
         maxDays={maxDays}
+        maxDate={maxDate}
         onChange={(s, e) => {
           setLocalStartDate(s);
           setLocalEndDate(e);
