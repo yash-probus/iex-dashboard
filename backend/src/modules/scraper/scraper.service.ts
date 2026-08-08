@@ -210,6 +210,16 @@ export class ScraperService {
 
           const offset = timeBlockIdx;
 
+          // Check if this is a future block (all data columns are empty or '-')
+          const isRowEmpty = [1, 2, 3, 4, 5].every(i => {
+            const val = row[offset + i];
+            return !val || val === '-' || val.trim() === '';
+          });
+
+          if (isRowEmpty) {
+            continue; // Skip future/unpopulated blocks
+          }
+
           records.push({
             intervalNumber,
             intervalTime: start.trim(),
