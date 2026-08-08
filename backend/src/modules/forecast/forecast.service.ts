@@ -730,7 +730,7 @@ export class ForecastService {
       }
     } else if (market.toUpperCase() === 'RTM') {
       try {
-        const [dayaheadRows, nowcastRows] = await Promise.all([
+        const [dayaheadRows, nowcastRows, actualRows] = await Promise.all([
           prisma.rtmDayahead.findMany({
             select: { date: true },
             distinct: ['date']
@@ -738,11 +738,22 @@ export class ForecastService {
           prisma.rtmNowcast.findMany({
             select: { date: true },
             distinct: ['date']
+          }),
+          prisma.dataset.findMany({
+            where: { market: 'RTM', status: 'ACTIVE' },
+            select: { deliveryDate: true },
+            distinct: ['deliveryDate']
           })
         ]);
         const allDates = new Set<string>();
         dayaheadRows.forEach(r => allDates.add(r.date));
         nowcastRows.forEach(r => allDates.add(r.date));
+        actualRows.forEach(r => {
+          const dStr = r.deliveryDate instanceof Date 
+            ? r.deliveryDate.toISOString().split('T')[0] 
+            : new Date(r.deliveryDate).toISOString().split('T')[0];
+          allDates.add(dStr);
+        });
         return Array.from(allDates).sort((a, b) => b.localeCompare(a));
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'CONSUMER') {
