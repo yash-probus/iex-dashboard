@@ -61,13 +61,22 @@ export class CronService {
         try {
           const rtmRecords = await ScraperService.scrapeRtm();
           if (rtmRecords.length > 0) {
+            let actualDeliveryDate = deliveryDate;
+            let actualFileName = `scraped_rtm_${dateStr}.csv`;
+            
+            if (rtmRecords[0].date) {
+                const [d, m, y] = rtmRecords[0].date.split('-').map(Number);
+                actualDeliveryDate = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
+                actualFileName = `scraped_rtm_${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}.csv`;
+            }
+
             const existing = await prisma.dataset.findFirst({
-              where: { market: 'RTM', deliveryDate, status: 'ACTIVE' }
+              where: { market: 'RTM', deliveryDate: actualDeliveryDate, status: 'ACTIVE' }
             });
             await PersistenceService.persistDataset({
               market: 'RTM',
-              deliveryDate,
-              fileName: `scraped_rtm_${dateStr}.csv`,
+              deliveryDate: actualDeliveryDate,
+              fileName: actualFileName,
               records: rtmRecords,
               action: existing ? 'replace' : undefined
             });
@@ -137,13 +146,22 @@ export class CronService {
         try {
           const damRecords = await ScraperService.scrapeDam();
           if (damRecords.length > 0) {
+            let actualDeliveryDate = damGdamDeliveryDate;
+            let actualFileName = `scraped_dam_${tomorrowDateStr}.csv`;
+            
+            if (damRecords[0].date) {
+                const [d, m, y] = damRecords[0].date.split('-').map(Number);
+                actualDeliveryDate = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
+                actualFileName = `scraped_dam_${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}.csv`;
+            }
+
             const existing = await prisma.dataset.findFirst({
-              where: { market: 'DAM', deliveryDate: damGdamDeliveryDate, status: 'ACTIVE' }
+              where: { market: 'DAM', deliveryDate: actualDeliveryDate, status: 'ACTIVE' }
             });
             await PersistenceService.persistDataset({
               market: 'DAM',
-              deliveryDate: damGdamDeliveryDate,
-              fileName: `scraped_dam_${tomorrowDateStr}.csv`,
+              deliveryDate: actualDeliveryDate,
+              fileName: actualFileName,
               records: damRecords,
               action: existing ? 'replace' : undefined
             });
@@ -161,13 +179,22 @@ export class CronService {
         try {
           const gdamRecords = await ScraperService.scrapeGdam();
           if (gdamRecords.length > 0) {
+            let actualDeliveryDate = damGdamDeliveryDate;
+            let actualFileName = `scraped_gdam_${tomorrowDateStr}.csv`;
+            
+            if (gdamRecords[0].date) {
+                const [d, m, y] = gdamRecords[0].date.split('-').map(Number);
+                actualDeliveryDate = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
+                actualFileName = `scraped_gdam_${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}.csv`;
+            }
+
             const existing = await prisma.dataset.findFirst({
-              where: { market: 'GDAM', deliveryDate: damGdamDeliveryDate, status: 'ACTIVE' }
+              where: { market: 'GDAM', deliveryDate: actualDeliveryDate, status: 'ACTIVE' }
             });
             await PersistenceService.persistDataset({
               market: 'GDAM',
-              deliveryDate: damGdamDeliveryDate,
-              fileName: `scraped_gdam_${tomorrowDateStr}.csv`,
+              deliveryDate: actualDeliveryDate,
+              fileName: actualFileName,
               records: gdamRecords,
               action: existing ? 'replace' : undefined
             });

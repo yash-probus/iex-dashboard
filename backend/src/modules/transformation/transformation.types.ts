@@ -1,6 +1,7 @@
 import { MarketType } from '../upload/upload.types';
 
 export interface DamIntervalRecord {
+  date?: string;
   intervalNumber: number;
   intervalTime: string;
   purchaseBid: number;
@@ -39,6 +40,7 @@ export interface GdamIntervalRecord {
 }
 
 export interface GdamNewIntervalRecord {
+  date?: string;
   intervalNumber: number;
   intervalTime: string;
   purchaseBid: number;
@@ -61,6 +63,7 @@ export interface GdamNewIntervalRecord {
 }
 
 export interface RtmIntervalRecord {
+  date?: string;
   intervalNumber: number;
   intervalTime: string;
   sessionId: string;

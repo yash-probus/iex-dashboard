@@ -35,11 +35,15 @@ export class ScraperService {
 
       const records: DamIntervalRecord[] = [];
       let currentHour = 1;
+      let scrapedDate = '';
 
       for (const row of data) {
         let timeBlock, pb, sb, mcv, fsv, mcp;
 
         if (row.length === 8) {
+          if (row[0] && row[0].match(/^\d{2}-\d{2}-\d{4}$/)) {
+            scrapedDate = row[0];
+          }
           currentHour = parseInt(row[1], 10);
           timeBlock = row[2];
           pb = row[3];
@@ -75,6 +79,7 @@ export class ScraperService {
         const intervalNumber = (hh * 4) + (mm / 15) + 1;
 
         records.push({
+          date: scrapedDate,
           intervalNumber,
           intervalTime: start.trim(),
           purchaseBid: this.parseNumber(pb),
@@ -122,10 +127,15 @@ export class ScraperService {
       });
 
       const records: GdamNewIntervalRecord[] = [];
+      let scrapedDate = '';
       for (const row of data) {
         // Find the index of the time block column dynamically
         const timeBlockIdx = row.findIndex(c => c && c.includes(':') && c.includes('-'));
         if (timeBlockIdx === -1) continue;
+
+        if (timeBlockIdx >= 2 && row[0] && row[0].match(/^\d{2}-\d{2}-\d{4}$/)) {
+          scrapedDate = row[0];
+        }
 
         const timeBlock = row[timeBlockIdx];
         const [start] = timeBlock.split(' - ');
@@ -136,6 +146,7 @@ export class ScraperService {
         const offset = timeBlockIdx;
 
         records.push({
+          date: scrapedDate,
           intervalNumber,
           intervalTime: start.trim(),
           purchaseBid:    this.parseNumber(row[offset + 1]  ?? '0'),
@@ -198,9 +209,14 @@ export class ScraperService {
         });
 
         const records: RtmIntervalRecord[] = [];
+        let scrapedDate = '';
         for (const row of data) {
           const timeBlockIdx = row.findIndex(c => c && c.includes(':') && c.includes('-'));
           if (timeBlockIdx === -1) continue;
+
+          if (timeBlockIdx >= 2 && row[0] && row[0].match(/^\d{2}-\d{2}-\d{4}$/)) {
+            scrapedDate = row[0];
+          }
 
           const timeBlock = row[timeBlockIdx];
           const [start] = timeBlock.split('-');
@@ -221,6 +237,7 @@ export class ScraperService {
           }
 
           records.push({
+            date: scrapedDate,
             intervalNumber,
             intervalTime: start.trim(),
             sessionId: '1',
