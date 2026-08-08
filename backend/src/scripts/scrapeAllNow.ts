@@ -15,22 +15,33 @@ async function run() {
       month: '2-digit',
       day: '2-digit'
     });
+    
+    // RTM is for today
     const dateStr = formatter.format(new Date());
     const [year, month, day] = dateStr.split('-').map(Number);
-    const deliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-    console.log('Persisting data for date:', dateStr);
+    const rtmDeliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    
+    // DAM and GDAM are Day-Ahead (for tomorrow)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowDateStr = formatter.format(tomorrow);
+    const [tYear, tMonth, tDay] = tomorrowDateStr.split('-').map(Number);
+    const damGdamDeliveryDate = new Date(Date.UTC(tYear, tMonth - 1, tDay, 0, 0, 0, 0));
+
+    console.log('Persisting RTM for date:', dateStr);
+    console.log('Persisting DAM/GDAM for date:', tomorrowDateStr);
 
     try {
       const damRecords = await ScraperService.scrapeDam();
       console.log(`Scraped ${damRecords.length} DAM records.`);
       if (damRecords.length > 0) {
         const existing = await prisma.dataset.findFirst({
-          where: { market: 'DAM', deliveryDate, status: 'ACTIVE' }
+          where: { market: 'DAM', deliveryDate: damGdamDeliveryDate, status: 'ACTIVE' }
         });
         await PersistenceService.persistDataset({
           market: 'DAM',
-          deliveryDate,
-          fileName: `scraped_dam_${dateStr}.csv`,
+          deliveryDate: damGdamDeliveryDate,
+          fileName: `scraped_dam_${tomorrowDateStr}.csv`,
           records: damRecords,
           action: existing ? 'replace' : undefined
         });
@@ -49,12 +60,12 @@ async function run() {
       console.log(`Scraped ${gdamRecords.length} GDAM records.`);
       if (gdamRecords.length > 0) {
         const existing = await prisma.dataset.findFirst({
-          where: { market: 'GDAM', deliveryDate, status: 'ACTIVE' }
+          where: { market: 'GDAM', deliveryDate: damGdamDeliveryDate, status: 'ACTIVE' }
         });
         await PersistenceService.persistDataset({
           market: 'GDAM',
-          deliveryDate,
-          fileName: `scraped_gdam_${dateStr}.csv`,
+          deliveryDate: damGdamDeliveryDate,
+          fileName: `scraped_gdam_${tomorrowDateStr}.csv`,
           records: gdamRecords,
           action: existing ? 'replace' : undefined
         });
@@ -73,11 +84,11 @@ async function run() {
       console.log(`Scraped ${rtmRecords.length} RTM records.`);
       if (rtmRecords.length > 0) {
         const existing = await prisma.dataset.findFirst({
-          where: { market: 'RTM', deliveryDate, status: 'ACTIVE' }
+          where: { market: 'RTM', deliveryDate: rtmDeliveryDate, status: 'ACTIVE' }
         });
         await PersistenceService.persistDataset({
           market: 'RTM',
-          deliveryDate,
+          deliveryDate: rtmDeliveryDate,
           fileName: `scraped_rtm_${dateStr}.csv`,
           records: rtmRecords,
           action: existing ? 'replace' : undefined

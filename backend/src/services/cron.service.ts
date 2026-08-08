@@ -127,17 +127,23 @@ export class CronService {
         const [year, month, day] = dateStr.split('-').map(Number);
         const deliveryDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowDateStr = formatter.format(tomorrow);
+        const [tYear, tMonth, tDay] = tomorrowDateStr.split('-').map(Number);
+        const damGdamDeliveryDate = new Date(Date.UTC(tYear, tMonth - 1, tDay, 0, 0, 0, 0));
+
         // Scrape and persist DAM
         try {
           const damRecords = await ScraperService.scrapeDam();
           if (damRecords.length > 0) {
             const existing = await prisma.dataset.findFirst({
-              where: { market: 'DAM', deliveryDate, status: 'ACTIVE' }
+              where: { market: 'DAM', deliveryDate: damGdamDeliveryDate, status: 'ACTIVE' }
             });
             await PersistenceService.persistDataset({
               market: 'DAM',
-              deliveryDate,
-              fileName: `scraped_dam_${dateStr}.csv`,
+              deliveryDate: damGdamDeliveryDate,
+              fileName: `scraped_dam_${tomorrowDateStr}.csv`,
               records: damRecords,
               action: existing ? 'replace' : undefined
             });
@@ -156,12 +162,12 @@ export class CronService {
           const gdamRecords = await ScraperService.scrapeGdam();
           if (gdamRecords.length > 0) {
             const existing = await prisma.dataset.findFirst({
-              where: { market: 'GDAM', deliveryDate, status: 'ACTIVE' }
+              where: { market: 'GDAM', deliveryDate: damGdamDeliveryDate, status: 'ACTIVE' }
             });
             await PersistenceService.persistDataset({
               market: 'GDAM',
-              deliveryDate,
-              fileName: `scraped_gdam_${dateStr}.csv`,
+              deliveryDate: damGdamDeliveryDate,
+              fileName: `scraped_gdam_${tomorrowDateStr}.csv`,
               records: gdamRecords,
               action: existing ? 'replace' : undefined
             });
