@@ -63,6 +63,18 @@ export class PersistenceService {
             data: { status: 'REPLACED' },
           });
           logger.info(`Dataset Status Updated: ${oldDatasetToReplace.id} is now REPLACED`);
+          
+          // Clean up old records to prevent database bloat
+          if (market === 'DAM') {
+            await tx.damRecord.deleteMany({ where: { datasetId: oldDatasetToReplace.id } });
+          } else if (market === 'GDAM') {
+            await tx.gdamRecord.deleteMany({ where: { datasetId: oldDatasetToReplace.id } });
+            await tx.gdamNewRecord.deleteMany({ where: { datasetId: oldDatasetToReplace.id } });
+          } else if (market === 'RTM') {
+            await tx.rtmRecord.deleteMany({ where: { datasetId: oldDatasetToReplace.id } });
+          } else if (market === 'REC') {
+            await tx.recRecord.deleteMany({ where: { datasetId: oldDatasetToReplace.id } });
+          }
         }
 
         // 2b. Create Dataset
