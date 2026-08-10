@@ -67,12 +67,19 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
         let block3to5 = { used: 0, oa: 0 }; // 3 AM - 5 AM
         let block7to3 = { used: 0, oa: 0 }; // 7 PM - 3 AM
 
-        if (marketDecisionResult.slotsData) {
+        if (marketDecisionResult.slotsData && marketDecisionResult.slotsData.length > 0) {
           marketDecisionResult.slotsData.forEach((s: any) => {
-            if (!s.timeStr) return;
-            const [hhStr, mmStr] = s.timeStr.split(':');
-            const hh = parseInt(hhStr, 10);
-            const total = s.discomEnergy + (s.marketEnergy || 0);
+            let hh = s.hour;
+            if (hh === undefined) {
+              if (s.timeblock !== undefined) {
+                hh = Math.floor(((s.timeblock - 1) * 15) / 60);
+              } else if (s.timeStr) {
+                hh = parseInt(s.timeStr.split(':')[0], 10);
+              } else {
+                return;
+              }
+            }
+            const total = (Number(s.discomEnergy) || 0) + (Number(s.marketEnergy) || 0);
             const oa = s.marketEnergy || 0;
             
             if (hh >= 10 && hh < 19) {
