@@ -18,6 +18,7 @@ export class ScraperService {
     
     try {
       const page = await browser.newPage();
+      await page.emulateTimezone('Asia/Kolkata');
       await page.goto('https://www.iexindia.com/market-data/day-ahead-market/market-snapshot', { 
         waitUntil: 'networkidle2',
         timeout: 60000 
@@ -111,6 +112,7 @@ export class ScraperService {
 
     try {
       const page = await browser.newPage();
+      await page.emulateTimezone('Asia/Kolkata');
       await page.goto('https://www.iexindia.com/market-data/green-day-ahead-market/market-snapshot', {
         waitUntil: 'networkidle2',
         timeout: 60000
@@ -192,6 +194,7 @@ export class ScraperService {
 
       try {
         const page = await browser.newPage();
+        await page.emulateTimezone('Asia/Kolkata');
         await page.goto('https://www.iexindia.com/market-data/real-time-market/market-snapshot', {
           waitUntil: 'networkidle2',
           timeout: 60000
@@ -276,6 +279,7 @@ export class ScraperService {
 
     try {
       const page = await browser.newPage();
+      await page.emulateTimezone('Asia/Kolkata');
       await page.goto('https://www.iexindia.com/market-data/REC-market-from-dec22', {
         waitUntil: 'networkidle2',
         timeout: 60000
