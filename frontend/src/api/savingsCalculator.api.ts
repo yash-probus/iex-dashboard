@@ -202,6 +202,8 @@ export interface ClientOverviewResult {
     traderMargin?: number;
     consultancyFee?: number;
     probusPlatformFee?: number;
+    totalBaselineCost?: number;
+    totalOptimizedCost?: number;
     error?: string;
   }[];
   totalSavings: number;
