@@ -327,7 +327,7 @@ export const fetchDemandShiftInsights = async (id: string, targetMonth?: string,
 };
 
 export const exportProposalWord = async (clientData: any): Promise<void> => {
-  const response = await apiClient.post('/proposals/generate', clientData, {
+  const response = await apiClient.post('/proposal/generate', clientData, {
     responseType: 'blob',
   });
   
@@ -337,6 +337,54 @@ export const exportProposalWord = async (clientData: any): Promise<void> => {
   
   const contentDisposition = response.headers['content-disposition'];
   let filename = 'Proposal.docx';
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+    if (filenameMatch && filenameMatch.length === 2)
+        filename = filenameMatch[1];
+  }
+  
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportTechnicalProposalWord = async (clientData: any): Promise<void> => {
+  const response = await apiClient.post('/proposal/generate-technical', clientData, {
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = 'Technical_Proposal.docx';
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+    if (filenameMatch && filenameMatch.length === 2)
+        filename = filenameMatch[1];
+  }
+  
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportCommercialProposalWord = async (clientData: any): Promise<void> => {
+  const response = await apiClient.post('/proposal/generate-commercial', clientData, {
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = 'Commercial_Proposal.docx';
   if (contentDisposition) {
     const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
     if (filenameMatch && filenameMatch.length === 2)

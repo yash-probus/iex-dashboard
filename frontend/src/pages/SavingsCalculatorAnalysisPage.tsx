@@ -54,7 +54,9 @@ import {
   DemandShiftInsightsResult,
   fetchEntryHistory,
   fetchClientOverview,
-  ClientOverviewResult
+  ClientOverviewResult,
+  exportTechnicalProposalWord,
+  exportCommercialProposalWord
 } from '../api/savingsCalculator.api';
 
 import EnergyInsightsExplorer from '../components/insights/EnergyInsightsExplorer';
@@ -516,6 +518,82 @@ const exportInsightsToExcel = async () => {
                 }}
               >
                 Export as PDF
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<DownloadIcon />} 
+                onClick={async () => {
+                  if (!calcEntry) return;
+                  try {
+                    // Combine available data to send to docx templater
+                    const payload = {
+                      ...calcEntry,
+                      totalSavings: clientOverview?.totalSavings || 0,
+                    };
+                    await exportTechnicalProposalWord(payload);
+                  } catch (err: any) {
+                    setSnackbar({
+                      open: true,
+                      message: err.message || 'Export failed',
+                      severity: 'error'
+                    });
+                  }
+                }}
+                sx={{ 
+                  textTransform: 'none', 
+                  borderRadius: 2.5, 
+                  fontWeight: 600, 
+                  borderColor: 'divider',
+                  backgroundColor: '#FFFFFF',
+                  color: 'text.primary',
+                  px: 4,
+                  py: 1,
+                  minWidth: 220,
+                  '&:hover': {
+                    backgroundColor: '#F8FAFC',
+                    borderColor: 'divider'
+                  }
+                }}
+              >
+                Draft Technical Proposal
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<DownloadIcon />} 
+                onClick={async () => {
+                  if (!calcEntry) return;
+                  try {
+                    // Combine available data to send to docx templater
+                    const payload = {
+                      ...calcEntry,
+                      totalSavings: clientOverview?.totalSavings || 0,
+                    };
+                    await exportCommercialProposalWord(payload);
+                  } catch (err: any) {
+                    setSnackbar({
+                      open: true,
+                      message: err.message || 'Export failed',
+                      severity: 'error'
+                    });
+                  }
+                }}
+                sx={{ 
+                  textTransform: 'none', 
+                  borderRadius: 2.5, 
+                  fontWeight: 600, 
+                  borderColor: 'divider',
+                  backgroundColor: '#FFFFFF',
+                  color: 'text.primary',
+                  px: 4,
+                  py: 1,
+                  minWidth: 220,
+                  '&:hover': {
+                    backgroundColor: '#F8FAFC',
+                    borderColor: 'divider'
+                  }
+                }}
+              >
+                Commercial Proposal
               </Button>
               <Button 
                 variant="outlined" 

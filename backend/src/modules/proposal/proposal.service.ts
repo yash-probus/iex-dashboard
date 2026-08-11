@@ -4,8 +4,15 @@ import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 
 export class ProposalService {
-  public async generateProposal(clientData: any): Promise<Buffer> {
-    const templatePath = path.join(__dirname, '../../../assets/templates/proposal_template.docx');
+  public async generateProposal(clientData: any, type: 'technical' | 'commercial' | 'default' = 'default'): Promise<Buffer> {
+    let templateFilename = 'proposal_template.docx';
+    if (type === 'technical') {
+      templateFilename = 'technical_proposal_template.docx';
+    } else if (type === 'commercial') {
+      templateFilename = 'commercial_proposal_template.docx';
+    }
+
+    const templatePath = path.join(__dirname, '../../../assets/templates/', templateFilename);
     
     if (!fs.existsSync(templatePath)) {
         throw new Error(`Template file not found at ${templatePath}`);
@@ -20,7 +27,18 @@ export class ProposalService {
       delimiters: { start: '<<', end: '>>' }
     });
 
-    doc.render(clientData);
+    // Ignore errors if tags are missing in the document
+    doc.setOptions({
+        nullGetter() {
+            return "";
+        }
+    });
+
+    try {
+        doc.render(clientData);
+    } catch (error) {
+        console.warn("Docxtemplater rendering error (likely missing tags):", error);
+    }
 
     const buf = doc.getZip().generate({
       type: 'nodebuffer',
