@@ -1,22 +1,10 @@
-import React from 'react';
-import { Box, Typography, Grid, Card, CardContent, LinearProgress, Alert, Table, TableBody, TableCell, TableHead, TableRow, IconButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Grid, Card, CardContent, LinearProgress, Alert, Table, TableBody, TableCell, TableHead, TableRow, IconButton, CircularProgress } from '@mui/material';
 import { BarChart as BarChartIcon, Timeline, ShowChart, AccountBalanceWallet, PictureAsPdf, Download } from '@mui/icons-material';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import html2pdf from 'html2pdf.js';
 
-import { SavingsCalculatorEntry, ClientOverviewResult } from '../../api/savingsCalculator.api';
-
-const mockTodBreakdown = [
-  { slot: 'ToD-1 (22:00-06:00)', discom: '50,000 kWh', discomPct: '40%', oa: '75,000 kWh', oaPct: '60%', total: '125,000 kWh' },
-  { slot: 'ToD-2 (06:00-10:00)', discom: '80,000 kWh', discomPct: '40%', oa: '120,000 kWh', oaPct: '60%', total: '200,000 kWh' },
-  { slot: 'ToD-3 (10:00-17:00)', discom: '50,000 kWh', discomPct: '40%', oa: '75,000 kWh', oaPct: '60%', total: '125,000 kWh' },
-  { slot: 'ToD-4 (17:00-22:00)', discom: '20,000 kWh', discomPct: '40%', oa: '30,000 kWh', oaPct: '60%', total: '50,000 kWh' },
-];
-
-const mockDailyRates = Array.from({ length: 31 }, (_, i) => ({
-  day: i + 1,
-  rate: 6.8 + Math.random() * 0.5
-}));
+import { SavingsCalculatorEntry, ClientOverviewResult, calculateMarketDecision, MarketDecisionResult } from '../../api/savingsCalculator.api';
 
 interface WithProltTabProps {
   entry: SavingsCalculatorEntry;
@@ -25,6 +13,34 @@ interface WithProltTabProps {
 }
 
 export default function WithProltTab({ entry, overview, currentMonth }: WithProltTabProps) {
+  const [marketDecisionData, setMarketDecisionData] = useState<MarketDecisionResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch market decision data when month changes
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+    
+    calculateMarketDecision(entry.id, currentMonth)
+      .then(result => {
+        if (isMounted) {
+          setMarketDecisionData(result);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch market decision data:', err);
+        if (isMounted) {
+          setError(err.message || 'Failed to load data');
+          setLoading(false);
+        }
+      });
+    
+    return () => { isMounted = false; };
+  }, [entry.id, currentMonth]);
+
   // Compute dynamic aggregations based on overview data
   const totalSavings = overview.totalSavings || 0;
   
@@ -37,8 +53,98 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
   const oaPct = totalUnits > 0 ? Math.round((oaUnits / totalUnits) * 100) : 0;
   const discomPct = totalUnits > 0 ? 100 - oaPct : 0;
 
+  // Calculate real metrics from API data
+  const blendedRate = marketDecisionData && totalUnits > 0 
+    ? (marketDecisionData.totalLandedExchangeCost || 0) / totalUnits 
+    : 0;
+  
+  const discomOnlyRate = overview.aggregatedCosts?.totalDiscomCost && totalUnits > 0 
+    ? overview.aggregatedCosts.totalDiscomCost / totalUnits 
+    : 0;
+  
+  const rateImprovement = discomOnlyRate > 0 
+    ? ((discomOnlyRate - blendedRate) / discomOnlyRate) * 100 
+    : 0;
+
+  const peakDemand = marketDecisionData?.peakDemand || overview.aggregatedCosts?.peakDemand || 0;
+  const sanctionedLoad = entry.sanctionedLoadKw || 0;
+  const demandUtilization = sanctionedLoad > 0 ? Math.round((peakDemand / sanctionedLoad) * 100) : 0;
+
   // Format Helpers
   const formatLakhs = (val: number) => `₹${(val / 100000).toFixed(2)}L`;
+  const formatRate = (val: number) => `₹${val.toFixed(2)}/kWh`;
+
+  // Generate ToD breakdown from market decision data
+  const generateTodBreakdown = () => {
+    if (!marketDecisionData?.todSummaries || !marketDecisionData?.oaDetailed?.breakdown) {
+      return [];
+    }
+    
+    return marketDecisionData.todSummaries.map((summary, index) => {
+      const breakdown = marketDecisionData.oaDetailed?.breakdown[index];
+      const total = summary.totalEnergyKwh || 0;
+      const oaKwh = summary.marketEnergyKwh || 0;
+      const discomKwh = Math.max(0, total - oaKwh);
+      const discomPctVal = total > 0 ? ((discomKwh / total) * 100).toFixed(0) : '0';
+      const oaPctVal = total > 0 ? ((oaKwh / total) * 100).toFixed(0) : '0';
+      
+      return {
+        slot: summary.slabName || `ToD-${index + 1}`,
+        discom: `${discomKwh.toLocaleString('en-IN')} kWh`,
+        discomPct: `${discomPctVal}%`,
+        oa: `${oaKwh.toLocaleString('en-IN')} kWh`,
+        oaPct: `${oaPctVal}%`,
+        total: `${total.toLocaleString('en-IN')} kWh`
+      };
+    });
+  };
+
+  // Generate daily rates from market decision data
+  const generateDailyRates = () => {
+    if (!marketDecisionData?.slotsData || marketDecisionData.slotsData.length === 0) {
+      return [];
+    }
+    
+    // Group by day and calculate daily average blended rate
+    const dailyRates: Record<number, { totalCost: number; totalEnergy: number }> = {};
+    
+    marketDecisionData.slotsData.forEach(slot => {
+      const dateObj = new Date(slot.date);
+      const day = dateObj.getDate();
+      
+      if (!dailyRates[day]) {
+        dailyRates[day] = { totalCost: 0, totalEnergy: 0 };
+      }
+      
+      const energy = (slot.marketEnergy || 0) + (slot.discomEnergy || 0);
+      const cost = (slot.marketEnergy || 0) * (slot.bestMarketLanding || 0) + (slot.discomEnergy || 0) * (slot.discomLanding || 0);
+      
+      dailyRates[day].totalCost += cost;
+      dailyRates[day].totalEnergy += energy;
+    });
+    
+    return Object.entries(dailyRates)
+      .map(([day, data]) => ({
+        day: parseInt(day),
+        rate: data.totalEnergy > 0 ? data.totalCost / data.totalEnergy : 0
+      }))
+      .sort((a, b) => a.day - b.day);
+  };
+
+  const todBreakdown = generateTodBreakdown();
+  const dailyRates = generateDailyRates();
+
+  // Calculate cost breakdown percentages from real data
+  const totalDiscomCost = overview.aggregatedCosts?.totalDiscomCost || 0;
+  const energyCharges = overview.aggregatedCosts?.energyCharges || 0;
+  const demandAndFixed = overview.aggregatedCosts?.demandAndFixedCharges || 0;
+  const miscCharges = overview.aggregatedCosts?.miscellaneousCharges || 0;
+  const penalties = overview.aggregatedCosts?.penaltiesAndAdjustments || 0;
+  
+  const energyPct = totalDiscomCost > 0 ? (energyCharges / totalDiscomCost) * 100 : 0;
+  const demandPct = totalDiscomCost > 0 ? (demandAndFixed / totalDiscomCost) * 100 : 0;
+  const miscPct = totalDiscomCost > 0 ? (miscCharges / totalDiscomCost) * 100 : 0;
+  const penaltiesPct = totalDiscomCost > 0 ? (penalties / totalDiscomCost) * 100 : 0;
 
   const handlePdfDownload = (title: string) => {
     const element = document.getElementById('report-content-to-download');
@@ -58,7 +164,21 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
       {/* Main Content (Left) */}
       <Box id="report-content-to-download" sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
         
+        {/* Loading State */}
+        {loading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        
+        {error && (
+          <Alert severity="error" sx={{ borderRadius: 2 }}>
+            Failed to load market data: {error}
+          </Alert>
+        )}
+        
         {/* Monthly Performance Summary */}
+        {!loading && marketDecisionData && (
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <BarChartIcon color="error" />
@@ -70,20 +190,22 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
             <Grid item xs={12} md={3}><StatCard label="Total Units Procured" value={`${totalUnits.toLocaleString('en-IN')} kWh`} /></Grid>
             <Grid item xs={12} md={3}><StatCard label="DISCOM Units" value={`${discomUnits.toLocaleString('en-IN')} kWh`} /></Grid>
             <Grid item xs={12} md={3}><StatCard label="OA Units" value={`${oaUnits.toLocaleString('en-IN')} kWh`} /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="Blended Effective Rate" value="₹7.00/kWh (Mock)" highlight /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="Blended Effective Rate" value={formatRate(blendedRate)} highlight /></Grid>
             
-            <Grid item xs={12} md={3}><StatCard label="DISCOM Only Effective Rate" value="₹8.50/kWh (Mock)" /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="DISCOM Only Effective Rate" value={formatRate(discomOnlyRate)} /></Grid>
             <Grid item xs={12} md={3}><StatCard label="Total Cost (Discom)" value={overview.aggregatedCosts?.totalDiscomCost ? formatLakhs(overview.aggregatedCosts.totalDiscomCost) : 'N/A'} /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="Savings Achieved" value={formatLakhs(monthData?.savings || totalSavings)} color="success.main" /></Grid>
-            <Grid item xs={12} md={3}><StatCard label="Contract Demand Utilization" value="75%" /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="Savings Achieved" value={formatLakhs(marketDecisionData.totalSavings || monthData?.savings || totalSavings)} color="success.main" /></Grid>
+            <Grid item xs={12} md={3}><StatCard label="Contract Demand Utilization" value={`${demandUtilization}%`} /></Grid>
           </Grid>
 
           <Alert severity="success" sx={{ mt: 2, borderRadius: 2, fontWeight: 600, bgcolor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0' }}>
-            Blended rate of <strong>₹7.00/kWh (Mock)</strong> is 21.4% lower than DISCOM only baseline this month.
+            Blended rate of <strong>{formatRate(blendedRate)}</strong> is {rateImprovement.toFixed(1)}% lower than DISCOM only baseline this month.
           </Alert>
         </Box>
+        )}
 
         {/* Procurement Mix Overview */}
+        {!loading && marketDecisionData && (
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <PieChartIcon color="error" />
@@ -139,7 +261,7 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {mockTodBreakdown.map((row, i) => (
+                  {todBreakdown.length > 0 ? todBreakdown.map((row, i) => (
                     <TableRow key={i} hover>
                       <TableCell sx={{ fontWeight: 600 }}>{row.slot}</TableCell>
                       <TableCell>
@@ -152,14 +274,22 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
                       </TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>{row.total}</TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={4} sx={{ textAlign: 'center', py: 3, color: 'text.secondary' }}>
+                        No ToD breakdown data available
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </Box>
           </Card>
         </Box>
+        )}
 
         {/* 2-Column Layout */}
+        {!loading && marketDecisionData && (
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             {/* Where Your Money Went */}
@@ -173,14 +303,14 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
               <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <BreakdownRow label="Energy Charges" percentage={42.0} amount="14.70L" color="#3B82F6" />
-                    <BreakdownRow label="Demand & Fixed" percentage={22.0} amount="7.70L" color="#3B82F6" />
-                    <BreakdownRow label="Penalties & Adjustments" percentage={11.0} amount="3.85L" color="#3B82F6" />
-                    <BreakdownRow label="Miscellaneous" percentage={25.0} amount="8.75L" color="#3B82F6" />
+                    <BreakdownRow label="Energy Charges" percentage={energyPct} amount={formatLakhs(energyCharges)} color="#3B82F6" />
+                    <BreakdownRow label="Demand & Fixed" percentage={demandPct} amount={formatLakhs(demandAndFixed)} color="#F59E0B" />
+                    <BreakdownRow label="Penalties & Adjustments" percentage={penaltiesPct} amount={formatLakhs(penalties)} color="#EF4444" />
+                    <BreakdownRow label="Miscellaneous" percentage={miscPct} amount={formatLakhs(miscCharges)} color="#10B981" />
                   </Box>
                   <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body1" fontWeight={700}>Total Bill</Typography>
-                    <Typography variant="h6" fontWeight={800}>₹35.00L</Typography>
+                    <Typography variant="h6" fontWeight={800}>{formatLakhs(totalDiscomCost)}</Typography>
                   </Box>
                 </CardContent>
               </Card>
@@ -200,32 +330,32 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 4 }}>
                   {/* Gauge Mockup */}
                   <Box sx={{ width: 200, height: 100, position: 'relative', overflow: 'hidden', mb: 2 }}>
-                    <Box sx={{ width: 200, height: 200, borderRadius: '50%', border: '20px solid #E5E7EB', borderTopColor: '#22C55E', borderLeftColor: '#22C55E', transform: 'rotate(45deg)', position: 'absolute', top: 0, left: 0 }} />
-                    <Typography variant="h4" fontWeight={800} color="success.main" sx={{ position: 'absolute', bottom: 0, width: '100%', textAlign: 'center' }}>75%</Typography>
-                    <Typography variant="caption" fontWeight={700} color="success.main" sx={{ position: 'absolute', bottom: -20, width: '100%', textAlign: 'center' }}>Optimal</Typography>
+                    <Box sx={{ width: 200, height: 200, borderRadius: '50%', border: '20px solid #E5E7EB', borderTopColor: demandUtilization > 90 ? '#EF4444' : '#22C55E', borderLeftColor: demandUtilization > 90 ? '#EF4444' : '#22C55E', transform: 'rotate(45deg)', position: 'absolute', top: 0, left: 0 }} />
+                    <Typography variant="h4" fontWeight={800} color={demandUtilization > 90 ? 'error.main' : 'success.main'} sx={{ position: 'absolute', bottom: 0, width: '100%', textAlign: 'center' }}>{demandUtilization}%</Typography>
+                    <Typography variant="caption" fontWeight={700} color={demandUtilization > 90 ? 'error.main' : 'success.main'} sx={{ position: 'absolute', bottom: -20, width: '100%', textAlign: 'center' }}>{demandUtilization > 90 ? 'High' : 'Optimal'}</Typography>
                   </Box>
                   
                   <Grid container spacing={2} sx={{ mt: 2 }}>
                     <Grid item xs={6}>
                       <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>Contract Demand</Typography>
-                        <Typography variant="body1" fontWeight={800}>2500 kVA</Typography>
+                        <Typography variant="body1" fontWeight={800}>{sanctionedLoad.toLocaleString()} kVA</Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={6}>
                       <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>Peak Demand</Typography>
-                        <Typography variant="body1" fontWeight={800}>1875.00 kVA</Typography>
+                        <Typography variant="body1" fontWeight={800}>{peakDemand.toLocaleString()} kVA</Typography>
                       </Box>
                     </Grid>
                   </Grid>
                   <Box sx={{ bgcolor: '#F8FAFC', p: 1.5, borderRadius: 2, textAlign: 'center', width: '100%', mt: 2 }}>
                     <Typography variant="caption" color="text.secondary" fontWeight={600}>Monthly Fixed Charge</Typography>
-                    <Typography variant="body1" fontWeight={800}>₹8750.00L</Typography>
-                    <Typography variant="caption" color="text.secondary">@ ₹350/kVA</Typography>
+                    <Typography variant="body1" fontWeight={800}>{formatLakhs(demandAndFixed)}</Typography>
+                    <Typography variant="caption" color="text.secondary">@ ₹{overview.aggregatedCosts?.demandChargeRate || 0}/kVA</Typography>
                   </Box>
-                  <Alert severity="success" sx={{ width: '100%', mt: 2, py: 0 }}>
-                    Your contract demand is <strong>well aligned with usage</strong> at 75% utilization.
+                  <Alert severity={demandUtilization > 90 ? 'warning' : 'success'} sx={{ width: '100%', mt: 2, py: 0 }}>
+                    Your contract demand is <strong>{demandUtilization > 90 ? 'over-utilized' : 'well aligned'} with usage</strong> at {demandUtilization}% utilization.
                   </Alert>
                 </CardContent>
               </Card>
@@ -246,7 +376,7 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
                   <Card elevation={0} sx={{ bgcolor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 2, height: '100%' }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="caption" color="error.main" fontWeight={700}>Savings Achieved</Typography>
-                      <Typography variant="h6" color="error.main" fontWeight={800}>₹7.50L</Typography>
+                      <Typography variant="h6" color="error.main" fontWeight={800}>{formatLakhs(marketDecisionData?.totalSavings || monthData?.savings || 0)}</Typography>
                       <Typography variant="caption" color="error.main" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>Vs DISCOM-only baseline</Typography>
                     </CardContent>
                   </Card>
@@ -264,14 +394,14 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
                   <Card elevation={0} sx={{ bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 2, height: '100%' }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="caption" color="success.main" fontWeight={700}>Blended Rate Improvement</Typography>
-                      <Typography variant="h6" color="success.main" fontWeight={800}>21.0%</Typography>
+                      <Typography variant="h6" color="success.main" fontWeight={800}>{rateImprovement.toFixed(1)}%</Typography>
                       <Typography variant="caption" color="success.main" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>Vs DISCOM rate</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
               </Grid>
               <Alert severity="success" sx={{ borderRadius: 2, fontWeight: 600, bgcolor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0' }}>
-                This month's procurement reduced energy costs by <strong>17.6%</strong> compared to DISCOM only sourcing.
+                This month's procurement reduced energy costs by <strong>{rateImprovement.toFixed(1)}%</strong> compared to DISCOM only sourcing.
               </Alert>
             </Box>
           </Grid>
@@ -315,8 +445,10 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
             </Box>
           </Grid>
         </Grid>
+        )}
 
         {/* Daily Blended Rate Trend */}
+        {!loading && marketDecisionData && (
         <Box sx={{ mt: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <ShowChart color="error" />
@@ -327,11 +459,11 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
             <CardContent sx={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockDailyRates} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <LineChart data={dailyRates} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                   <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} domain={[5, 9]} />
-                  <Tooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <YAxis tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => formatRate(value as number)} />
                   <Line type="monotone" dataKey="rate" stroke="#22C55E" strokeWidth={3} dot={{ fill: '#22C55E', r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -341,6 +473,7 @@ export default function WithProltTab({ entry, overview, currentMonth }: WithProl
             </CardContent>
           </Card>
         </Box>
+        )}
 
       </Box>
 
