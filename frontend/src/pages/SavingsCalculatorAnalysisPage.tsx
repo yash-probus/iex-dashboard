@@ -67,7 +67,6 @@ import { RedesignedSavingsReport } from '../components/savings-assistant/Redesig
 import { getResourceData } from '../api/resourceCenter.api';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
-import { calculateSavingsData } from '../utils/savingsCalculator';
 import { numberToIndianWords } from '../utils/numberToIndianWords';
 import html2canvas from 'html2canvas';
 
