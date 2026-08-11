@@ -32,15 +32,67 @@ export class ProposalService {
           clientData.savings_in_words || 'Twenty Five'
       );
     }
+
+    // Generate consumption mix chart
+    if (clientData.oaPercentage !== undefined && clientData.discomPercentage !== undefined) {
+      clientData.consumption_mix_chart = await ChartGeneratorService.generateConsumptionMixChart(
+          clientData.oaPercentage,
+          clientData.discomPercentage,
+          clientData.oaUnits || 0,
+          clientData.discomUnits || 0
+      );
+    }
+
+    // Generate spend comparison chart
+    if (clientData.actualSpend !== undefined && clientData.optimizedSpend !== undefined) {
+      clientData.spend_comparison_chart = await ChartGeneratorService.generateSpendComparisonChart(
+          clientData.actualSpend,
+          clientData.optimizedSpend,
+          clientData.monthLabel || 'Current Month'
+      );
+    }
+
+    // Generate daily savings chart
+    if (clientData.dailyData && clientData.dailyData.length > 0) {
+      clientData.daily_savings_chart = await ChartGeneratorService.generateDailySavingsChart(
+          clientData.dailyData,
+          clientData.monthLabel || 'Current Month'
+      );
+    }
+
+    // Generate purchase comparison chart
+    if (clientData.recommendedOaPercentage !== undefined && clientData.recommendedDiscomPercentage !== undefined) {
+      clientData.purchase_comparison_chart = await ChartGeneratorService.generatePurchaseComparisonChart(
+          clientData.recommendedOaPercentage,
+          clientData.recommendedDiscomPercentage
+      );
+    }
     
     const imageOptions = {
         centered: false,
-        getImage: (tagValue: any) => {
+        getImage: (tagValue: any, tagName: string) => {
+            if (tagName === "dashboard_screenshot" && typeof tagValue === 'string') {
+                return Buffer.from(tagValue, 'base64');
+            }
+            // Handle all chart images - they're already buffers
             return tagValue;
         },
         getSize: (img: any, tagValue: any, tagName: string) => {
-            // Keep the exact same size as the static image in the template
-            return [600, 300]; 
+            // Different sizes for different chart types
+            switch(tagName) {
+                case "dashboard_screenshot":
+                    return [600, 450]; // Full dashboard
+                case "consumption_mix_chart":
+                case "spend_comparison_chart":
+                case "purchase_comparison_chart":
+                    return [560, 360]; // Pie/doughnut charts
+                case "daily_savings_chart":
+                    return [560, 340]; // Line chart
+                case "monthly_savings_chart":
+                    return [600, 360]; // Bar chart
+                default:
+                    return [600, 360]; // Default size
+            }
         }
     };
     
