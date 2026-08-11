@@ -536,59 +536,44 @@ const exportInsightsToExcel = async () => {
                     const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
                     const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
                     
-                    const currentDate = new Date();
-                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
-
-                    const monthlyPayload: any = {};
+                    const monthsWords = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+                    const monthsCount = Math.min(12, clientOverview?.months?.length || 0);
+                    const monthsCountWord = monthsCount > 0 && monthsCount < monthsWords.length ? monthsWords[monthsCount] : "Six";
+                    
+                    const monthlyData: any[] = [];
                     if (clientOverview && clientOverview.months) {
-                        clientOverview.months.slice(0, 6).forEach((m, idx) => {
-                            const i = idx + 1;
+                        clientOverview.months.forEach((m) => {
                             const cleared = m.totalMarketEnergyKwh || 0;
                             const consumption = m.totalEnergyKwh || 0;
                             const oaCost = m.totalOptimizedCost || 0;
                             const discomCost = m.totalBaselineCost || 0;
                             const saving = m.savings || 0;
                             
-                            monthlyPayload[`m${i}_name`] = m.month || '';
-                            monthlyPayload[`m${i}_cleared`] = Math.round(cleared).toLocaleString('en-IN');
-                            monthlyPayload[`m${i}_consumption`] = Math.round(consumption).toLocaleString('en-IN');
-                            monthlyPayload[`m${i}_oa_cost`] = Math.round(oaCost).toLocaleString('en-IN');
-                            monthlyPayload[`m${i}_discom_cost`] = Math.round(discomCost).toLocaleString('en-IN');
-                            
                             const pct = consumption > 0 ? Math.round((cleared / consumption) * 100) : 0;
-                            monthlyPayload[`m${i}_cleared_pct`] = `${pct}%`;
-                            
                             const ppcDiscom = cleared > 0 ? (discomCost / cleared) : 0;
-                            monthlyPayload[`m${i}_ppc_discom`] = `₹${ppcDiscom.toFixed(2)}`;
-                            
                             const ppcProlt = cleared > 0 ? (oaCost / cleared) : 0;
-                            monthlyPayload[`m${i}_ppc_prolt`] = `₹${ppcProlt.toFixed(2)}`;
-                            
-                            monthlyPayload[`m${i}_saving`] = `₹${Math.round(saving).toLocaleString('en-IN')}`;
-                            
                             const savingUnit = cleared > 0 ? (saving / cleared) : 0;
-                            monthlyPayload[`m${i}_saving_unit`] = `₹${savingUnit.toFixed(2)}`;
+
+                            monthlyData.push({
+                                month_name: m.month || '',
+                                cleared: Math.round(cleared).toLocaleString('en-IN'),
+                                consumption: Math.round(consumption).toLocaleString('en-IN'),
+                                oa_cost: Math.round(oaCost).toLocaleString('en-IN'),
+                                discom_cost: Math.round(discomCost).toLocaleString('en-IN'),
+                                cleared_pct: `${pct}%`,
+                                ppc_discom: `₹${ppcDiscom.toFixed(2)}`,
+                                ppc_prolt: `₹${ppcProlt.toFixed(2)}`,
+                                saving: `₹${Math.round(saving).toLocaleString('en-IN')}`,
+                                saving_unit: `₹${savingUnit.toFixed(2)}`
+                            });
                         });
-                        
-                        // Fill remaining up to 6 with empty strings
-                        for (let i = clientOverview.months.length + 1; i <= 6; i++) {
-                            monthlyPayload[`m${i}_name`] = '';
-                            monthlyPayload[`m${i}_cleared`] = '';
-                            monthlyPayload[`m${i}_consumption`] = '';
-                            monthlyPayload[`m${i}_oa_cost`] = '';
-                            monthlyPayload[`m${i}_discom_cost`] = '';
-                            monthlyPayload[`m${i}_cleared_pct`] = '';
-                            monthlyPayload[`m${i}_ppc_discom`] = '';
-                            monthlyPayload[`m${i}_ppc_prolt`] = '';
-                            monthlyPayload[`m${i}_saving`] = '';
-                            monthlyPayload[`m${i}_saving_unit`] = '';
-                        }
                     }
 
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
-                      ...monthlyPayload,
+                      monthlyData,
+                      months_count_word: monthsCountWord,
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
@@ -639,59 +624,44 @@ const exportInsightsToExcel = async () => {
                     const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
                     const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
                     
-                    const currentDate = new Date();
-                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
-
-                    const monthlyPayload: any = {};
+                    const monthsWords = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+                    const monthsCount = Math.min(12, clientOverview?.months?.length || 0);
+                    const monthsCountWord = monthsCount > 0 && monthsCount < monthsWords.length ? monthsWords[monthsCount] : "Six";
+                    
+                    const monthlyData: any[] = [];
                     if (clientOverview && clientOverview.months) {
-                        clientOverview.months.slice(0, 6).forEach((m, idx) => {
-                            const i = idx + 1;
+                        clientOverview.months.forEach((m) => {
                             const cleared = m.totalMarketEnergyKwh || 0;
                             const consumption = m.totalEnergyKwh || 0;
                             const oaCost = m.totalOptimizedCost || 0;
                             const discomCost = m.totalBaselineCost || 0;
                             const saving = m.savings || 0;
                             
-                            monthlyPayload[`m${i}_name`] = m.month || '';
-                            monthlyPayload[`m${i}_cleared`] = Math.round(cleared).toLocaleString('en-IN');
-                            monthlyPayload[`m${i}_consumption`] = Math.round(consumption).toLocaleString('en-IN');
-                            monthlyPayload[`m${i}_oa_cost`] = Math.round(oaCost).toLocaleString('en-IN');
-                            monthlyPayload[`m${i}_discom_cost`] = Math.round(discomCost).toLocaleString('en-IN');
-                            
                             const pct = consumption > 0 ? Math.round((cleared / consumption) * 100) : 0;
-                            monthlyPayload[`m${i}_cleared_pct`] = `${pct}%`;
-                            
                             const ppcDiscom = cleared > 0 ? (discomCost / cleared) : 0;
-                            monthlyPayload[`m${i}_ppc_discom`] = `₹${ppcDiscom.toFixed(2)}`;
-                            
                             const ppcProlt = cleared > 0 ? (oaCost / cleared) : 0;
-                            monthlyPayload[`m${i}_ppc_prolt`] = `₹${ppcProlt.toFixed(2)}`;
-                            
-                            monthlyPayload[`m${i}_saving`] = `₹${Math.round(saving).toLocaleString('en-IN')}`;
-                            
                             const savingUnit = cleared > 0 ? (saving / cleared) : 0;
-                            monthlyPayload[`m${i}_saving_unit`] = `₹${savingUnit.toFixed(2)}`;
+
+                            monthlyData.push({
+                                month_name: m.month || '',
+                                cleared: Math.round(cleared).toLocaleString('en-IN'),
+                                consumption: Math.round(consumption).toLocaleString('en-IN'),
+                                oa_cost: Math.round(oaCost).toLocaleString('en-IN'),
+                                discom_cost: Math.round(discomCost).toLocaleString('en-IN'),
+                                cleared_pct: `${pct}%`,
+                                ppc_discom: `₹${ppcDiscom.toFixed(2)}`,
+                                ppc_prolt: `₹${ppcProlt.toFixed(2)}`,
+                                saving: `₹${Math.round(saving).toLocaleString('en-IN')}`,
+                                saving_unit: `₹${savingUnit.toFixed(2)}`
+                            });
                         });
-                        
-                        // Fill remaining up to 6 with empty strings
-                        for (let i = clientOverview.months.length + 1; i <= 6; i++) {
-                            monthlyPayload[`m${i}_name`] = '';
-                            monthlyPayload[`m${i}_cleared`] = '';
-                            monthlyPayload[`m${i}_consumption`] = '';
-                            monthlyPayload[`m${i}_oa_cost`] = '';
-                            monthlyPayload[`m${i}_discom_cost`] = '';
-                            monthlyPayload[`m${i}_cleared_pct`] = '';
-                            monthlyPayload[`m${i}_ppc_discom`] = '';
-                            monthlyPayload[`m${i}_ppc_prolt`] = '';
-                            monthlyPayload[`m${i}_saving`] = '';
-                            monthlyPayload[`m${i}_saving_unit`] = '';
-                        }
                     }
 
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
-                      ...monthlyPayload,
+                      monthlyData,
+                      months_count_word: monthsCountWord,
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
