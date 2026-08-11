@@ -303,7 +303,9 @@ export class SavingsCalculatorService {
           proltMarginCost: result.oaDetailed?.totals?.proltMarginCost || 0,
           traderMargin: (result.oaDetailed?.totals?.traderMargin || 0) + (result.oaDetailed?.totals?.traderMarginGst || 0),
           consultancyFee: (result.oaDetailed?.totals as any)?.consultancyFee || 0,
-          probusPlatformFee: (result.oaDetailed?.totals as any)?.probusPlatformFee || 0
+          probusPlatformFee: (result.oaDetailed?.totals as any)?.probusPlatformFee || 0,
+          totalBaselineCost: result.totalBaselineCost || 0,
+          totalOptimizedCost: result.totalOptimizedCost || 0
         });
       } catch (error) {
         console.error(`Error calculating market decision for month ${month}:`, error);
