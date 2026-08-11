@@ -24,14 +24,10 @@ export class ProposalService {
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
-      delimiters: { start: '<<', end: '>>' }
-    });
-
-    // Ignore errors if tags are missing in the document
-    doc.setOptions({
-        nullGetter() {
-            return "";
-        }
+      delimiters: { start: '<<', end: '>>' },
+      nullGetter() {
+        return "";
+      }
     });
 
     try {
