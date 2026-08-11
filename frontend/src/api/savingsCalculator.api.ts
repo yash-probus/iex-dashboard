@@ -327,7 +327,7 @@ export const fetchDemandShiftInsights = async (id: string, targetMonth?: string,
 };
 
 export const exportProposalWord = async (clientData: any): Promise<void> => {
-  const response = await apiClient.post('/proposal/generate', clientData, {
+  const response = await apiClient.post('/proposals/generate', clientData, {
     responseType: 'blob',
   });
   
@@ -351,7 +351,7 @@ export const exportProposalWord = async (clientData: any): Promise<void> => {
 };
 
 export const exportTechnicalProposalWord = async (clientData: any): Promise<void> => {
-  const response = await apiClient.post('/proposal/generate-technical', clientData, {
+  const response = await apiClient.post('/proposals/generate-technical', clientData, {
     responseType: 'blob',
   });
   
@@ -375,7 +375,7 @@ export const exportTechnicalProposalWord = async (clientData: any): Promise<void
 };
 
 export const exportCommercialProposalWord = async (clientData: any): Promise<void> => {
-  const response = await apiClient.post('/proposal/generate-commercial', clientData, {
+  const response = await apiClient.post('/proposals/generate-commercial', clientData, {
     responseType: 'blob',
   });
   
