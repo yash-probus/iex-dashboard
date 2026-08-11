@@ -305,7 +305,7 @@ export class SavingsCalculatorService {
           consultancyFee: (result.oaDetailed?.totals as any)?.consultancyFee || 0,
           probusPlatformFee: (result.oaDetailed?.totals as any)?.probusPlatformFee || 0,
           totalBaselineCost: result.totalBaselineCost || 0,
-          totalOptimizedCost: result.totalOptimizedCost || 0
+          totalOptimizedCost: (result.totalBaselineCost || 0) - (result.totalSavings || 0)
         });
       } catch (error) {
         console.error(`Error calculating market decision for month ${month}:`, error);
