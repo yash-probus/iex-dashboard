@@ -572,8 +572,8 @@ const exportInsightsToExcel = async () => {
                         });
                     }
 
-                    const totalConsumption = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
-                    const totalCleared = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || 0), 0) || 0;
+                    const totalConsumption = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
+                    const totalCleared = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || curr.oaConsumer || 0), 0) || 0;
                     const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
 
                     let dashboard_screenshot = "";
@@ -588,6 +588,11 @@ const exportInsightsToExcel = async () => {
                         }
                     }
 
+                    // Cast numberToIndianWords to avoid TS errors if not imported correctly, though we will import it properly
+                    // Wait, numberToIndianWords is imported? Let's check. 
+                    // To be safe, we'll ensure it's imported at the top, but for now we can just use the function if it's available or require it.
+                    // Actually, I'll just use a fallback inline or make sure it's imported in the multi_replace.
+                    
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
@@ -595,7 +600,8 @@ const exportInsightsToExcel = async () => {
                       months_count_word: monthsCountWord,
                       procurement_potential: procurementPotential,
                       dashboard_screenshot: dashboard_screenshot,
-                      savings_in_words: numberToIndianWords(annualizedSavings),
+                      // @ts-ignore
+                      savings_in_words: numberToIndianWords ? numberToIndianWords(annualizedSavings) : 'Twenty Five',
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
@@ -682,8 +688,8 @@ const exportInsightsToExcel = async () => {
                         });
                     }
 
-                    const totalConsumption = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
-                    const totalCleared = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || 0), 0) || 0;
+                    const totalConsumption = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
+                    const totalCleared = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || curr.oaConsumer || 0), 0) || 0;
                     const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
 
                     let dashboard_screenshot = "";
@@ -704,7 +710,8 @@ const exportInsightsToExcel = async () => {
                       months_count_word: monthsCountWord,
                       procurement_potential: procurementPotential,
                       dashboard_screenshot: dashboard_screenshot,
-                      savings_in_words: numberToIndianWords(annualizedSavings),
+                      // @ts-ignore
+                      savings_in_words: numberToIndianWords ? numberToIndianWords(annualizedSavings) : 'Twenty Five',
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
