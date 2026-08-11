@@ -528,6 +528,9 @@ const exportInsightsToExcel = async () => {
                   if (!calcEntry) return;
                   try {
                     const totalSavings = clientOverview?.totalSavings || 0;
+                    const numMonths = Math.max(1, clientOverview?.months?.length || 1);
+                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
+                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
                     
                     const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
                     const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
@@ -539,8 +542,8 @@ const exportInsightsToExcel = async () => {
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
-                      totalSavings,
-                      monthlySavings: Math.round(totalSavings / 12),
+                      totalSavings: annualizedSavings, // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
+                      monthlySavings: avgMonthlySavings, // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
                       billMonth,
                       billMonthYear,
@@ -581,6 +584,9 @@ const exportInsightsToExcel = async () => {
                   if (!calcEntry) return;
                   try {
                     const totalSavings = clientOverview?.totalSavings || 0;
+                    const numMonths = Math.max(1, clientOverview?.months?.length || 1);
+                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
+                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
                     
                     const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
                     const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
@@ -592,8 +598,8 @@ const exportInsightsToExcel = async () => {
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
-                      totalSavings,
-                      monthlySavings: Math.round(totalSavings / 12),
+                      totalSavings: annualizedSavings, // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
+                      monthlySavings: avgMonthlySavings, // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
                       billMonth,
                       billMonthYear,
