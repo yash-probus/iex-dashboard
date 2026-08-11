@@ -67,6 +67,9 @@ import { RedesignedSavingsReport } from '../components/savings-assistant/Redesig
 import { getResourceData } from '../api/resourceCenter.api';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { calculateSavingsData } from '../utils/savingsCalculator';
+import { numberToIndianWords } from '../utils/numberToIndianWords';
+import html2canvas from 'html2canvas';
 
 export default function SavingsCalculatorAnalysisPage() {
   const { id } = useParams<{ id: string }>();
@@ -553,9 +556,10 @@ const exportInsightsToExcel = async () => {
                             const saving = m.savings || 0;
                             
                             const pct = consumption > 0 ? Math.round((cleared / consumption) * 100) : 0;
-                            const ppcDiscom = cleared > 0 ? (discomCost / cleared) : 0;
-                            const ppcProlt = cleared > 0 ? (oaCost / cleared) : 0;
-                            const savingUnit = cleared > 0 ? (saving / cleared) : 0;
+                            const ppcDiscom = consumption > 0 ? (discomCost / consumption) : 0;
+                            const ppcProlt = consumption > 0 ? (oaCost / consumption) : 0;
+                            const savingUnit = consumption > 0 ? (saving / consumption) : 0;
+
 
                             monthlyData.push({
                                 month_name: m.month || '',
@@ -669,9 +673,9 @@ const exportInsightsToExcel = async () => {
                             const saving = m.savings || 0;
                             
                             const pct = consumption > 0 ? Math.round((cleared / consumption) * 100) : 0;
-                            const ppcDiscom = cleared > 0 ? (discomCost / cleared) : 0;
-                            const ppcProlt = cleared > 0 ? (oaCost / cleared) : 0;
-                            const savingUnit = cleared > 0 ? (saving / cleared) : 0;
+                            const ppcDiscom = consumption > 0 ? (discomCost / consumption) : 0;
+                            const ppcProlt = consumption > 0 ? (oaCost / consumption) : 0;
+                            const savingUnit = consumption > 0 ? (saving / consumption) : 0;
 
                             monthlyData.push({
                                 month_name: m.month || '',
