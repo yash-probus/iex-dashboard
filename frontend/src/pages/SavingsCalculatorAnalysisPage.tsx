@@ -536,6 +536,9 @@ const exportInsightsToExcel = async () => {
                     const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
                     const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
                     
+                    const currentDate = new Date();
+                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
+                    
                     const monthsWords = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
                     const monthsCount = Math.min(12, clientOverview?.months?.length || 0);
                     const monthsCountWord = monthsCount > 0 && monthsCount < monthsWords.length ? monthsWords[monthsCount] : "Six";
