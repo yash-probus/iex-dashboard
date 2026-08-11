@@ -29,7 +29,17 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
         const { month, marketDecisionResult } = resultObj;
         if (!marketDecisionResult) return null;
         
-        const monthLabel = month === 'all' ? 'Overall Summary' : month;
+        let formattedMonth = month;
+        if (month !== 'all' && month.includes('-')) {
+          const parts = month.split('-');
+          if (parts.length === 2 && parts[0].length === 4) {
+            const date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1);
+            formattedMonth = `${date.toLocaleString('default', { month: 'long' })} ${parts[0]}`;
+          }
+        }
+        
+        const monthLabel = month === 'all' ? 'Overall Summary' : formattedMonth;
+        const summaryLabel = month === 'all' ? 'Overall Summary' : `${formattedMonth} Summary`;
         
         const totalSavings = marketDecisionResult.totalSavings || 0;
         const totalBaselineCost = marketDecisionResult.totalBaselineCost || 0;
@@ -125,7 +135,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ position: 'relative', zIndex: 1, mt: 8 }}>
                 <Box sx={{ backgroundColor: 'rgba(255,255,255,0.1)', display: 'inline-block', px: 2, py: 0.5, borderRadius: '16px', mb: 5 }}>
                   <Typography sx={{ color: LIGHT_GREEN, fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase' }}>
-                    {monthLabel.replace(' 2026', '')} {assumptions?.analysisYear || 2026}
+                    {summaryLabel}
                   </Typography>
                 </Box>
                 <Typography sx={{ fontSize: '48px', fontWeight: 800, lineHeight: 1.1, mb: 2 }}>
