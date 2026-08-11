@@ -577,6 +577,7 @@ const exportInsightsToExcel = async () => {
                       ...calcEntry,
                       monthlyData,
                       months_count_word: monthsCountWord,
+                      savings_in_words: numberToIndianWords(annualizedSavings),
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
@@ -668,6 +669,7 @@ const exportInsightsToExcel = async () => {
                       ...calcEntry,
                       monthlyData,
                       months_count_word: monthsCountWord,
+                      savings_in_words: numberToIndianWords(annualizedSavings),
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
                       paybackDays: 150,
