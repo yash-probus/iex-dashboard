@@ -576,12 +576,25 @@ const exportInsightsToExcel = async () => {
                     const totalCleared = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || 0), 0) || 0;
                     const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
 
+                    let dashboard_screenshot = "";
+                    const dashboardEl = document.getElementById("dashboard-screenshot-target");
+                    if (dashboardEl) {
+                        try {
+                            const canvas = await html2canvas(dashboardEl, { scale: 2 });
+                            // Clean base64 string for docxtemplater-image-module
+                            dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                        } catch (e) {
+                            console.error("html2canvas error:", e);
+                        }
+                    }
+
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
                       monthlyData,
                       months_count_word: monthsCountWord,
                       procurement_potential: procurementPotential,
+                      dashboard_screenshot: dashboard_screenshot,
                       savings_in_words: numberToIndianWords(annualizedSavings),
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
@@ -673,12 +686,24 @@ const exportInsightsToExcel = async () => {
                     const totalCleared = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || 0), 0) || 0;
                     const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
 
+                    let dashboard_screenshot = "";
+                    const dashboardEl = document.getElementById("dashboard-screenshot-target");
+                    if (dashboardEl) {
+                        try {
+                            const canvas = await html2canvas(dashboardEl, { scale: 2 });
+                            dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                        } catch (e) {
+                            console.error("html2canvas error:", e);
+                        }
+                    }
+
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
                       monthlyData,
                       months_count_word: monthsCountWord,
                       procurement_potential: procurementPotential,
+                      dashboard_screenshot: dashboard_screenshot,
                       savings_in_words: numberToIndianWords(annualizedSavings),
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
@@ -847,7 +872,7 @@ const exportInsightsToExcel = async () => {
           {calcResult && !calculating && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
 
-              <Box sx={{ mt: 3 }}>
+              <Box id="dashboard-screenshot-target" sx={{ mt: 3, bgcolor: '#F8FAFC', p: 2, borderRadius: 2 }}>
                 <Dashboard calcResult={calcResult} calcEntry={calcEntry} clientName={calcEntry?.clientName || clientOverview?.clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
               </Box>
             </Box>
