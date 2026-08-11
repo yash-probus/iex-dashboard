@@ -55,9 +55,11 @@ import {
   fetchEntryHistory,
   fetchClientOverview,
   ClientOverviewResult,
+  exportProposalWord,
   exportTechnicalProposalWord,
   exportCommercialProposalWord
 } from '../api/savingsCalculator.api';
+import { hardcodedPayload } from '../utils/hardcodedPayload';
 
 import EnergyInsightsExplorer from '../components/insights/EnergyInsightsExplorer';
 import { exportToCSV } from '../utils/export';
@@ -525,10 +527,25 @@ const exportInsightsToExcel = async () => {
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
-                    // Combine available data to send to docx templater
+                    const totalSavings = clientOverview?.totalSavings || 0;
+                    
+                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
+                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
+                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
+                    
+                    const currentDate = new Date();
+                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
+
                     const payload = {
+                      ...hardcodedPayload,
                       ...calcEntry,
-                      totalSavings: clientOverview?.totalSavings || 0,
+                      totalSavings,
+                      monthlySavings: Math.round(totalSavings / 12),
+                      paybackDays: 150,
+                      billMonth,
+                      billMonthYear,
+                      currentMonthYear,
+                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
                     };
                     await exportTechnicalProposalWord(payload);
                   } catch (err: any) {
@@ -563,10 +580,25 @@ const exportInsightsToExcel = async () => {
                 onClick={async () => {
                   if (!calcEntry) return;
                   try {
-                    // Combine available data to send to docx templater
+                    const totalSavings = clientOverview?.totalSavings || 0;
+                    
+                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
+                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
+                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
+                    
+                    const currentDate = new Date();
+                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
+
                     const payload = {
+                      ...hardcodedPayload,
                       ...calcEntry,
-                      totalSavings: clientOverview?.totalSavings || 0,
+                      totalSavings,
+                      monthlySavings: Math.round(totalSavings / 12),
+                      paybackDays: 150,
+                      billMonth,
+                      billMonthYear,
+                      currentMonthYear,
+                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
                     };
                     await exportCommercialProposalWord(payload);
                   } catch (err: any) {
