@@ -1,16 +1,15 @@
 import puppeteer from 'puppeteer';
 
 export class ChartGeneratorService {
-    static async generateSavingsChart(monthlyData: any[], avgMonthlySavings: string): Promise<Buffer> {
+    static async generateSavingsChart(monthlyData: any[], avgMonthlySavings: string, savingsInWords: string): Promise<Buffer> {
         const browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
         const page = await browser.newPage();
         
-        await page.setViewport({ width: 800, height: 400 });
+        await page.setViewport({ width: 800, height: 480 });
 
         const labels = monthlyData.map(m => m.month_name);
-        // The saving field has formatting like "₹1,00,000". We need just the number.
         const data = monthlyData.map(m => {
             const rawStr = m.saving.toString().replace(/[^0-9]/g, '');
             return parseInt(rawStr, 10) || 0;
@@ -27,9 +26,17 @@ export class ChartGeneratorService {
             <style>
                 body {
                     margin: 0;
-                    padding: 40px;
+                    padding: 0;
                     background-color: #F9F6E2;
                     font-family: Arial, sans-serif;
+                    height: 480px;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .content {
+                    padding: 40px;
+                    flex: 1;
+                    position: relative;
                 }
                 .title-container {
                     margin-bottom: 20px;
@@ -60,20 +67,38 @@ export class ChartGeneratorService {
                     height: 250px;
                     margin-top: 40px;
                 }
+                .footer-bar {
+                    background-color: #1E2A4F;
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+                .highlight {
+                    background-color: #FFFF00;
+                    color: black;
+                    padding: 2px 8px;
+                }
             </style>
         </head>
         <body>
-            <div class="title-container">
-                <div class="title">MONTHLY SAVINGS OPPORTUNITY</div>
-                <div class="subtitle">Based on the historical energy bills and consumption data provided</div>
-            </div>
-            
-            <div class="avg-bubble">
-                Average Monthly Savings ₹${avgMonthlySavings}
-            </div>
+            <div class="content">
+                <div class="title-container">
+                    <div class="title">MONTHLY SAVINGS OPPORTUNITY</div>
+                    <div class="subtitle">Based on the historical energy bills and consumption data provided</div>
+                </div>
+                
+                <div class="avg-bubble">
+                    Average Monthly Savings ₹${avgMonthlySavings}
+                </div>
 
-            <div class="chart-container">
-                <canvas id="myChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
+            <div class="footer-bar">
+                You are losing around <span class="highlight">${savingsInWords}</span> annually by not switching to Prolt immediately.
             </div>
 
             <script>
@@ -133,7 +158,7 @@ export class ChartGeneratorService {
         </html>
         `;
 
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.setContent(html, { waitUntil: 'load' });
         
         const screenshot = await page.screenshot({ type: 'png' });
         await browser.close();

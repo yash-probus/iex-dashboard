@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
+// @ts-ignore
 import ImageModule from 'docxtemplater-image-module-free';
 import { ChartGeneratorService } from './chartGenerator.service';
 
@@ -27,7 +28,8 @@ export class ProposalService {
     if (clientData.monthlyData && clientData.monthlyData.length > 0) {
       clientData.monthly_savings_chart = await ChartGeneratorService.generateSavingsChart(
           clientData.monthlyData,
-          clientData.monthlySavings || '0'
+          clientData.monthlySavings || '0',
+          clientData.savings_in_words || 'Twenty Five'
       );
     }
     

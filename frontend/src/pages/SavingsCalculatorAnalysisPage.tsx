@@ -572,11 +572,16 @@ const exportInsightsToExcel = async () => {
                         });
                     }
 
+                    const totalConsumption = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
+                    const totalCleared = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || 0), 0) || 0;
+                    const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
+
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
                       monthlyData,
                       months_count_word: monthsCountWord,
+                      procurement_potential: procurementPotential,
                       savings_in_words: numberToIndianWords(annualizedSavings),
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
@@ -664,11 +669,16 @@ const exportInsightsToExcel = async () => {
                         });
                     }
 
+                    const totalConsumption = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
+                    const totalCleared = calcEntry.monthlyData?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || 0), 0) || 0;
+                    const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
+
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
                       monthlyData,
                       months_count_word: monthsCountWord,
+                      procurement_potential: procurementPotential,
                       savings_in_words: numberToIndianWords(annualizedSavings),
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
                       monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
