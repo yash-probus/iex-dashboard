@@ -212,7 +212,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Typography sx={{ fontSize: '20px', fontWeight: 800, mb: 3 }}>Your bill, before and after Prolt</Typography>
               
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
-                <Typography sx={{ width: '110px', fontWeight: 700, color: '#64748B', fontSize: '14px' }}>Without Prolt</Typography>
+                <Typography sx={{ width: '180px', fontWeight: 700, color: '#64748B', fontSize: '14px' }}>Without Prolt</Typography>
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
                   <Box sx={{ width: '100%', height: '36px', backgroundColor: '#CBD5E1', borderRadius: '8px', position: 'relative' }}>
                     <Typography sx={{ position: 'absolute', right: 16, top: 8, fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>₹{Math.round(totalBaselineCost).toLocaleString('en-IN')}</Typography>
@@ -221,7 +221,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-                <Typography sx={{ width: '110px', fontWeight: 700, color: '#64748B', fontSize: '14px' }}>With Prolt</Typography>
+                <Typography sx={{ width: '180px', fontWeight: 700, color: '#64748B', fontSize: '14px' }}>With Prolt and DISCOM</Typography>
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
                   <Box sx={{ width: `${(finalCost / (totalBaselineCost || 1)) * 100}%`, height: '36px', backgroundColor: PRIMARY_GREEN, borderRadius: '8px' }} />
                   <Typography sx={{ ml: 2, fontWeight: 800, color: '#0F172A', fontSize: '16px' }}>₹{Math.round(finalCost).toLocaleString('en-IN')}</Typography>
