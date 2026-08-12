@@ -7,6 +7,9 @@ export class ChartGeneratorService {
         });
         const page = await browser.newPage();
         
+        page.on('console', msg => console.log('PUPPETEER PAGE LOG:', msg.text()));
+        page.on('pageerror', (err: any) => console.log('PUPPETEER PAGE ERROR:', err.message || err));
+        
         await page.setViewport({ width: 800, height: 480 });
 
         const labels = monthlyData.map(m => m.month_name);

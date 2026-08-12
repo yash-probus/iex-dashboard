@@ -137,7 +137,12 @@ export class ProposalService {
 
     try {
         doc.render(clientData);
-    } catch (error) {
+    } catch (error: any) {
+        require('fs').writeFileSync('docxtemplater_error.json', JSON.stringify({
+            message: error.message,
+            name: error.name,
+            properties: error.properties
+        }, null, 2));
         console.warn("Docxtemplater rendering error (likely missing tags):", error);
     }
 
