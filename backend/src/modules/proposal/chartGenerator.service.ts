@@ -27,7 +27,7 @@ export class ChartGeneratorService {
                 body {
                     margin: 0;
                     padding: 0;
-                    background-color: #F9F6E2;
+                    background-color: #FCFAEE;
                     font-family: Arial, sans-serif;
                     height: 480px;
                     display: flex;
@@ -64,21 +64,22 @@ export class ChartGeneratorService {
                 }
                 .chart-container {
                     width: 100%;
-                    height: 250px;
+                    height: 300px;
                     margin-top: 40px;
                 }
                 .footer-bar {
-                    background-color: #1E2A4F;
+                    background-color: #0F172A;
                     color: white;
-                    padding: 20px;
+                    padding: 15px;
                     text-align: center;
-                    font-size: 18px;
+                    font-size: 16px;
                     font-weight: bold;
+                    margin-top: auto;
                 }
                 .highlight {
                     background-color: #FFFF00;
-                    color: black;
-                    padding: 2px 8px;
+                    color: white;
+                    padding: 2px 6px;
                 }
             </style>
         </head>
@@ -90,15 +91,16 @@ export class ChartGeneratorService {
                 </div>
                 
                 <div class="avg-bubble">
-                    Average Monthly Savings ₹${avgMonthlySavings}
+                    Average Monthly Savings ₹\${avgMonthlySavings}
                 </div>
 
                 <div class="chart-container">
                     <canvas id="myChart"></canvas>
                 </div>
             </div>
+            
             <div class="footer-bar">
-                You are losing around <span class="highlight">${savingsInWords}</span> annually by not switching to Prolt immediately.
+                You are losing around <span class="highlight">\${savingsInWords}</span> annually by not switching to Prolt immediately.
             </div>
 
             <script>
@@ -107,10 +109,10 @@ export class ChartGeneratorService {
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: ${JSON.stringify(labels)},
+                        labels: \${JSON.stringify(labels)},
                         datasets: [{
-                            data: ${JSON.stringify(data)},
-                            backgroundColor: ${JSON.stringify(backgroundColor)},
+                            data: \${JSON.stringify(data)},
+                            backgroundColor: \${JSON.stringify(backgroundColor)},
                             borderRadius: 8,
                             barPercentage: 0.6
                         }]
@@ -137,7 +139,7 @@ export class ChartGeneratorService {
                             y: {
                                 display: false,
                                 beginAtZero: true,
-                                suggestedMax: Math.max(...${JSON.stringify(data)}) * 1.2
+                                suggestedMax: Math.max(...\${JSON.stringify(data)}) * 1.2
                             },
                             x: {
                                 grid: {
