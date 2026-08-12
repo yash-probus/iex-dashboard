@@ -91,7 +91,7 @@ export class ChartGeneratorService {
                 </div>
                 
                 <div class="avg-bubble">
-                    Average Monthly Savings ₹\${avgMonthlySavings}
+                    Average Monthly Savings ₹${avgMonthlySavings}
                 </div>
 
                 <div class="chart-container">
@@ -100,7 +100,7 @@ export class ChartGeneratorService {
             </div>
             
             <div class="footer-bar">
-                You are losing around <span class="highlight">\${savingsInWords}</span> annually by not switching to Prolt immediately.
+                You are losing around <span class="highlight">${savingsInWords}</span> annually by not switching to Prolt immediately.
             </div>
 
             <script>
@@ -109,10 +109,10 @@ export class ChartGeneratorService {
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: \${JSON.stringify(labels)},
+                        labels: ${JSON.stringify(labels)},
                         datasets: [{
-                            data: \${JSON.stringify(data)},
-                            backgroundColor: \${JSON.stringify(backgroundColor)},
+                            data: ${JSON.stringify(data)},
+                            backgroundColor: ${JSON.stringify(backgroundColor)},
                             borderRadius: 8,
                             barPercentage: 0.6
                         }]
@@ -139,7 +139,7 @@ export class ChartGeneratorService {
                             y: {
                                 display: false,
                                 beginAtZero: true,
-                                suggestedMax: Math.max(...\${JSON.stringify(data)}) * 1.2
+                                suggestedMax: Math.max(...${JSON.stringify(data)}) * 1.2
                             },
                             x: {
                                 grid: {

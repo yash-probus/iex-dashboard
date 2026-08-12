@@ -94,9 +94,14 @@ export class ProposalService {
             if (!tagValue) return false;
 
             if (tagName === "dashboard_screenshot" && typeof tagValue === 'string') {
-                return Buffer.from(tagValue, 'base64');
+                const buf = Buffer.from(tagValue, 'base64');
+                if (buf.length === 0) return false;
+                return buf;
             }
             // Handle all chart images - they're already buffers
+            if (Buffer.isBuffer(tagValue) && tagValue.length === 0) {
+                return false;
+            }
             return tagValue;
         },
         getSize: (img: any, tagValue: any, tagName: string) => {
