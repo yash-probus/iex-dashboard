@@ -112,6 +112,27 @@ export default function SavingsCalculatorAnalysisPage() {
   const marketDecisionResult = cachedResults[selectedSimMonth]?.market || null;
   const demandShiftInsights = cachedResults[selectedSimMonth]?.insights || null;
 
+  const { firstInsightMonthState, secondInsightMonthState } = useMemo(() => {
+    let first = "January 2026";
+    let second = "May 2026";
+    if (clientOverview && clientOverview.months) {
+      const monthlyData = clientOverview.months.map(m => ({
+        month_name: m.month || '',
+        raw_saving: Math.round(m.savings || 0)
+      }));
+      const sorted = [...monthlyData].sort((a, b) => b.raw_saving - a.raw_saving);
+      if (sorted.length > 0) {
+        first = sorted[0].month_name;
+        if (sorted.length > 1) {
+          second = sorted[1].month_name;
+        } else {
+          second = sorted[0].month_name;
+        }
+      }
+    }
+    return { firstInsightMonthState: first, secondInsightMonthState: second };
+  }, [clientOverview]);
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'CHANGE_MONTH' && event.data.month) {
@@ -622,6 +643,28 @@ const exportInsightsToExcel = async () => {
                         }
                     }
 
+                    let first_insight_screenshot = "";
+                    const dashboardEl1 = document.getElementById("proposal-export-target-1");
+                    if (dashboardEl1) {
+                        try {
+                            const canvas = await html2canvas(dashboardEl1, { scale: 2 });
+                            first_insight_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                        } catch (e) {
+                            console.error("html2canvas error:", e);
+                        }
+                    }
+
+                    let second_insight_screenshot = "";
+                    const dashboardEl2 = document.getElementById("proposal-export-target-2");
+                    if (dashboardEl2) {
+                        try {
+                            const canvas = await html2canvas(dashboardEl2, { scale: 2 });
+                            second_insight_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                        } catch (e) {
+                            console.error("html2canvas error:", e);
+                        }
+                    }
+
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
@@ -634,7 +677,9 @@ const exportInsightsToExcel = async () => {
                       second_insight_month_only,
                       months_count_word: monthsCountWord,
                       procurement_potential: procurementPotential,
-                      dashboard_screenshot: dashboard_screenshot,
+                      dashboard_screenshot,
+                      first_insight_screenshot,
+                      second_insight_screenshot,
                       // @ts-ignore
                       savings_in_words: numberToIndianWords ? numberToIndianWords(annualizedSavings) : 'Twenty Five',
                       totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
@@ -924,6 +969,24 @@ const exportInsightsToExcel = async () => {
                   marketDecisionResult={marketDecisionResult} 
                   demandShiftInsights={demandShiftInsights} 
                   selectedMonth={selectedSimMonth} 
+                />
+              </div>
+
+              <div id="proposal-export-target-1" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '1200px' }}>
+                <ProposalDashboardExport 
+                  clientOverview={clientOverview} 
+                  marketDecisionResult={marketDecisionResult} 
+                  demandShiftInsights={demandShiftInsights} 
+                  selectedMonth={firstInsightMonthState} 
+                />
+              </div>
+
+              <div id="proposal-export-target-2" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '1200px' }}>
+                <ProposalDashboardExport 
+                  clientOverview={clientOverview} 
+                  marketDecisionResult={marketDecisionResult} 
+                  demandShiftInsights={demandShiftInsights} 
+                  selectedMonth={secondInsightMonthState} 
                 />
               </div>
             </Box>

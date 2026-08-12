@@ -114,6 +114,8 @@ export class ProposalService {
             // Different sizes for different chart types
             switch(tagName) {
                 case "dashboard_screenshot":
+                case "first_insight_screenshot":
+                case "second_insight_screenshot":
                     return [600, 450]; // Full dashboard
                 case "consumption_mix_chart":
                 case "spend_comparison_chart":
