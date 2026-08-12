@@ -37,6 +37,7 @@ import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlo
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import { Dashboard } from '../components/dashboard/Dashboard';
+import { ProposalDashboardExport } from '../components/dashboard/ProposalDashboardExport';
 import { 
   fetchSavingsEntries, 
   createSavingsEntry, 
@@ -611,7 +612,7 @@ const exportInsightsToExcel = async () => {
                     const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
 
                     let dashboard_screenshot = "";
-                    const dashboardEl = document.getElementById("dashboard-screenshot-target");
+                    const dashboardEl = document.getElementById("proposal-export-target");
                     if (dashboardEl) {
                         try {
                             const canvas = await html2canvas(dashboardEl, { scale: 2 });
@@ -727,7 +728,7 @@ const exportInsightsToExcel = async () => {
                     const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
 
                     let dashboard_screenshot = "";
-                    const dashboardEl = document.getElementById("dashboard-screenshot-target");
+                    const dashboardEl = document.getElementById("proposal-export-target");
                     if (dashboardEl) {
                         try {
                             const canvas = await html2canvas(dashboardEl, { scale: 2 });
@@ -916,6 +917,15 @@ const exportInsightsToExcel = async () => {
               <Box id="dashboard-screenshot-target" sx={{ mt: 3, bgcolor: '#F8FAFC', p: 2, borderRadius: 2 }}>
                 <Dashboard calcResult={calcResult} calcEntry={calcEntry} clientName={calcEntry?.clientName || clientOverview?.clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
               </Box>
+
+              <div id="proposal-export-target" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '1200px' }}>
+                <ProposalDashboardExport 
+                  clientOverview={clientOverview} 
+                  marketDecisionResult={marketDecisionResult} 
+                  demandShiftInsights={demandShiftInsights} 
+                  selectedMonth={selectedSimMonth} 
+                />
+              </div>
             </Box>
           )}
 
