@@ -83,6 +83,7 @@ const FORECAST_ROUTES = [
   { label: 'GDAM Forecast', path: '/forecast/price/gdam', icon: <TimelineIcon fontSize="small" sx={{ color: '#8B5CF6' }} /> },
   { label: 'Consumer Demand', path: '/forecast/demand/consumer', icon: <TimelineIcon fontSize="small" sx={{ color: '#00BFA5' }} /> },
   { label: 'All India Demand', path: '/forecast/demand/all-india', icon: <TimelineIcon fontSize="small" sx={{ color: '#00BFA5' }} /> },
+  { label: 'Generation Forecast', path: '/database/generation-data', icon: <ElectricBolt fontSize="small" sx={{ color: '#FF7043' }} /> },
 ];
 
 

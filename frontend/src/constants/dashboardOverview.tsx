@@ -200,5 +200,16 @@ export const FORECAST_ITEMS: OverviewItemConfig[] = [
       { key: 'demand-consumer', title: 'Consumer', path: '/forecast/demand/consumer', icon: <BusinessIcon fontSize="small" /> },
       { key: 'demand-all-india', title: 'All India', path: '/forecast/demand/all-india', icon: <TimelineIcon fontSize="small" /> },
     ]
+  },
+  {
+    key: 'generation-forecast',
+    title: 'Generation Forecast',
+    description: 'Forecasted and actual NPP generation data.',
+    path: '/database/generation-data',
+    icon: <BoltIcon fontSize="medium" />,
+    color: '#FF7043',
+    subItems: [
+      { key: 'gen-npp', title: 'NPP Generation', path: '/database/generation-data', icon: <BoltIcon fontSize="small" /> },
+    ]
   }
 ];

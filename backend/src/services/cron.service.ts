@@ -119,6 +119,27 @@ export class CronService {
       timezone: 'Asia/Kolkata'
     });
 
+    // Run every day at 7:00 AM for Forecasting Sync (Demand and Generation)
+    cron.schedule('0 7 * * *', async () => {
+      console.log('[Cron] Running daily Forecasting (Demand & Generation) sync at 7 AM');
+      try {
+        const dateStr = new Date().toISOString().split('T')[0];
+        // Ensure demand and generation data is up to date for the day
+        await VidyutPravahScraper.getNppDemandData(dateStr);
+        await VidyutPravahScraper.getNppGenerationData(dateStr);
+        await NppAdjustmentService.updateAdjustedDemandForDate(dateStr);
+        await NppAdjustmentService.updateAdjustedGenerationForDate(dateStr);
+        
+        // Also ensure hourly forecast is updated
+        await WeatherEngine.updateHourlyForecast();
+        console.log('[Cron] Forecasting sync completed successfully');
+      } catch (error) {
+        console.error('[Cron] Error in daily forecasting sync:', error);
+      }
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
     // Run every day at 7:00 AM for Market Data (DAM, GDAM, RTM) Scrapers
     cron.schedule('0 7 * * *', async () => {
       console.log('[Cron] Running daily Market Data scrapers at 7 AM');
