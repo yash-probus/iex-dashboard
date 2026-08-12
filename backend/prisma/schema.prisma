@@ -555,13 +555,31 @@ model ApiLog {
   apiName   String   @db.VarChar(100)
   endpoint  String?  @db.VarChar(255)
   status    String   @db.VarChar(50) // SUCCESS, ERROR
-  message   String?  @db.Text
+  details   String?  @db.Text
   createdAt DateTime @default(now())
 
-  @@index([apiName])
-  @@index([status])
-  @@index([createdAt])
   @@schema("public")
+}
+
+model ForecastAllIndiaDemandV2 {
+  timestamp       DateTime @id @db.Timestamp(3)
+  forecast_demand Float?
+
+  @@map("all_india_demand_forecasting_v2")
+  @@schema("forecasting")
+}
+
+model GenerationForecasting {
+  id                     Int       @id @default(autoincrement())
+  forecast_generated_at  DateTime? @db.Timestamp(3)
+  forecast_for_timestamp DateTime? @db.Timestamp(3)
+  source                 String?   @db.VarChar(50)
+  forecast_mw            Float?
+  model_name             String?   @db.VarChar(100)
+  model_version          String?   @db.VarChar(50)
+
+  @@map("Generation_forecasting")
+  @@schema("forecasting")
 }
 
 model MarketOperation {

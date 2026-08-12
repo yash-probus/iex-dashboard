@@ -542,21 +542,50 @@ export class ForecastService {
 
     try {
       if (isAllIndia) {
-        const records = await prisma.forecastAllIndiaDemand.findMany({
-          where: { date: { in: dates } },
-          orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+        // Build the timestamp range based on dates array (assumed dates are in IST, so we parse properly)
+        const startDate = new Date(`${dates[0]}T00:00:00+05:30`);
+        const endDate = new Date(`${dates[dates.length - 1]}T23:59:59+05:30`);
+
+        const records = await prisma.forecastAllIndiaDemandV2.findMany({
+          where: { 
+            timestamp: { 
+              gte: startDate,
+              lte: endDate
+            } 
+          },
+          orderBy: [{ timestamp: 'asc' }]
         });
 
         if (records && records.length > 0) {
-          const formatted = records.map(r => ({
-            date: r.date,
-            hour: r.hour,
-            timeBlock: r.timeBlock,
-            intervalNumber: r.intervalNumber,
-            demand: Number(r.forecastedDemand),
-            actualDemand: r.actualDemand !== null ? Number(r.actualDemand) : null
-          }));
-          intervals.push(...this.aggregateDemandIntervals(formatted, interval));
+          const formatted = records.map(r => {
+            // Convert to IST string for UI mapping
+            const d = new Date(r.timestamp);
+            // using simple offset adjustment for UTC -> IST display mapping
+            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+            const dateStr = istDate.toISOString().split('T')[0];
+            const hh = String(istDate.getUTCHours()).padStart(2, '0');
+            const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
+            const hourStr = `${hh}:${mm}`;
+            
+            const nextMin = (istDate.getUTCMinutes() + 15) % 60;
+            const nextHour = nextMin === 0 ? (istDate.getUTCHours() + 1) % 24 : istDate.getUTCHours();
+            const timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
+            
+            const minutes = istDate.getUTCHours() * 60 + istDate.getUTCMinutes();
+            const intervalNumber = Math.floor(minutes / 15) + 1;
+
+            return {
+              date: dateStr,
+              hour: hourStr,
+              timeBlock: timeBlock,
+              intervalNumber: intervalNumber,
+              demand: r.forecast_demand !== null ? Number(r.forecast_demand) : 0,
+              actualDemand: null // all_india_demand_forecasting_v2 does not contain actuals
+            };
+          });
+          // Only keep intervals that match our requested dates
+          const filtered = formatted.filter(f => dates.includes(f.date));
+          intervals.push(...this.aggregateDemandIntervals(filtered, interval));
         }
       } else {
         // Consumer demand
@@ -767,12 +796,16 @@ export class ForecastService {
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'ALL-INDIA') {
       try {
-        const rows = await prisma.forecastAllIndiaDemand.findMany({
-          select: { date: true },
-          distinct: ['date'],
-          orderBy: { date: 'desc' }
+        const rows = await prisma.forecastAllIndiaDemandV2.findMany({
+          select: { timestamp: true },
+          orderBy: { timestamp: 'desc' }
         });
-        return rows.map(r => r.date);
+        const allDates = new Set<string>();
+        rows.forEach(r => {
+          const istDate = new Date(r.timestamp.getTime() + (5.5 * 60 * 60 * 1000));
+          allDates.add(istDate.toISOString().split('T')[0]);
+        });
+        return Array.from(allDates);
       } catch (e) { return []; }
     }
     return [];
