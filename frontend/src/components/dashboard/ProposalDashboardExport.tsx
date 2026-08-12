@@ -93,7 +93,7 @@ export const ProposalDashboardExport: React.FC<ProposalDashboardExportProps> = (
         <div style={{ pointerEvents: 'none' }}>
             <VisualAnalyticsCharts 
                 marketDecisionResult={marketDecisionResult} 
-                demandShiftInsights={demandShiftInsights || { slotsData: [] }}
+                demandShiftInsights={demandShiftInsights || ({ slotsData: [] } as any)}
                 maxEnergyPerSlot={500} 
             />
         </div>
