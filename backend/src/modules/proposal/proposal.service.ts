@@ -135,21 +135,18 @@ export class ProposalService {
       }
     });
 
+    let buf;
     try {
         doc.render(clientData);
+        buf = doc.getZip().generate({
+          type: 'nodebuffer',
+          compression: 'DEFLATE',
+        });
     } catch (error: any) {
-        require('fs').writeFileSync('docxtemplater_error.json', JSON.stringify({
-            message: error.message,
-            name: error.name,
-            properties: error.properties
-        }, null, 2));
-        console.warn("Docxtemplater rendering error (likely missing tags):", error);
+        console.warn("Docxtemplater rendering error:", error);
+        // Return a dummy DOCX or text file with the error so the user downloads the error
+        buf = Buffer.from(`DOCXTEMPLATER ERROR: ${error.message}\nProperties: ${JSON.stringify(error.properties)}`);
     }
-
-    const buf = doc.getZip().generate({
-      type: 'nodebuffer',
-      compression: 'DEFLATE',
-    });
 
     return buf;
   }
