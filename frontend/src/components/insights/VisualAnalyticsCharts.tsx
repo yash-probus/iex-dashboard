@@ -143,9 +143,9 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
                 formatter={(value: number) => [`₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`, '']}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-              <Bar name="Actual DISCOM Cost" dataKey="discomCost" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-              <Bar name="PROLT Cost" dataKey="proltCost" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
-              <Bar name="Usage Recommendations Cost" dataKey="insightsCost" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+              <Bar name="Actual DISCOM Cost" dataKey="discomCost" fill="#94A3B8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+              <Bar name="PROLT Cost" dataKey="proltCost" fill="#0EA5E9" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+              <Bar name="Usage Recommendations Cost" dataKey="insightsCost" fill="#8B5CF6" radius={[4, 4, 0, 0]} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </Box>
@@ -186,19 +186,19 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
               
               {/* BASELINE (DISCOM Only) Bars */}
-              <Bar name="BASELINE DISCOM" dataKey="baselineDiscomEnergy" stackId="baseline" fill="#94A3B8" radius={[4, 4, 4, 4]} />
+              <Bar name="BASELINE DISCOM" dataKey="baselineDiscomEnergy" stackId="baseline" fill="#94A3B8" radius={[4, 4, 4, 4]} isAnimationActive={false} />
 
               {/* PROLT Bars */}
-              <Bar name="PROLT DISCOM" dataKey="proltDiscomEnergy" stackId="prolt" fill="#8B5CF6" radius={[0, 0, 4, 4]} />
-              <Bar name="PROLT DAM" dataKey="proltDamEnergy" stackId="prolt" fill="#F59E0B" />
-              <Bar name="PROLT RTM" dataKey="proltRtmEnergy" stackId="prolt" fill="#EF4444" />
-              <Bar name="PROLT GDAM" dataKey="proltGdamEnergy" stackId="prolt" fill="#10B981" radius={[4, 4, 0, 0]} />
+              <Bar name="PROLT DISCOM" dataKey="proltDiscomEnergy" stackId="prolt" fill="#8B5CF6" radius={[0, 0, 4, 4]} isAnimationActive={false} />
+              <Bar name="PROLT DAM" dataKey="proltDamEnergy" stackId="prolt" fill="#F59E0B" isAnimationActive={false} />
+              <Bar name="PROLT RTM" dataKey="proltRtmEnergy" stackId="prolt" fill="#EF4444" isAnimationActive={false} />
+              <Bar name="PROLT GDAM" dataKey="proltGdamEnergy" stackId="prolt" fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
 
               {/* INSIGHTS Bars (different opacity to distinguish visually) */}
-              <Bar name="INSIGHTS DISCOM" dataKey="insightsDiscomEnergy" stackId="insights" fill="#C4B5FD" radius={[0, 0, 4, 4]} />
-              <Bar name="INSIGHTS DAM" dataKey="insightsDamEnergy" stackId="insights" fill="#FCD34D" />
-              <Bar name="INSIGHTS RTM" dataKey="insightsRtmEnergy" stackId="insights" fill="#FCA5A5" />
-              <Bar name="INSIGHTS GDAM" dataKey="insightsGdamEnergy" stackId="insights" fill="#6EE7B7" radius={[4, 4, 0, 0]} />
+              <Bar name="INSIGHTS DISCOM" dataKey="insightsDiscomEnergy" stackId="insights" fill="#C4B5FD" radius={[0, 0, 4, 4]} isAnimationActive={false} />
+              <Bar name="INSIGHTS DAM" dataKey="insightsDamEnergy" stackId="insights" fill="#FCD34D" isAnimationActive={false} />
+              <Bar name="INSIGHTS RTM" dataKey="insightsRtmEnergy" stackId="insights" fill="#FCA5A5" isAnimationActive={false} />
+              <Bar name="INSIGHTS GDAM" dataKey="insightsGdamEnergy" stackId="insights" fill="#6EE7B7" radius={[4, 4, 0, 0]} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </Box>
