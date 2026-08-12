@@ -558,10 +558,12 @@ const exportInsightsToExcel = async () => {
                             const ppcDiscom = consumption > 0 ? (discomCost / consumption) : 0;
                             const ppcProlt = consumption > 0 ? (oaCost / consumption) : 0;
                             const savingUnit = consumption > 0 ? (saving / consumption) : 0;
-
+                            const reductionPct = discomCost > 0 ? Math.round((saving / discomCost) * 100) : 0;
 
                             monthlyData.push({
                                 month_name: m.month || '',
+                                raw_month: m.month ? m.month.split(' ')[0] : '',
+                                raw_year: m.month ? m.month.split(' ')[1] : '',
                                 cleared: Math.round(cleared).toLocaleString('en-IN'),
                                 consumption: Math.round(consumption).toLocaleString('en-IN'),
                                 oa_cost: Math.round(oaCost).toLocaleString('en-IN'),
@@ -570,9 +572,38 @@ const exportInsightsToExcel = async () => {
                                 ppc_discom: `₹${ppcDiscom.toFixed(2)}`,
                                 ppc_prolt: `₹${ppcProlt.toFixed(2)}`,
                                 saving: `₹${Math.round(saving).toLocaleString('en-IN')}`,
+                                raw_saving: Math.round(saving),
+                                reduction_pct: reductionPct,
                                 saving_unit: `₹${savingUnit.toFixed(2)}`
                             });
                         });
+                    }
+
+                    // Sort monthlyData by highest savings to populate insights
+                    const sortedForInsights = [...monthlyData].sort((a, b) => b.raw_saving - a.raw_saving);
+                    
+                    let first_insight_month = "January 2026";
+                    let first_insight_month_only = "January";
+                    let first_insight_reduction = "17";
+                    let first_insight_saving = "2,00,000";
+                    let second_insight_month = "May 2026";
+                    let second_insight_month_only = "May";
+
+                    if (sortedForInsights.length > 0) {
+                        const top1 = sortedForInsights[0];
+                        first_insight_month = top1.month_name;
+                        first_insight_month_only = top1.raw_month;
+                        first_insight_reduction = top1.reduction_pct.toString();
+                        first_insight_saving = top1.raw_saving.toLocaleString('en-IN');
+                        
+                        if (sortedForInsights.length > 1) {
+                            const top2 = sortedForInsights[1];
+                            second_insight_month = top2.month_name;
+                            second_insight_month_only = top2.raw_month;
+                        } else {
+                            second_insight_month = top1.month_name;
+                            second_insight_month_only = top1.raw_month;
+                        }
                     }
 
                     const totalConsumption = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
@@ -584,22 +615,22 @@ const exportInsightsToExcel = async () => {
                     if (dashboardEl) {
                         try {
                             const canvas = await html2canvas(dashboardEl, { scale: 2 });
-                            // Clean base64 string for docxtemplater-image-module
                             dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
                         } catch (e) {
                             console.error("html2canvas error:", e);
                         }
                     }
 
-                    // Cast numberToIndianWords to avoid TS errors if not imported correctly, though we will import it properly
-                    // Wait, numberToIndianWords is imported? Let's check. 
-                    // To be safe, we'll ensure it's imported at the top, but for now we can just use the function if it's available or require it.
-                    // Actually, I'll just use a fallback inline or make sure it's imported in the multi_replace.
-                    
                     const payload = {
                       ...hardcodedPayload,
                       ...calcEntry,
                       monthlyData,
+                      first_insight_month,
+                      first_insight_month_only,
+                      first_insight_reduction,
+                      first_insight_saving,
+                      second_insight_month,
+                      second_insight_month_only,
                       months_count_word: monthsCountWord,
                       procurement_potential: procurementPotential,
                       dashboard_screenshot: dashboard_screenshot,
