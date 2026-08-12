@@ -1,0 +1,82 @@
+P2: Proposal for Prolt Energy – AI Driven Platform for Energy Procurement & Operations
+P3: Submitted by Prolt Energy
+P4: For: <<clientName>> <<industryName>>
+P8: 1. EXECUTIVE SUMMARY
+P9: A clear, quantified opportunity to reduce energy cost
+P10: A savings proposal built from <<clientName>>’s actual utility bills and consumption data.
+P13: The proposal: move from a largely single-source electricity model to a managed procurement model that combines DISCOM supply, Open Access, exchange-based procurement, green power, solar, and battery storage wherever commercially viable.
+P15: Objective
+P16: Supply the best available energy to your business at the lowest possible landed cost, while maintaining reliability and regulatory compliance.
+P17: Prolt Energy is an AI-driven energy procurement and operations platform for commercial and industrial consumers. It helps C&I Consumer source cost-effective power through a combination of DISCOM supply, Open Access, exchange-based procurement, green power, solar, and battery storage, wherever commercially viable.
+P19: Objective: Supply the best available energy to your business at the lowest possible landed
+P20: 2. KEY CHALLENGES
+P21: The issue is not only the tariff. It is the absence of continuous, time-block-level procurement decisions.
+P26: 3. PROLT ENERGY SOLUTION
+P27: Prolt acts as your business’ intelligent energy procurement partner.
+P28: We analyse your business’ bills, load profile, tariff category, contract demand, sanctioned load, demand charges, power factor, and applicable open access rules. Based on this, Prolt designs a practical energy procurement strategy using the most suitable mix of:
+P29: DISCOM supply
+P30: Open Access power
+P31: Exchange-based procurement
+P32: PPA/ Green power procurement
+P33: On-site solar, wherever applicable
+P34: Battery storage, wherever commercially viable
+P35: The goal is to reduce landed cost without compromising reliability.
+P36: 4. PROPOSED SCOPE OF WORK –
+P37: A structured path from diagnosis to ongoing operations
+P38: Each phase produces a clear decision output and prepares the business for execution.
+P41: 5. MANAGED ENERGY OPERATIONS
+P42: More than analysis: Prolt manages the operating cycle
+P43: The platform combines intelligence with execution, visibility, and accountability.
+P46: Expected business benefits
+P47: •  Lower monthly electricity cost, with up to 30% monthly energy bill reductions.
+P48: •  Real-time visibility into energy consumption and cost.
+P49: •  A clear comparison between DISCOM and alternate supply options.
+P50: •  Reduced complexity in Open Access and market-based procurement, with full transparency.
+P51: •  Data-driven energy decisions supported by forecasting and market intelligence.
+P52: •  Monthly savings tracking and transparent reporting.
+P53: •  A future-ready power procurement model.
+P56: 6. ANALYSIS INPUTS & DELIVERABLES
+P57: Everything required to move from feasibility to execution
+P58: A clear input checklist, matched to a defined set of decision-ready deliverables.
+P61: Engagement model: Diagnostic Study first, followed by Managed Energy Service covering procurement planning, market monitoring, scheduling, reconciliation, savings tracking, and reporting.
+P63: 7. SAVINGS FOR YOUR BUSINESS –
+P64: The savings opportunity is consistent across the billing history
+P65: Actual data shows a recurring reduction opportunity, with the strongest saving in May 2026.
+P70: 8. DETAILED SAVINGS ANALYSIS
+P71: <<months_count_word>> months of customer-specific savings evidence
+P72: The figures below are reproduced from the savings analysis prepared for <<clientName>>.
+P82: 9. SOME INSIGHTS FROM PROLT PLATFORM
+P83: We have prepared a detailed bill summary of your business as below, for example, a savings study of the months of January and May 2026 has been presented below –
+P84: January 2026 Insights
+P88: January 2026 Bill Insights -
+P97: Insight:
+P105: May  2026 Insights
+P108: Insight:
+P116: Add on Features-
+P119: Visit https://prolt.energy/ , upload your energy bills, and instantly discover how much your business can save.
+P120: Get Prolted — and start saving on energy from Day 1
+P121: 10. EXECUTION TIMELINE
+P122: A managed implementation journey, led end to end by Prolt
+P124: <<clientName>> provides the go-ahead. Prolt coordinates the application, metering, permissions, and operating transition.
+P126: 1. Prolt provides a detailed savings assessment by analysing the bills and consumption pattern.
+P127: 2. <<clientName>> gives the go-ahead to begin the Prolt journey.
+P128: 3. Prolt submits all paperwork for the Open Access application in SLDC. Open Access timeline: 60-90 days.
+P129: 4. Prolt installs the Prolt Meter at the facility to begin the AI energy buying journey.
+P130: 5. Prolt coordinates with the meter supplier, contractor, and DISCOM for ABT Meter installation at the premises.
+P131: 6. The ABT Meter is installed.
+P132: 7. Once OA permission is granted, the smart energy buying and savings journey begins on Prolt.
+P133: 8. Prolt provides the Prolt Platform under a Power as a Service model, sourcing the best available power at the lowest possible prices.
+P141: 11. WHY PROLT ENERGY
+P142: A single accountable partner for technology, markets, and execution
+P143: Prolt combines energy intelligence with the operating capability required to convert analysis into realised savings.
+P146: Built by Probus Smart Things
+P147: Prolt Energy is built by Probus Smart Things, a technology company with deep experience in energy monitoring, grid digitisation, communication systems, and data analytics.
+P148: Prolt combines energy market intelligence, AI-based forecasting, regulatory understanding, and operational execution to deliver a complete energy procurement solution for industrial consumers.
+P150: 12. SUMMARY & NEXT STEP
+P151: Recommendation: begin the implementation journey now
+P152: The historical data supports a clear business case for moving to Prolt Energy.
+P155: Lower energy costs. Faster payback. Savings from Day 1.
+P157: Submitted by Prolt Energy
+P158: A Probus Smart Things Initiative
+P159: Saikat Bose | saikat@probus.io
+P179: END OF PROPOSAL
