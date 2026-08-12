@@ -202,6 +202,21 @@ export default function GenerationDataView({
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <Select
+                value={selectedSource}
+                onChange={(e) => onSourceChange(e.target.value as string)}
+                displayEmpty
+              >
+                <MenuItem value="all">All Sources</MenuItem>
+                <MenuItem value="thermal">Thermal</MenuItem>
+                <MenuItem value="hydro">Hydro</MenuItem>
+                <MenuItem value="nuclear">Nuclear</MenuItem>
+                <MenuItem value="wind">Wind</MenuItem>
+                <MenuItem value="solar">Solar</MenuItem>
+                <MenuItem value="gas">Gas</MenuItem>
+              </Select>
+            </FormControl>
             <ToggleButtonGroup
               color="primary"
               value={viewType}
