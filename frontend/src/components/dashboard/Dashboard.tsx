@@ -61,7 +61,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [selectedMonth]);
 
   // Compute Overall KPI Data
-  const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy, annualizedSavings, potentialSavingsFiveYear } = useMemo(() => {
+  const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy, annualizedSavings, avgMonthlySavings, potentialSavingsFiveYear } = useMemo(() => {
     let kpis: KPI[] = [];
     let flowData = { regionalBusOA: '0', efficiency: 100, consumerOA: '0' };
     let matrixData: MonthData[] = [];
@@ -71,6 +71,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     let totalConsumption = 0;
     let totalMarketEnergy = 0;
     let annualizedSavings = 0;
+    let avgMonthlySavings = 0;
     let potentialSavingsFiveYear = 0;
     
     const isOverall = activeMonth === 'all' || activeMonth === 'overall';
@@ -116,7 +117,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const blendedCost = totalConsumption > 0 ? (totalBaselineCost - totalSavings) / totalConsumption : 0;
       const netSavingRate = totalConsumption > 0 ? (totalSavings / totalConsumption) : 0;
       const monthCount = monthsToProcess.length;
-      const avgMonthlySavings = monthCount > 0 ? totalSavings / monthCount : 0;
+      avgMonthlySavings = monthCount > 0 ? totalSavings / monthCount : 0;
       annualizedSavings = avgMonthlySavings * 12;
       potentialSavingsFiveYear = annualizedSavings * 5;
 
@@ -252,12 +253,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     }
 
-    return { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy, annualizedSavings, potentialSavingsFiveYear };
+    return { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy, annualizedSavings, avgMonthlySavings, potentialSavingsFiveYear };
   }, [clientOverview, marketDecisionResult, activeMonth]);
 
   const hasMeteringCharges = calcEntry?.meteringCharges !== undefined && calcEntry?.meteringCharges !== null;
   const meteringCharges = Number(calcEntry?.meteringCharges || 0);
   const roiFiveYear = potentialSavingsFiveYear > 0 ? meteringCharges / potentialSavingsFiveYear : 0;
+  const paybackMonths = avgMonthlySavings > 0 ? meteringCharges / avgMonthlySavings : 0;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
@@ -377,7 +379,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {roiFiveYear.toFixed(4)} ({(roiFiveYear * 100).toFixed(2)}%)
           </Typography>
           <Typography sx={{ fontSize: '12px', color: '#65758b', mt: 0.75 }}>
-            Metering Charges: {formatIndianCurrency(meteringCharges)} | Annual Savings: {formatIndianCurrency(annualizedSavings)} | Potential 5-year Savings: {formatIndianCurrency(potentialSavingsFiveYear)}
+            Metering Charges: {formatIndianCurrency(meteringCharges)} | Average Monthly Savings: {formatIndianCurrency(avgMonthlySavings)} | Payback Period: {paybackMonths.toFixed(1)} months | Annual Savings: {formatIndianCurrency(annualizedSavings)} | Potential 5-year Savings: {formatIndianCurrency(potentialSavingsFiveYear)}
           </Typography>
         </Box>
       )}
