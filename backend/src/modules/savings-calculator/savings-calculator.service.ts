@@ -42,6 +42,7 @@ export class SavingsCalculatorService {
     voltageLevel?: string;
     proltMargin?: number;
     traderMargin?: number;
+    meteringCharges?: number | null;
     consultancyFee?: number;
     probusPlatformFee?: number;
     todConsumptions?: any;
@@ -67,6 +68,7 @@ export class SavingsCalculatorService {
           voltageLevel: data.voltageLevel,
           proltMargin: data.proltMargin,
           traderMargin: data.traderMargin,
+          meteringCharges: data.meteringCharges,
           consultancyFee: data.consultancyFee,
           probusPlatformFee: data.probusPlatformFee,
           todConsumptions: data.todConsumptions,
@@ -95,6 +97,7 @@ export class SavingsCalculatorService {
           voltageLevel: entry.voltageLevel,
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
+          meteringCharges: entry.meteringCharges,
           consultancyFee: entry.consultancyFee,
           probusPlatformFee: entry.probusPlatformFee,
           todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,
@@ -124,6 +127,7 @@ export class SavingsCalculatorService {
     voltageLevel?: string;
     proltMargin?: number;
     traderMargin?: number;
+    meteringCharges?: number | null;
     consultancyFee?: number;
     probusPlatformFee?: number;
     todConsumptions?: any;
@@ -149,6 +153,7 @@ export class SavingsCalculatorService {
           voltageLevel: data.voltageLevel,
           proltMargin: data.proltMargin,
           traderMargin: data.traderMargin,
+          meteringCharges: data.meteringCharges,
           consultancyFee: data.consultancyFee,
           probusPlatformFee: data.probusPlatformFee,
           todConsumptions: data.todConsumptions,
@@ -183,6 +188,7 @@ export class SavingsCalculatorService {
           voltageLevel: entry.voltageLevel,
           proltMargin: entry.proltMargin,
           traderMargin: entry.traderMargin,
+          meteringCharges: entry.meteringCharges,
           consultancyFee: entry.consultancyFee,
           probusPlatformFee: entry.probusPlatformFee,
           todConsumptions: entry.todConsumptions ? (entry.todConsumptions as any) : undefined,

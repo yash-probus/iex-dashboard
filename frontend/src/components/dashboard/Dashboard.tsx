@@ -61,7 +61,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [selectedMonth]);
 
   // Compute Overall KPI Data
-  const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy } = useMemo(() => {
+  const { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy, annualizedSavings, potentialSavingsFiveYear } = useMemo(() => {
     let kpis: KPI[] = [];
     let flowData = { regionalBusOA: '0', efficiency: 100, consumerOA: '0' };
     let matrixData: MonthData[] = [];
@@ -70,6 +70,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     let detail: any = null;
     let totalConsumption = 0;
     let totalMarketEnergy = 0;
+    let annualizedSavings = 0;
+    let potentialSavingsFiveYear = 0;
     
     const isOverall = activeMonth === 'all' || activeMonth === 'overall';
 
@@ -113,11 +115,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const oaCoverage = totalConsumption > 0 ? (totalMarketEnergy / totalConsumption) * 100 : 0;
       const blendedCost = totalConsumption > 0 ? (totalBaselineCost - totalSavings) / totalConsumption : 0;
       const netSavingRate = totalConsumption > 0 ? (totalSavings / totalConsumption) : 0;
+      const monthCount = monthsToProcess.length;
+      const avgMonthlySavings = monthCount > 0 ? totalSavings / monthCount : 0;
+      annualizedSavings = avgMonthlySavings * 12;
+      potentialSavingsFiveYear = annualizedSavings * 5;
 
       // When overall, the old dashboard multiplied some things by 12/mCount for "Annual".
       // But we will stick to aggregate values here to match the old DashboardKPIs props we implemented
       kpis = [
         { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Summary value after fees', color: 'green' },
+        { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: 'Average client savings per month', color: 'green' },
         { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
         { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${oaCoverage.toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: 'Billed electricity consumption' },
@@ -245,8 +252,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     }
 
-    return { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy };
+    return { kpis, flowData, matrixData, periodText, detailedCycle, detail, isOverall, totalConsumption, totalMarketEnergy, annualizedSavings, potentialSavingsFiveYear };
   }, [clientOverview, marketDecisionResult, activeMonth]);
+
+  const hasMeteringCharges = calcEntry?.meteringCharges !== undefined && calcEntry?.meteringCharges !== null;
+  const meteringCharges = Number(calcEntry?.meteringCharges || 0);
+  const roiFiveYear = potentialSavingsFiveYear > 0 ? meteringCharges / potentialSavingsFiveYear : 0;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
@@ -345,6 +356,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <Box sx={{ mt: 4 }}>
           <OverallVisualAnalytics clientOverview={clientOverview} selectedMonth={selectedMonth} />
           <OverallMonthlyRegisterTable clientOverview={clientOverview} onDrillDown={(m) => setActiveMonth(m)} />
+        </Box>
+      )}
+
+      {hasMeteringCharges && potentialSavingsFiveYear > 0 && (
+        <Box
+          sx={{
+            mt: 2,
+            border: '1px solid #dce5ef',
+            borderRadius: '14px',
+            p: 2.5,
+            background: 'linear-gradient(145deg, #f2f8ff, #ffffff)',
+            boxShadow: '0 10px 26px rgba(13, 38, 72, .06)'
+          }}
+        >
+          <Typography sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.065em', color: '#65758b', fontWeight: 900 }}>
+            5-year ROI (Metering Charges / Potential 5-year Savings)
+          </Typography>
+          <Typography sx={{ fontSize: 'clamp(22px, 2vw, 30px)', fontWeight: 900, color: '#11233d', mt: 1 }}>
+            {roiFiveYear.toFixed(4)} ({(roiFiveYear * 100).toFixed(2)}%)
+          </Typography>
+          <Typography sx={{ fontSize: '12px', color: '#65758b', mt: 0.75 }}>
+            Metering Charges: {formatIndianCurrency(meteringCharges)} | Annual Savings: {formatIndianCurrency(annualizedSavings)} | Potential 5-year Savings: {formatIndianCurrency(potentialSavingsFiveYear)}
+          </Typography>
         </Box>
       )}
 

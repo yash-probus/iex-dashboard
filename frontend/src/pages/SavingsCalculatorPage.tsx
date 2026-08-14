@@ -89,6 +89,7 @@ const getChanges = (current: any, previous: any) => {
     { key: 'sanctionedLoadKw', label: 'Load (kW)', isNumeric: true },
     { key: 'proltMargin', label: 'PROLT Margin', isNumeric: true },
     { key: 'traderMargin', label: 'Trader Margin', isNumeric: true },
+    { key: 'meteringCharges', label: 'Metering Charges', isNumeric: true },
     { key: 'consultancyFee', label: 'Consultancy Fee', isNumeric: true },
     { key: 'probusPlatformFee', label: 'Platform Fee', isNumeric: true },
     { key: 'applyElectricityDuty', label: 'Electricity Duty', isNumeric: false },
@@ -175,6 +176,7 @@ export default function SavingsCalculatorPage() {
   const [supplyVoltageValue, setSupplyVoltageValue] = useState('');
   const [proltMargin, setProltMargin] = useState<string>('');
   const [traderMargin, setTraderMargin] = useState('');
+  const [meteringCharges, setMeteringCharges] = useState('');
   const [consultancyFee, setConsultancyFee] = useState('');
   const [probusPlatformFee, setProbusPlatformFee] = useState('');
 
@@ -544,6 +546,7 @@ export default function SavingsCalculatorPage() {
     setSupplyVoltageValue('');
     setProltMargin('');
     setTraderMargin('');
+    setMeteringCharges('');
     setConsultancyFee('');
     setProbusPlatformFee('');
     setTodConsumptions({});
@@ -615,6 +618,7 @@ export default function SavingsCalculatorPage() {
 
       setProltMargin(entry.proltMargin ? String(entry.proltMargin) : '');
       setTraderMargin(entry.traderMargin ? String(entry.traderMargin) : '');
+      setMeteringCharges(entry.meteringCharges !== undefined && entry.meteringCharges !== null ? String(entry.meteringCharges) : '');
       setConsultancyFee(entry.consultancyFee ? String(entry.consultancyFee) : '');
       setProbusPlatformFee(entry.probusPlatformFee ? String(entry.probusPlatformFee) : '');
 
@@ -741,6 +745,7 @@ export default function SavingsCalculatorPage() {
         voltageLevel: (voltageLevel.trim() ? (supplyVoltageValue.trim() ? `${voltageLevel.trim()} - ${supplyVoltageValue.trim()}` : voltageLevel.trim()) : undefined),
         proltMargin: proltMargin ? Number(proltMargin) : undefined,
         traderMargin: traderMargin ? Number(traderMargin) : undefined,
+        meteringCharges: meteringCharges ? Number(meteringCharges) : undefined,
         consultancyFee: consultancyFee ? Number(consultancyFee) : undefined,
         probusPlatformFee: probusPlatformFee ? Number(probusPlatformFee) : undefined,
         todConsumptions: Object.keys(todConsumptions).length > 0 ?
@@ -2088,6 +2093,24 @@ export default function SavingsCalculatorPage() {
               }}
             />
             <TextField
+              label="Metering Charges (Rs)"
+              value={meteringCharges}
+              onChange={(e) => setMeteringCharges(e.target.value)}
+              fullWidth
+              type="number"
+              variant="outlined"
+              size="small"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <MuiTooltip title="One-time metering cost used for 5-year ROI calculation." placement="top">
+                      <InfoOutlinedIcon fontSize="small" sx={{ color: 'text.secondary', cursor: 'help' }} />
+                    </MuiTooltip>
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
               label="Probus Platform Subscription fees (Rs/kWh)"
               value={probusPlatformFee}
               onChange={(e) => setProbusPlatformFee(e.target.value)}
@@ -2999,8 +3022,8 @@ export default function SavingsCalculatorPage() {
                           <Typography variant="body2" fontWeight={600}>{v.discom}</Typography>
                         </Grid>
                         <Grid item xs={6} sm={4}>
-                          <Typography variant="caption" color="text.secondary">PROLT / Trader Margin</Typography>
-                          <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin}</Typography>
+                          <Typography variant="caption" color="text.secondary">PROLT / Trader / Metering</Typography>
+                          <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin} / ₹{v.meteringCharges || 0}</Typography>
                         </Grid>
                       </Grid>
                     )}

@@ -12,6 +12,7 @@ export interface SavingsCalculatorEntry {
   voltageLevel?: string;
   proltMargin?: number;
   traderMargin?: number;
+  meteringCharges?: number;
   consultancyFee?: number;
   probusPlatformFee?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
@@ -44,6 +45,7 @@ export interface CreateSavingsEntryDto {
   voltageLevel?: string;
   proltMargin?: number;
   traderMargin?: number;
+  meteringCharges?: number;
   consultancyFee?: number;
   probusPlatformFee?: number;
   todConsumptions?: Record<string, Record<string, number | string>>;
