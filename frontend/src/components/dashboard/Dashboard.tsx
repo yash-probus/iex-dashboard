@@ -130,6 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: 'Average client savings per month', color: 'green' },
         { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
         { label: 'Metering charge payback', value: `${paybackMonths.toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
+        { label: 'Potential 5-year savings', value: formatIndianCurrency(potentialSavingsFiveYear), sub: 'Annual savings × 5 years', color: 'green' },
         { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${oaCoverage.toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: 'Billed electricity consumption' },
         { label: 'Blended cost', value: `₹${blendedCost.toFixed(2)}`, sub: 'Average blended rate per kWh' },
@@ -361,29 +362,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <Box sx={{ mt: 4 }}>
           <OverallVisualAnalytics clientOverview={clientOverview} selectedMonth={selectedMonth} />
           <OverallMonthlyRegisterTable clientOverview={clientOverview} onDrillDown={(m) => setActiveMonth(m)} />
-        </Box>
-      )}
-
-      {hasMeteringCharges && potentialSavingsFiveYear > 0 && (
-        <Box
-          sx={{
-            mt: 2,
-            border: '1px solid #dce5ef',
-            borderRadius: '14px',
-            p: 2.5,
-            background: 'linear-gradient(145deg, #f2f8ff, #ffffff)',
-            boxShadow: '0 10px 26px rgba(13, 38, 72, .06)'
-          }}
-        >
-          <Typography sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.065em', color: '#65758b', fontWeight: 900 }}>
-            5-year potential savings
-          </Typography>
-          <Typography sx={{ fontSize: 'clamp(22px, 2vw, 30px)', fontWeight: 900, color: '#11233d', mt: 1 }}>
-            {formatIndianCurrency(potentialSavingsFiveYear)}
-          </Typography>
-          <Typography sx={{ fontSize: '12px', color: '#65758b', mt: 0.75 }}>
-            Annual Savings: {formatIndianCurrency(annualizedSavings)} | Potential 5-year Savings: {formatIndianCurrency(potentialSavingsFiveYear)}
-          </Typography>
         </Box>
       )}
 
