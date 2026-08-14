@@ -118,6 +118,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const netSavingRate = totalConsumption > 0 ? (totalSavings / totalConsumption) : 0;
       const monthCount = monthsToProcess.length;
       avgMonthlySavings = monthCount > 0 ? totalSavings / monthCount : 0;
+      const meteringCharges = Number(calcEntry?.meteringCharges || 0);
+      const paybackMonths = avgMonthlySavings > 0 ? meteringCharges / avgMonthlySavings : 0;
       annualizedSavings = avgMonthlySavings * 12;
       potentialSavingsFiveYear = annualizedSavings * 5;
 
@@ -127,6 +129,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Summary value after fees', color: 'green' },
         { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: 'Average client savings per month', color: 'green' },
         { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
+        { label: 'Metering charge payback', value: `${paybackMonths.toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
         { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${oaCoverage.toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: 'Billed electricity consumption' },
         { label: 'Blended cost', value: `₹${blendedCost.toFixed(2)}`, sub: 'Average blended rate per kWh' },
@@ -373,13 +376,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }}
         >
           <Typography sx={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.065em', color: '#65758b', fontWeight: 900 }}>
-            5-year ROI (Metering Charges / Potential 5-year Savings)
+            5-year potential savings
           </Typography>
           <Typography sx={{ fontSize: 'clamp(22px, 2vw, 30px)', fontWeight: 900, color: '#11233d', mt: 1 }}>
-            {roiFiveYear.toFixed(4)} ({(roiFiveYear * 100).toFixed(2)}%)
+            {formatIndianCurrency(potentialSavingsFiveYear)}
           </Typography>
           <Typography sx={{ fontSize: '12px', color: '#65758b', mt: 0.75 }}>
-            Metering Charges: {formatIndianCurrency(meteringCharges)} | Average Monthly Savings: {formatIndianCurrency(avgMonthlySavings)} | Payback Period: {paybackMonths.toFixed(1)} months | Annual Savings: {formatIndianCurrency(annualizedSavings)} | Potential 5-year Savings: {formatIndianCurrency(potentialSavingsFiveYear)}
+            Annual Savings: {formatIndianCurrency(annualizedSavings)} | Potential 5-year Savings: {formatIndianCurrency(potentialSavingsFiveYear)}
           </Typography>
         </Box>
       )}
