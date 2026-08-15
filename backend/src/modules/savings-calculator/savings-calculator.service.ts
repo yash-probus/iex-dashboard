@@ -2012,12 +2012,16 @@ export class SavingsCalculatorService {
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
+      const fppaMultiplier = 1 + (fppaPercent / 100);
 
       const getDiscountedDemandCharge = (dc: number) => {
         return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
       };
 
-      const discountedSlabBill = slabEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
+      // FPPA should be applied on (energy charges + demand charges).
+      const demandChargeWithFppa = getDiscountedDemandCharge(slabDemandCharge) * fppaMultiplier;
+
+      const discountedSlabBill = slabEnergyBill + demandChargeWithFppa;
       
       const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
       let applyED = true;
@@ -2033,7 +2037,7 @@ export class SavingsCalculatorService {
       totalBaselineCost += slabTotalDiscomBill;
 
       const proltEnergyBill = discomEnergy * slabDiscomRate;
-      const discountedProltBill = proltEnergyBill + getDiscountedDemandCharge(slabDemandCharge);
+      const discountedProltBill = proltEnergyBill + demandChargeWithFppa;
       const proltDiscomBillTotal = discountedProltBill + slabED;
       totalDiscomAfterProlt += proltDiscomBillTotal;
 

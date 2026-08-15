@@ -252,28 +252,36 @@ export class SavingsCalculatorExportService {
       const npclMultiplier = 0.90 * 0.99;
       const grossEnergy = energyCharges / npclMultiplier;
       const grossDemand = demandCharges / npclMultiplier;
+      const grossTotal = grossEnergy + grossDemand;
       
       const energyRebate10 = grossEnergy * 0.10;
       const energyRebate1 = (grossEnergy - energyRebate10) * 0.01;
       const demandRebate10 = grossDemand * 0.10;
       const demandRebate1 = (grossDemand - demandRebate10) * 0.01;
       
-      const baseGrossEnergy = grossEnergy / (1 + (fppaPercent / 100));
-      const fppaCharges = grossEnergy - baseGrossEnergy;
+      const baseGrossTotal = grossTotal / (1 + (fppaPercent / 100));
+      const fppaCharges = grossTotal - baseGrossTotal;
+      const energyShare = grossTotal > 0 ? grossEnergy / grossTotal : 0;
+      const baseGrossEnergy = baseGrossTotal * energyShare;
+      const baseGrossDemand = baseGrossTotal - baseGrossEnergy;
       
       sheet.addRow(['Gross Base Energy Charges', Math.round(baseGrossEnergy)]);
       sheet.addRow(['FPPA Surcharge', Math.round(fppaCharges)]);
-      sheet.addRow(['Gross Demand & Fixed Charges', Math.round(grossDemand)]);
+      sheet.addRow(['Gross Demand & Fixed Charges', Math.round(baseGrossDemand)]);
       sheet.addRow(['NPCL Rebate (10%)', -Math.round(energyRebate10 + demandRebate10)]);
       sheet.addRow(['NPCL Prompt Payment Rebate (1%)', -Math.round(energyRebate1 + demandRebate1)]);
       sheet.addRow(['Net Energy & Demand Charges', Math.round(energyCharges + demandCharges)]);
     } else {
-      const baseEnergyCharges = energyCharges / (1 + (fppaPercent / 100));
-      const fppaCharges = energyCharges - baseEnergyCharges;
+      const grossTotal = energyCharges + demandCharges;
+      const baseTotal = grossTotal / (1 + (fppaPercent / 100));
+      const fppaCharges = grossTotal - baseTotal;
+      const energyShare = grossTotal > 0 ? energyCharges / grossTotal : 0;
+      const baseEnergyCharges = baseTotal * energyShare;
+      const baseDemandCharges = baseTotal - baseEnergyCharges;
 
       sheet.addRow(['Energy Charges', Math.round(baseEnergyCharges)]);
       sheet.addRow(['FPPA Surcharge', Math.round(fppaCharges)]);
-      sheet.addRow(['Demand & Fixed Charges', Math.round(demandCharges)]);
+      sheet.addRow(['Demand & Fixed Charges', Math.round(baseDemandCharges)]);
     }
     
     sheet.addRow(['Electricity Duty', Math.round(ed)]);
@@ -303,28 +311,36 @@ export class SavingsCalculatorExportService {
       const npclMultiplier = 0.90 * 0.99;
       const grossEnergyAfterOA = energyChargesAfterOA / npclMultiplier;
       const grossDemand = demandCharges / npclMultiplier;
+      const grossTotalAfterOA = grossEnergyAfterOA + grossDemand;
       
       const energyRebate10AfterOA = grossEnergyAfterOA * 0.10;
       const energyRebate1AfterOA = (grossEnergyAfterOA - energyRebate10AfterOA) * 0.01;
       const demandRebate10 = grossDemand * 0.10;
       const demandRebate1 = (grossDemand - demandRebate10) * 0.01;
       
-      const baseGrossEnergyAfterOA = grossEnergyAfterOA / (1 + (fppaPercent / 100));
-      const fppaChargesAfterOA = grossEnergyAfterOA - baseGrossEnergyAfterOA;
+      const baseGrossTotalAfterOA = grossTotalAfterOA / (1 + (fppaPercent / 100));
+      const fppaChargesAfterOA = grossTotalAfterOA - baseGrossTotalAfterOA;
+      const energyShareAfterOA = grossTotalAfterOA > 0 ? grossEnergyAfterOA / grossTotalAfterOA : 0;
+      const baseGrossEnergyAfterOA = baseGrossTotalAfterOA * energyShareAfterOA;
+      const baseGrossDemandAfterOA = baseGrossTotalAfterOA - baseGrossEnergyAfterOA;
       
       sheet.addRow(['Gross Base Energy Charges', Math.round(baseGrossEnergyAfterOA)]);
       sheet.addRow(['FPPA Surcharge', Math.round(fppaChargesAfterOA)]);
-      sheet.addRow(['Gross Demand & Fixed Charges', Math.round(grossDemand)]);
+      sheet.addRow(['Gross Demand & Fixed Charges', Math.round(baseGrossDemandAfterOA)]);
       sheet.addRow(['NPCL Rebate (10%)', -Math.round(energyRebate10AfterOA + demandRebate10)]);
       sheet.addRow(['NPCL Prompt Payment Rebate (1%)', -Math.round(energyRebate1AfterOA + demandRebate1)]);
       sheet.addRow(['Net Energy & Demand Charges', Math.round(energyChargesAfterOA + demandCharges)]);
     } else {
-      const baseEnergyChargesAfterOA = energyChargesAfterOA / (1 + (fppaPercent / 100));
-      const fppaChargesAfterOA = energyChargesAfterOA - baseEnergyChargesAfterOA;
+      const grossTotalAfterOA = energyChargesAfterOA + demandCharges;
+      const baseTotalAfterOA = grossTotalAfterOA / (1 + (fppaPercent / 100));
+      const fppaChargesAfterOA = grossTotalAfterOA - baseTotalAfterOA;
+      const energyShareAfterOA = grossTotalAfterOA > 0 ? energyChargesAfterOA / grossTotalAfterOA : 0;
+      const baseEnergyChargesAfterOA = baseTotalAfterOA * energyShareAfterOA;
+      const baseDemandChargesAfterOA = baseTotalAfterOA - baseEnergyChargesAfterOA;
 
       sheet.addRow(['Energy Charges', Math.round(baseEnergyChargesAfterOA)]);
       sheet.addRow(['FPPA Surcharge', Math.round(fppaChargesAfterOA)]);
-      sheet.addRow(['Demand & Fixed Charges', Math.round(demandCharges)]);
+      sheet.addRow(['Demand & Fixed Charges', Math.round(baseDemandChargesAfterOA)]);
     }
     
     sheet.addRow(['Electricity Duty', Math.round(ed)]);
