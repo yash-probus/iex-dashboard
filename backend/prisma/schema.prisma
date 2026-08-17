@@ -831,7 +831,6 @@ model ForecastConsumerDemand {
   forecastedEnergy Decimal? @map("forecasted_energy") @db.Decimal(18, 4)
   confidence       Decimal? @db.Decimal(18, 4)
 
-  @@id([timestamp, slotNumber])
   @@map("consumer_demand_forecasting")
   @@schema("forecasting")
   @@ignore
