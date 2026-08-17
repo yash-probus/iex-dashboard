@@ -605,51 +605,81 @@ export class ForecastService {
         let formatted: DemandForecastIntervalData[] = [];
 
         try {
-          // Production schema shape: timestamp, slot_number, forecasted_energy, actual_energy
+          const startDate = new Date(`${dates[0]}T00:00:00+05:30`);
+          const endDate = new Date(`${dates[dates.length - 1]}T23:59:59+05:30`);
+
           const records: any[] = await prisma.$queryRawUnsafe(
-            `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy
+            `SELECT timestamp, slot_number, forecasted_energy, actual_energy
              FROM "forecasting"."consumer_demand_forecasting"
-             WHERE (timestamp::date)::text = ANY($1::text[]) OR ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($1::text[])
+             WHERE (timestamp >= $1::timestamptz AND timestamp <= $2::timestamptz)
+                OR (timestamp::date)::text = ANY($3::text[])
+                OR ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($3::text[])
              ORDER BY timestamp ASC, slot_number ASC`,
+            startDate.toISOString(),
+            endDate.toISOString(),
             dates
           );
 
           formatted = records.map((r: any) => {
-            const rawDateStr = r.date_str || (
-              typeof r.timestamp === 'string'
-                ? r.timestamp.split('T')[0]
-                : new Date(r.timestamp).toISOString().split('T')[0]
-            );
-            const dateStr = dates.find(d => d === rawDateStr) || dates[0];
+            const d = new Date(r.timestamp);
+            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+            const dateStr = istDate.toISOString().split('T')[0];
 
-            const slotNum = Number(r.slot_number || 1);
-            const startMins = (slotNum - 1) * 15;
-            const endMins = slotNum * 15;
+            let hourStr = '';
+            let timeBlock = '';
+            let intervalNumber = 1;
+            let hourNum = 1;
 
-            const startH = String(Math.floor(startMins / 60) % 24).padStart(2, '0');
-            const startM = String(startMins % 60).padStart(2, '0');
-            const endH = String(Math.floor(endMins / 60) % 24).padStart(2, '0');
-            const endM = String(endMins % 60).padStart(2, '0');
+            if (r.slot_number) {
+              const slotNum = Number(r.slot_number);
+              const startMins = (slotNum - 1) * 15;
+              const endMins = slotNum * 15;
 
-            const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
-            const hourNum = Math.floor((slotNum - 1) / 4) + 1;
+              const startH = String(Math.floor(startMins / 60) % 24).padStart(2, '0');
+              const startM = String(startMins % 60).padStart(2, '0');
+              const endH = String(Math.floor(endMins / 60) % 24).padStart(2, '0');
+              const endM = String(endMins % 60).padStart(2, '0');
+
+              timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+              hourStr = `${startH}:${startM}`;
+              intervalNumber = slotNum;
+              hourNum = Math.floor((slotNum - 1) / 4) + 1;
+            } else {
+              const hh = String(istDate.getUTCHours()).padStart(2, '0');
+              const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
+              hourStr = `${hh}:${mm}`;
+              const nextMin = (istDate.getUTCMinutes() + 15) % 60;
+              const nextHour = nextMin === 0 ? (istDate.getUTCHours() + 1) % 24 : istDate.getUTCHours();
+              timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
+              const minutes = istDate.getUTCHours() * 60 + istDate.getUTCMinutes();
+              intervalNumber = Math.floor(minutes / 15) + 1;
+              hourNum = Math.floor(minutes / 60) + 1;
+            }
 
             return {
-              date: dateStr,
+              date: dates.includes(dateStr) ? dateStr : dates[0],
               hour: String(hourNum).padStart(2, '0'),
               timeBlock,
-              intervalNumber: slotNum,
-              demand: r.forecasted_energy !== null && r.forecasted_energy !== undefined ? Number(r.forecasted_energy) : 0,
+              intervalNumber,
+              demand: r.forecasted_energy !== null && r.forecasted_energy !== undefined 
+                ? Number(r.forecasted_energy) 
+                : (r.forecast_demand !== null && r.forecast_demand !== undefined ? Number(r.forecast_demand) : 0),
               actualDemand: r.actual_energy !== null && r.actual_energy !== undefined ? Number(r.actual_energy) : null
             };
           });
         } catch {
           // Legacy schema fallback (timestamp + forecast_demand)
+          const startDate = new Date(`${dates[0]}T00:00:00+05:30`);
+          const endDate = new Date(`${dates[dates.length - 1]}T23:59:59+05:30`);
+
           const records: any[] = await prisma.$queryRawUnsafe(
             `SELECT timestamp, forecast_demand
              FROM "forecasting"."consumer_demand_forecasting"
-             WHERE ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($1::text[])
+             WHERE (timestamp >= $1::timestamptz AND timestamp <= $2::timestamptz)
+                OR ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($3::text[])
              ORDER BY timestamp ASC`,
+            startDate.toISOString(),
+            endDate.toISOString(),
             dates
           );
 
@@ -667,7 +697,7 @@ export class ForecastService {
             const intervalNumber = Math.floor(minutes / 15) + 1;
 
             return {
-              date: dateStr,
+              date: dates.includes(dateStr) ? dateStr : dates[0],
               hour: hourStr,
               timeBlock,
               intervalNumber,
