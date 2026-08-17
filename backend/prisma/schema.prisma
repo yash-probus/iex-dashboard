@@ -832,10 +832,9 @@ model ForecastConsumerDemand {
   confidence       Decimal? @db.Decimal(18, 4)
 
   @@id([timestamp, slotNumber])
-  @@index([timestamp])
-  @@index([slotNumber])
   @@map("consumer_demand_forecasting")
   @@schema("forecasting")
+  @@ignore
 }
 
 model ForecastAllIndiaDemand {
