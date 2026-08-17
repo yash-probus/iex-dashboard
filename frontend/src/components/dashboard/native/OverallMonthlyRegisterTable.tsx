@@ -52,7 +52,8 @@ export const OverallMonthlyRegisterTable: React.FC<OverallMonthlyRegisterTablePr
             {validMonths.map((m: any) => {
               const consumption = m.totalEnergyKwh || 0;
               const oaCleared = m.totalMarketEnergyKwh || 0;
-              const coverage = consumption > 0 ? Math.round((oaCleared / consumption) * 100) : 0;
+              const recOaConsumer = m.oaConsumer ?? m.clearedUnitsKwh ?? m.cleared ?? (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - (m.busLoss ? m.busLoss / 100 : 0.1211)) : 0);
+              const coverage = m.oaCoverage ?? (consumption > 0 ? (recOaConsumer / consumption) * 100 : 0);
               const clientSaving = m.savings || 0;
               const grossSaving = m.grossSavings || clientSaving;
               const fees = grossSaving - clientSaving;
@@ -67,7 +68,7 @@ export const OverallMonthlyRegisterTable: React.FC<OverallMonthlyRegisterTablePr
                   <TableCell sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>{m.month}</TableCell>
                   <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(consumption)}</TableCell>
                   <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(oaCleared)}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{coverage}%</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{Number(coverage || 0).toFixed(2)}%</TableCell>
                   <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(discomRate, 2)}</TableCell>
                   <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(withOaRate, 2)}</TableCell>
                   <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{formatNumber(grossSaving)}</TableCell>
