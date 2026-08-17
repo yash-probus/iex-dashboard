@@ -33,6 +33,7 @@ export default function ForecastPage() {
   // Determine forecast type and market/sub-type from path
   const isPrice = path.includes('/forecast/price');
   const isDemand = path.includes('/forecast/demand');
+  const isGeneration = path.includes('/forecast/generation');
 
   let subType = 'dam'; // default
   let displayTitle = '';
@@ -54,6 +55,11 @@ export default function ForecastPage() {
     displayTitle = `${subType === 'all-india' ? 'All India' : 'Consumer'} Demand Forecast`;
     displaySubtitle = `Forecasted electricity load curves and demand profiles for utility planning and analysis.`;
     accentColor = '#00BFA5'; // teal for demand
+  } else if (isGeneration) {
+    subType = 'npp';
+    displayTitle = `NPP Generation Forecast`;
+    displaySubtitle = `Forecasted and actual solar, wind, and Non-Platform Power (NPP) generation output.`;
+    accentColor = '#FF7043'; // orange for generation
   }
 
   // Set default dates: today to tomorrow

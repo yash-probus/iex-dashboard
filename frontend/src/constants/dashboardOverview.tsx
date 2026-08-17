@@ -204,12 +204,12 @@ export const FORECAST_ITEMS: OverviewItemConfig[] = [
   {
     key: 'generation-forecast',
     title: 'Generation Forecast',
-    description: 'Forecasted solar, wind, and NPF/NPP generation data.',
-    path: '/forecast/generation/npf',
+    description: 'Forecasted solar, wind, and NPP generation data.',
+    path: '/forecast/generation/npp',
     icon: <BoltIcon fontSize="medium" />,
     color: '#FF7043',
     subItems: [
-      { key: 'gen-npf', title: 'NPF Generation', path: '/forecast/generation/npf', icon: <BoltIcon fontSize="small" /> },
+      { key: 'gen-npp', title: 'NPP Generation', path: '/forecast/generation/npp', icon: <BoltIcon fontSize="small" /> },
     ]
   }
 ];
