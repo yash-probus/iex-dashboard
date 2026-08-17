@@ -825,17 +825,16 @@ model RtmNowcast {
 }
 
 model ForecastConsumerDemand {
-  id                       String   @id @default(uuid())
-  date                     String   @db.VarChar(10)
-  hour                     String   @db.VarChar(5)
-  intervalNumber           Int      @db.SmallInt
-  timeBlock                String   @db.VarChar(15)
-  forecastedApparentEnergy Decimal  @db.Decimal(18, 4)
-  actualApparentEnergy     Decimal? @db.Decimal(18, 4)
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  date                     String    @db.VarChar(10)
+  hour                     String    @db.VarChar(5)
+  intervalNumber           Int       @map("interval_number") @db.SmallInt
+  timeBlock                String    @map("time_block") @db.VarChar(15)
+  forecastedApparentEnergy Decimal   @map("forecasted_apparent_energy") @db.Decimal(18, 4)
+  actualApparentEnergy     Decimal?  @map("actual_apparent_energy") @db.Decimal(18, 4)
+  createdAt                DateTime? @map("created_at") @default(now())
+  updatedAt                DateTime? @map("updated_at") @updatedAt
 
-  @@unique([date, intervalNumber])
+  @@id([date, intervalNumber])
   @@index([date])
   @@index([intervalNumber])
   @@index([timeBlock])
