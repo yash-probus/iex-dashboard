@@ -31,6 +31,59 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
     return rawMonth;
   };
 
+  const formatMonthTick = (rawMonth: string) => {
+    if (!rawMonth) return '';
+    const str = String(rawMonth).trim();
+
+    // Handles "YYYY-MM" or "YYYY-MM-DD" (e.g. 2025-03 or 2025-03-01)
+    const yyyyMm = str.match(/^(\d{4})[-/](\d{1,2})/);
+    if (yyyyMm) {
+      const year = yyyyMm[1];
+      const monthNum = Number(yyyyMm[2]);
+      const d = new Date(Number(year), monthNum - 1, 1);
+      if (!isNaN(d.getTime())) {
+        const mon = d.toLocaleString('en-US', { month: 'short' });
+        return `${mon} ${year}`;
+      }
+    }
+
+    // Handles "MM/YYYY" or "M/YYYY" (e.g. 03/2025)
+    const mmYyyy = str.match(/^(\d{1,2})[-/](\d{4})/);
+    if (mmYyyy) {
+      const monthNum = Number(mmYyyy[1]);
+      const year = mmYyyy[2];
+      const d = new Date(Number(year), monthNum - 1, 1);
+      if (!isNaN(d.getTime())) {
+        const mon = d.toLocaleString('en-US', { month: 'short' });
+        return `${mon} ${year}`;
+      }
+    }
+
+    // Handles "Mon-YY" or "Mon YY" or "Mon-YYYY" (e.g. Mar-25, Mar 25, Mar 2025)
+    const monYy = str.match(/^([A-Za-z]{3,})[- ]?(\d{2,4})$/);
+    if (monYy) {
+      const mon = monYy[1].slice(0, 3);
+      const yr = monYy[2].length === 2 ? `20${monYy[2]}` : monYy[2];
+      return `${mon} ${yr}`;
+    }
+
+    // Handles "YYYY Mon" or "YYYY Month" (e.g. 2025 Mar)
+    const yyyyMon = str.match(/^(\d{4})[- ]+([A-Za-z]+)$/);
+    if (yyyyMon) {
+      const mon = yyyyMon[2].slice(0, 3);
+      return `${mon} ${yyyyMon[1]}`;
+    }
+
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      const mon = d.toLocaleString('en-US', { month: 'short' });
+      const yr = d.getFullYear();
+      return `${mon} ${yr}`;
+    }
+
+    return str;
+  };
+
   let validMonths = clientOverview.months.filter((m: any) => !m.error);
   if (selectedMonth && selectedMonth !== 'all') {
     validMonths = validMonths.filter((m: any) => m.month === selectedMonth);
@@ -89,7 +142,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
 
     return {
       monthLabel: m.month,
-      monthShort: formatMonthLabel(m.month).split(' ')[0],
+      monthShort: formatMonthTick(m.month),
       clientSaving: m.savings || 0,
       grossSaving: m.grossSavings || (m.savings || 0),
       coverage: coverage,
@@ -128,7 +181,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
               <ResponsiveContainer width="100%" height={300}>
                 <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                  <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} interval={0} />
                   <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={formatLakhs} />
                   <YAxis 
                     yAxisId="right" 
@@ -313,7 +366,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData} barCategoryGap="20%" margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} interval={0} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(v) => formatIndianNumber(v)} />
                 <Tooltip
                   cursor={{ fill: '#f8fafc' }}
@@ -341,7 +394,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} interval={0} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(v) => formatLakhs(v)} />
                 <Tooltip
                   cursor={{ fill: '#f8fafc' }}
