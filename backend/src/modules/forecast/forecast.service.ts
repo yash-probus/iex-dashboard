@@ -546,14 +546,24 @@ export class ForecastService {
         const startDate = new Date(`${dates[0]}T00:00:00+05:30`);
         const endDate = new Date(`${dates[dates.length - 1]}T23:59:59+05:30`);
 
-        const records = await prisma.forecastAllIndiaDemandV2.findMany({
-          where: { 
-            timestamp: { 
-              gte: startDate,
-              lte: endDate
-            } 
-          },
-          orderBy: [{ timestamp: 'asc' }]
+        const [records, actualRecords] = await Promise.all([
+          prisma.forecastAllIndiaDemandV2.findMany({
+            where: { 
+              timestamp: { 
+                gte: startDate,
+                lte: endDate
+              } 
+            },
+            orderBy: [{ timestamp: 'asc' }]
+          }),
+          prisma.nppAdjustedDemandData.findMany({
+            where: { date: { in: dates } }
+          }).then(res => res.length > 0 ? res : prisma.nppRawDemandData.findMany({ where: { date: { in: dates } } }))
+        ]);
+
+        const actualMap = new Map<string, number>();
+        actualRecords.forEach((a: any) => {
+          actualMap.set(`${a.date}_${a.timeStr}`, Number(a.demandMet));
         });
 
         if (records && records.length > 0) {
@@ -574,13 +584,16 @@ export class ForecastService {
             const minutes = istDate.getUTCHours() * 60 + istDate.getUTCMinutes();
             const intervalNumber = Math.floor(minutes / 15) + 1;
 
+            const forecastedVal = r.forecast_demand !== null ? Number(r.forecast_demand) : 0;
+            const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? null;
+
             return {
               date: dateStr,
               hour: hourStr,
               timeBlock: timeBlock,
               intervalNumber: intervalNumber,
-              demand: r.forecast_demand !== null ? Number(r.forecast_demand) : 0,
-              actualDemand: null // all_india_demand_forecasting_v2 does not contain actuals
+              demand: forecastedVal,
+              actualDemand: actualVal
             };
           });
           // Only keep intervals that match our requested dates

@@ -89,6 +89,8 @@ export default function AppRoutes() {
             <Route path="forecast/price/gdam" element={<ForecastPage />} />
             <Route path="forecast/demand/consumer" element={<ForecastPage />} />
             <Route path="forecast/demand/all-india" element={<ForecastPage />} />
+            <Route path="forecast/generation/npf" element={<ForecastPage />} />
+            <Route path="forecast/generation/npp" element={<Navigate to="/forecast/generation/npf" replace />} />
             <Route path="forecast" element={<Navigate to="/forecast/price/dam" replace />} />
             
             {/* Resource Center Sub-pages */}

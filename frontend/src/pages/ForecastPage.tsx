@@ -242,48 +242,32 @@ export default function ForecastPage() {
   // Define chart metrics
   const getChartMetrics = (): ChartMetric[] => {
     if (isDemand) {
-      const metrics: ChartMetric[] = [
-        { key: 'demand', name: subType === 'consumer' ? 'Forecasted Apparent Energy' : 'Forecasted Demand', color: accentColor, type: 'area', yAxisId: 'left' }
+      return [
+        { key: 'demand', name: subType === 'consumer' ? 'Forecasted Apparent Energy' : 'Forecasted Demand', color: accentColor, type: 'area', yAxisId: 'left' },
+        { key: 'actualDemand', name: subType === 'consumer' ? 'Actual Apparent Energy' : 'Actual Demand', color: '#3B82F6', type: 'line', yAxisId: 'left' }
       ];
-      const hasActualDemand = data.some(d => d.actualDemand !== null && d.actualDemand !== undefined);
-      if (hasActualDemand) {
-        metrics.push({
-          key: 'actualDemand',
-          name: subType === 'consumer' ? 'Actual Apparent Energy' : 'Actual Demand',
-          color: '#10B981',
-          type: 'line',
-          yAxisId: 'left'
-        });
-      }
-      return metrics;
     }
 
     const metrics: ChartMetric[] = [];
     
     if (subType.toUpperCase() === 'RTM') {
-      const hasDayahead = data.some(d => d.mcpDayahead !== null && d.mcpDayahead !== undefined);
-      if (hasDayahead && (rtmForecastType === 'both' || rtmForecastType === 'dayahead')) {
+      if (rtmForecastType === 'both' || rtmForecastType === 'dayahead') {
         metrics.push({key: 'mcpDayahead', name: 'Dayahead Forecast (₹/kWh)', color: '#3B82F6', type: 'line', yAxisId: 'right'});
       }
-      
-      const hasNowcast = data.some(d => d.mcpNowcast !== null && d.mcpNowcast !== undefined);
-      if (hasNowcast && (rtmForecastType === 'both' || rtmForecastType === 'nowcast')) {
+      if (rtmForecastType === 'both' || rtmForecastType === 'nowcast') {
         metrics.push({key: 'mcpNowcast', name: 'Nowcast Forecast (₹/kWh)', color: '#8B5CF6', type: 'line', yAxisId: 'right'});
       }
     } else {
       metrics.push({key: 'mcp', name: 'Forecasted MCP (₹/kWh)', color: accentColor, type: 'area', yAxisId: 'right'});
     }
 
-    const hasActual = data.some(d => d.actualMcp !== null && d.actualMcp !== undefined);
-    if (hasActual) {
-      metrics.push({
-        key: 'actualMcp',
-        name: 'Actual MCP (₹/kWh)',
-        color: '#10B981', // green for actual
-        type: 'line',
-        yAxisId: 'right'
-      });
-    }
+    metrics.push({
+      key: 'actualMcp',
+      name: 'Actual MCP (₹/kWh)',
+      color: '#10B981', // green for actual
+      type: 'line',
+      yAxisId: 'right'
+    });
 
     return metrics;
   };
