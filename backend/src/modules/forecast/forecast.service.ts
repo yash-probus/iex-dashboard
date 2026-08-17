@@ -805,17 +805,47 @@ export class ForecastService {
     return records;
   }
 
+  static async getForecastDates(market: string): Promise<string[]> {
+    return this.getAvailableDates(market);
+  }
+
   // Common service method for date lookups
   static async getAvailableDates(market: string): Promise<string[]> {
     if (market.toUpperCase() === 'DAM') {
       try {
-            return d.toISOString().split('T')[0];
+        const [forecastRows, actualRows] = await Promise.all([
+          prisma.damForecasting.findMany({
+            select: { forecasting_for: true },
+            distinct: ['forecasting_for']
+          }),
+          prisma.dataset.findMany({
+            where: { market: 'DAM', status: 'ACTIVE' },
+            select: { deliveryDate: true },
+            distinct: ['deliveryDate']
+          })
+        ]);
+
+        const allDates = new Set<string>();
+        forecastRows.forEach(r => {
+          if (r.forecasting_for) {
+            const dStr = r.forecasting_for instanceof Date 
+              ? r.forecasting_for.toISOString().split('T')[0] 
+              : new Date(r.forecasting_for).toISOString().split('T')[0];
+            allDates.add(dStr);
           }
-          return new Date(d).toISOString().split('T')[0];
         });
-      } catch (e) {
-        console.error('[ForecastService] Error querying available forecast dates:', e);
-        return [];
+        actualRows.forEach(r => {
+          if (r.deliveryDate) {
+            const dStr = r.deliveryDate instanceof Date 
+              ? r.deliveryDate.toISOString().split('T')[0] 
+              : new Date(r.deliveryDate).toISOString().split('T')[0];
+            allDates.add(dStr);
+          }
+        });
+        return Array.from(allDates).sort((a, b) => b.localeCompare(a));
+      } catch (e) { 
+        console.error('[ForecastService] Error in DAM dates:', e);
+        return []; 
       }
     } else if (market.toUpperCase() === 'GDAM') {
       try {
@@ -833,10 +863,12 @@ export class ForecastService {
         const allDates = new Set<string>();
         forecastRows.forEach(r => allDates.add(r.date));
         actualRows.forEach(r => {
-          const dStr = r.deliveryDate instanceof Date 
-            ? r.deliveryDate.toISOString().split('T')[0] 
-            : new Date(r.deliveryDate).toISOString().split('T')[0];
-          allDates.add(dStr);
+          if (r.deliveryDate) {
+            const dStr = r.deliveryDate instanceof Date 
+              ? r.deliveryDate.toISOString().split('T')[0] 
+              : new Date(r.deliveryDate).toISOString().split('T')[0];
+            allDates.add(dStr);
+          }
         });
         return Array.from(allDates).sort((a, b) => b.localeCompare(a));
       } catch (e) { 
@@ -873,33 +905,13 @@ export class ForecastService {
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'CONSUMER') {
       try {
-        try {
-          const rows: Array<{ timestamp: Date }> = await prisma.$queryRawUnsafe(
-            `SELECT DISTINCT timestamp
-             FROM "forecasting"."consumer_demand_forecasting"
-             WHERE timestamp IS NOT NULL
-             ORDER BY timestamp DESC`
-          );
-          const allDates = new Set<string>();
-          rows.forEach(r => {
-            const istDate = new Date(r.timestamp.getTime() + (5.5 * 60 * 60 * 1000));
-            allDates.add(istDate.toISOString().split('T')[0]);
-          });
-          return Array.from(allDates);
-        } catch {
-          const rows: Array<{ timestamp: Date }> = await prisma.$queryRawUnsafe(
-            `SELECT DISTINCT timestamp
-             FROM "forecasting"."consumer_demand_forecasting"
-             WHERE timestamp IS NOT NULL
-             ORDER BY timestamp DESC`
-          );
-          const allDates = new Set<string>();
-          rows.forEach(r => {
-            const istDate = new Date(r.timestamp.getTime() + (5.5 * 60 * 60 * 1000));
-            allDates.add(istDate.toISOString().split('T')[0]);
-          });
-          return Array.from(allDates);
-        }
+        const rows: Array<{ date_str: string }> = await prisma.$queryRawUnsafe(
+          `SELECT DISTINCT (timestamp::date)::text as date_str
+           FROM "forecasting"."consumer_demand_forecasting"
+           WHERE timestamp IS NOT NULL
+           ORDER BY date_str DESC`
+        );
+        return rows.map(r => r.date_str);
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'ALL-INDIA') {
       try {
