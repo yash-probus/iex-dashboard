@@ -605,62 +605,38 @@ export class ForecastService {
         let formatted: DemandForecastIntervalData[] = [];
 
         try {
-          const startDate = new Date(`${dates[0]}T00:00:00+05:30`);
-          const endDate = new Date(`${dates[dates.length - 1]}T23:59:59+05:30`);
-
           const records: any[] = await prisma.$queryRawUnsafe(
-            `SELECT timestamp, slot_number, forecasted_energy, actual_energy
+            `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy
              FROM "forecasting"."consumer_demand_forecasting"
-             WHERE (timestamp >= $1::timestamptz AND timestamp <= $2::timestamptz)
-                OR (timestamp::date)::text = ANY($3::text[])
-                OR ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($3::text[])
+             WHERE (timestamp::date)::text = ANY($1::text[])
              ORDER BY timestamp ASC, slot_number ASC`,
-            startDate.toISOString(),
-            endDate.toISOString(),
             dates
           );
 
           formatted = records.map((r: any) => {
-            const d = new Date(r.timestamp);
-            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-            const dateStr = istDate.toISOString().split('T')[0];
+            const dateStr = r.date_str || (
+              typeof r.timestamp === 'string'
+                ? r.timestamp.split('T')[0]
+                : new Date(r.timestamp).toISOString().split('T')[0]
+            );
 
-            let hourStr = '';
-            let timeBlock = '';
-            let intervalNumber = 1;
-            let hourNum = 1;
+            const slotNum = Number(r.slot_number || 1);
+            const startMins = (slotNum - 1) * 15;
+            const endMins = slotNum * 15;
 
-            if (r.slot_number) {
-              const slotNum = Number(r.slot_number);
-              const startMins = (slotNum - 1) * 15;
-              const endMins = slotNum * 15;
+            const startH = String(Math.floor(startMins / 60) % 24).padStart(2, '0');
+            const startM = String(startMins % 60).padStart(2, '0');
+            const endH = String(Math.floor(endMins / 60) % 24).padStart(2, '0');
+            const endM = String(endMins % 60).padStart(2, '0');
 
-              const startH = String(Math.floor(startMins / 60) % 24).padStart(2, '0');
-              const startM = String(startMins % 60).padStart(2, '0');
-              const endH = String(Math.floor(endMins / 60) % 24).padStart(2, '0');
-              const endM = String(endMins % 60).padStart(2, '0');
-
-              timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
-              hourStr = `${startH}:${startM}`;
-              intervalNumber = slotNum;
-              hourNum = Math.floor((slotNum - 1) / 4) + 1;
-            } else {
-              const hh = String(istDate.getUTCHours()).padStart(2, '0');
-              const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
-              hourStr = `${hh}:${mm}`;
-              const nextMin = (istDate.getUTCMinutes() + 15) % 60;
-              const nextHour = nextMin === 0 ? (istDate.getUTCHours() + 1) % 24 : istDate.getUTCHours();
-              timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
-              const minutes = istDate.getUTCHours() * 60 + istDate.getUTCMinutes();
-              intervalNumber = Math.floor(minutes / 15) + 1;
-              hourNum = Math.floor(minutes / 60) + 1;
-            }
+            const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+            const hourNum = Math.floor((slotNum - 1) / 4) + 1;
 
             return {
-              date: dates.includes(dateStr) ? dateStr : dates[0],
+              date: dateStr,
               hour: String(hourNum).padStart(2, '0'),
               timeBlock,
-              intervalNumber,
+              intervalNumber: slotNum,
               demand: r.forecasted_energy !== null && r.forecasted_energy !== undefined 
                 ? Number(r.forecasted_energy) 
                 : (r.forecast_demand !== null && r.forecast_demand !== undefined ? Number(r.forecast_demand) : 0),
@@ -669,38 +645,38 @@ export class ForecastService {
           });
         } catch {
           // Legacy schema fallback (timestamp + forecast_demand)
-          const startDate = new Date(`${dates[0]}T00:00:00+05:30`);
-          const endDate = new Date(`${dates[dates.length - 1]}T23:59:59+05:30`);
-
           const records: any[] = await prisma.$queryRawUnsafe(
-            `SELECT timestamp, forecast_demand
+            `SELECT timestamp, (timestamp::date)::text as date_str, forecast_demand
              FROM "forecasting"."consumer_demand_forecasting"
-             WHERE (timestamp >= $1::timestamptz AND timestamp <= $2::timestamptz)
-                OR ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($3::text[])
+             WHERE (timestamp::date)::text = ANY($1::text[])
              ORDER BY timestamp ASC`,
-            startDate.toISOString(),
-            endDate.toISOString(),
             dates
           );
 
-          formatted = records.map((r: any) => {
-            const d = new Date(r.timestamp);
-            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-            const dateStr = istDate.toISOString().split('T')[0];
-            const hh = String(istDate.getUTCHours()).padStart(2, '0');
-            const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
-            const hourStr = `${hh}:${mm}`;
-            const nextMin = (istDate.getUTCMinutes() + 15) % 60;
-            const nextHour = nextMin === 0 ? (istDate.getUTCHours() + 1) % 24 : istDate.getUTCHours();
-            const timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
-            const minutes = istDate.getUTCHours() * 60 + istDate.getUTCMinutes();
-            const intervalNumber = Math.floor(minutes / 15) + 1;
+          formatted = records.map((r: any, idx: number) => {
+            const dateStr = r.date_str || (
+              typeof r.timestamp === 'string'
+                ? r.timestamp.split('T')[0]
+                : new Date(r.timestamp).toISOString().split('T')[0]
+            );
+
+            const slotNum = idx + 1;
+            const startMins = (slotNum - 1) * 15;
+            const endMins = slotNum * 15;
+
+            const startH = String(Math.floor(startMins / 60) % 24).padStart(2, '0');
+            const startM = String(startMins % 60).padStart(2, '0');
+            const endH = String(Math.floor(endMins / 60) % 24).padStart(2, '0');
+            const endM = String(endMins % 60).padStart(2, '0');
+
+            const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+            const hourNum = Math.floor((slotNum - 1) / 4) + 1;
 
             return {
-              date: dates.includes(dateStr) ? dateStr : dates[0],
-              hour: hourStr,
+              date: dateStr,
+              hour: String(hourNum).padStart(2, '0'),
               timeBlock,
-              intervalNumber,
+              intervalNumber: slotNum,
               demand: r.forecast_demand !== null && r.forecast_demand !== undefined ? Number(r.forecast_demand) : 0,
               actualDemand: null
             };
@@ -778,56 +754,61 @@ export class ForecastService {
         const hourRecords = records.filter(r => parseInt(r.hour) === h + 1);
         if (hourRecords.length === 0) continue;
 
-        const sumDemand = hourRecords.reduce((sum, r) => sum + r.demand, 0);
-        const sumFreq = hourRecords.reduce((sum, r) => sum + (r.frequency || 0), 0);
+        const avgDemand = hourRecords.reduce((acc, r) => acc + r.demand, 0) / hourRecords.length;
 
-        const sumActual = hourRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).reduce((sum, r) => sum + (r.actualDemand as number), 0);
-        const countActual = hourRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).length;
+        let avgActual: number | null = null;
+        const validActuals = hourRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined);
+        if (validActuals.length > 0) {
+          avgActual = validActuals.reduce((acc, r) => acc + (r.actualDemand || 0), 0) / validActuals.length;
+        }
 
         hourlyData.push({
           date: hourRecords[0].date,
           hour: hourStr,
-          timeBlock: `${hourStr}:00`,
+          timeBlock: `${hourStr}:00 - ${(h + 1).toString().padStart(2, '0')}:00`,
           intervalNumber: h + 1,
-          demand: Math.round(sumDemand / hourRecords.length),
-          actualDemand: countActual > 0 ? Math.round(sumActual / countActual) : null,
-          frequency: hourRecords[0].frequency ? parseFloat((sumFreq / hourRecords.length).toFixed(2)) : undefined
+          demand: parseFloat(avgDemand.toFixed(2)),
+          actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null
         });
       }
       return hourlyData;
     }
 
-    // Daily
-    const sumDemand = records.reduce((sum, r) => sum + r.demand, 0);
-    const sumFreq = records.reduce((sum, r) => sum + (r.frequency || 0), 0);
-    const sumActual = records.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).reduce((sum, r) => sum + (r.actualDemand as number), 0);
-    const countActual = records.filter(r => r.actualDemand !== null && r.actualDemand !== undefined).length;
+    if (interval === 'daily') {
+      const dailyMap: { [date: string]: DemandForecastIntervalData[] } = {};
+      records.forEach(r => {
+        if (!dailyMap[r.date]) dailyMap[r.date] = [];
+        dailyMap[r.date].push(r);
+      });
 
-    return [{
-      date: records[0].date,
-      hour: '00',
-      timeBlock: 'Daily',
-      intervalNumber: 1,
-      demand: Math.round(sumDemand / records.length),
-      actualDemand: countActual > 0 ? Math.round(sumActual / countActual) : null,
-      frequency: records[0].frequency ? parseFloat((sumFreq / records.length).toFixed(2)) : undefined
-    }];
+      return Object.keys(dailyMap).map(date => {
+        const dateRecords = dailyMap[date];
+        const avgDemand = dateRecords.reduce((acc, r) => acc + r.demand, 0) / dateRecords.length;
+
+        let avgActual: number | null = null;
+        const validActuals = dateRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined);
+        if (validActuals.length > 0) {
+          avgActual = validActuals.reduce((acc, r) => acc + (r.actualDemand || 0), 0) / validActuals.length;
+        }
+
+        return {
+          date,
+          hour: '24',
+          timeBlock: 'Full Day',
+          intervalNumber: 1,
+          demand: parseFloat(avgDemand.toFixed(2)),
+          actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null
+        };
+      });
+    }
+
+    return records;
   }
 
-  /**
-   * Get available forecast dates from database
-   */
-  public static async getForecastDates(market: string): Promise<string[]> {
+  // Common service method for date lookups
+  static async getAvailableDates(market: string): Promise<string[]> {
     if (market.toUpperCase() === 'DAM') {
       try {
-        const rows: any[] = await prisma.$queryRawUnsafe(
-          `SELECT DISTINCT forecasting_for::date AS date 
-           FROM "forecasting"."dam_forecasting" 
-           ORDER BY date DESC;`
-        );
-        return rows.map(r => {
-          const d = r.date;
-          if (d instanceof Date) {
             return d.toISOString().split('T')[0];
           }
           return new Date(d).toISOString().split('T')[0];
