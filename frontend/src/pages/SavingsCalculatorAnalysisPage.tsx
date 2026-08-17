@@ -570,9 +570,10 @@ const exportInsightsToExcel = async () => {
                     const monthlyData: any[] = [];
                     if (clientOverview && clientOverview.months) {
                         clientOverview.months.forEach((m) => {
-                            const cleared = m.totalMarketEnergyKwh || 0;
+                            const ma = m as any;
                             const consumption = m.totalEnergyKwh || 0;
-                            const oaCost = m.totalOptimizedCost || 0;
+                            const cleared = ma.oaConsumer ?? ma.clearedUnitsKwh ?? ma.cleared ?? (ma.oaCoverage != null ? (consumption * ma.oaCoverage / 100) : (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - (ma.busLoss ? ma.busLoss / 100 : 0.1211)) : 0));
+                            const oaCost = ma.totalOptimizedCost || 0;
                             const discomCost = m.totalBaselineCost || 0;
                             const saving = m.savings || 0;
                             
@@ -742,9 +743,10 @@ const exportInsightsToExcel = async () => {
                     const monthlyData: any[] = [];
                     if (clientOverview && clientOverview.months) {
                         clientOverview.months.forEach((m) => {
-                            const cleared = m.totalMarketEnergyKwh || 0;
+                            const ma = m as any;
                             const consumption = m.totalEnergyKwh || 0;
-                            const oaCost = m.totalOptimizedCost || 0;
+                            const cleared = ma.oaConsumer ?? ma.clearedUnitsKwh ?? ma.cleared ?? (ma.oaCoverage != null ? (consumption * ma.oaCoverage / 100) : (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - (ma.busLoss ? ma.busLoss / 100 : 0.1211)) : 0));
+                            const oaCost = ma.totalOptimizedCost || 0;
                             const discomCost = m.totalBaselineCost || 0;
                             const saving = m.savings || 0;
                             
