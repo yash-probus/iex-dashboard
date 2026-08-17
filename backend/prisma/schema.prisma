@@ -825,22 +825,17 @@ model RtmNowcast {
 }
 
 model ForecastConsumerDemand {
-  date                     String    @db.VarChar(10)
-  hour                     String    @db.VarChar(5)
-  intervalNumber           Int       @map("interval_number") @db.SmallInt
-  timeBlock                String    @map("time_block") @db.VarChar(15)
-  forecastedApparentEnergy Decimal   @map("forecasted_apparent_energy") @db.Decimal(18, 4)
-  actualApparentEnergy     Decimal?  @map("actual_apparent_energy") @db.Decimal(18, 4)
-  createdAt                DateTime? @map("created_at") @default(now())
-  updatedAt                DateTime? @map("updated_at") @updatedAt
+  timestamp        DateTime @db.Timestamp(3)
+  slotNumber       Int      @map("slot_number") @db.SmallInt
+  actualEnergy     Decimal? @map("actual_energy") @db.Decimal(18, 4)
+  forecastedEnergy Decimal? @map("forecasted_energy") @db.Decimal(18, 4)
+  confidence       Decimal? @db.Decimal(18, 4)
 
-  @@id([date, intervalNumber])
-  @@index([date])
-  @@index([intervalNumber])
-  @@index([timeBlock])
+  @@id([timestamp, slotNumber])
+  @@index([timestamp])
+  @@index([slotNumber])
   @@map("consumer_demand_forecasting")
   @@schema("forecasting")
-  @@ignore
 }
 
 model ForecastAllIndiaDemand {

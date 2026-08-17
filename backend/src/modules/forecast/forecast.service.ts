@@ -592,23 +592,37 @@ export class ForecastService {
         let formatted: DemandForecastIntervalData[] = [];
 
         try {
-          // New schema shape
+          // Production schema shape: timestamp, slot_number, forecasted_energy, actual_energy
           const records: any[] = await prisma.$queryRawUnsafe(
-            `SELECT date, hour, interval_number, time_block, forecasted_apparent_energy, actual_apparent_energy
+            `SELECT timestamp, slot_number, forecasted_energy, actual_energy
              FROM "forecasting"."consumer_demand_forecasting"
-             WHERE date = ANY($1::text[])
-             ORDER BY date ASC, interval_number ASC`,
+             WHERE ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($1::text[])
+             ORDER BY timestamp ASC, slot_number ASC`,
             dates
           );
 
-          formatted = records.map((r: any) => ({
-            date: r.date,
-            hour: r.hour,
-            timeBlock: r.time_block,
-            intervalNumber: Number(r.interval_number),
-            demand: r.forecasted_apparent_energy !== null ? Number(r.forecasted_apparent_energy) : 0,
-            actualDemand: r.actual_apparent_energy !== null && r.actual_apparent_energy !== undefined ? Number(r.actual_apparent_energy) : null
-          }));
+          formatted = records.map((r: any) => {
+            const d = new Date(r.timestamp);
+            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+            const dateStr = istDate.toISOString().split('T')[0];
+            const hh = String(istDate.getUTCHours()).padStart(2, '0');
+            const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
+            const hourStr = `${hh}:${mm}`;
+            const slotNum = Number(r.slot_number);
+            const nextMinutesTotal = (slotNum % 96) * 15;
+            const nextHour = String(Math.floor(nextMinutesTotal / 60) % 24).padStart(2, '0');
+            const nextMin = String(nextMinutesTotal % 60).padStart(2, '0');
+            const timeBlock = `${hourStr} - ${nextHour}:${nextMin}`;
+
+            return {
+              date: dateStr,
+              hour: String(Math.floor((slotNum - 1) / 4) + 1),
+              timeBlock,
+              intervalNumber: slotNum,
+              demand: r.forecasted_energy !== null && r.forecasted_energy !== undefined ? Number(r.forecasted_energy) : 0,
+              actualDemand: r.actual_energy !== null && r.actual_energy !== undefined ? Number(r.actual_energy) : null
+            };
+          });
         } catch {
           // Legacy schema fallback (timestamp + forecast_demand)
           const records: any[] = await prisma.$queryRawUnsafe(
@@ -829,13 +843,18 @@ export class ForecastService {
     } else if (market.toUpperCase() === 'CONSUMER') {
       try {
         try {
-          const rows: Array<{ date: string }> = await prisma.$queryRawUnsafe(
-            `SELECT DISTINCT date
+          const rows: Array<{ timestamp: Date }> = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT timestamp
              FROM "forecasting"."consumer_demand_forecasting"
-             WHERE date IS NOT NULL
-             ORDER BY date DESC`
+             WHERE timestamp IS NOT NULL
+             ORDER BY timestamp DESC`
           );
-          return rows.map(r => r.date);
+          const allDates = new Set<string>();
+          rows.forEach(r => {
+            const istDate = new Date(r.timestamp.getTime() + (5.5 * 60 * 60 * 1000));
+            allDates.add(istDate.toISOString().split('T')[0]);
+          });
+          return Array.from(allDates);
         } catch {
           const rows: Array<{ timestamp: Date }> = await prisma.$queryRawUnsafe(
             `SELECT DISTINCT timestamp
