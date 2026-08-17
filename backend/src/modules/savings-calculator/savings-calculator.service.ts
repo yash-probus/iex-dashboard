@@ -1922,10 +1922,14 @@ export class SavingsCalculatorService {
 
     let totalBaselineCost = 0;
     let totalElectricityDuty = 0;
+    let totalElectricityDutyAfterOA = 0;
     let totalLandedExchangeCost = 0;
     let totalDiscomAfterProlt = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    let totalBaselineEnergyCharges = 0;
+    let totalDiscomEnergyChargesAfterOA = 0;
+    let totalDemandAndFixedChargesApplied = 0;
 
     let globalCssCharge = 0;
     let globalRpoCharge = 0;
@@ -2007,6 +2011,7 @@ export class SavingsCalculatorService {
       const consumerBusUnits = finalMarketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
 
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
+      const safeGroupKey = String(groupKey || '').trim() || 'UNMAPPED';
 
 
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
@@ -2020,8 +2025,10 @@ export class SavingsCalculatorService {
 
       // FPPA should be applied on (energy charges + demand charges).
       const demandChargeWithFppa = getDiscountedDemandCharge(slabDemandCharge) * fppaMultiplier;
+      totalDemandAndFixedChargesApplied += demandChargeWithFppa;
 
       const discountedSlabBill = slabEnergyBill + demandChargeWithFppa;
+      totalBaselineEnergyCharges += slabEnergyBill;
       
       const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
       let applyED = true;
@@ -2037,8 +2044,11 @@ export class SavingsCalculatorService {
       totalBaselineCost += slabTotalDiscomBill;
 
       const proltEnergyBill = discomEnergy * slabDiscomRate;
+      totalDiscomEnergyChargesAfterOA += proltEnergyBill;
       const discountedProltBill = proltEnergyBill + demandChargeWithFppa;
-      const proltDiscomBillTotal = discountedProltBill + slabED;
+      const slabEDAfterOA = applyED ? discountedProltBill * edRate : 0;
+      totalElectricityDutyAfterOA += slabEDAfterOA;
+      const proltDiscomBillTotal = discountedProltBill + slabEDAfterOA;
       totalDiscomAfterProlt += proltDiscomBillTotal;
 
       const nonGdamMarketEnergy = marketSlots.filter(s => s.marketSource !== 'GDAM').reduce((sum, s: any) => sum + (s.marketEnergy || 0), 0);
@@ -2074,14 +2084,14 @@ export class SavingsCalculatorService {
       totalMarketEnergyKwh += finalMarketEnergy;
 
       todSummaries.push({
-        slabName: groupKey,
+        slabName: safeGroupKey,
         totalEnergyKwh: slabConsumption,
         marketEnergyKwh: finalMarketEnergy,
         marketCostBase: marketEnergyCost
       });
 
       oaDetailedBreakdown.push({
-        slabName: groupKey,
+        slabName: safeGroupKey,
         discomUnits: slabConsumption,
         oaUnits: finalMarketEnergy,
         discomBill: slabTotalDiscomBill,
@@ -2125,6 +2135,10 @@ export class SavingsCalculatorService {
       fppaPercent,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
+      baselineEnergyCharges: totalBaselineEnergyCharges,
+      discomEnergyChargesAfterOA: totalDiscomEnergyChargesAfterOA,
+      demandAndFixedChargesApplied: totalDemandAndFixedChargesApplied,
+      electricityDutyAfterOA: totalElectricityDutyAfterOA,
       totalSavings: finalSavings,
       demandCharge,
       electricityDuty: totalElectricityDuty,

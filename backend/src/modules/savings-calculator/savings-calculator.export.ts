@@ -240,8 +240,8 @@ export class SavingsCalculatorExportService {
     const isNpcl = result.discom === 'NPCL';
     
     const misc = result.miscellaneousCharges || 0;
-    let energyCharges = (result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc;
-    let demandCharges = result.demandCharge || 0;
+    let energyCharges = (result as any).baselineEnergyCharges ?? ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc);
+    let demandCharges = (result as any).demandAndFixedChargesApplied ?? (result.demandCharge || 0);
     const ed = result.electricityDuty || 0;
     const arrear = result.arrearAmount || 0;
     const lpsc = result.currentLpsc || 0;
@@ -305,7 +305,8 @@ export class SavingsCalculatorExportService {
     afterHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     afterHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
-    let energyChargesAfterOA = (result.totalDiscomAfterProlt || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc;
+    const electricityDutyAfterOA = (result as any).electricityDutyAfterOA ?? (result.electricityDuty || 0);
+    let energyChargesAfterOA = (result as any).discomEnergyChargesAfterOA ?? ((result.totalDiscomAfterProlt || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc);
     
     if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;
@@ -343,11 +344,11 @@ export class SavingsCalculatorExportService {
       sheet.addRow(['Demand & Fixed Charges', Math.round(baseDemandChargesAfterOA)]);
     }
     
-    sheet.addRow(['Electricity Duty', Math.round(ed)]);
+    sheet.addRow(['Electricity Duty', Math.round(electricityDutyAfterOA)]);
     if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
-    const totalDiscomAfterOAWithMisc = (result.totalDiscomAfterProlt || 0) + arrear + lpsc;
+    const totalDiscomAfterOAWithMisc = (energyChargesAfterOA + demandCharges + electricityDutyAfterOA + misc) + arrear + lpsc;
     const afterTotalRow = sheet.addRow(['Total DISCOM Bill After Open Access', Math.round(totalDiscomAfterOAWithMisc)]);
     afterTotalRow.font = { bold: true };
     afterTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
