@@ -607,17 +607,20 @@ export class ForecastService {
         try {
           // Production schema shape: timestamp, slot_number, forecasted_energy, actual_energy
           const records: any[] = await prisma.$queryRawUnsafe(
-            `SELECT timestamp, slot_number, forecasted_energy, actual_energy
+            `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy
              FROM "forecasting"."consumer_demand_forecasting"
-             WHERE ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($1::text[])
+             WHERE (timestamp::date)::text = ANY($1::text[]) OR ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($1::text[])
              ORDER BY timestamp ASC, slot_number ASC`,
             dates
           );
 
           formatted = records.map((r: any) => {
-            const d = new Date(r.timestamp);
-            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-            const dateStr = istDate.toISOString().split('T')[0];
+            const rawDateStr = r.date_str || (
+              typeof r.timestamp === 'string'
+                ? r.timestamp.split('T')[0]
+                : new Date(r.timestamp).toISOString().split('T')[0]
+            );
+            const dateStr = dates.find(d => d === rawDateStr) || dates[0];
 
             const slotNum = Number(r.slot_number || 1);
             const startMins = (slotNum - 1) * 15;
