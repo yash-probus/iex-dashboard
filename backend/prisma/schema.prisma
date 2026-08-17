@@ -840,6 +840,7 @@ model ForecastConsumerDemand {
   @@index([timeBlock])
   @@map("consumer_demand_forecasting")
   @@schema("forecasting")
+  @@ignore
 }
 
 model ForecastAllIndiaDemand {

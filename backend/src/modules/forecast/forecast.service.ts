@@ -589,20 +589,61 @@ export class ForecastService {
         }
       } else {
         // Consumer demand
-        const records = await prisma.forecastConsumerDemand.findMany({
-          where: { date: { in: dates } },
-          orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
-        });
+        let formatted: DemandForecastIntervalData[] = [];
 
-        if (records && records.length > 0) {
-          const formatted = records.map(r => ({
+        try {
+          // New schema shape
+          const records: any[] = await prisma.$queryRawUnsafe(
+            `SELECT date, hour, interval_number, time_block, forecasted_apparent_energy, actual_apparent_energy
+             FROM "forecasting"."consumer_demand_forecasting"
+             WHERE date = ANY($1::text[])
+             ORDER BY date ASC, interval_number ASC`,
+            dates
+          );
+
+          formatted = records.map((r: any) => ({
             date: r.date,
             hour: r.hour,
-            timeBlock: r.timeBlock,
-            intervalNumber: r.intervalNumber,
-            demand: Number(r.forecastedApparentEnergy),
-            actualDemand: r.actualApparentEnergy !== null ? Number(r.actualApparentEnergy) : null
+            timeBlock: r.time_block,
+            intervalNumber: Number(r.interval_number),
+            demand: r.forecasted_apparent_energy !== null ? Number(r.forecasted_apparent_energy) : 0,
+            actualDemand: r.actual_apparent_energy !== null && r.actual_apparent_energy !== undefined ? Number(r.actual_apparent_energy) : null
           }));
+        } catch {
+          // Legacy schema fallback (timestamp + forecast_demand)
+          const records: any[] = await prisma.$queryRawUnsafe(
+            `SELECT timestamp, forecast_demand
+             FROM "forecasting"."consumer_demand_forecasting"
+             WHERE ((timestamp + interval '5 hours 30 minutes')::date)::text = ANY($1::text[])
+             ORDER BY timestamp ASC`,
+            dates
+          );
+
+          formatted = records.map((r: any) => {
+            const d = new Date(r.timestamp);
+            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+            const dateStr = istDate.toISOString().split('T')[0];
+            const hh = String(istDate.getUTCHours()).padStart(2, '0');
+            const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
+            const hourStr = `${hh}:${mm}`;
+            const nextMin = (istDate.getUTCMinutes() + 15) % 60;
+            const nextHour = nextMin === 0 ? (istDate.getUTCHours() + 1) % 24 : istDate.getUTCHours();
+            const timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
+            const minutes = istDate.getUTCHours() * 60 + istDate.getUTCMinutes();
+            const intervalNumber = Math.floor(minutes / 15) + 1;
+
+            return {
+              date: dateStr,
+              hour: hourStr,
+              timeBlock,
+              intervalNumber,
+              demand: r.forecast_demand !== null && r.forecast_demand !== undefined ? Number(r.forecast_demand) : 0,
+              actualDemand: null
+            };
+          });
+        }
+
+        if (formatted.length > 0) {
           intervals.push(...this.aggregateDemandIntervals(formatted, interval));
         }
       }
@@ -787,12 +828,28 @@ export class ForecastService {
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'CONSUMER') {
       try {
-        const rows = await prisma.forecastConsumerDemand.findMany({
-          select: { date: true },
-          distinct: ['date'],
-          orderBy: { date: 'desc' }
-        });
-        return rows.map(r => r.date);
+        try {
+          const rows: Array<{ date: string }> = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT date
+             FROM "forecasting"."consumer_demand_forecasting"
+             WHERE date IS NOT NULL
+             ORDER BY date DESC`
+          );
+          return rows.map(r => r.date);
+        } catch {
+          const rows: Array<{ timestamp: Date }> = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT timestamp
+             FROM "forecasting"."consumer_demand_forecasting"
+             WHERE timestamp IS NOT NULL
+             ORDER BY timestamp DESC`
+          );
+          const allDates = new Set<string>();
+          rows.forEach(r => {
+            const istDate = new Date(r.timestamp.getTime() + (5.5 * 60 * 60 * 1000));
+            allDates.add(istDate.toISOString().split('T')[0]);
+          });
+          return Array.from(allDates);
+        }
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'ALL-INDIA') {
       try {
