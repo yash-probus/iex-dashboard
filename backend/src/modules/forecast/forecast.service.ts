@@ -563,7 +563,9 @@ export class ForecastService {
 
         const actualMap = new Map<string, number>();
         actualRecords.forEach((a: any) => {
-          actualMap.set(`${a.date}_${a.timeStr}`, Number(a.demandMet));
+          const tStr = a.timeStr ? (a.timeStr.includes(' ') ? a.timeStr.split(' ')[0] : a.timeStr) : '';
+          if (tStr) actualMap.set(`${a.date}_${tStr}`, Number(a.demandMet));
+          if (a.timeStr) actualMap.set(`${a.date}_${a.timeStr}`, Number(a.demandMet));
         });
 
         if (records && records.length > 0) {
@@ -585,7 +587,7 @@ export class ForecastService {
             const intervalNumber = Math.floor(minutes / 15) + 1;
 
             const forecastedVal = r.forecast_demand !== null ? Number(r.forecast_demand) : 0;
-            const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? null;
+            const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${intervalNumber}`) ?? null;
 
             return {
               date: dateStr,
@@ -605,13 +607,25 @@ export class ForecastService {
         let formatted: DemandForecastIntervalData[] = [];
 
         try {
-          const records: any[] = await prisma.$queryRawUnsafe(
-            `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy
-             FROM "forecasting"."consumer_demand_forecasting"
-             WHERE (timestamp::date)::text = ANY($1::text[])
-             ORDER BY timestamp ASC, slot_number ASC`,
-            dates
-          );
+          const [records, actualRecords] = await Promise.all([
+            prisma.$queryRawUnsafe(
+              `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy
+               FROM "forecasting"."consumer_demand_forecasting"
+               WHERE (timestamp::date)::text = ANY($1::text[])
+               ORDER BY timestamp ASC, slot_number ASC`,
+              dates
+            ) as Promise<any[]>,
+            prisma.nppAdjustedDemandData.findMany({
+              where: { date: { in: dates } }
+            }).then(res => res.length > 0 ? res : prisma.nppRawDemandData.findMany({ where: { date: { in: dates } } }))
+          ]);
+
+          const actualMap = new Map<string, number>();
+          actualRecords.forEach((a: any) => {
+            const tStr = a.timeStr ? (a.timeStr.includes(' ') ? a.timeStr.split(' ')[0] : a.timeStr) : '';
+            if (tStr) actualMap.set(`${a.date}_${tStr}`, Number(a.demandMet));
+            if (a.timeStr) actualMap.set(`${a.date}_${a.timeStr}`, Number(a.demandMet));
+          });
 
           formatted = records.map((r: any) => {
             const dateStr = r.date_str || (
@@ -632,6 +646,10 @@ export class ForecastService {
             const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
             const hourNum = Math.floor((slotNum - 1) / 4) + 1;
 
+            const actualVal = r.actual_energy !== null && r.actual_energy !== undefined 
+              ? Number(r.actual_energy) 
+              : (actualMap.get(`${dateStr}_${startH}:${startM}`) ?? actualMap.get(`${dateStr}_${slotNum}`) ?? null);
+
             return {
               date: dateStr,
               hour: String(hourNum).padStart(2, '0'),
@@ -640,7 +658,7 @@ export class ForecastService {
               demand: r.forecasted_energy !== null && r.forecasted_energy !== undefined 
                 ? Number(r.forecasted_energy) 
                 : (r.forecast_demand !== null && r.forecast_demand !== undefined ? Number(r.forecast_demand) : 0),
-              actualDemand: r.actual_energy !== null && r.actual_energy !== undefined ? Number(r.actual_energy) : null
+              actualDemand: actualVal
             };
           });
         } catch {
