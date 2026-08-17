@@ -300,12 +300,15 @@ export class SavingsCalculatorService {
 
         totalSavings += netSavings;
 
+        const consumerBusUnits = (result.oaDetailed?.totals as any)?.consumerBusUnits ?? (result.totalMarketEnergyKwh * (1 - 0.1211));
         monthsData.push({
           month,
           savings: netSavings,
           grossSavings: grossSavings,
           totalEnergyKwh: result.totalEnergyKwh,
           totalMarketEnergyKwh: result.totalMarketEnergyKwh,
+          oaConsumer: consumerBusUnits,
+          oaCoverage: result.totalEnergyKwh ? (consumerBusUnits / result.totalEnergyKwh) * 100 : 0,
           proltMarginCost: result.oaDetailed?.totals?.proltMarginCost || 0,
           traderMargin: (result.oaDetailed?.totals?.traderMargin || 0) + (result.oaDetailed?.totals?.traderMarginGst || 0),
           consultancyFee: (result.oaDetailed?.totals as any)?.consultancyFee || 0,

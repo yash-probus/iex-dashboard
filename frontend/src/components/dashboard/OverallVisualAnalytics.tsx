@@ -10,52 +10,28 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
   if (!clientOverview || !clientOverview.months) return null;
 
   const formatMonthLabel = (rawMonth: string) => {
-    if (!rawMonth) return rawMonth;
-
-    // Handles "YYYY-MM" format (e.g. 2025-10)
-    const yyyyMm = rawMonth.match(/^(\d{4})-(\d{2})$/);
-    if (yyyyMm) {
-      const year = Number(yyyyMm[1]);
-      const month = Number(yyyyMm[2]);
-      const d = new Date(year, month - 1, 1);
-      return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-    }
-
-    // Handles "Mon-YY" format (e.g. Mar-25)
-    const monYy = rawMonth.match(/^([A-Za-z]{3})-(\d{2})$/);
-    if (monYy) {
-      const year = 2000 + Number(monYy[2]);
-      return `${monYy[1]} ${year}`;
-    }
-
-    return rawMonth;
-  };
-
-  const formatMonthTick = (rawMonth: string) => {
     if (!rawMonth) return '';
     const str = String(rawMonth).trim();
 
     // Handles "YYYY-MM" or "YYYY-MM-DD" (e.g. 2025-03 or 2025-03-01)
     const yyyyMm = str.match(/^(\d{4})[-/](\d{1,2})/);
     if (yyyyMm) {
-      const year = yyyyMm[1];
-      const monthNum = Number(yyyyMm[2]);
-      const d = new Date(Number(year), monthNum - 1, 1);
+      const year = Number(yyyyMm[1]);
+      const month = Number(yyyyMm[2]);
+      const d = new Date(year, month - 1, 1);
       if (!isNaN(d.getTime())) {
-        const mon = d.toLocaleString('en-US', { month: 'short' });
-        return `${mon} ${year}`;
+        return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
       }
     }
 
     // Handles "MM/YYYY" or "M/YYYY" (e.g. 03/2025)
     const mmYyyy = str.match(/^(\d{1,2})[-/](\d{4})/);
     if (mmYyyy) {
-      const monthNum = Number(mmYyyy[1]);
-      const year = mmYyyy[2];
-      const d = new Date(Number(year), monthNum - 1, 1);
+      const month = Number(mmYyyy[1]);
+      const year = Number(mmYyyy[2]);
+      const d = new Date(year, month - 1, 1);
       if (!isNaN(d.getTime())) {
-        const mon = d.toLocaleString('en-US', { month: 'short' });
-        return `${mon} ${year}`;
+        return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
       }
     }
 
@@ -76,12 +52,14 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
 
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
-      const mon = d.toLocaleString('en-US', { month: 'short' });
-      const yr = d.getFullYear();
-      return `${mon} ${yr}`;
+      return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
     }
 
     return str;
+  };
+
+  const formatMonthTick = (rawMonth: string) => {
+    return formatMonthLabel(rawMonth);
   };
 
   let validMonths = clientOverview.months.filter((m: any) => !m.error);
@@ -93,14 +71,14 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 2,
     }).format(num);
   };
   
-  const formatLakhs = (val: number) => `₹${(val / 100000).toFixed(1)}L`;
+  const formatLakhs = (val: number) => `₹${(val / 100000).toFixed(2)}L`;
 
   const formatIndianNumber = (num: number) => {
-    return new Intl.NumberFormat('en-IN').format(num);
+    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(num);
   };
 
   const renderSpreadTooltip = ({ active, payload }: any) => {
@@ -118,41 +96,43 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
         }}
       >
+        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>{formatMonthLabel(point.monthLabel || point.month)}</Typography>
         <Typography variant="body2">Coverage: {Number(point.coverage || 0).toFixed(2)}%</Typography>
         <Typography variant="body2">Price spread: ₹{Number(point.grossRate || 0).toFixed(2)}/kWh</Typography>
-        <Typography variant="body2">Month: {formatMonthLabel(point.monthLabel)}</Typography>
       </Box>
     );
   };
 
   // Process data for charts
   const chartData = validMonths.map((m: any) => {
-    const coverage = m.totalEnergyKwh ? (m.totalMarketEnergyKwh || 0) / m.totalEnergyKwh * 100 : 0;
-    const netRate = m.totalEnergyKwh ? m.savings / m.totalEnergyKwh : 0;
-    const grossRate = m.totalEnergyKwh ? (m.grossSavings || m.savings) / m.totalEnergyKwh : 0;
+    // Prolt OA at Consumer Bus (after grid losses, as used in Excel)
+    const recOaConsumer = m.oaConsumer ?? m.clearedUnitsKwh ?? m.cleared ?? (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - (m.busLoss ? m.busLoss / 100 : 0.1211)) : 0);
+    const recOa = Number(recOaConsumer.toFixed(2));
+    const recDiscom = Number(Math.max(0, (m.totalEnergyKwh || 0) - recOa).toFixed(2));
+
+    const actualOa = Number((m.actualOa || 0).toFixed(2));
+    const actualDiscom = Number(Math.max(0, (m.totalEnergyKwh || 0) - actualOa).toFixed(2));
+
+    const coverage = m.oaCoverage ?? (m.totalEnergyKwh ? (recOa / m.totalEnergyKwh) * 100 : 0);
+    const netRate = m.totalEnergyKwh ? (m.savings / m.totalEnergyKwh) : 0;
+    const grossRate = m.totalEnergyKwh ? ((m.grossSavings || m.savings) / m.totalEnergyKwh) : 0;
     
-    // For old charts
-    const actualDiscom = m.totalEnergyKwh || 0;
-    const actualOa = 0;
-    const recOa = m.totalMarketEnergyKwh || 0;
-    const recDiscom = actualDiscom - recOa;
-    
-    const optimizedCost = (m.totalEnergyKwh || 0) * 5.5; 
-    const actualCost = optimizedCost + (m.savings || 0);
+    const optimizedCost = Number(((m.totalEnergyKwh || 0) * 5.5).toFixed(2)); 
+    const actualCost = Number((optimizedCost + (m.savings || 0)).toFixed(2));
 
     return {
       monthLabel: m.month,
       monthShort: formatMonthTick(m.month),
-      clientSaving: m.savings || 0,
-      grossSaving: m.grossSavings || (m.savings || 0),
-      coverage: coverage,
-      netRate: netRate,
-      grossRate: grossRate,
+      clientSaving: Number((m.savings || 0).toFixed(2)),
+      grossSaving: Number((m.grossSavings || (m.savings || 0)).toFixed(2)),
+      coverage: Number(coverage.toFixed(2)),
+      netRate: Number(netRate.toFixed(2)),
+      grossRate: Number(grossRate.toFixed(2)),
       actualDiscom,
       actualOa,
       recDiscom,
       recOa,
-      totalUnits: m.totalEnergyKwh || 0,
+      totalUnits: Number((m.totalEnergyKwh || 0).toFixed(2)),
       actualCost,
       recCost: optimizedCost
     };
@@ -195,9 +175,10 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
                   <Tooltip 
                     cursor={{ fill: '#f8fafc' }} 
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    labelFormatter={(label: any) => formatMonthLabel(label)}
                     formatter={(val: any, name: string) => [
                       typeof val === 'number' 
-                        ? (name === 'Coverage' ? `${Number(val).toFixed(2)}%` : formatLakhs(val)) 
+                        ? (name === 'Coverage' ? `${Number(val.toFixed(2))}%` : formatLakhs(val)) 
                         : val, 
                       name
                     ]}
@@ -241,7 +222,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
               <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #86efac', borderLeft: '4px solid #22c55e' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Best client-saving month: {formatMonthLabel(bestMonth?.monthLabel || bestMonth?.month)}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {formatLakhs(bestMonth?.clientSaving)} final saving with {bestMonth?.coverage.toFixed(0)}% OA coverage.
+                  {formatLakhs(bestMonth?.clientSaving)} final saving with {bestMonth?.coverage.toFixed(2)}% OA coverage.
                 </Typography>
               </Box>
               
@@ -255,7 +236,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
               <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #eab308' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Lowest coverage: {formatMonthLabel(lowestCoverageMonth?.monthLabel || lowestCoverageMonth?.month)}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  This means only {lowestCoverageMonth?.coverage.toFixed(0)}% of total consumption was served through OA in this month. Review scheduling, approvals, availability and forecasting constraints.
+                  This means only {lowestCoverageMonth?.coverage.toFixed(2)}% of total consumption was served through OA in this month. Review scheduling, approvals, availability and forecasting constraints.
                 </Typography>
               </Box>
 
@@ -289,7 +270,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
                   dataKey="coverage"
                   name="Coverage"
                   domain={[30, 100]}
-                  tickFormatter={(val: number) => `${Number(val).toFixed(0)}%`}
+                  tickFormatter={(val: number) => `${Number(val).toFixed(2)}%`}
                   tick={{ fontSize: 12, fill: '#64748b' }}
                   axisLine={false}
                   tickLine={false}
@@ -371,6 +352,11 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
                 <Tooltip
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  labelFormatter={(label: any) => formatMonthLabel(label)}
+                  formatter={(val: number, name: string) => [
+                    typeof val === 'number' ? `${Number(val.toFixed(2)).toLocaleString('en-IN', { maximumFractionDigits: 2 })} kWh` : val, 
+                    name
+                  ]}
                 />
                 <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
                 <Bar dataKey="actualDiscom" name="Actual DISCOM" stackId="actual" fill="#94A3B8" />
@@ -399,7 +385,8 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
                 <Tooltip
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  formatter={(val: number) => formatCurrency(val)}
+                  labelFormatter={(label: any) => formatMonthLabel(label)}
+                  formatter={(val: number) => typeof val === 'number' ? formatCurrency(Number(val.toFixed(2))) : val}
                 />
                 <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
                 <Bar dataKey="actualCost" name="Actual" fill="#94A3B8" radius={[4, 4, 0, 0]} />
