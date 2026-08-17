@@ -618,18 +618,22 @@ export class ForecastService {
             const d = new Date(r.timestamp);
             const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
             const dateStr = istDate.toISOString().split('T')[0];
-            const hh = String(istDate.getUTCHours()).padStart(2, '0');
-            const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
-            const hourStr = `${hh}:${mm}`;
-            const slotNum = Number(r.slot_number);
-            const nextMinutesTotal = (slotNum % 96) * 15;
-            const nextHour = String(Math.floor(nextMinutesTotal / 60) % 24).padStart(2, '0');
-            const nextMin = String(nextMinutesTotal % 60).padStart(2, '0');
-            const timeBlock = `${hourStr} - ${nextHour}:${nextMin}`;
+
+            const slotNum = Number(r.slot_number || 1);
+            const startMins = (slotNum - 1) * 15;
+            const endMins = slotNum * 15;
+
+            const startH = String(Math.floor(startMins / 60) % 24).padStart(2, '0');
+            const startM = String(startMins % 60).padStart(2, '0');
+            const endH = String(Math.floor(endMins / 60) % 24).padStart(2, '0');
+            const endM = String(endMins % 60).padStart(2, '0');
+
+            const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+            const hourNum = Math.floor((slotNum - 1) / 4) + 1;
 
             return {
               date: dateStr,
-              hour: String(Math.floor((slotNum - 1) / 4) + 1),
+              hour: String(hourNum).padStart(2, '0'),
               timeBlock,
               intervalNumber: slotNum,
               demand: r.forecasted_energy !== null && r.forecasted_energy !== undefined ? Number(r.forecasted_energy) : 0,
