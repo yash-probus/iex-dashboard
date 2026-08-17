@@ -515,7 +515,7 @@ const exportInsightsToExcel = async () => {
           </Box>
 
           {marketDecisionResult && (
-            <Box className="no-print" sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: -2, mb: 2 }}>
+            <Box className="no-print" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, my: 2.5, width: '100%' }}>
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
@@ -534,9 +534,9 @@ const exportInsightsToExcel = async () => {
                   borderColor: 'divider',
                   backgroundColor: '#FFFFFF',
                   color: 'text.primary',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#F8FAFC',
                     borderColor: 'divider'
@@ -706,9 +706,9 @@ const exportInsightsToExcel = async () => {
                   borderColor: 'divider',
                   backgroundColor: '#FFFFFF',
                   color: 'text.primary',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#F8FAFC',
                     borderColor: 'divider'
@@ -816,9 +816,9 @@ const exportInsightsToExcel = async () => {
                   borderColor: 'divider',
                   backgroundColor: '#FFFFFF',
                   color: 'text.primary',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#F8FAFC',
                     borderColor: 'divider'
@@ -849,9 +849,9 @@ const exportInsightsToExcel = async () => {
                   borderColor: 'divider',
                   backgroundColor: '#FFFFFF',
                   color: 'text.primary',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#F8FAFC',
                     borderColor: 'divider'
@@ -882,9 +882,9 @@ const exportInsightsToExcel = async () => {
                   borderColor: 'divider',
                   backgroundColor: '#0F172A',
                   color: 'white',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#1E293B',
                     borderColor: 'divider'
@@ -916,9 +916,9 @@ const exportInsightsToExcel = async () => {
                   borderColor: 'divider',
                   backgroundColor: '#8B5CF6',
                   color: 'white',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#7C3AED',
                     borderColor: 'divider'

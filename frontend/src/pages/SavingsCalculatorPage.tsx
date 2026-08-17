@@ -2321,7 +2321,7 @@ export default function SavingsCalculatorPage() {
           </Box>
 
           {marketDecisionResult && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2, mb: 2, gap: 2 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', my: 2.5, gap: 1.5, width: '100%' }}>
 
               <Button
                 variant="outlined"
@@ -2345,9 +2345,9 @@ export default function SavingsCalculatorPage() {
                   borderColor: 'divider',
                   backgroundColor: '#0F172A',
                   color: 'white',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#1E293B',
                     borderColor: 'divider'
@@ -2379,9 +2379,9 @@ export default function SavingsCalculatorPage() {
                   borderColor: 'divider',
                   backgroundColor: '#8B5CF6',
                   color: 'white',
-                  px: 4,
+                  px: 2.5,
                   py: 1,
-                  minWidth: 220,
+                  whiteSpace: 'nowrap',
                   '&:hover': {
                     backgroundColor: '#7C3AED',
                     borderColor: 'divider'
