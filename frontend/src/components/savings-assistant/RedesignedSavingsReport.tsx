@@ -125,6 +125,52 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
         // Fake scheduled vs delivered logic since we only have marketEnergy (delivered)
         const scheduledOA = totalMarketEnergyKwh * 1.15; // Assume 15% grid losses for the UI
 
+        // Dynamic "next savings frontier" estimate.
+        // Estimate shift potential by moving part of expensive night consumption to lower-cost daytime windows.
+        let nightUsed = 0;
+        let nightCost = 0;
+        let dayUsed = 0;
+        let dayCost = 0;
+
+        if (marketDecisionResult.slotsData && marketDecisionResult.slotsData.length > 0) {
+          marketDecisionResult.slotsData.forEach((s: any) => {
+            let hh = s.hour;
+            if (hh === undefined) {
+              if (s.timeblock !== undefined) hh = Math.floor(((s.timeblock - 1) * 15) / 60);
+              else if (s.timeStr) hh = parseInt(s.timeStr.split(':')[0], 10);
+            }
+            if (hh === undefined || Number.isNaN(hh)) return;
+
+            const discomEnergy = Number(s.discomEnergy || 0);
+            const marketEnergy = Number(s.marketEnergy || 0);
+            const totalEnergy = discomEnergy + marketEnergy;
+            if (totalEnergy <= 0) return;
+
+            const discomLanding = Number(s.discomLanding || 0);
+            const damLanding = Number(s.damLanding || 0);
+            const rtmLanding = Number(s.rtmLanding || 0);
+            const gdamLanding = Number(s.gdamLanding || 0);
+            const candidateRates = [discomLanding, damLanding, rtmLanding, gdamLanding].filter(v => v > 0);
+            const effectiveRate = candidateRates.length > 0 ? Math.min(...candidateRates) : discomLanding;
+
+            // Expensive window: 7 PM - 5 AM. Lower-cost shift target: 5 AM - 7 PM.
+            if (hh >= 19 || hh < 5) {
+              nightUsed += totalEnergy;
+              nightCost += totalEnergy * discomLanding;
+            } else {
+              dayUsed += totalEnergy;
+              dayCost += totalEnergy * effectiveRate;
+            }
+          });
+        }
+
+        const avgNightRate = nightUsed > 0 ? nightCost / nightUsed : 0;
+        const avgDayRate = dayUsed > 0 ? dayCost / dayUsed : avgNightRate;
+        const shiftableKwh = Math.max(0, nightUsed * 0.15); // Assume 15% of night load can be shifted operationally
+        const opportunityPerKwh = Math.max(0, avgNightRate - avgDayRate);
+        const additionalMonthlyOpportunity = Math.round(shiftableKwh * opportunityPerKwh);
+        const hasAdditionalOpportunity = additionalMonthlyOpportunity > 0 && shiftableKwh > 0;
+
         return (
           <React.Fragment key={month}>
             {/* PAGE 1 */}
@@ -410,14 +456,22 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
             {/* PAGE 6 */}
             <Box className="pdf-page" sx={{ backgroundColor: DARK_BG, color: '#FFFFFF', p: '40px 40px 40px 40px' }}>
               <Typography sx={{ color: LIGHT_GREEN, fontWeight: 700, fontSize: '13px', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>Your next savings frontier</Typography>
-              <Typography sx={{ fontSize: '32px', fontWeight: 800, mb: 1 }}>Another ₹1.61 lakh may be within reach</Typography>
-              <Typography sx={{ color: '#94A3B8', fontSize: '16px', mb: 3 }}>This is an opportunity estimate - not savings already realised.</Typography>
+              <Typography sx={{ fontSize: '32px', fontWeight: 800, mb: 1 }}>
+                {hasAdditionalOpportunity
+                  ? `Another ₹${additionalMonthlyOpportunity.toLocaleString('en-IN')} may be within reach`
+                  : 'No significant additional monthly opportunity identified'}
+              </Typography>
+              <Typography sx={{ color: '#94A3B8', fontSize: '16px', mb: 3 }}>This is an opportunity estimate, not savings already realised.</Typography>
 
               <Box sx={{ p: 4, border: '1px solid #1E3A47', borderRadius: '24px', mb: 4 }}>
                 <Typography sx={{ color: LIGHT_GREEN, fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Estimated Additional Monthly Opportunity</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography sx={{ fontSize: '48px', fontWeight: 800, lineHeight: 1, mr: 3 }}>₹1,61,083</Typography>
-                  <Typography sx={{ color: '#94A3B8', fontSize: '14px' }}>by shifting up to 48,331 kWh into lower-cost time windows</Typography>
+                  <Typography sx={{ fontSize: '48px', fontWeight: 800, lineHeight: 1, mr: 3 }}>₹{additionalMonthlyOpportunity.toLocaleString('en-IN')}</Typography>
+                  <Typography sx={{ color: '#94A3B8', fontSize: '14px' }}>
+                    {hasAdditionalOpportunity
+                      ? `by shifting up to ${Math.round(shiftableKwh).toLocaleString('en-IN')} kWh into lower-cost time windows`
+                      : 'current profile already captures most of the available time-shift opportunity'}
+                  </Typography>
                 </Box>
               </Box>
 

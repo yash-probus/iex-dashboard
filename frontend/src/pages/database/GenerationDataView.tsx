@@ -79,6 +79,16 @@ export default function GenerationDataView({
 }: GenerationDataViewProps) {
   const [viewType, setViewType] = useState<'raw' | 'adjusted'>('adjusted');
 
+  const showAllSources = selectedSource === 'all';
+  const shouldShowSource = (source: 'thermal' | 'gas' | 'nuclear' | 'hydro' | 'wind' | 'solar') => showAllSources || selectedSource === source;
+
+  const handleLegendClick = (payload: any) => {
+    if (!payload || !payload.dataKey) return;
+    const key = String(payload.dataKey).toLowerCase();
+    if (!['thermal', 'gas', 'nuclear', 'hydro', 'wind', 'solar'].includes(key)) return;
+    onSourceChange(selectedSource === key ? 'all' : key);
+  };
+
   const handleViewChange = (
     event: React.MouseEvent<HTMLElement>,
     newView: 'raw' | 'adjusted' | null,
@@ -258,13 +268,13 @@ export default function GenerationDataView({
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
                       itemStyle={{ fontWeight: 500 }}
                     />
-                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                    {(selectedSource === 'all' || selectedSource === 'thermal') && <Area type="monotone" dataKey="thermal" name="Thermal" stackId="1" stroke={COLORS.thermal} fill={COLORS.thermal} />}
-                    {(selectedSource === 'all' || selectedSource === 'gas') && <Area type="monotone" dataKey="gas" name="Gas" stackId="1" stroke={COLORS.gas} fill={COLORS.gas} />}
-                    {(selectedSource === 'all' || selectedSource === 'nuclear') && <Area type="monotone" dataKey="nuclear" name="Nuclear" stackId="1" stroke={COLORS.nuclear} fill={COLORS.nuclear} />}
-                    {(selectedSource === 'all' || selectedSource === 'hydro') && <Area type="monotone" dataKey="hydro" name="Hydro" stackId="1" stroke={COLORS.hydro} fill={COLORS.hydro} />}
-                    {(selectedSource === 'all' || selectedSource === 'wind') && <Area type="monotone" dataKey="wind" name="Wind" stackId="1" stroke={COLORS.wind} fill={COLORS.wind} />}
-                    {(selectedSource === 'all' || selectedSource === 'solar') && <Area type="monotone" dataKey="solar" name="Solar" stackId="1" stroke={COLORS.solar} fill={COLORS.solar} />}
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', cursor: 'pointer' }} onClick={handleLegendClick} />
+                    {shouldShowSource('thermal') && <Area type="monotone" dataKey="thermal" name="Thermal" stackId="1" stroke={COLORS.thermal} fill={COLORS.thermal} />}
+                    {shouldShowSource('gas') && <Area type="monotone" dataKey="gas" name="Gas" stackId="1" stroke={COLORS.gas} fill={COLORS.gas} />}
+                    {shouldShowSource('nuclear') && <Area type="monotone" dataKey="nuclear" name="Nuclear" stackId="1" stroke={COLORS.nuclear} fill={COLORS.nuclear} />}
+                    {shouldShowSource('hydro') && <Area type="monotone" dataKey="hydro" name="Hydro" stackId="1" stroke={COLORS.hydro} fill={COLORS.hydro} />}
+                    {shouldShowSource('wind') && <Area type="monotone" dataKey="wind" name="Wind" stackId="1" stroke={COLORS.wind} fill={COLORS.wind} />}
+                    {shouldShowSource('solar') && <Area type="monotone" dataKey="solar" name="Solar" stackId="1" stroke={COLORS.solar} fill={COLORS.solar} />}
                   </AreaChart>
                 </ResponsiveContainer>
               </Box>
@@ -304,12 +314,12 @@ export default function GenerationDataView({
                   <TableHead>
                     <TableRow>
                       <TableCell align="center" sx={{ fontWeight: 'bold' }}>Time</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thermal (MW)</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Gas (MW)</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nuclear (MW)</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Hydro (MW)</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Wind (MW)</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Solar (MW)</TableCell>
+                      {shouldShowSource('thermal') && <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thermal (MW)</TableCell>}
+                      {shouldShowSource('gas') && <TableCell align="center" sx={{ fontWeight: 'bold' }}>Gas (MW)</TableCell>}
+                      {shouldShowSource('nuclear') && <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nuclear (MW)</TableCell>}
+                      {shouldShowSource('hydro') && <TableCell align="center" sx={{ fontWeight: 'bold' }}>Hydro (MW)</TableCell>}
+                      {shouldShowSource('wind') && <TableCell align="center" sx={{ fontWeight: 'bold' }}>Wind (MW)</TableCell>}
+                      {shouldShowSource('solar') && <TableCell align="center" sx={{ fontWeight: 'bold' }}>Solar (MW)</TableCell>}
                       {viewType === 'raw' && (
                         <>
                           <TableCell align="center" sx={{ fontWeight: 'bold' }}>Updated At</TableCell>
@@ -322,12 +332,12 @@ export default function GenerationDataView({
                     {chartData?.map((row: any, i: number) => (
                       <TableRow key={i} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell align="center">{row.timeStr}</TableCell>
-                        <TableCell align="center">{row.thermal?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell align="center">{row.gas?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell align="center">{row.nuclear?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell align="center">{row.hydro?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell align="center">{row.wind?.toLocaleString('en-IN') || 0}</TableCell>
-                        <TableCell align="center">{row.solar?.toLocaleString('en-IN') || 0}</TableCell>
+                        {shouldShowSource('thermal') && <TableCell align="center">{row.thermal?.toLocaleString('en-IN') || 0}</TableCell>}
+                        {shouldShowSource('gas') && <TableCell align="center">{row.gas?.toLocaleString('en-IN') || 0}</TableCell>}
+                        {shouldShowSource('nuclear') && <TableCell align="center">{row.nuclear?.toLocaleString('en-IN') || 0}</TableCell>}
+                        {shouldShowSource('hydro') && <TableCell align="center">{row.hydro?.toLocaleString('en-IN') || 0}</TableCell>}
+                        {shouldShowSource('wind') && <TableCell align="center">{row.wind?.toLocaleString('en-IN') || 0}</TableCell>}
+                        {shouldShowSource('solar') && <TableCell align="center">{row.solar?.toLocaleString('en-IN') || 0}</TableCell>}
                         {viewType === 'raw' && (
                           <>
                             <TableCell align="center">{row.dataUpdatedAt ? new Date(row.dataUpdatedAt).toLocaleString('en-IN') : '-'}</TableCell>

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, Card, Typography, Grid } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { 
   ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, 
   ComposedChart, Line, ScatterChart, Scatter, ZAxis, Cell
@@ -7,6 +8,28 @@ import {
 
 export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMonth?: string }> = ({ clientOverview, selectedMonth }) => {
   if (!clientOverview || !clientOverview.months) return null;
+
+  const formatMonthLabel = (rawMonth: string) => {
+    if (!rawMonth) return rawMonth;
+
+    // Handles "YYYY-MM" format (e.g. 2025-10)
+    const yyyyMm = rawMonth.match(/^(\d{4})-(\d{2})$/);
+    if (yyyyMm) {
+      const year = Number(yyyyMm[1]);
+      const month = Number(yyyyMm[2]);
+      const d = new Date(year, month - 1, 1);
+      return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+    }
+
+    // Handles "Mon-YY" format (e.g. Mar-25)
+    const monYy = rawMonth.match(/^([A-Za-z]{3})-(\d{2})$/);
+    if (monYy) {
+      const year = 2000 + Number(monYy[2]);
+      return `${monYy[1]} ${year}`;
+    }
+
+    return rawMonth;
+  };
 
   let validMonths = clientOverview.months.filter((m: any) => !m.error);
   if (selectedMonth && selectedMonth !== 'all') {
@@ -27,6 +50,28 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
     return new Intl.NumberFormat('en-IN').format(num);
   };
 
+  const renderSpreadTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+
+    const point = payload[0].payload;
+    return (
+      <Box
+        sx={{
+          backgroundColor: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          px: 1.5,
+          py: 1,
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+        }}
+      >
+        <Typography variant="body2">Coverage: {Number(point.coverage || 0).toFixed(2)}%</Typography>
+        <Typography variant="body2">Price spread: ₹{Number(point.grossRate || 0).toFixed(2)}/kWh</Typography>
+        <Typography variant="body2">Month: {formatMonthLabel(point.monthLabel)}</Typography>
+      </Box>
+    );
+  };
+
   // Process data for charts
   const chartData = validMonths.map((m: any) => {
     const coverage = m.totalEnergyKwh ? (m.totalMarketEnergyKwh || 0) / m.totalEnergyKwh * 100 : 0;
@@ -44,7 +89,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
 
     return {
       monthLabel: m.month,
-      monthShort: m.month.split('-')[0], // e.g. "Mar-25" -> "Mar"
+      monthShort: formatMonthLabel(m.month).split(' ')[0],
       clientSaving: m.savings || 0,
       grossSaving: m.grossSavings || (m.savings || 0),
       coverage: coverage,
@@ -71,7 +116,7 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
       {/* 1. Monthly savings and Open Access coverage */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+          <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0.5 }}>
               Monthly savings and Open Access coverage
             </Typography>
@@ -79,19 +124,54 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
               Click a month in the matrix below to open its linked sub-report.
             </Typography>
             
-            <ResponsiveContainer width="100%" height={300}>
-              <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={formatLakhs} />
-                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val}%`} domain={[0, 100]} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
-                <Bar yAxisId="left" dataKey="grossSaving" name="Gross saving" fill="#93c5fd" radius={[4, 4, 0, 0]} barSize={20} />
-                <Bar yAxisId="left" dataKey="clientSaving" name="Client saving" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
-                <Line yAxisId="right" type="monotone" dataKey="coverage" name="Coverage" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
+            <Box sx={{ flex: 1, minHeight: 300 }}>
+              <ResponsiveContainer width="100%" height={300}>
+                <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="monthShort" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={formatLakhs} />
+                  <YAxis 
+                    yAxisId="right" 
+                    orientation="right" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: '#64748b' }} 
+                    tickFormatter={(val: number) => `${Number(val).toFixed(2)}%`} 
+                    domain={[0, 100]} 
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#f8fafc' }} 
+                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    formatter={(val: any, name: string) => [
+                      typeof val === 'number' 
+                        ? (name === 'Coverage' ? `${Number(val).toFixed(2)}%` : formatLakhs(val)) 
+                        : val, 
+                      name
+                    ]}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+                  <Bar yAxisId="left" dataKey="grossSaving" name="Gross saving" fill="#93c5fd" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar yAxisId="left" dataKey="clientSaving" name="Client saving" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Line yAxisId="right" type="monotone" dataKey="coverage" name="Coverage" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </Box>
+
+            <Box 
+              sx={{ 
+                mt: 2, 
+                pt: 1.5, 
+                borderTop: '1px solid #f1f5f9', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1 
+              }}
+            >
+              <InfoOutlinedIcon fontSize="small" sx={{ color: '#64748b', fontSize: 18 }} />
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '12px' }}>
+                <strong>What is Coverage?</strong> Coverage represents the percentage of total monthly electricity consumption met through Open Access procurement (Consumer-bus Open Access Energy ÷ Total Billed Consumption × 100).
+              </Typography>
+            </Box>
           </Card>
         </Grid>
         
@@ -106,23 +186,23 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
             
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
               <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #86efac', borderLeft: '4px solid #22c55e' }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Best client-saving month: {bestMonth?.month}</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Best client-saving month: {formatMonthLabel(bestMonth?.monthLabel || bestMonth?.month)}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {formatLakhs(bestMonth?.clientSaving)} final saving with {bestMonth?.coverage.toFixed(0)}% OA coverage.
                 </Typography>
               </Box>
               
               <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #3b82f6' }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Strongest price advantage: {strongestSpreadMonth?.month}</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Strongest price advantage: {formatMonthLabel(strongestSpreadMonth?.monthLabel || strongestSpreadMonth?.month)}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  ₹{strongestSpreadMonth?.grossRate.toFixed(2)}/kWh gross saving per consumed unit.
+                  This means this month had the highest gross saving per unit: ₹{strongestSpreadMonth?.grossRate.toFixed(2)}/kWh (before platform/service fees).
                 </Typography>
               </Box>
               
               <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', borderLeft: '4px solid #eab308' }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Lowest coverage: {lowestCoverageMonth?.month}</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Lowest coverage: {formatMonthLabel(lowestCoverageMonth?.monthLabel || lowestCoverageMonth?.month)}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {lowestCoverageMonth?.coverage.toFixed(0)}% OA coverage. Review scheduling, approvals, availability and forecasting constraints.
+                  This means only {lowestCoverageMonth?.coverage.toFixed(0)}% of total consumption was served through OA in this month. Review scheduling, approvals, availability and forecasting constraints.
                 </Typography>
               </Box>
 
@@ -151,10 +231,29 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
             <ResponsiveContainer width="100%" height={300}>
               <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis type="number" dataKey="coverage" name="Coverage" unit="%" domain={[30, 90]} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis type="number" dataKey="grossRate" name="Price spread" unit="₹" domain={['dataMin - 0.2', 'dataMax + 0.2']} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <XAxis
+                  type="number"
+                  dataKey="coverage"
+                  name="Coverage"
+                  domain={[30, 100]}
+                  tickFormatter={(val: number) => `${Number(val).toFixed(0)}%`}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="grossRate"
+                  name="Price spread"
+                  domain={['dataMin - 0.2', 'dataMax + 0.2']}
+                  tickFormatter={(val: number) => `₹${Number(val).toFixed(2)}`}
+                  width={88}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <ZAxis type="category" dataKey="monthShort" name="Month" />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ borderRadius: '8px' }} />
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} content={renderSpreadTooltip} />
                 <Scatter name="Months" data={chartData} fill="#3b82f6">
                   {chartData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.coverage < 60 && entry.grossRate > 1.0 ? '#10b981' : '#3b82f6'} />
