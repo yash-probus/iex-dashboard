@@ -463,9 +463,10 @@ export class SavingsCalculatorNewService {
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
 
-      const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
       const lastDay = new Date(year, month, 0).getDate();
-      const endStr = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      const startStr = (typeof monthData === 'object' && monthData.startDate) ? monthData.startDate : `${year}-${String(month).padStart(2, '0')}-01`;
+      const endStr = (typeof monthData === 'object' && monthData.endDate) ? monthData.endDate : `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      const monthPeakDemand = (typeof monthData === 'object' && monthData.peakDemandKw) ? Number(monthData.peakDemandKw) : (sanctionedLoad || 1000);
 
       // Fetch state charges for losses & fees
       const stateCharges = await prisma.stateCharges.findFirst({
@@ -547,7 +548,7 @@ export class SavingsCalculatorNewService {
 
         if (matchedCustomSlot) {
           const availableMarkets = [];
-          if (sanctionedLoad >= 1000) {
+          if (monthPeakDemand >= 1000 || sanctionedLoad >= 1000) {
             if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
             if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
           }
@@ -582,7 +583,7 @@ export class SavingsCalculatorNewService {
       });
 
       // Calculate Discom baseline cost and allocate energy across TOD windows
-      const maxEnergyPerSlot = sanctionedLoad * 0.9 * 0.25;
+      const maxEnergyPerSlot = monthPeakDemand * 0.25;
 
       for (const customSlot of customSlots) {
         const slotEnergyTotal = customSlot.consumptionKwh;

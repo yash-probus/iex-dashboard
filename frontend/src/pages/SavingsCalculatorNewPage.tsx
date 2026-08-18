@@ -11,11 +11,13 @@ import {
   Edit as EditIcon,
   BarChart as BarChartIcon,
   Close as CloseIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  CalendarMonth as CalendarIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
+import DateRangePicker from '../components/common/DateRangePicker';
 import {
   fetchSavingsNewEntries,
   createSavingsNewEntry,
@@ -199,6 +201,13 @@ const VOLTAGE_OPTIONS = [
   '220 kV'
 ];
 
+interface MonthTodData {
+  startDate: string; // "YYYY-MM-DD"
+  endDate: string;   // "YYYY-MM-DD"
+  peakDemandKw: number;
+  slots: CustomTodSlot[];
+}
+
 export default function SavingsCalculatorNewPage() {
   const navigate = useNavigate();
 
@@ -288,12 +297,17 @@ export default function SavingsCalculatorNewPage() {
     return list;
   }, [stateCode, discom, apiDiscoms]);
 
-  // Custom TOD Consumptions per Month
-  const [todConsumptions, setTodConsumptions] = useState<Record<string, CustomTodSlot[]>>({
-    '2026-04': [
-      { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
-      { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
-    ]
+  // Custom TOD Consumptions & Billed Dates per Month
+  const [todConsumptions, setTodConsumptions] = useState<Record<string, MonthTodData>>({
+    '2026-04': {
+      startDate: '2026-04-01',
+      endDate: '2026-04-30',
+      peakDemandKw: 1000,
+      slots: [
+        { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
+        { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
+      ]
+    }
   });
 
   const [activeMonth, setActiveMonth] = useState<string>('2026-04');
@@ -339,10 +353,15 @@ export default function SavingsCalculatorNewPage() {
     setArrearAmount('0');
     setCurrentLpsc('0');
     setTodConsumptions({
-      '2026-04': [
-        { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
-        { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
-      ]
+      '2026-04': {
+        startDate: '2026-04-01',
+        endDate: '2026-04-30',
+        peakDemandKw: 1000,
+        slots: [
+          { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
+          { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
+        ]
+      }
     });
     setActiveMonth('2026-04');
     setDialogOpen(true);
@@ -370,23 +389,41 @@ export default function SavingsCalculatorNewPage() {
     setArrearAmount(entry.arrearAmount !== undefined && entry.arrearAmount !== null ? String(entry.arrearAmount) : '0');
     setCurrentLpsc(entry.currentLpsc !== undefined && entry.currentLpsc !== null ? String(entry.currentLpsc) : '0');
 
-    const parsed: Record<string, CustomTodSlot[]> = {};
+    const parsed: Record<string, MonthTodData> = {};
     if (entry.todConsumptions && typeof entry.todConsumptions === 'object') {
       Object.entries(entry.todConsumptions).forEach(([m, val]: [string, any]) => {
+        const [yearStr, monthStr] = m.split('-');
+        const y = parseInt(yearStr, 10) || 2026;
+        const mon = parseInt(monthStr, 10) || 4;
+        const lastDay = new Date(y, mon, 0).getDate();
+
         if (Array.isArray(val)) {
-          parsed[m] = val;
-        } else if (val && typeof val === 'object' && Array.isArray(val.slots)) {
-          parsed[m] = val.slots;
-        } else {
-          parsed[m] = [];
+          parsed[m] = {
+            startDate: `${m}-01`,
+            endDate: `${m}-${String(lastDay).padStart(2, '0')}`,
+            peakDemandKw: Number(entry.sanctionedLoadKw || 1000),
+            slots: val
+          };
+        } else if (val && typeof val === 'object') {
+          parsed[m] = {
+            startDate: val.startDate || `${m}-01`,
+            endDate: val.endDate || `${m}-${String(lastDay).padStart(2, '0')}`,
+            peakDemandKw: Number(val.peakDemandKw || entry.sanctionedLoadKw || 1000),
+            slots: Array.isArray(val.slots) ? val.slots : []
+          };
         }
       });
     }
     const months = Object.keys(parsed);
     setTodConsumptions(months.length > 0 ? parsed : {
-      '2026-04': [
-        { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
-      ]
+      '2026-04': {
+        startDate: '2026-04-01',
+        endDate: '2026-04-30',
+        peakDemandKw: 1000,
+        slots: [
+          { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
+        ]
+      }
     });
     setActiveMonth(months[0] || '2026-04');
     setDialogOpen(true);
@@ -397,8 +434,13 @@ export default function SavingsCalculatorNewPage() {
   };
 
   const handleAddTodSlot = () => {
-    const currentSlots = todConsumptions[activeMonth] || [];
-    const newSlotNumber = currentSlots.length + 1;
+    const currentMonthData = todConsumptions[activeMonth] || {
+      startDate: `${activeMonth}-01`,
+      endDate: `${activeMonth}-30`,
+      peakDemandKw: Number(sanctionedLoadKw) || 1000,
+      slots: []
+    };
+    const newSlotNumber = currentMonthData.slots.length + 1;
     const newSlot: CustomTodSlot = {
       id: `tod-${Date.now()}-${newSlotNumber}`,
       name: `Slot ${newSlotNumber}`,
@@ -409,20 +451,32 @@ export default function SavingsCalculatorNewPage() {
     };
     setTodConsumptions(prev => ({
       ...prev,
-      [activeMonth]: [...(prev[activeMonth] || []), newSlot]
+      [activeMonth]: {
+        ...currentMonthData,
+        slots: [...currentMonthData.slots, newSlot]
+      }
     }));
   };
 
   const handleRemoveTodSlot = (slotIndex: number) => {
-    setTodConsumptions(prev => ({
-      ...prev,
-      [activeMonth]: (prev[activeMonth] || []).filter((_, idx) => idx !== slotIndex)
-    }));
+    setTodConsumptions(prev => {
+      const cur = prev[activeMonth];
+      if (!cur) return prev;
+      return {
+        ...prev,
+        [activeMonth]: {
+          ...cur,
+          slots: cur.slots.filter((_, idx) => idx !== slotIndex)
+        }
+      };
+    });
   };
 
   const handleUpdateTodSlot = (slotIndex: number, field: keyof CustomTodSlot, value: any) => {
     setTodConsumptions(prev => {
-      const slots = [...(prev[activeMonth] || [])];
+      const cur = prev[activeMonth];
+      if (!cur) return prev;
+      const slots = [...cur.slots];
       if (slots[slotIndex]) {
         slots[slotIndex] = {
           ...slots[slotIndex],
@@ -431,7 +485,47 @@ export default function SavingsCalculatorNewPage() {
       }
       return {
         ...prev,
-        [activeMonth]: slots
+        [activeMonth]: {
+          ...cur,
+          slots
+        }
+      };
+    });
+  };
+
+  const handleUpdateBilledDates = (startDate: string, endDate: string) => {
+    setTodConsumptions(prev => {
+      const cur = prev[activeMonth] || {
+        startDate,
+        endDate,
+        peakDemandKw: Number(sanctionedLoadKw) || 1000,
+        slots: []
+      };
+      return {
+        ...prev,
+        [activeMonth]: {
+          ...cur,
+          startDate,
+          endDate
+        }
+      };
+    });
+  };
+
+  const handleUpdatePeakDemand = (peakDemandKw: number) => {
+    setTodConsumptions(prev => {
+      const cur = prev[activeMonth] || {
+        startDate: `${activeMonth}-01`,
+        endDate: `${activeMonth}-30`,
+        peakDemandKw,
+        slots: []
+      };
+      return {
+        ...prev,
+        [activeMonth]: {
+          ...cur,
+          peakDemandKw
+        }
       };
     });
   };
@@ -439,11 +533,18 @@ export default function SavingsCalculatorNewPage() {
   const handleAddMonth = () => {
     if (!newMonthInput) return;
     if (!todConsumptions[newMonthInput]) {
+      const [y, m] = newMonthInput.split('-');
+      const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0).getDate();
       setTodConsumptions(prev => ({
         ...prev,
-        [newMonthInput]: [
-          { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
-        ]
+        [newMonthInput]: {
+          startDate: `${newMonthInput}-01`,
+          endDate: `${newMonthInput}-${String(lastDay).padStart(2, '0')}`,
+          peakDemandKw: Number(sanctionedLoadKw) || 1000,
+          slots: [
+            { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
+          ]
+        }
       }));
       setActiveMonth(newMonthInput);
       setNewMonthInput('');
@@ -568,6 +669,13 @@ export default function SavingsCalculatorNewPage() {
       )
     }
   ];
+
+  const activeMonthData = todConsumptions[activeMonth] || {
+    startDate: `${activeMonth}-01`,
+    endDate: `${activeMonth}-30`,
+    peakDemandKw: Number(sanctionedLoadKw) || 1000,
+    slots: []
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: 3 }}>
@@ -889,9 +997,9 @@ export default function SavingsCalculatorNewPage() {
             </Grid>
           </Grid>
 
-          {/* Section 5: Custom TOD Configuration */}
+          {/* Section 5: Custom TOD Configuration & Billed Dates */}
           <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
-            5. Custom TOD Timings & Effective Price Configuration
+            5. Custom TOD Timings, Peak Demand & Billed Dates
           </Typography>
 
           {/* Month Selector Tabs */}
@@ -921,9 +1029,39 @@ export default function SavingsCalculatorNewPage() {
             </Box>
           </Box>
 
-          {/* Custom TOD Slots Table for Active Month */}
+          {/* Active Month Header: Billed Consumption Date Range & Peak Demand */}
           <Paper sx={{ p: 2, borderRadius: 2, backgroundColor: 'grey.50' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight={700}>
+                Billed Consumption Dates & Peak Demand for {activeMonth}
+              </Typography>
+
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} sm={7}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                    BILLED CONSUMPTION DATE RANGE
+                  </Typography>
+                  <DateRangePicker
+                    startDate={activeMonthData.startDate || `${activeMonth}-01`}
+                    endDate={activeMonthData.endDate || `${activeMonth}-30`}
+                    onChange={(start, end) => handleUpdateBilledDates(start, end)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                  <TextField
+                    label="Peak Demand (kW)"
+                    type="number"
+                    size="small"
+                    fullWidth
+                    value={activeMonthData.peakDemandKw || ''}
+                    onChange={(e) => handleUpdatePeakDemand(Number(e.target.value))}
+                    placeholder="e.g. 1000"
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
               <Typography variant="subtitle1" fontWeight={700}>
                 Custom TOD Windows for {activeMonth}
               </Typography>
@@ -950,7 +1088,7 @@ export default function SavingsCalculatorNewPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {(todConsumptions[activeMonth] || []).map((slot, idx) => (
+                {(activeMonthData.slots || []).map((slot, idx) => (
                   <TableRow key={slot.id || idx}>
                     <TableCell>
                       <TextField
