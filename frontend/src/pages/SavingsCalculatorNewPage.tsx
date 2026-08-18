@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Button, TextField, IconButton, Alert,
   Grid, Paper, Tooltip, Table, TableBody, TableCell, TableHead, TableRow,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem, FormControlLabel, Switch
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem, FormControlLabel, RadioGroup, Radio, FormControl, FormLabel, Select, InputAdornment, Divider, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
 import {
   Calculate as CalculateIcon,
@@ -12,7 +12,12 @@ import {
   BarChart as BarChartIcon,
   Close as CloseIcon,
   Search as SearchIcon,
-  CalendarMonth as CalendarIcon
+  LocationOn as LocationIcon,
+  ElectricBolt as ElectricBoltIcon,
+  Category as CategoryIcon,
+  Bolt as BoltIcon,
+  Speed as SpeedIcon,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
@@ -221,11 +226,13 @@ export default function SavingsCalculatorNewPage() {
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
-  // Form Fields
+  // Form Fields matching old UI
+  const [clientPrefix, setClientPrefix] = useState('M/s');
   const [clientName, setClientName] = useState('');
   const [industryName, setIndustryName] = useState('');
   const [address, setAddress] = useState('');
   const [sanctionedLoadKw, setSanctionedLoadKw] = useState('');
+  const [sanctionedLoadKva, setSanctionedLoadKva] = useState('');
   const [stateCode, setStateCode] = useState('MH');
   const [discom, setDiscom] = useState('MSEDCL');
   const [consumerCategory, setConsumerCategory] = useState('Industrial');
@@ -245,7 +252,7 @@ export default function SavingsCalculatorNewPage() {
   const [arrearAmount, setArrearAmount] = useState<string>('0');
   const [currentLpsc, setCurrentLpsc] = useState<string>('0');
 
-  // Resource Center Master Data State
+  // Master Data State
   const [apiStates, setApiStates] = useState<any[]>([]);
   const [apiDiscoms, setApiDiscoms] = useState<any[]>([]);
 
@@ -334,10 +341,12 @@ export default function SavingsCalculatorNewPage() {
   const handleOpenCreate = () => {
     setDialogMode('create');
     setSelectedEntryId(null);
+    setClientPrefix('M/s');
     setClientName('');
     setIndustryName('');
     setAddress('');
     setSanctionedLoadKw('1000');
+    setSanctionedLoadKva('1111.11');
     setStateCode('MH');
     setDiscom('MSEDCL');
     setConsumerCategory('Industrial');
@@ -370,10 +379,25 @@ export default function SavingsCalculatorNewPage() {
   const handleOpenEdit = (entry: SavingsCalculatorNewEntry) => {
     setDialogMode('edit');
     setSelectedEntryId(entry.id);
-    setClientName(entry.clientName);
+    let fullClientName = entry.clientName;
+    if (fullClientName.startsWith('M/s ')) {
+      setClientPrefix('M/s');
+      setClientName(fullClientName.replace('M/s ', ''));
+    } else {
+      setClientPrefix('M/s');
+      setClientName(fullClientName);
+    }
     setIndustryName(entry.industryName);
     setAddress(entry.address);
-    setSanctionedLoadKw(entry.sanctionedLoadKw ? String(entry.sanctionedLoadKw) : '');
+
+    const kwVal = entry.sanctionedLoadKw ? String(entry.sanctionedLoadKw) : '';
+    setSanctionedLoadKw(kwVal);
+    if (kwVal && !isNaN(Number(kwVal))) {
+      setSanctionedLoadKva((Number(kwVal) / 0.9).toFixed(2).replace(/\.00$/, ''));
+    } else {
+      setSanctionedLoadKva('');
+    }
+
     setStateCode(entry.stateCode || 'MH');
     setDiscom(entry.discom || 'MSEDCL');
     setConsumerCategory(entry.consumerCategory || 'Industrial');
@@ -558,8 +582,9 @@ export default function SavingsCalculatorNewPage() {
     }
 
     try {
+      const formattedClientName = clientPrefix ? `${clientPrefix} ${clientName}` : clientName;
       const payload = {
-        clientName,
+        clientName: formattedClientName,
         industryName,
         address,
         sanctionedLoadKw: Number(sanctionedLoadKw) || 0,
@@ -683,7 +708,7 @@ export default function SavingsCalculatorNewPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{
-            backgroundColor: 'primary.main',
+            backgroundColor: '#8B5CF6',
             color: 'white',
             p: 1.5,
             borderRadius: 2,
@@ -693,7 +718,7 @@ export default function SavingsCalculatorNewPage() {
             <CalculateIcon fontSize="large" />
           </Box>
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#1E293B' }}>
               Savings Calculator (New)
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -706,7 +731,7 @@ export default function SavingsCalculatorNewPage() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenCreate}
-          sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 700 }}
+          sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 700, bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' } }}
         >
           New Client Entry
         </Button>
@@ -740,304 +765,330 @@ export default function SavingsCalculatorNewPage() {
         emptyStateMessage={<EmptyTableState title="No entries found" description="Click 'New Client Entry' to add custom TOD calculation profile." />}
       />
 
-      {/* Modal Dialog for Entry Creation/Editing */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" fontWeight={700}>
-            {dialogMode === 'create' ? 'Create New Client Profile (Custom TOD)' : 'Edit Client Profile (Custom TOD)'}
-          </Typography>
+      {/* Modal Dialog styled EXACTLY like the old Savings Calculator modal */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 4, bgcolor: '#F8FAFC' }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, p: 3, pb: 1 }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1E293B' }}>
+              {dialogMode === 'create' ? 'Create Client Profile (Custom TOD)' : 'Edit Client Profile (Custom TOD)'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Enter facility connection details, custom TOD windows, and tariff parameters
+            </Typography>
+          </Box>
           <IconButton onClick={handleCloseDialog} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
 
-        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {/* Section 1: Client Information */}
-          <Typography variant="subtitle2" color="primary" fontWeight={700}>
-            1. Client Information
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Client Name *"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Industry Name *"
-                value={industryName}
-                onChange={(e) => setIndustryName(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Address *"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                fullWidth
-                size="small"
-                multiline
-                rows={2}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Section 2: Technical & Connection Details */}
-          <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
-            2. Technical & Utility Connection Details
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Sanctioned Load (kW)"
-                type="number"
-                value={sanctionedLoadKw}
-                onChange={(e) => setSanctionedLoadKw(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                label="State Code"
-                value={stateCode}
-                onChange={(e) => {
-                  const newCode = e.target.value;
-                  setStateCode(newCode);
-                  const firstDiscom = STATE_DISCOM_MASTER[newCode]?.discoms[0]?.code || '';
-                  setDiscom(firstDiscom);
-                }}
-                fullWidth
-                size="small"
-              >
-                {stateOptions.map((s) => (
-                  <MenuItem key={s.code} value={s.code}>
-                    {s.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                label="Discom"
-                value={discom}
-                onChange={(e) => setDiscom(e.target.value)}
-                fullWidth
-                size="small"
-              >
-                {discomOptions.map((d) => (
-                  <MenuItem key={d.code} value={d.code}>
-                    {d.code} - {d.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                label="Consumer Category"
-                value={consumerCategory}
-                onChange={(e) => setConsumerCategory(e.target.value)}
-                fullWidth
-                size="small"
-              >
-                {CATEGORY_OPTIONS.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                label="Voltage Level"
-                value={voltageLevel}
-                onChange={(e) => setVoltageLevel(e.target.value)}
-                fullWidth
-                size="small"
-              >
-                {VOLTAGE_OPTIONS.map((v) => (
-                  <MenuItem key={v} value={v}>
-                    {v}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-          </Grid>
-
-          {/* Section 3: Margins & Consultancy Fees */}
-          <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
-            3. Margins & Platform Fees
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="PROLT Margin (₹/kWh)"
-                type="number"
-                inputProps={{ step: 0.01 }}
-                value={proltMargin}
-                onChange={(e) => setProltMargin(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Trader Margin (₹/kWh)"
-                type="number"
-                inputProps={{ step: 0.01 }}
-                value={traderMargin}
-                onChange={(e) => setTraderMargin(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Metering Charges (₹)"
-                type="number"
-                value={meteringCharges}
-                onChange={(e) => setMeteringCharges(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Consultancy Fee (₹)"
-                type="number"
-                value={consultancyFee}
-                onChange={(e) => setConsultancyFee(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Probus Platform Fee (₹)"
-                type="number"
-                value={probusPlatformFee}
-                onChange={(e) => setProbusPlatformFee(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-          </Grid>
-
-          {/* Section 4: Billing & Arrears */}
-          <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
-            4. Additional Billing Parameters
-          </Typography>
-
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Billed Demand (kVA/kW)"
-                type="number"
-                value={billedDemandKv}
-                onChange={(e) => setBilledDemandKv(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Power Factor"
-                type="number"
-                inputProps={{ step: 0.01, min: 0, max: 1 }}
-                value={powerFactor}
-                onChange={(e) => setPowerFactor(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={applyElectricityDuty}
-                    onChange={(e) => setApplyElectricityDuty(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Apply Electricity Duty"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Arrear Amount (₹)"
-                type="number"
-                value={arrearAmount}
-                onChange={(e) => setArrearAmount(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Current LPSC (₹)"
-                type="number"
-                value={currentLpsc}
-                onChange={(e) => setCurrentLpsc(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Grid>
-          </Grid>
-
-          {/* Section 5: Custom TOD Configuration & Billed Dates */}
-          <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
-            5. Custom TOD Timings, Peak Demand & Billed Dates
-          </Typography>
-
-          {/* Month Selector Tabs */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            {Object.keys(todConsumptions).map(m => (
-              <Chip
-                key={m}
-                label={m}
-                color={activeMonth === m ? 'primary' : 'default'}
-                onClick={() => setActiveMonth(m)}
-                sx={{ fontWeight: 600 }}
-              />
-            ))}
-
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 1 }}>
-              <TextField
-                type="month"
-                size="small"
-                value={newMonthInput}
-                onChange={(e) => setNewMonthInput(e.target.value)}
-                sx={{ width: 190 }}
-                InputLabelProps={{ shrink: true }}
-              />
-              <Button variant="outlined" size="small" onClick={handleAddMonth}>
-                Add Month
-              </Button>
+        <DialogContent dividers sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3, bgcolor: '#F8FAFC' }}>
+          {/* Card 1: Client Details */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <CategoryIcon sx={{ color: '#8B5CF6' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                Client Information
+              </Typography>
             </Box>
-          </Box>
 
-          {/* Active Month Header: Billed Consumption Date Range & Peak Demand */}
-          <Paper sx={{ p: 2, borderRadius: 2, backgroundColor: 'grey.50' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
-              <Typography variant="subtitle1" fontWeight={700}>
-                Billed Consumption Dates & Peak Demand for {activeMonth}
+            <Grid container spacing= {2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Client Name *"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  fullWidth
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Select
+                          value={clientPrefix}
+                          onChange={(e) => setClientPrefix(e.target.value)}
+                          variant="standard"
+                          disableUnderline
+                          sx={{ fontSize: '14px', fontWeight: 600, color: 'text.secondary', mr: 1 }}
+                        >
+                          <MenuItem value="M/s">M/s</MenuItem>
+                        </Select>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Industry Name *"
+                  value={industryName}
+                  onChange={(e) => setIndustryName(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Address *"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  fullWidth
+                  size="small"
+                  multiline
+                  rows={2}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Card 2: Facility & Provider Location */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <LocationIcon sx={{ color: '#8B5CF6' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                State, Provider & Tariff Category
+              </Typography>
+            </Box>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  select
+                  label="State Code *"
+                  value={stateCode}
+                  onChange={(e) => {
+                    const newCode = e.target.value;
+                    setStateCode(newCode);
+                    const firstDiscom = STATE_DISCOM_MASTER[newCode]?.discoms[0]?.code || '';
+                    setDiscom(firstDiscom);
+                  }}
+                  fullWidth
+                  size="small"
+                >
+                  {stateOptions.map((s) => (
+                    <MenuItem key={s.code} value={s.code}>
+                      {s.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  select
+                  label="DISCOM *"
+                  value={discom}
+                  onChange={(e) => setDiscom(e.target.value)}
+                  fullWidth
+                  size="small"
+                >
+                  {discomOptions.map((d) => (
+                    <MenuItem key={d.code} value={d.code}>
+                      {d.code} - {d.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  select
+                  label="Consumer Category *"
+                  value={consumerCategory}
+                  onChange={(e) => setConsumerCategory(e.target.value)}
+                  fullWidth
+                  size="small"
+                >
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <MenuItem key={c} value={c}>
+                      {c}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Voltage Category *"
+                  value={voltageLevel}
+                  onChange={(e) => setVoltageLevel(e.target.value)}
+                  fullWidth
+                  size="small"
+                >
+                  {VOLTAGE_OPTIONS.map((v) => (
+                    <MenuItem key={v} value={v}>
+                      {v}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                  <TextField
+                    label="Sanctioned Load (kW) *"
+                    type="number"
+                    value={sanctionedLoadKw}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSanctionedLoadKw(val);
+                      if (val && !isNaN(Number(val))) {
+                        setSanctionedLoadKva((Number(val) / 0.9).toFixed(2).replace(/\.00$/, ''));
+                      } else {
+                        setSanctionedLoadKva('');
+                      }
+                    }}
+                    fullWidth
+                    size="small"
+                  />
+                  <TextField
+                    label="Sanctioned Load (kVA)"
+                    type="number"
+                    value={sanctionedLoadKva}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSanctionedLoadKva(val);
+                      if (val && !isNaN(Number(val))) {
+                        setSanctionedLoadKw((Number(val) * 0.9).toFixed(2).replace(/\.00$/, ''));
+                      } else {
+                        setSanctionedLoadKw('');
+                      }
+                    }}
+                    fullWidth
+                    size="small"
+                  />
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Card 3: Margins & Fees */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <ElectricBoltIcon sx={{ color: '#8B5CF6' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                Margins & Platform Charges
+              </Typography>
+            </Box>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="PROLT Margin (₹/kWh)"
+                  type="number"
+                  inputProps={{ step: 0.01 }}
+                  value={proltMargin}
+                  onChange={(e) => setProltMargin(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Trader Margin (₹/kWh)"
+                  type="number"
+                  inputProps={{ step: 0.01 }}
+                  value={traderMargin}
+                  onChange={(e) => setTraderMargin(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Metering Charges (₹)"
+                  type="number"
+                  value={meteringCharges}
+                  onChange={(e) => setMeteringCharges(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Consultancy Fee (₹)"
+                  type="number"
+                  value={consultancyFee}
+                  onChange={(e) => setConsultancyFee(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Probus Platform Fee (₹)"
+                  type="number"
+                  value={probusPlatformFee}
+                  onChange={(e) => setProbusPlatformFee(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Card 4: Monthly Custom TOD, Billed Dates & Peak Demand */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <BoltIcon sx={{ color: '#8B5CF6' }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                  Custom TOD Consumption & Billing Data
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <TextField
+                  type="month"
+                  size="small"
+                  value={newMonthInput}
+                  onChange={(e) => setNewMonthInput(e.target.value)}
+                  sx={{ width: 190 }}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <Button variant="outlined" size="small" onClick={handleAddMonth} sx={{ borderColor: '#8B5CF6', color: '#8B5CF6' }}>
+                  Add Month
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Month Chips */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+              {Object.keys(todConsumptions).map(m => (
+                <Chip
+                  key={m}
+                  label={m}
+                  color={activeMonth === m ? 'primary' : 'default'}
+                  onClick={() => setActiveMonth(m)}
+                  sx={{ fontWeight: 600, bgcolor: activeMonth === m ? '#8B5CF6' : undefined }}
+                />
+              ))}
+            </Box>
+
+            <Box sx={{ bgcolor: '#F8FAFC', p: 2, borderRadius: 2, mb: 2, border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
+                Billing Data & Demand for {activeMonth}
               </Typography>
 
               <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} sm={7}>
+                <Grid item xs={12} sm={4}>
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend" sx={{ fontSize: '12px', color: 'text.secondary', mb: 0.5 }}>Electricity Duty Applied?</FormLabel>
+                    <RadioGroup
+                      row
+                      value={applyElectricityDuty ? 'Yes' : 'No'}
+                      onChange={(e) => setApplyElectricityDuty(e.target.value === 'Yes')}
+                    >
+                      <FormControlLabel value="Yes" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Yes</Typography>} />
+                      <FormControlLabel value="No" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">No</Typography>} />
+                    </RadioGroup>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={8}>
                   <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
                     BILLED CONSUMPTION DATE RANGE
                   </Typography>
@@ -1047,7 +1098,8 @@ export default function SavingsCalculatorNewPage() {
                     onChange={(start, end) => handleUpdateBilledDates(start, end)}
                   />
                 </Grid>
-                <Grid item xs={12} sm={5}>
+
+                <Grid item xs={12} sm={6}>
                   <TextField
                     label="Peak Demand (kW)"
                     type="number"
@@ -1056,21 +1108,36 @@ export default function SavingsCalculatorNewPage() {
                     value={activeMonthData.peakDemandKw || ''}
                     onChange={(e) => handleUpdatePeakDemand(Number(e.target.value))}
                     placeholder="e.g. 1000"
+                    sx={{ bgcolor: '#FFFFFF' }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Power Factor"
+                    type="number"
+                    inputProps={{ step: 0.01, min: 0, max: 1 }}
+                    value={powerFactor}
+                    onChange={(e) => setPowerFactor(e.target.value)}
+                    fullWidth
+                    size="small"
+                    sx={{ bgcolor: '#FFFFFF' }}
                   />
                 </Grid>
               </Grid>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
-              <Typography variant="subtitle1" fontWeight={700}>
+            {/* Custom TOD Slots Table */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle2" fontWeight={700} color="#1E293B">
                 Custom TOD Windows for {activeMonth}
               </Typography>
               <Button
                 variant="contained"
-                color="secondary"
                 size="small"
                 startIcon={<AddIcon />}
                 onClick={handleAddTodSlot}
+                sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' } }}
               >
                 Add TOD Slot
               </Button>
@@ -1149,12 +1216,12 @@ export default function SavingsCalculatorNewPage() {
           </Paper>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleCloseDialog} color="inherit">
+        <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between', bgcolor: '#F8FAFC' }}>
+          <Button onClick={handleCloseDialog} color="inherit" sx={{ fontWeight: 600 }}>
             Cancel
           </Button>
-          <Button onClick={handleSaveEntry} variant="contained" color="primary">
-            Save Profile
+          <Button onClick={handleSaveEntry} variant="contained" sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' }, fontWeight: 700 }}>
+            Save Entry
           </Button>
         </DialogActions>
       </Dialog>
