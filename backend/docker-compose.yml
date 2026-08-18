@@ -125,8 +125,8 @@ services:
       - .env
     environment:
       - TZ=Asia/Kolkata
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres:5432/${POSTGRES_DB:-Prolt_Operations}?schema=public
-      - BACKUP_DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres-backup:5432/${POSTGRES_DB:-Prolt_Operations}?schema=public
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres:5432/${POSTGRES_DB:-Prolt_Operations}}
+      - BACKUP_DATABASE_URL=${BACKUP_DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@iex-postgres-backup:5432/${POSTGRES_DB:-Prolt_Operations}}
       - REDIS_URL=redis://iex-redis:6379
     volumes:
       - ./uploads:/app/uploads

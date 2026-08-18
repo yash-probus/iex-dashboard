@@ -51,7 +51,7 @@ services:
       - .env
     environment:
       - TZ=Asia/Kolkata
-      - DATABASE_URL=postgresql://postgres:iex_sec_k9P2mX_2026@iex-postgres:5432/Prolt_Operations?schema=public
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:iex_sec_k9P2mX_2026@iex-postgres:5432/Prolt_Operations}
     volumes:
       - ./uploads:/app/uploads
 
