@@ -468,7 +468,7 @@ export class SavingsCalculatorNewService {
       const endStr = (typeof monthData === 'object' && monthData.endDate) ? monthData.endDate : `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
       const monthPeakDemand = (typeof monthData === 'object' && monthData.peakDemandKw) ? Number(monthData.peakDemandKw) : (sanctionedLoad || 1000);
 
-      // Fetch state charges for losses & fees
+      // Fetch state charges for losses & surcharges
       const stateCharges = await prisma.stateCharges.findFirst({
         where: {
           state: { in: stateFormats },
@@ -481,6 +481,21 @@ export class SavingsCalculatorNewService {
       const wheelingLoss = stateCharges?.wheelingLossPercent ? Number(stateCharges.wheelingLossPercent) : 0;
       const cssRate = stateCharges?.crossSubsidy ? Number(stateCharges.crossSubsidy) : 0;
       const addChargeRate = stateCharges?.additionalCharge ? Number(stateCharges.additionalCharge) : 0;
+      const stuCharge = stateCharges?.stuCharges ? Number(stateCharges.stuCharges) : 0;
+      const wheelingCharge = stateCharges?.distributionWheelingCharges ? Number(stateCharges.distributionWheelingCharges) : 0;
+
+      const yyyymmMonth = year * 100 + month;
+      const ctuCharges = await prisma.ctuCharges.findFirst({ where: { month: yyyymmMonth } });
+      const ctuCharge = ctuCharges?.ctu_charges_rs_per_kwh ? Number(ctuCharges.ctu_charges_rs_per_kwh) : 0;
+
+      const istsCharges = await prisma.istsCharges.findMany({
+        where: {
+          OR: [{ startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }]
+        }
+      });
+
+      // Total per-kWh OA Surcharges & Overhead
+      const totalOaSurcharges = cssRate + addChargeRate + stuCharge + wheelingCharge + ctuCharge + 0.02;
 
       // Query market MCP for the month
       const query = `
@@ -523,6 +538,14 @@ export class SavingsCalculatorNewService {
         const dateStr = deliveryDate.toISOString().split('T')[0];
         const slot = rec.timeblock || rec.timeblock === 0 ? Number(rec.timeblock) : 1;
 
+        let istsLoss = 0;
+        const matchingIsts = istsCharges.find(i => deliveryDate >= i.startDate && deliveryDate <= i.endDate);
+        if (matchingIsts) {
+          istsLoss = Number(matchingIsts.istsLossPercent || 0);
+        }
+
+        const lossMultiplier = (1 + stuLoss / 100) * (1 + wheelingLoss / 100) * (1 + istsLoss / 100);
+
         const startMinutes = (slot - 1) * 15;
         const hour = Math.floor(startMinutes / 60);
         const minute = startMinutes % 60;
@@ -539,9 +562,9 @@ export class SavingsCalculatorNewService {
         const rawRtm = rec.rtmMcp !== undefined ? rec.rtmMcp : rec.rtmmcp;
         const rawGdam = rec.gdamMcp !== undefined ? rec.gdamMcp : rec.gdammcp;
 
-        const damLandingPrice = rawDam ? (Number(rawDam) / 1000) : 0;
-        const rtmLandingPrice = rawRtm ? (Number(rawRtm) / 1000) : 0;
-        const gdamLandingPrice = rawGdam ? (Number(rawGdam) / 1000) : 0;
+        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) * lossMultiplier + totalOaSurcharges) : 0;
+        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * lossMultiplier + totalOaSurcharges) : 0;
+        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * lossMultiplier + totalOaSurcharges) : 0;
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -576,7 +599,7 @@ export class SavingsCalculatorNewService {
           maxEnergyPerSlot: 0,
           optimizedCost: 0,
           baselineCost: 0,
-          istsLoss: 0,
+          istsLoss,
           stuLoss,
           wheelingLoss
         };
