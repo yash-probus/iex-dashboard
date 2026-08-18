@@ -8,7 +8,7 @@ export class ApiLogService {
           apiName,
           endpoint: endpoint ? endpoint.slice(0, 255) : null,
           status,
-          message,
+          details: message,
         },
       });
     } catch (error) {

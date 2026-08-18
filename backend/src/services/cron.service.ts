@@ -238,49 +238,58 @@ export class CronService {
       timezone: 'Asia/Kolkata'
     });
 
-    // Run every 4 minutes for NPP Data
+    // Run every 4 minutes for NPP Data (polls today & yesterday to ensure no missing slots)
     cron.schedule('*/4 * * * *', async () => {
       console.log('[Cron] Running 4-minute scheduled tasks');
       try {
-        // Real time NPP demand
-        const dateStr = new Date().toISOString().split('T')[0];
-        const data = await VidyutPravahScraper.getNppDemandData(dateStr);
-        
-        if (data && data.length > 0) {
-          await prisma.nppRawDemandData.createMany({
-            data: data.map(d => ({
-              date: d.date,
-              timeStr: d.timeStr,
-              demandMet: d.demandMet,
-              dataUpdatedAt: d.dataUpdatedAt,
-              fetchedAt: new Date(),
-            })),
-            skipDuplicates: true
-          });
-          console.log(`[CronService] Polled NPP Demand for ${dateStr} -> ${data.length} records`);
-          await NppAdjustmentService.updateAdjustedDemandForDate(dateStr);
-        }
-        
-        // Real time NPP generation
-        const genData = await VidyutPravahScraper.getNppGenerationData(dateStr);
-        if (genData && genData.length > 0) {
-          await prisma.nppRawGenerationData.createMany({
-            data: genData.map(g => ({
-              date: g.date,
-              timeStr: g.timeStr,
-              thermal: g.thermal,
-              gas: g.gas,
-              nuclear: g.nuclear,
-              hydro: g.hydro,
-              wind: g.wind,
-              solar: g.solar,
-              dataUpdatedAt: g.dataUpdatedAt,
-              fetchedAt: new Date(),
-            })),
-            skipDuplicates: true
-          });
-          console.log(`[CronService] Polled NPP Generation for ${dateStr} -> ${genData.length} records`);
-          await NppAdjustmentService.updateAdjustedGenerationForDate(dateStr);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        const targetDates = [
+          today.toISOString().split('T')[0],
+          yesterday.toISOString().split('T')[0]
+        ];
+
+        for (const dateStr of targetDates) {
+          // Real time NPP demand
+          const data = await VidyutPravahScraper.getNppDemandData(dateStr);
+          if (data && data.length > 0) {
+            await prisma.nppRawDemandData.createMany({
+              data: data.map(d => ({
+                date: d.date,
+                timeStr: d.timeStr,
+                demandMet: d.demandMet,
+                dataUpdatedAt: d.dataUpdatedAt,
+                fetchedAt: new Date(),
+              })),
+              skipDuplicates: true
+            });
+            console.log(`[CronService] Polled NPP Demand for ${dateStr} -> ${data.length} records`);
+            await NppAdjustmentService.updateAdjustedDemandForDate(dateStr);
+          }
+          
+          // Real time NPP generation
+          const genData = await VidyutPravahScraper.getNppGenerationData(dateStr);
+          if (genData && genData.length > 0) {
+            await prisma.nppRawGenerationData.createMany({
+              data: genData.map(g => ({
+                date: g.date,
+                timeStr: g.timeStr,
+                thermal: g.thermal,
+                gas: g.gas,
+                nuclear: g.nuclear,
+                hydro: g.hydro,
+                wind: g.wind,
+                solar: g.solar,
+                dataUpdatedAt: g.dataUpdatedAt,
+                fetchedAt: new Date(),
+              })),
+              skipDuplicates: true
+            });
+            console.log(`[CronService] Polled NPP Generation for ${dateStr} -> ${genData.length} records`);
+            await NppAdjustmentService.updateAdjustedGenerationForDate(dateStr);
+          }
         }
       } catch (error) {
         console.error('[Cron] Error in 4-minute schedule:', error);

@@ -139,7 +139,9 @@ export default function ForecastPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const endpoint = isDemand
+      const endpoint = isGeneration
+        ? `/forecast/generation?startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}&model=${filters.model}`
+        : isDemand
         ? `/forecast/demand?type=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}`
         : `/forecast/price?market=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}&model=${filters.model}`;
         
@@ -160,7 +162,7 @@ export default function ForecastPage() {
 
   useEffect(() => {
     fetchForecast();
-  }, [isPrice, subType, filters.startDate, filters.endDate, filters.interval, filters.model]);
+  }, [isPrice, isDemand, isGeneration, subType, filters.startDate, filters.endDate, filters.interval, filters.model]);
 
   // Define columns for table
   const getColumns = (): ColumnDefinition[] => {
@@ -174,6 +176,15 @@ export default function ForecastPage() {
 
     if (filters.interval === '15min') {
       baseColumns.push({ field: 'timeBlock', headerName: 'Time Block', sticky: true, align: 'center' });
+    }
+
+    if (isGeneration) {
+      return [
+        ...baseColumns,
+        { field: 'generation', headerName: 'Forecasted Generation (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `${v.toLocaleString('en-IN')} MW` : (v !== undefined && v !== null ? v : '-') },
+        { field: 'actualGeneration', headerName: 'Actual Generation (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `${v.toLocaleString('en-IN')} MW` : (v !== undefined && v !== null ? v : '-') },
+        { field: 'confidence', headerName: 'Confidence', align: 'center' },
+      ];
     }
 
     if (isDemand) {
@@ -247,6 +258,13 @@ export default function ForecastPage() {
 
   // Define chart metrics
   const getChartMetrics = (): ChartMetric[] => {
+    if (isGeneration) {
+      return [
+        { key: 'generation', name: 'Forecasted Generation (MW)', color: accentColor, type: 'area', yAxisId: 'left' },
+        { key: 'actualGeneration', name: 'Actual Generation (MW)', color: '#10B981', type: 'line', yAxisId: 'left' }
+      ];
+    }
+
     if (isDemand) {
       return [
         { key: 'demand', name: subType === 'consumer' ? 'Forecasted Apparent Energy' : 'Forecasted Demand', color: accentColor, type: 'area', yAxisId: 'left' },
@@ -608,6 +626,68 @@ export default function ForecastPage() {
                   )}
                 </Box>
               </>
+            ) : isGeneration ? (
+              <>
+                {/* Average Generation Card */}
+                <Box sx={{ flex: '1 1 200px', minWidth: 190 }}>
+                  {isLoading ? <SummaryCardSkeleton /> : (
+                    <SummaryCard
+                      title="Average Generation"
+                      value={
+                        <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              {Number(displayMetrics.averageGenerationForecasted || displayMetrics.averageGeneration || 0).toLocaleString('en-IN')} MW
+                            </Typography>
+                          </Box>
+                          <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              {displayMetrics.averageGenerationActual === 'N/A' || displayMetrics.averageGenerationActual === undefined || displayMetrics.averageGenerationActual === null
+                                ? 'N/A'
+                                : `${Number(displayMetrics.averageGenerationActual).toLocaleString('en-IN')} MW`}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      }
+                      icon={<TrendingUp fontSize="small" />}
+                      accentColor={accentColor}
+                      sx={{ p: 1.75 }}
+                    />
+                  )}
+                </Box>
+
+                {/* Minimum Generation Card */}
+                <Box sx={{ flex: '1 1 200px', minWidth: 190 }}>
+                  {isLoading ? <SummaryCardSkeleton /> : (
+                    <SummaryCard
+                      title="Minimum Generation"
+                      value={
+                        <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: 0.5 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Forecasted</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              {Number(displayMetrics.minGenerationForecasted || displayMetrics.minGeneration || 0).toLocaleString('en-IN')} MW
+                            </Typography>
+                          </Box>
+                          <Box sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider', pl: 2 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.25, fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', lineHeight: 1 }}>Actual</Typography>
+                            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, lineHeight: 1.1 }}>
+                              {displayMetrics.minGenerationActual === 'N/A' || displayMetrics.minGenerationActual === undefined || displayMetrics.minGenerationActual === null
+                                ? 'N/A'
+                                : `${Number(displayMetrics.minGenerationActual).toLocaleString('en-IN')} MW`}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      }
+                      icon={<TrendingDown fontSize="small" />}
+                      accentColor={accentColor}
+                      sx={{ p: 1.75 }}
+                    />
+                  )}
+                </Box>
+              </>
             ) : (
               <>
                 {/* Average Card */}
@@ -678,7 +758,7 @@ export default function ForecastPage() {
                 <SummaryCard
                   title="MAE"
                   value={displayMetrics.mae !== undefined && displayMetrics.mae !== null && displayMetrics.mae !== 'N/A' 
-                    ? (isDemand ? Number(displayMetrics.mae).toFixed(2) : `₹${Number(displayMetrics.mae).toFixed(2)}`) 
+                    ? (isDemand || isGeneration ? `${Number(displayMetrics.mae).toFixed(2)}${isGeneration ? ' MW' : ''}` : `₹${Number(displayMetrics.mae).toFixed(2)}`) 
                     : 'N/A'}
                   icon={<ShowChart fontSize="small" />}
                   accentColor="#EF4444"

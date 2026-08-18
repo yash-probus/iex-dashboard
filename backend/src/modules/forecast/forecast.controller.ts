@@ -59,6 +59,34 @@ export class ForecastController {
     }
   }
 
+  public static async getGenerationForecast(req: Request, res: Response) {
+    try {
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      const interval = (req.query.interval as string) || '15min';
+      const model = (req.query.model as string) || 'Model1';
+
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Both startDate and endDate are required parameters.'
+        });
+      }
+
+      const result = await ForecastService.getGenerationForecast(startDate, endDate, interval, model);
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      console.error('[ForecastController] Error in getGenerationForecast:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to fetch generation forecast.'
+      });
+    }
+  }
+
   public static async getForecastDates(req: Request, res: Response) {
     try {
       const market = (req.query.market as string) || 'dam';

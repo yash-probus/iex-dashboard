@@ -174,6 +174,10 @@ export class ForecastService {
    * Fetch Price Forecast
    */
   public static async getPriceForecast(market: string, startDateStr: string, endDateStr: string, interval: string = '15min', model: string = 'Model1') {
+    if (market.toUpperCase() === 'NPP' || market.toUpperCase() === 'GENERATION') {
+      return this.getGenerationForecast(startDateStr, endDateStr, interval, model);
+    }
+
     const intervals: ForecastIntervalData[] = [];
     const actualMap = new Map<string, number>();
 
@@ -944,7 +948,234 @@ export class ForecastService {
         });
         return Array.from(allDates);
       } catch (e) { return []; }
+    } else if (market.toUpperCase() === 'NPP' || market.toUpperCase() === 'GENERATION') {
+      try {
+        const rows: Array<{ date_str: string }> = await prisma.$queryRawUnsafe(
+          `SELECT DISTINCT (forecast_for_timestamp::date)::text as date_str
+           FROM "forecasting"."Generation_forecasting"
+           WHERE forecast_for_timestamp IS NOT NULL
+           ORDER BY date_str DESC`
+        );
+        return rows.map(r => r.date_str);
+      } catch (e) {
+        console.error('[ForecastService] Error fetching NPP dates:', e);
+        return [];
+      }
     }
     return [];
+  }
+
+  /**
+   * Fetch Generation Forecast
+   */
+  public static async getGenerationForecast(startDateStr: string, endDateStr: string, interval: string = '15min', model: string = 'Model1') {
+    const dates = this.getDatesInRange(startDateStr, endDateStr);
+    const intervals: any[] = [];
+
+    try {
+      // 1. Fetch actual generation data from NppAdjustedGenerationData
+      const actualRecords = await prisma.nppAdjustedGenerationData.findMany({
+        where: { date: { in: dates } }
+      });
+      const actualMap = new Map<string, number>();
+      actualRecords.forEach((a: any) => {
+        const totalActual = (a.thermal || 0) + (a.gas || 0) + (a.nuclear || 0) + (a.hydro || 0) + (a.wind || 0) + (a.solar || 0);
+        actualMap.set(`${a.date}_${a.timeStr}`, Number(totalActual.toFixed(2)));
+      });
+
+      // 2. Fetch forecasted generation data from forecasting."Generation_forecasting"
+      const forecastRows: any[] = await prisma.$queryRawUnsafe(
+        `SELECT DISTINCT ON (forecast_for_timestamp, source)
+            forecast_for_timestamp,
+            source,
+            forecast_mw,
+            confidence_score
+         FROM "forecasting"."Generation_forecasting"
+         WHERE forecast_for_timestamp::date >= $1::date AND forecast_for_timestamp::date <= $2::date
+         ORDER BY forecast_for_timestamp ASC, source ASC, forecast_generated_at DESC`,
+        startDateStr,
+        endDateStr
+      );
+
+      const timeMap = new Map();
+      for (const r of forecastRows) {
+        const d = new Date(r.forecast_for_timestamp);
+        const tsKey = d.toISOString();
+        if (!timeMap.has(tsKey)) {
+          timeMap.set(tsKey, { date: d, sources: {}, totalMw: 0, confs: [] });
+        }
+        const item = timeMap.get(tsKey);
+        const mw = Number(r.forecast_mw || 0);
+        item.sources[r.source] = parseFloat(mw.toFixed(2));
+        item.totalMw += mw;
+        if (r.confidence_score !== null && r.confidence_score !== undefined) {
+          item.confs.push(Number(r.confidence_score));
+        }
+      }
+
+      const rawFormatted = Array.from(timeMap.values()).map(item => {
+        const d = item.date;
+        const dateStr = d.toISOString().split('T')[0];
+        const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
+        const intervalNumber = Math.floor(minutes / 15) + 1;
+        const startH = String(d.getUTCHours()).padStart(2, '0');
+        const startM = String(d.getUTCMinutes()).padStart(2, '0');
+        const endMinutes = minutes + 15;
+        const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
+        const endM = String(endMinutes % 60).padStart(2, '0');
+        const hourNum = Math.floor(minutes / 60) + 1;
+        const hourStr = String(hourNum).padStart(2, '0');
+        const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+        const slotKey = `${startH}:${startM}`;
+        const actGen = actualMap.has(`${dateStr}_${slotKey}`) ? actualMap.get(`${dateStr}_${slotKey}`) : null;
+        const avgConf = item.confs.length > 0 ? (item.confs.reduce((a: number, b: number) => a + b, 0) / item.confs.length).toFixed(1) + '%' : 'N/A';
+
+        return {
+          date: dateStr,
+          hour: hourStr,
+          timeBlock,
+          intervalNumber,
+          generation: parseFloat(item.totalMw.toFixed(2)),
+          actualGeneration: actGen !== undefined ? actGen : null,
+          confidence: avgConf,
+          ...item.sources
+        };
+      });
+
+      if (rawFormatted.length > 0) {
+        intervals.push(...this.aggregateGenerationIntervals(rawFormatted, interval));
+      }
+    } catch (e) {
+      console.error('[ForecastService] Error querying Generation_forecasting:', e);
+    }
+
+    // Analytics computation
+    let sumGen = 0;
+    let maxGen = -Infinity;
+    let minGen = Infinity;
+    let sumActualGen = 0;
+    let sumAbsoluteError = 0;
+    let sumPercentageError = 0;
+    let errorCount = 0;
+    let actualCount = 0;
+    let sumConfidence = 0;
+    let confidenceCount = 0;
+
+    for (const row of intervals) {
+      const gen = row.generation;
+      const actual = row.actualGeneration !== null && row.actualGeneration !== undefined ? Number(row.actualGeneration) : null;
+      
+      sumGen += gen;
+      if (gen > maxGen) maxGen = gen;
+      if (gen < minGen) minGen = gen;
+
+      if (row.confidence && row.confidence !== 'N/A') {
+        const confNum = parseFloat(row.confidence);
+        if (!isNaN(confNum)) {
+          sumConfidence += confNum;
+          confidenceCount++;
+        }
+      }
+
+      if (actual !== null) {
+        sumActualGen += actual;
+        actualCount++;
+        const absErr = Math.abs(actual - gen);
+        sumAbsoluteError += absErr;
+        
+        if (actual > 0) {
+          sumPercentageError += (absErr / actual);
+          errorCount++;
+        }
+      }
+    }
+
+    const averageGeneration = intervals.length > 0 ? sumGen / intervals.length : 0;
+    const averageGenerationActual = actualCount > 0 ? sumActualGen / actualCount : null;
+    const mae = actualCount > 0 ? sumAbsoluteError / actualCount : null;
+    const mape = errorCount > 0 ? (sumPercentageError / errorCount) * 100 : null;
+    const wmape = sumActualGen > 0 ? (sumAbsoluteError / sumActualGen) * 100 : null;
+
+    const validActuals = intervals.map(i => i.actualGeneration).filter(v => v !== null && v !== undefined);
+
+    return {
+      intervals,
+      analytics: {
+        averageGeneration: Math.round(averageGeneration),
+        averageGenerationForecasted: Math.round(averageGeneration),
+        averageGenerationActual: averageGenerationActual !== null ? Math.round(averageGenerationActual) : 'N/A',
+        minGeneration: minGen === Infinity ? 0 : Math.round(minGen),
+        minGenerationForecasted: minGen === Infinity ? 0 : Math.round(minGen),
+        minGenerationActual: validActuals.length > 0 ? Math.round(Math.min(...validActuals)) : 'N/A',
+        maxGeneration: maxGen === -Infinity ? 0 : Math.round(maxGen),
+        mape: mape !== null ? `${mape.toFixed(2)}%` : 'N/A',
+        mae: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
+        wmape: wmape !== null ? `${wmape.toFixed(2)}%` : 'N/A',
+        confidence: confidenceCount > 0 ? `${(sumConfidence / confidenceCount).toFixed(1)}%` : 'N/A'
+      }
+    };
+  }
+
+  private static aggregateGenerationIntervals(records: any[], interval: string): any[] {
+    if (interval === '15min') return records;
+
+    if (interval === 'hourly') {
+      const hourlyData: any[] = [];
+      for (let h = 0; h < 24; h++) {
+        const hourStr = (h + 1).toString().padStart(2, '0');
+        const hourRecords = records.filter(r => parseInt(r.hour) === h + 1);
+        if (hourRecords.length === 0) continue;
+
+        const avgGen = hourRecords.reduce((acc, r) => acc + r.generation, 0) / hourRecords.length;
+
+        let avgActual: number | null = null;
+        const validActuals = hourRecords.filter(r => r.actualGeneration !== null && r.actualGeneration !== undefined);
+        if (validActuals.length > 0) {
+          avgActual = validActuals.reduce((acc, r) => acc + (r.actualGeneration || 0), 0) / validActuals.length;
+        }
+
+        hourlyData.push({
+          date: hourRecords[0].date,
+          hour: hourStr,
+          timeBlock: `${(h).toString().padStart(2, '0')}:00 - ${hourStr}:00`,
+          intervalNumber: h + 1,
+          generation: parseFloat(avgGen.toFixed(2)),
+          actualGeneration: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null,
+          confidence: hourRecords[0].confidence
+        });
+      }
+      return hourlyData;
+    }
+
+    if (interval === 'daily') {
+      const dailyMap: { [date: string]: any[] } = {};
+      records.forEach(r => {
+        if (!dailyMap[r.date]) dailyMap[r.date] = [];
+        dailyMap[r.date].push(r);
+      });
+
+      return Object.keys(dailyMap).map(date => {
+        const dateRecords = dailyMap[date];
+        const avgGen = dateRecords.reduce((acc, r) => acc + r.generation, 0) / dateRecords.length;
+
+        let avgActual: number | null = null;
+        const validActuals = dateRecords.filter(r => r.actualGeneration !== null && r.actualGeneration !== undefined);
+        if (validActuals.length > 0) {
+          avgActual = validActuals.reduce((acc, r) => acc + (r.actualGeneration || 0), 0) / validActuals.length;
+        }
+
+        return {
+          date,
+          hour: '24',
+          timeBlock: 'Full Day',
+          intervalNumber: 1,
+          generation: parseFloat(avgGen.toFixed(2)),
+          actualGeneration: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null,
+          confidence: dateRecords[0].confidence
+        };
+      });
+    }
+
+    return records;
   }
 }
