@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Button, TextField, IconButton, Alert,
   Grid, Paper, Tooltip, Table, TableBody, TableCell, TableHead, TableRow,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem
 } from '@mui/material';
 import {
   Calculate as CalculateIcon,
@@ -24,6 +24,162 @@ import {
   SavingsCalculatorNewEntry,
   CustomTodSlot
 } from '../api/savingsCalculatorNew.api';
+import { getResourceData } from '../api/resourceCenter.api';
+
+// Comprehensive Indian States & Discoms Master Data
+const STATE_DISCOM_MASTER: Record<string, { name: string; discoms: { code: string; name: string }[] }> = {
+  MH: {
+    name: 'Maharashtra',
+    discoms: [
+      { code: 'MSEDCL', name: 'MSEDCL (Maharashtra State Electricity Distribution)' },
+      { code: 'AEML', name: 'AEML (Adani Electricity Mumbai Limited)' },
+      { code: 'TPC', name: 'Tata Power Company' },
+      { code: 'BEST', name: 'BEST Undertaking' }
+    ]
+  },
+  GJ: {
+    name: 'Gujarat',
+    discoms: [
+      { code: 'DGVCL', name: 'DGVCL (Dakshin Gujarat Vij Company)' },
+      { code: 'UGVCL', name: 'UGVCL (Uttar Gujarat Vij Company)' },
+      { code: 'PGVCL', name: 'PGVCL (Paschim Gujarat Vij Company)' },
+      { code: 'MGVCL', name: 'MGVCL (Madhya Gujarat Vij Company)' },
+      { code: 'TORRENT', name: 'Torrent Power Ltd' }
+    ]
+  },
+  UP: {
+    name: 'Uttar Pradesh',
+    discoms: [
+      { code: 'NPCL', name: 'NPCL (Noida Power Company Limited)' },
+      { code: 'PVVNL', name: 'PVVNL (Paschimanchal Vidyut Vitran)' },
+      { code: 'DVVNL', name: 'DVVNL (Dakshinanchal Vidyut Vitran)' },
+      { code: 'MVVNL', name: 'MVVNL (Madhyanchal Vidyut Vitran)' },
+      { code: 'PUVVNL', name: 'PUVVNL (Purvanchal Vidyut Vitran)' },
+      { code: 'KESCO', name: 'KESCO (Kanpur Electricity Supply Company)' }
+    ]
+  },
+  DL: {
+    name: 'Delhi',
+    discoms: [
+      { code: 'TPDDL', name: 'TPDDL (Tata Power Delhi Distribution)' },
+      { code: 'BRPL', name: 'BRPL (BSES Rajdhani Power Limited)' },
+      { code: 'BYPL', name: 'BYPL (BSES Yamuna Power Limited)' },
+      { code: 'NDMC', name: 'NDMC (New Delhi Municipal Council)' }
+    ]
+  },
+  KA: {
+    name: 'Karnataka',
+    discoms: [
+      { code: 'BESCOM', name: 'BESCOM (Bangalore Electricity Supply)' },
+      { code: 'MESCOM', name: 'MESCOM (Mangalore Electricity Supply)' },
+      { code: 'CESC', name: 'CESC Mysuru' },
+      { code: 'GESCOM', name: 'GESCOM (Gulbarga Electricity Supply)' },
+      { code: 'HESCOM', name: 'HESCOM (Hubli Electricity Supply)' }
+    ]
+  },
+  TN: {
+    name: 'Tamil Nadu',
+    discoms: [
+      { code: 'TANGEDCO', name: 'TANGEDCO (Tamil Nadu Generation & Distribution)' }
+    ]
+  },
+  HR: {
+    name: 'Haryana',
+    discoms: [
+      { code: 'DHBVN', name: 'DHBVN (Dakshin Haryana Bijli Vitran Nigam)' },
+      { code: 'UHBVN', name: 'UHBVN (Uttar Haryana Bijli Vitran Nigam)' }
+    ]
+  },
+  PB: {
+    name: 'Punjab',
+    discoms: [
+      { code: 'PSPCL', name: 'PSPCL (Punjab State Power Corporation)' }
+    ]
+  },
+  JH: {
+    name: 'Jharkhand',
+    discoms: [
+      { code: 'JBVNL', name: 'JBVNL (Jharkhand Bijli Vitran Nigam)' }
+    ]
+  },
+  AS: {
+    name: 'Assam',
+    discoms: [
+      { code: 'APDCL', name: 'APDCL (Assam Power Distribution Company)' }
+    ]
+  },
+  RJ: {
+    name: 'Rajasthan',
+    discoms: [
+      { code: 'JVVNL', name: 'JVVNL (Jaipur Vidyut Vitran Nigam)' },
+      { code: 'AVVNL', name: 'AVVNL (Ajmer Vidyut Vitran Nigam)' },
+      { code: 'JdVVNL', name: 'JdVVNL (Jodhpur Vidyut Vitran Nigam)' }
+    ]
+  },
+  MP: {
+    name: 'Madhya Pradesh',
+    discoms: [
+      { code: 'MPPKVVCL', name: 'MPPKVVCL (Paschim Kshetra)' },
+      { code: 'MPMKVVCL', name: 'MPMKVVCL (Madhya Kshetra)' },
+      { code: 'MPAKVVCL', name: 'MPAKVVCL (Purv Kshetra)' }
+    ]
+  },
+  AP: {
+    name: 'Andhra Pradesh',
+    discoms: [
+      { code: 'APSPDCL', name: 'APSPDCL (Southern Power Distribution)' },
+      { code: 'APEPDCL', name: 'APEPDCL (Eastern Power Distribution)' },
+      { code: 'APCPDCL', name: 'APCPDCL (Central Power Distribution)' }
+    ]
+  },
+  TG: {
+    name: 'Telangana',
+    discoms: [
+      { code: 'TSSPDCL', name: 'TSSPDCL (Southern Power Distribution)' },
+      { code: 'TSNPDCL', name: 'TSNPDCL (Northern Power Distribution)' }
+    ]
+  },
+  WB: {
+    name: 'West Bengal',
+    discoms: [
+      { code: 'WBSEDCL', name: 'WBSEDCL (West Bengal State Electricity)' },
+      { code: 'CESC_WB', name: 'CESC Kolkata' }
+    ]
+  },
+  OD: {
+    name: 'Odisha',
+    discoms: [
+      { code: 'TPCODL', name: 'TPCODL (TP Central Odisha Distribution)' },
+      { code: 'TPNODL', name: 'TPNODL (TP Northern Odisha Distribution)' },
+      { code: 'TPWODL', name: 'TPWODL (TP Western Odisha Distribution)' },
+      { code: 'TPSODL', name: 'TPSODL (TP Southern Odisha Distribution)' }
+    ]
+  },
+  CT: {
+    name: 'Chhattisgarh',
+    discoms: [
+      { code: 'CSPDCL', name: 'CSPDCL (Chhattisgarh State Power Distribution)' }
+    ]
+  },
+  UK: {
+    name: 'Uttarakhand',
+    discoms: [
+      { code: 'UPCL', name: 'UPCL (Uttarakhand Power Corporation)' }
+    ]
+  },
+  HP: {
+    name: 'Himachal Pradesh',
+    discoms: [
+      { code: 'HPSEBL', name: 'HPSEBL (Himachal Pradesh State Electricity Board)' }
+    ]
+  },
+  GA: {
+    name: 'Goa',
+    discoms: [
+      { code: 'GED', name: 'GED (Goa Electricity Department)' }
+    ]
+  }
+};
 
 export default function SavingsCalculatorNewPage() {
   const navigate = useNavigate();
@@ -47,6 +203,60 @@ export default function SavingsCalculatorNewPage() {
   const [discom, setDiscom] = useState('MSEDCL');
   const [consumerCategory, setConsumerCategory] = useState('Industrial');
   const [voltageLevel, setVoltageLevel] = useState('11 kV');
+
+  // Resource Center Master Data State
+  const [apiStates, setApiStates] = useState<any[]>([]);
+  const [apiDiscoms, setApiDiscoms] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const [statesRes, discomsRes] = await Promise.all([
+          getResourceData('region-state'),
+          getResourceData('discom-list')
+        ]);
+        if (statesRes.success && statesRes.data) setApiStates(statesRes.data);
+        if (discomsRes.success && discomsRes.data) setApiDiscoms(discomsRes.data);
+      } catch (err) {
+        console.warn('Using default master state/discom list:', err);
+      }
+    };
+    fetchMasterData();
+  }, []);
+
+  // Compute available states
+  const stateOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    Object.entries(STATE_DISCOM_MASTER).forEach(([code, val]) => {
+      map.set(code, `${code} - ${val.name}`);
+    });
+    apiStates.forEach(s => {
+      if (s.stateCode && !map.has(s.stateCode)) {
+        map.set(s.stateCode, `${s.stateCode} - ${s.stateName || s.stateCode}`);
+      }
+    });
+    return Array.from(map.entries()).map(([code, label]) => ({ code, label }));
+  }, [apiStates]);
+
+  // Compute available discoms for selected stateCode
+  const discomOptions = useMemo(() => {
+    const list: { code: string; name: string }[] = [];
+    if (STATE_DISCOM_MASTER[stateCode]) {
+      list.push(...STATE_DISCOM_MASTER[stateCode].discoms);
+    }
+    apiDiscoms.filter(d => d.stateCode === stateCode).forEach(d => {
+      const codeName = d.discom || d.code || d.legalName;
+      if (codeName && !list.some(x => x.code === codeName)) {
+        list.push({ code: codeName, name: d.legalName || codeName });
+      }
+    });
+
+    if (discom && !list.some(x => x.code === discom)) {
+      list.push({ code: discom, name: discom });
+    }
+
+    return list;
+  }, [stateCode, discom, apiDiscoms]);
 
   // Custom TOD Consumptions per Month
   const [todConsumptions, setTodConsumptions] = useState<Record<string, CustomTodSlot[]>>({
@@ -420,21 +630,40 @@ export default function SavingsCalculatorNewPage() {
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
+                select
                 label="State Code"
                 value={stateCode}
-                onChange={(e) => setStateCode(e.target.value)}
+                onChange={(e) => {
+                  const newCode = e.target.value;
+                  setStateCode(newCode);
+                  const firstDiscom = STATE_DISCOM_MASTER[newCode]?.discoms[0]?.code || '';
+                  setDiscom(firstDiscom);
+                }}
                 fullWidth
                 size="small"
-              />
+              >
+                {stateOptions.map((s) => (
+                  <MenuItem key={s.code} value={s.code}>
+                    {s.label}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
+                select
                 label="Discom"
                 value={discom}
                 onChange={(e) => setDiscom(e.target.value)}
                 fullWidth
                 size="small"
-              />
+              >
+                {discomOptions.map((d) => (
+                  <MenuItem key={d.code} value={d.code}>
+                    {d.code} - {d.name}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
           </Grid>
 
