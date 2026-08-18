@@ -54,6 +54,14 @@ const MODULES = [
     color: '#8B5CF6'
   },
   {
+    key: 'savings-calculator-new',
+    title: 'Savings Calculator (New)',
+    description: 'Calculate Open Access savings with custom TOD start/end timings and direct effective Discom prices.',
+    path: '/savings-calculator-new',
+    icon: <CalculateIcon sx={{ fontSize: 24 }} />,
+    color: '#EC4899'
+  },
+  {
     key: 'forecast',
     title: 'Forecast Analytics',
     description: 'Forecast clearing prices for DAM, RTM, GDAM, and load curves for consumers and national grids.',

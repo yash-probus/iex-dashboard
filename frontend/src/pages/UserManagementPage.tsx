@@ -21,9 +21,11 @@ const AVAILABLE_MODULES = [
   { id: 'resource-center', label: 'Resource Center' },
   { id: 'market-operations', label: 'Market Operations' },
   { id: 'savings-calculator', label: 'Savings Calculator' },
+  { id: 'savings-calculator-new', label: 'Savings Calculator (New)' },
   { id: 'forecast', label: 'Forecast Analytics' },
   { id: 'api-logs', label: 'API Logs' },
   { id: 'user-management', label: 'User Management' },
+  { id: 'customer-lead', label: 'Customer Lead' },
 ];
 
 export default function UserManagementPage() {
