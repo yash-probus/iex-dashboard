@@ -34,6 +34,8 @@ const BiddingStrategyPage = lazy(() => import('../pages/market-operations/Biddin
 const SavingsCalculatorPage = lazy(() => import('../pages/SavingsCalculatorPage'));
 const SavingsCalculatorViewPage = lazy(() => import('../pages/SavingsCalculatorViewPage'));
 const SavingsCalculatorAnalysisPage = lazy(() => import('../pages/SavingsCalculatorAnalysisPage'));
+const SavingsCalculatorNewPage = lazy(() => import('../pages/SavingsCalculatorNewPage'));
+const SavingsCalculatorNewAnalysisPage = lazy(() => import('../pages/SavingsCalculatorNewAnalysisPage'));
 const ForecastPage = lazy(() => import('../pages/ForecastPage'));
 const CustomerLeadPage = lazy(() => import('../pages/CustomerLeadPage'));
 
@@ -56,6 +58,8 @@ export default function AppRoutes() {
           <Route path="savings-calculator" element={<SavingsCalculatorPage />} />
           <Route path="savings-calculator/view/:id" element={<SavingsCalculatorViewPage />} />
           <Route path="savings-calculator/analysis/:id" element={<SavingsCalculatorAnalysisPage />} />
+          <Route path="savings-calculator-new" element={<SavingsCalculatorNewPage />} />
+          <Route path="savings-calculator-new/:id/analysis" element={<SavingsCalculatorNewAnalysisPage />} />
           
           {/* Module Layout wrapping all module sub-pages */}
           <Route element={<ModuleLayout />}>
