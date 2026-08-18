@@ -1,4 +1,7 @@
 import prisma from '../../config/prisma';
+import { VidyutPravahScraper } from '../../services/scraper.service';
+import { NppAdjustmentService } from '../dataset/npp-adjustment.service';
+
 
 export interface ForecastIntervalData {
   date: string;
@@ -546,37 +549,112 @@ export class ForecastService {
 
     try {
       if (isAllIndia) {
+        // Automatically fetch live NPP demand data for requested dates if actual records are missing or date is today
+        const todayStr = new Date().toISOString().split('T')[0];
+        for (const dateStr of dates) {
+          try {
+            const existingCount = await prisma.nppAdjustedDemandData.count({ where: { date: dateStr } });
+            if (existingCount === 0 || dateStr === todayStr) {
+              const liveData = await VidyutPravahScraper.getNppDemandData(dateStr);
+              if (liveData && liveData.length > 0) {
+                await prisma.nppRawDemandData.createMany({
+                  data: liveData.map(d => ({
+                    date: d.date,
+                    timeStr: d.timeStr,
+                    demandMet: d.demandMet,
+                    dataUpdatedAt: d.dataUpdatedAt,
+                    fetchedAt: new Date(),
+                  })),
+                  skipDuplicates: true
+                });
+                await NppAdjustmentService.updateAdjustedDemandForDate(dateStr);
+              }
+            }
+          } catch (eScrape) {
+            console.error(`[ForecastService] Live NPP demand polling failed for ${dateStr}:`, eScrape);
+          }
+        }
+
         // Build the timestamp range based on dates array (assumed dates are in IST, so we parse properly)
         const startDate = new Date(`${dates[0]}T00:00:00+05:30`);
         const endDate = new Date(`${dates[dates.length - 1]}T23:59:59+05:30`);
 
-        const [records, actualRecords] = await Promise.all([
-          prisma.forecastAllIndiaDemandV2.findMany({
-            where: { 
-              timestamp: { 
-                gte: startDate,
-                lte: endDate
-              } 
-            },
-            orderBy: [{ timestamp: 'asc' }]
-          }),
-          prisma.nppAdjustedDemandData.findMany({
-            where: { date: { in: dates } }
-          }).then(res => res.length > 0 ? res : prisma.nppRawDemandData.findMany({ where: { date: { in: dates } } }))
-        ]);
+        let records = await prisma.forecastAllIndiaDemandV2.findMany({
+          where: { 
+            timestamp: { 
+              gte: startDate,
+              lte: endDate
+            } 
+          },
+          orderBy: [{ timestamp: 'asc' }]
+        });
+
+        // Fallback to Generation_forecasting if ForecastAllIndiaDemandV2 is empty
+        if (!records || records.length === 0) {
+          try {
+            const genRows: any[] = await prisma.$queryRawUnsafe(
+              `SELECT DISTINCT ON (forecast_for_timestamp, source)
+                  forecast_for_timestamp,
+                  source,
+                  forecast_mw
+               FROM "forecasting"."Generation_forecasting"
+               WHERE (forecast_for_timestamp::date)::text >= $1 AND (forecast_for_timestamp::date)::text <= $2
+               ORDER BY forecast_for_timestamp ASC, source ASC, forecast_generated_at DESC`,
+              dates[0],
+              dates[dates.length - 1]
+            );
+            if (genRows && genRows.length > 0) {
+              const timeMap = new Map<string, { timestamp: Date, demand: number }>();
+              for (const row of genRows) {
+                const tsKey = new Date(row.forecast_for_timestamp).toISOString();
+                if (!timeMap.has(tsKey)) {
+                  timeMap.set(tsKey, { timestamp: new Date(row.forecast_for_timestamp), demand: 0 });
+                }
+                timeMap.get(tsKey)!.demand += Number(row.forecast_mw || 0);
+              }
+              records = Array.from(timeMap.values()).map(item => ({
+                timestamp: item.timestamp,
+                forecast_demand: parseFloat(item.demand.toFixed(2))
+              })) as any[];
+            }
+          } catch (eGen) {
+            console.error('[ForecastService] Error fallback querying Generation_forecasting:', eGen);
+          }
+        }
+
+        const actualRecords = await prisma.nppAdjustedDemandData.findMany({
+          where: { date: { in: dates } }
+        }).then(res => res.length > 0 ? res : prisma.nppRawDemandData.findMany({ where: { date: { in: dates } } }));
 
         const actualMap = new Map<string, number>();
         actualRecords.forEach((a: any) => {
-          const tStr = a.timeStr ? (a.timeStr.includes(' ') ? a.timeStr.split(' ')[0] : a.timeStr) : '';
-          if (tStr) actualMap.set(`${a.date}_${tStr}`, Number(a.demandMet));
-          if (a.timeStr) actualMap.set(`${a.date}_${a.timeStr}`, Number(a.demandMet));
+          const rawTime = a.timeStr ? (a.timeStr.includes(' ') ? a.timeStr.split(' ')[1] || a.timeStr.split(' ')[0] : a.timeStr) : '';
+          if (rawTime) {
+            actualMap.set(`${a.date}_${rawTime}`, Number(a.demandMet));
+
+            const parts = rawTime.split(':').map(Number);
+            if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+              const totalMins = parts[0] * 60 + parts[1];
+              const slotMins = Math.floor(totalMins / 15) * 15;
+              const slotH = String(Math.floor(slotMins / 60) % 24).padStart(2, '0');
+              const slotM = String(slotMins % 60).padStart(2, '0');
+              const slotStr = `${slotH}:${slotM}`;
+              const intervalNum = Math.floor(totalMins / 15) + 1;
+
+              if (!actualMap.has(`${a.date}_${slotStr}`)) {
+                actualMap.set(`${a.date}_${slotStr}`, Number(a.demandMet));
+              }
+              if (!actualMap.has(`${a.date}_${intervalNum}`)) {
+                actualMap.set(`${a.date}_${intervalNum}`, Number(a.demandMet));
+              }
+            }
+          }
         });
 
         if (records && records.length > 0) {
           const formatted = records.map(r => {
             // Convert to IST string for UI mapping
             const d = new Date(r.timestamp);
-            // using simple offset adjustment for UTC -> IST display mapping
             const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
             const dateStr = istDate.toISOString().split('T')[0];
             const hh = String(istDate.getUTCHours()).padStart(2, '0');
@@ -605,6 +683,36 @@ export class ForecastService {
           // Only keep intervals that match our requested dates
           const filtered = formatted.filter(f => dates.includes(f.date));
           intervals.push(...this.aggregateDemandIntervals(filtered, interval));
+        } else if (actualMap.size > 0) {
+          // If no forecast records, construct intervals from actualMap
+          const defaultFormatted: DemandForecastIntervalData[] = [];
+          for (const dateStr of dates) {
+            for (let t = 1; t <= 96; t++) {
+              const hourNum = Math.floor((t - 1) / 4);
+              const minNum = ((t - 1) % 4) * 15;
+              const startH = String(hourNum).padStart(2, '0');
+              const startM = String(minNum).padStart(2, '0');
+              const hourStr = `${startH}:${startM}`;
+              const nextMin = (minNum + 15) % 60;
+              const nextHour = nextMin === 0 ? (hourNum + 1) % 24 : hourNum;
+              const timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
+
+              const actVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${t}`) ?? null;
+              if (actVal !== null) {
+                defaultFormatted.push({
+                  date: dateStr,
+                  hour: startH,
+                  timeBlock,
+                  intervalNumber: t,
+                  demand: 0,
+                  actualDemand: actVal
+                });
+              }
+            }
+          }
+          if (defaultFormatted.length > 0) {
+            intervals.push(...this.aggregateDemandIntervals(defaultFormatted, interval));
+          }
         }
       } else {
         // Consumer demand
@@ -937,16 +1045,27 @@ export class ForecastService {
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'ALL-INDIA') {
       try {
-        const rows = await prisma.forecastAllIndiaDemandV2.findMany({
-          select: { timestamp: true },
-          orderBy: { timestamp: 'desc' }
-        });
+        const [v2Rows, genRows, actualRows] = await Promise.all([
+          prisma.forecastAllIndiaDemandV2.findMany({
+            select: { timestamp: true },
+            distinct: ['timestamp']
+          }),
+          prisma.$queryRawUnsafe(`SELECT DISTINCT (forecast_for_timestamp::date)::text as date_str FROM "forecasting"."Generation_forecasting"`) as Promise<any[]>,
+          prisma.nppAdjustedDemandData.findMany({
+            select: { date: true },
+            distinct: ['date']
+          })
+        ]);
         const allDates = new Set<string>();
-        rows.forEach(r => {
+        v2Rows.forEach(r => {
           const istDate = new Date(r.timestamp.getTime() + (5.5 * 60 * 60 * 1000));
           allDates.add(istDate.toISOString().split('T')[0]);
         });
-        return Array.from(allDates);
+        if (Array.isArray(genRows)) {
+          genRows.forEach((r: any) => { if (r.date_str) allDates.add(r.date_str.split('T')[0]); });
+        }
+        actualRows.forEach(r => { if (r.date) allDates.add(r.date); });
+        return Array.from(allDates).sort((a, b) => b.localeCompare(a));
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'NPP' || market.toUpperCase() === 'GENERATION') {
       try {
