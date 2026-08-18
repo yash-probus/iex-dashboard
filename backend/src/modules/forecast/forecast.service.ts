@@ -950,12 +950,22 @@ export class ForecastService {
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'NPP' || market.toUpperCase() === 'GENERATION') {
       try {
-        const rows: Array<{ date_str: string }> = await prisma.$queryRawUnsafe(
-          `SELECT DISTINCT (forecast_for_timestamp::date)::text as date_str
-           FROM "forecasting"."Generation_forecasting"
-           WHERE forecast_for_timestamp IS NOT NULL
-           ORDER BY date_str DESC`
-        );
+        let rows: Array<{ date_str: string }> = [];
+        try {
+          rows = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT (forecast_for_timestamp::date)::text as date_str
+             FROM "forecasting"."Generation_forecasting"
+             WHERE forecast_for_timestamp IS NOT NULL
+             ORDER BY date_str DESC`
+          );
+        } catch (e1) {
+          rows = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT (forecast_for_timestamp::date)::text as date_str
+             FROM forecasting.generation_forecasting
+             WHERE forecast_for_timestamp IS NOT NULL
+             ORDER BY date_str DESC`
+          );
+        }
         return rows.map(r => r.date_str);
       } catch (e) {
         console.error('[ForecastService] Error fetching NPP dates:', e);
@@ -983,19 +993,58 @@ export class ForecastService {
         actualMap.set(`${a.date}_${a.timeStr}`, Number(totalActual.toFixed(2)));
       });
 
-      // 2. Fetch forecasted generation data from forecasting."Generation_forecasting"
-      const forecastRows: any[] = await prisma.$queryRawUnsafe(
-        `SELECT DISTINCT ON (forecast_for_timestamp, source)
-            forecast_for_timestamp,
-            source,
-            forecast_mw,
-            confidence_score
-         FROM "forecasting"."Generation_forecasting"
-         WHERE forecast_for_timestamp::date >= $1::date AND forecast_for_timestamp::date <= $2::date
-         ORDER BY forecast_for_timestamp ASC, source ASC, forecast_generated_at DESC`,
-        startDateStr,
-        endDateStr
-      );
+      // 2. Fetch forecasted generation data with robust table name & query fallbacks
+      let forecastRows: any[] = [];
+      try {
+        forecastRows = await prisma.$queryRawUnsafe(
+          `SELECT DISTINCT ON (forecast_for_timestamp, source)
+              forecast_for_timestamp,
+              source,
+              forecast_mw,
+              confidence_score
+           FROM "forecasting"."Generation_forecasting"
+           WHERE (forecast_for_timestamp::date)::text >= $1 AND (forecast_for_timestamp::date)::text <= $2
+           ORDER BY forecast_for_timestamp ASC, source ASC, forecast_generated_at DESC`,
+          startDateStr,
+          endDateStr
+        );
+      } catch (e1) {
+        try {
+          forecastRows = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT ON (forecast_for_timestamp, source)
+                forecast_for_timestamp,
+                source,
+                forecast_mw,
+                confidence_score
+             FROM forecasting.generation_forecasting
+             WHERE (forecast_for_timestamp::date)::text >= $1 AND (forecast_for_timestamp::date)::text <= $2
+             ORDER BY forecast_for_timestamp ASC, source ASC, forecast_generated_at DESC`,
+            startDateStr,
+            endDateStr
+          );
+        } catch (e2) {
+          console.error('[ForecastService] Query failed on both table names:', e2);
+        }
+      }
+
+      if (!forecastRows || forecastRows.length === 0) {
+        try {
+          forecastRows = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT ON (forecast_for_timestamp, source)
+                forecast_for_timestamp,
+                source,
+                forecast_mw,
+                confidence_score
+             FROM forecasting.generation_forecasting
+             WHERE DATE(forecast_for_timestamp) >= $1::date AND DATE(forecast_for_timestamp) <= $2::date
+             ORDER BY forecast_for_timestamp ASC, source ASC, forecast_generated_at DESC`,
+            startDateStr,
+            endDateStr
+          );
+        } catch (e3) {
+          // Final fallback
+        }
+      }
 
       const timeMap = new Map();
       for (const r of forecastRows) {
