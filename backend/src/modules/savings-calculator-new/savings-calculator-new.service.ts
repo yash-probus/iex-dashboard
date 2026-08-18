@@ -634,7 +634,21 @@ export class SavingsCalculatorNewService {
       slotsData.push(...monthlySlots);
     }
 
-    totalOptimizedCost = totalLandedExchangeCost + totalDiscomAfterProlt;
+    const proltMarginVal = Number(entry.proltMargin) || 0;
+    const traderMarginVal = Number(entry.traderMargin) || 0;
+    const consultancyFeeVal = Number(entry.consultancyFee) || 0;
+    const probusPlatformFeeVal = Number(entry.probusPlatformFee) || 0;
+    const meteringChargesVal = Number(entry.meteringCharges) || 0;
+
+    const proltMarginCost = totalMarketEnergyKwh * proltMarginVal;
+    const traderMarginCost = totalMarketEnergyKwh * traderMarginVal * 1.18;
+
+    aggregatedTotals.proltMarginCost = proltMarginCost;
+    aggregatedTotals.traderMargin = traderMarginCost;
+    aggregatedTotals.consultancyFee = consultancyFeeVal;
+    aggregatedTotals.probusPlatformFee = probusPlatformFeeVal;
+
+    totalOptimizedCost = totalLandedExchangeCost + totalDiscomAfterProlt + proltMarginCost + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal;
     const totalSavings = totalBaselineCost - totalOptimizedCost;
 
     return {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Button, TextField, IconButton, Alert,
   Grid, Paper, Tooltip, Table, TableBody, TableCell, TableHead, TableRow,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem, FormControlLabel, Switch
 } from '@mui/material';
 import {
   Calculate as CalculateIcon,
@@ -181,6 +181,24 @@ const STATE_DISCOM_MASTER: Record<string, { name: string; discoms: { code: strin
   }
 };
 
+const CATEGORY_OPTIONS = [
+  'Industrial',
+  'Commercial',
+  'HV-1',
+  'HV-2',
+  'HV-1 A',
+  'HV-1 B',
+  'LMV-11'
+];
+
+const VOLTAGE_OPTIONS = [
+  '11 kV',
+  '33 kV',
+  '66 kV',
+  '132 kV',
+  '220 kV'
+];
+
 export default function SavingsCalculatorNewPage() {
   const navigate = useNavigate();
 
@@ -204,6 +222,20 @@ export default function SavingsCalculatorNewPage() {
   const [consumerCategory, setConsumerCategory] = useState('Industrial');
   const [voltageLevel, setVoltageLevel] = useState('11 kV');
 
+  // Margins & Fees Fields
+  const [proltMargin, setProltMargin] = useState<string>('0.05');
+  const [traderMargin, setTraderMargin] = useState<string>('0.02');
+  const [meteringCharges, setMeteringCharges] = useState<string>('0');
+  const [consultancyFee, setConsultancyFee] = useState<string>('0');
+  const [probusPlatformFee, setProbusPlatformFee] = useState<string>('0');
+
+  // Additional Billing Fields
+  const [applyElectricityDuty, setApplyElectricityDuty] = useState<boolean>(true);
+  const [billedDemandKv, setBilledDemandKv] = useState<string>('');
+  const [powerFactor, setPowerFactor] = useState<string>('0.99');
+  const [arrearAmount, setArrearAmount] = useState<string>('0');
+  const [currentLpsc, setCurrentLpsc] = useState<string>('0');
+
   // Resource Center Master Data State
   const [apiStates, setApiStates] = useState<any[]>([]);
   const [apiDiscoms, setApiDiscoms] = useState<any[]>([]);
@@ -224,7 +256,6 @@ export default function SavingsCalculatorNewPage() {
     fetchMasterData();
   }, []);
 
-  // Compute available states
   const stateOptions = useMemo(() => {
     const map = new Map<string, string>();
     Object.entries(STATE_DISCOM_MASTER).forEach(([code, val]) => {
@@ -238,7 +269,6 @@ export default function SavingsCalculatorNewPage() {
     return Array.from(map.entries()).map(([code, label]) => ({ code, label }));
   }, [apiStates]);
 
-  // Compute available discoms for selected stateCode
   const discomOptions = useMemo(() => {
     const list: { code: string; name: string }[] = [];
     if (STATE_DISCOM_MASTER[stateCode]) {
@@ -298,6 +328,16 @@ export default function SavingsCalculatorNewPage() {
     setDiscom('MSEDCL');
     setConsumerCategory('Industrial');
     setVoltageLevel('11 kV');
+    setProltMargin('0.05');
+    setTraderMargin('0.02');
+    setMeteringCharges('0');
+    setConsultancyFee('0');
+    setProbusPlatformFee('0');
+    setApplyElectricityDuty(true);
+    setBilledDemandKv('');
+    setPowerFactor('0.99');
+    setArrearAmount('0');
+    setCurrentLpsc('0');
     setTodConsumptions({
       '2026-04': [
         { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
@@ -319,6 +359,16 @@ export default function SavingsCalculatorNewPage() {
     setDiscom(entry.discom || 'MSEDCL');
     setConsumerCategory(entry.consumerCategory || 'Industrial');
     setVoltageLevel(entry.voltageLevel || '11 kV');
+    setProltMargin(entry.proltMargin !== undefined && entry.proltMargin !== null ? String(entry.proltMargin) : '0.05');
+    setTraderMargin(entry.traderMargin !== undefined && entry.traderMargin !== null ? String(entry.traderMargin) : '0.02');
+    setMeteringCharges(entry.meteringCharges !== undefined && entry.meteringCharges !== null ? String(entry.meteringCharges) : '0');
+    setConsultancyFee(entry.consultancyFee !== undefined && entry.consultancyFee !== null ? String(entry.consultancyFee) : '0');
+    setProbusPlatformFee(entry.probusPlatformFee !== undefined && entry.probusPlatformFee !== null ? String(entry.probusPlatformFee) : '0');
+    setApplyElectricityDuty(entry.applyElectricityDuty !== undefined ? entry.applyElectricityDuty : true);
+    setBilledDemandKv(entry.billedDemandKv !== undefined && entry.billedDemandKv !== null ? String(entry.billedDemandKv) : '');
+    setPowerFactor(entry.powerFactor !== undefined && entry.powerFactor !== null ? String(entry.powerFactor) : '0.99');
+    setArrearAmount(entry.arrearAmount !== undefined && entry.arrearAmount !== null ? String(entry.arrearAmount) : '0');
+    setCurrentLpsc(entry.currentLpsc !== undefined && entry.currentLpsc !== null ? String(entry.currentLpsc) : '0');
 
     const parsed: Record<string, CustomTodSlot[]> = {};
     if (entry.todConsumptions && typeof entry.todConsumptions === 'object') {
@@ -416,6 +466,16 @@ export default function SavingsCalculatorNewPage() {
         discom,
         consumerCategory,
         voltageLevel,
+        proltMargin: Number(proltMargin) || 0,
+        traderMargin: Number(traderMargin) || 0,
+        meteringCharges: Number(meteringCharges) || 0,
+        consultancyFee: Number(consultancyFee) || 0,
+        probusPlatformFee: Number(probusPlatformFee) || 0,
+        applyElectricityDuty,
+        billedDemandKv: billedDemandKv ? Number(billedDemandKv) : null,
+        powerFactor: powerFactor ? Number(powerFactor) : null,
+        arrearAmount: arrearAmount ? Number(arrearAmount) : 0,
+        currentLpsc: currentLpsc ? Number(currentLpsc) : 0,
         todConsumptions
       };
 
@@ -584,8 +644,9 @@ export default function SavingsCalculatorNewPage() {
         </DialogTitle>
 
         <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {/* Section 1: Client Information */}
           <Typography variant="subtitle2" color="primary" fontWeight={700}>
-            1. Client & Load Information
+            1. Client Information
           </Typography>
 
           <Grid container spacing={2}>
@@ -618,6 +679,14 @@ export default function SavingsCalculatorNewPage() {
                 rows={2}
               />
             </Grid>
+          </Grid>
+
+          {/* Section 2: Technical & Connection Details */}
+          <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
+            2. Technical & Utility Connection Details
+          </Typography>
+
+          <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
               <TextField
                 label="Sanctioned Load (kW)"
@@ -665,10 +734,164 @@ export default function SavingsCalculatorNewPage() {
                 ))}
               </TextField>
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                label="Consumer Category"
+                value={consumerCategory}
+                onChange={(e) => setConsumerCategory(e.target.value)}
+                fullWidth
+                size="small"
+              >
+                {CATEGORY_OPTIONS.map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                label="Voltage Level"
+                value={voltageLevel}
+                onChange={(e) => setVoltageLevel(e.target.value)}
+                fullWidth
+                size="small"
+              >
+                {VOLTAGE_OPTIONS.map((v) => (
+                  <MenuItem key={v} value={v}>
+                    {v}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
           </Grid>
 
+          {/* Section 3: Margins & Consultancy Fees */}
           <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
-            2. Custom TOD Timings & Effective Price Configuration
+            3. Margins & Platform Fees
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="PROLT Margin (₹/kWh)"
+                type="number"
+                inputProps={{ step: 0.01 }}
+                value={proltMargin}
+                onChange={(e) => setProltMargin(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Trader Margin (₹/kWh)"
+                type="number"
+                inputProps={{ step: 0.01 }}
+                value={traderMargin}
+                onChange={(e) => setTraderMargin(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Metering Charges (₹)"
+                type="number"
+                value={meteringCharges}
+                onChange={(e) => setMeteringCharges(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Consultancy Fee (₹)"
+                type="number"
+                value={consultancyFee}
+                onChange={(e) => setConsultancyFee(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Probus Platform Fee (₹)"
+                type="number"
+                value={probusPlatformFee}
+                onChange={(e) => setProbusPlatformFee(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+          </Grid>
+
+          {/* Section 4: Billing & Arrears */}
+          <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
+            4. Additional Billing Parameters
+          </Typography>
+
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Billed Demand (kVA/kW)"
+                type="number"
+                value={billedDemandKv}
+                onChange={(e) => setBilledDemandKv(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Power Factor"
+                type="number"
+                inputProps={{ step: 0.01, min: 0, max: 1 }}
+                value={powerFactor}
+                onChange={(e) => setPowerFactor(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={applyElectricityDuty}
+                    onChange={(e) => setApplyElectricityDuty(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Apply Electricity Duty"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Arrear Amount (₹)"
+                type="number"
+                value={arrearAmount}
+                onChange={(e) => setArrearAmount(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Current LPSC (₹)"
+                type="number"
+                value={currentLpsc}
+                onChange={(e) => setCurrentLpsc(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+          </Grid>
+
+          {/* Section 5: Custom TOD Configuration */}
+          <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mt: 1 }}>
+            5. Custom TOD Timings & Effective Price Configuration
           </Typography>
 
           {/* Month Selector Tabs */}
