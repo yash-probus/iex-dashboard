@@ -456,11 +456,12 @@ export default function SavingsCalculatorNewPage() {
 
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 1 }}>
               <TextField
-                placeholder="YYYY-MM (e.g. 2026-05)"
+                type="month"
                 size="small"
                 value={newMonthInput}
                 onChange={(e) => setNewMonthInput(e.target.value)}
-                sx={{ width: 180 }}
+                sx={{ width: 190 }}
+                InputLabelProps={{ shrink: true }}
               />
               <Button variant="outlined" size="small" onClick={handleAddMonth}>
                 Add Month
