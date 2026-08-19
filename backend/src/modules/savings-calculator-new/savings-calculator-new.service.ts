@@ -633,8 +633,8 @@ export class SavingsCalculatorNewService {
         };
       });
 
-      // Calculate Discom baseline cost and allocate energy across TOD windows
-      const defaultMaxEnergyPerSlot = monthPeakDemand * 0.25;
+      // Calculate Discom baseline cost and allocate energy across TOD windows (Formula: sanctionedLoad * 0.25)
+      const defaultMaxEnergyPerSlot = sanctionedLoad * 0.25;
 
       for (const customSlot of customSlots) {
         const slotEnergyTotal = customSlot.consumptionKwh;
