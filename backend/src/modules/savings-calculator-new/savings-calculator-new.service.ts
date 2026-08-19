@@ -572,7 +572,7 @@ export class SavingsCalculatorNewService {
         const matchedCustomSlot = customSlots.find(cs => this.isTimeInWindow(timeStr, cs.startTime, cs.endTime));
 
         // Exact Discom price given by user ("no extra tings nothing")
-        const discomLandingPrice = matchedCustomSlot ? matchedCustomSlot.effectivePrice : 0;
+        const discomLandingPrice = (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) ? Number(matchedCustomSlot.effectivePrice) : 8.5;
         const matchedTariffName = matchedCustomSlot ? (matchedCustomSlot.name || `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`) : 'OUTSIDE_TOD';
 
         const rawDam = rec.damMcp !== undefined ? rec.damMcp : rec.dammcp;
