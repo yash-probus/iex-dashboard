@@ -234,12 +234,68 @@ export const Dashboard: React.FC<DashboardProps> = ({
           };
         }) : [];
 
-        const oaCharges = marketDecisionResult.oaDetailed?.breakdown ? marketDecisionResult.oaDetailed.breakdown.map((b: any) => ({
-          name: b.slabName || b.slotName || 'OA Charge',
-          amount: b.oaBill || 0,
-          rate: "---",
-          basis: `${b.oaUnits || 0} kWh`
-        })) : [];
+        const mRes = marketDecisionResult as any;
+        const marketKwh = mRes.totalMarketEnergyKwh || mRes.totalEnergyKwh || 0;
+
+        let oaCharges: any[] = [];
+        if (marketDecisionResult.oaDetailed?.breakdown && marketDecisionResult.oaDetailed.breakdown.length > 0) {
+          oaCharges = marketDecisionResult.oaDetailed.breakdown.map((b: any) => ({
+            name: b.slabName || b.slotName || 'OA Charge',
+            amount: b.oaBill || 0,
+            rate: b.rate || "---",
+            basis: b.basis || `${b.oaUnits || 0} kWh`
+          }));
+        } else {
+          if (mRes.proltMarginCost > 0) {
+            oaCharges.push({
+              name: 'PROLT Savings Margin',
+              basis: 'Gross Savings Value Share',
+              rate: `${mRes.proltMarginVal || 15}%`,
+              amount: mRes.proltMarginCost
+            });
+          }
+          if (mRes.traderMargin > 0) {
+            oaCharges.push({
+              name: 'Trader Margin (incl. 18% GST)',
+              basis: `${(marketKwh / 1000).toFixed(2)} MWh`,
+              rate: '₹0.02/kWh + GST',
+              amount: mRes.traderMargin
+            });
+          }
+          if (mRes.probusPlatformFee > 0) {
+            oaCharges.push({
+              name: 'Probus Platform Subscription Fee',
+              basis: `${(marketKwh / 1000).toFixed(2)} MWh`,
+              rate: '₹0.02/kWh',
+              amount: mRes.probusPlatformFee
+            });
+          }
+          if (mRes.meteringCharges > 0) {
+            oaCharges.push({
+              name: 'Metering Charges',
+              basis: 'Monthly Fixed',
+              rate: 'Lump Sum',
+              amount: mRes.meteringCharges
+            });
+          }
+          if (mRes.consultancyFee > 0) {
+            oaCharges.push({
+              name: 'Consultancy & Advisory Fee',
+              basis: 'Monthly Fixed',
+              rate: 'Lump Sum',
+              amount: mRes.consultancyFee
+            });
+          }
+          const overheads = (mRes.oaDetailed?.dailyFixedOverhead || 0) + (mRes.oaDetailed?.bidApplicationFees || 0);
+          if (overheads > 0) {
+            oaCharges.push({
+              name: 'Operating & Scheduling Overheads',
+              basis: 'Traded Days / Bids',
+              rate: 'Standard Fee',
+              amount: overheads
+            });
+          }
+        }
 
         // Use the selected month from clientOverview to find fees
         const currentMonthData = clientOverview?.months?.find(m => m.month === activeMonth);
@@ -259,8 +315,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         }, 0);
 
         const oaOperatingBill = (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) + (marketDecisionResult.oaDetailed?.bidApplicationFees || 0);
-
-        const mRes = marketDecisionResult as any;
         const proltFees = (mRes.proltMarginCost || 0) + (mRes.traderMargin || 0) + (mRes.consultancyFee || 0) + (mRes.probusPlatformFee || 0) + (mRes.meteringCharges || 0);
 
         const baselineBreakdown = [
