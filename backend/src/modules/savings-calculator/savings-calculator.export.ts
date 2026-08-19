@@ -871,8 +871,8 @@ export class SavingsCalculatorExportService {
 
     const savingForBizRowData: any[] = ['Saving for your business'];
     allResults.forEach((r, idx) => {
-      const colChar = getColLetter(idx + 2);
-      const formula = `MAX(0,${colChar}${totalSavingRowNumber}-${colChar}${totalAmountRowNumber})`;
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `'${mMapping.sheetName}'!B${mMapping.finalSavingsRow}`;
       savingForBizRowData.push({ formula });
     });
     const savingForBizRow = sheet.addRow(savingForBizRowData);
