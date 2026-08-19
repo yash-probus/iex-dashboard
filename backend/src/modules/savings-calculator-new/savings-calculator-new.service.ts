@@ -898,6 +898,7 @@ export class SavingsCalculatorNewService {
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalBaselineCost,
+      fullBaselineDiscomCost,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
       totalOptimizedCost,
