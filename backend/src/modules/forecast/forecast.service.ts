@@ -653,23 +653,22 @@ export class ForecastService {
 
         if (records && records.length > 0) {
           const formatted = records.map(r => {
-            // Convert to IST string for UI mapping
             const d = new Date(r.timestamp);
-            const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-            const dateStr = istDate.toISOString().split('T')[0];
-            const hh = String(istDate.getUTCHours()).padStart(2, '0');
-            const mm = String(istDate.getUTCMinutes()).padStart(2, '0');
+            // Check if timestamp is stored as UTC or local Date
+            const dateStr = d.toISOString().split('T')[0];
+            const hh = String(d.getUTCHours()).padStart(2, '0');
+            const mm = String(d.getUTCMinutes()).padStart(2, '0');
             const hourStr = `${hh}:${mm}`;
             
-            const nextMin = (istDate.getUTCMinutes() + 15) % 60;
-            const nextHour = nextMin === 0 ? (istDate.getUTCHours() + 1) % 24 : istDate.getUTCHours();
+            const nextMin = (d.getUTCMinutes() + 15) % 60;
+            const nextHour = nextMin === 0 ? (d.getUTCHours() + 1) % 24 : d.getUTCHours();
             const timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
             
-            const minutes = istDate.getUTCHours() * 60 + istDate.getUTCMinutes();
+            const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
             const intervalNumber = Math.floor(minutes / 15) + 1;
 
             const forecastedVal = r.forecast_demand !== null ? Number(r.forecast_demand) : 0;
-            const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${intervalNumber}`) ?? null;
+            const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${intervalNumber}`) ?? actualMap.get(`${dates[0]}_${hourStr}`) ?? actualMap.get(`${dates[0]}_${intervalNumber}`) ?? null;
 
             return {
               date: dateStr,
@@ -680,8 +679,19 @@ export class ForecastService {
               actualDemand: actualVal
             };
           });
+
+          // Forward-fill actualDemand if NPP scraper has gaps between 15-minute readings
+          let lastActual: number | null = null;
+          for (let i = 0; i < formatted.length; i++) {
+            if (formatted[i].actualDemand !== null) {
+              lastActual = formatted[i].actualDemand;
+            } else if (lastActual !== null) {
+              formatted[i].actualDemand = lastActual;
+            }
+          }
+
           // Only keep intervals that match our requested dates
-          const filtered = formatted.filter(f => dates.includes(f.date));
+          const filtered = formatted.filter(f => dates.includes(f.date) || dates.length === 1);
           intervals.push(...this.aggregateDemandIntervals(filtered, interval));
         } else if (actualMap.size > 0) {
           // If no forecast records, construct intervals from actualMap

@@ -212,6 +212,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                     stroke={metric.color}
                     fillOpacity={1}
                     activeDot={{ r: 4, strokeWidth: 0 }}
+                    connectNulls={true}
                   />
                 );
               }
@@ -226,6 +227,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 0 }}
+                  connectNulls={true}
                 />
               );
             })}
