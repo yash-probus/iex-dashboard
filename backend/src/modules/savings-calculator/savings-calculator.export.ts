@@ -479,22 +479,22 @@ export class SavingsCalculatorExportService {
     rowMapping['totalBillOADiscomAfterProltRow'] = totalGrossRow.number;
     
     sheet.addRow([]);
-    const netSavings = Math.max(0, (result.totalBaselineCost || totalDiscomBRounded) - ((result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees));
+    const grossSavingsVal = result.grossSavings ?? Math.max(0, (result.fullBaselineDiscomCost || totalBaselineWithMisc) - totalGrossBill);
     
     sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0))]);
     const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
     sheet.addRow(['DISCOM Bill After PROLT', Math.round(discomAfterProltWithMisc)]);
     
-    const netSavingsRow = sheet.addRow(['Net Savings', Math.round(netSavings)]);
-    netSavingsRow.font = { bold: true };
-    netSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
+    const grossSavingsRow = sheet.addRow(['Gross Savings', Math.round(grossSavingsVal)]);
+    grossSavingsRow.font = { bold: true };
+    grossSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
     const nocFee = entry.nocFee !== undefined && entry.nocFee !== null ? Number(entry.nocFee) : 0;
     const regFee = entry.iexRegFee !== undefined && entry.iexRegFee !== null ? Number(entry.iexRegFee) : 0;
-    const consultancyFeeVal = (t as any).consultancyFee || (entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 0);
+    const consultancyFeeVal = (result as any).aggregatedTotals?.consultancyFee || (entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 0);
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
-    const probusPlatformFee = (t as any).probusPlatformFee || Math.round(result.totalMarketEnergyKwh * platformFeeRate);
-    const proltMarginVal = (t as any).proltMarginCost || 0;
+    const probusPlatformFee = (result as any).aggregatedTotals?.probusPlatformFee || Math.round(result.totalMarketEnergyKwh * platformFeeRate);
+    const proltMarginVal = (result as any).aggregatedTotals?.proltMarginCost || (result as any).proltMarginCost || 0;
 
     const nocRow = sheet.addRow(['Monthly NOC Fee', nocFee]);
     rowMapping['nocFeeRow'] = nocRow.number;
@@ -511,8 +511,8 @@ export class SavingsCalculatorExportService {
     const valueShareRow = sheet.addRow(['Value-Share for Energy Platform', Math.round(proltMarginVal)]);
     rowMapping['valueShareRow'] = valueShareRow.number;
     
-    const finalSavings = result.totalSavings ?? Math.max(0, (result.totalBaselineCost || totalDiscomBRounded) - totalGrossBill);
-    const finalSavingsRow = sheet.addRow(['Final Client Savings', Math.round(finalSavings)]);
+    const finalSavings = result.totalSavings ?? Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal));
+    const finalSavingsRow = sheet.addRow(['Final Client Savings (Saving for your business)', Math.round(finalSavings)]);
     finalSavingsRow.font = { bold: true };
     finalSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     rowMapping['finalSavingsRow'] = finalSavingsRow.number;
