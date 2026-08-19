@@ -6,8 +6,8 @@ interface OaChargeRegisterTableProps {
 }
 
 const formatCurrency = (val: number) => {
-  if (val === undefined || val === null) return '-';
-  return '₹' + val.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  if (val === undefined || val === null || isNaN(Number(val))) return '-';
+  return '₹' + Number(val).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 };
 
 export const OaChargeRegisterTable: React.FC<OaChargeRegisterTableProps> = ({ oaCharges }) => {

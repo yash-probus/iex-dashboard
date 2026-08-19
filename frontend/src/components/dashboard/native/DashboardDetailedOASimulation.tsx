@@ -42,36 +42,36 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
             </TableRow>
           </TableHead>
           <TableBody>
-            {marketDecisionResult.oaDetailed.breakdown.map((row: any, idx: number) => (
+            {(marketDecisionResult.oaDetailed.breakdown || []).map((row: any, idx: number) => (
               <TableRow key={idx} hover>
                 <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', fontSize: '11px', px: 1 }}>{row.slabName}</TableCell>
-                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{row.discomUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
-                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{row.oaUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
-                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.discomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
-                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.proltDiscomBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
-                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{row.consumerBusUnits.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
-                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.oaBill.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{Number(row.discomUnits || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{Number(row.oaUnits || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{Number(row.discomBill || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{Number(row.proltDiscomBill || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>{Number(row.consumerBusUnits || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</TableCell>
+                <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{Number(row.oaBill || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
               </TableRow>
             ))}
             <TableRow sx={{ backgroundColor: '#F8FAFC' }}>
               <TableCell sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>Total</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
-                {marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.discomUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
+                {Number((marketDecisionResult.oaDetailed.breakdown || []).reduce((sum: number, r: any) => sum + (r.discomUnits || 0), 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
-                {marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
+                {Number((marketDecisionResult.oaDetailed.breakdown || []).reduce((sum: number, r: any) => sum + (r.oaUnits || 0), 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
-                ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.discomBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                ₹{Number((marketDecisionResult.oaDetailed.breakdown || []).reduce((sum: number, r: any) => sum + (r.discomBill || 0), 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
-                ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.proltDiscomBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                ₹{Number((marketDecisionResult.oaDetailed.breakdown || []).reduce((sum: number, r: any) => sum + (r.proltDiscomBill || 0), 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
-                {marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.consumerBusUnits, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
+                {Number((marketDecisionResult.oaDetailed.breakdown || []).reduce((sum: number, r: any) => sum + (r.consumerBusUnits || 0), 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: '11px', px: 1 }}>
-                ₹{marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaBill, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                ₹{Number((marketDecisionResult.oaDetailed.breakdown || []).reduce((sum: number, r: any) => sum + (r.oaBill || 0), 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </TableCell>
             </TableRow>
           </TableBody>
@@ -80,29 +80,29 @@ export const DashboardDetailedOASimulation: React.FC<DashboardDetailedOASimulati
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, p: 2, backgroundColor: '#F8FAFC', borderTop: '1px solid', borderColor: 'divider', minWidth: 'max-content' }}>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">SLDC Scheduling Cost</Typography>
-            <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+            <Typography variant="body2" fontWeight={600}>₹{Number(marketDecisionResult.oaDetailed.sldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded || 0} days)</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">NLDC Scheduling Cost</Typography>
-            <Typography variant="body2" fontWeight={600}>₹{(marketDecisionResult.oaDetailed.nldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded} days)</Typography>
+            <Typography variant="body2" fontWeight={600}>₹{Number(marketDecisionResult.oaDetailed.nldcSchedulingCost || 0).toLocaleString('en-IN')} ({marketDecisionResult.oaDetailed.totalDaysTraded || 0} days)</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">Total Estimated OA Bill (Inc. Overheads)</Typography>
             <Typography variant="body2" fontWeight={700} color="#7C3AED">
-              ₹{(
-                marketDecisionResult.oaDetailed.breakdown.reduce((sum: number, r: any) => sum + r.oaBill, 0) +
-                marketDecisionResult.oaDetailed.dailyFixedOverhead +
-                marketDecisionResult.oaDetailed.bidApplicationFees
+              ₹{Number(
+                (marketDecisionResult.oaDetailed.breakdown || []).reduce((sum: number, r: any) => sum + (r.oaBill || 0), 0) +
+                (marketDecisionResult.oaDetailed.dailyFixedOverhead || 0) +
+                (marketDecisionResult.oaDetailed.bidApplicationFees || 0)
               ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">Total Gross Bill (Net Landed OA Cost)</Typography>
             <Typography variant="body2" fontWeight={700} color="#E11D48">
-              ₹{(
-                marketDecisionResult.totalLandedExchangeCost +
-                marketDecisionResult.oaDetailed.dailyFixedOverhead +
-                marketDecisionResult.oaDetailed.bidApplicationFees
+              ₹{Number(
+                (marketDecisionResult.totalLandedExchangeCost || 0) +
+                (marketDecisionResult.oaDetailed.dailyFixedOverhead || 0) +
+                (marketDecisionResult.oaDetailed.bidApplicationFees || 0)
               ).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </Typography>
           </Box>

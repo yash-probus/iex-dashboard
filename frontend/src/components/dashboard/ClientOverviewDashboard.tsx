@@ -37,7 +37,7 @@ export const ClientOverviewDashboard: React.FC<ClientOverviewDashboardProps> = (
         <Box sx={{ textAlign: 'right' }}>
           <Typography variant="overline" color="text.secondary" fontWeight={700}>Annual Net Savings</Typography>
           <Typography variant="h4" fontWeight={800} color="success.main" sx={{ letterSpacing: '-0.02em' }}>
-            ₹{clientOverview.totalSavings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            ₹{Number(clientOverview.totalSavings || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </Typography>
         </Box>
       </Box>
@@ -49,7 +49,7 @@ export const ClientOverviewDashboard: React.FC<ClientOverviewDashboardProps> = (
             <CardContent>
               <Typography variant="overline" color="text.secondary" fontWeight={700}>Avg Monthly Savings</Typography>
               <Typography variant="h5" fontWeight={800} color="primary.main">
-                ₹{clientOverview.months.length > 0 ? (clientOverview.totalSavings / clientOverview.months.length).toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 0}
+                ₹{clientOverview.months?.length > 0 ? Number(clientOverview.totalSavings / clientOverview.months.length).toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 0}
               </Typography>
             </CardContent>
           </Card>
@@ -276,7 +276,7 @@ export const ClientOverviewDashboard: React.FC<ClientOverviewDashboardProps> = (
                             {m.savings <= 0 ? (
                               <Typography variant="body2" color="error" fontWeight={700}>Not Eligible (₹0)</Typography>
                             ) : (
-                              <Typography variant="body2" color="success.main" fontWeight={700}>₹{m.savings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
+                              <Typography variant="body2" color="success.main" fontWeight={700}>₹{Number(m.savings || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Typography>
                             )}
                           </TableCell>
                         </TableRow>

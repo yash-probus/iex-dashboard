@@ -6,13 +6,13 @@ interface TodDetailTableProps {
 }
 
 const formatNumber = (val: number) => {
-  if (val === undefined || val === null) return '-';
-  return val.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  if (val === undefined || val === null || isNaN(Number(val))) return '-';
+  return Number(val).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 };
 
 const formatCurrency = (val: number) => {
-  if (val === undefined || val === null) return '-';
-  return '₹' + val.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  if (val === undefined || val === null || isNaN(Number(val))) return '-';
+  return '₹' + Number(val).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 };
 
 export const TodDetailTable: React.FC<TodDetailTableProps> = ({ tod }) => {
