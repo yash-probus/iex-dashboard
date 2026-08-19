@@ -130,14 +130,14 @@ export const fetchEntryHistoryNew = async (id: string): Promise<any[]> => {
 };
 
 export const exportSavingsExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
-  const queryParams: string[] = [];
+  const queryParams: string[] = [`_t=${Date.now()}`];
   if (targetMonth && targetMonth !== 'all') {
     queryParams.push(`month=${targetMonth}`);
   }
   if (version) {
     queryParams.push(`version=${version}`);
   }
-  const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+  const queryString = `?${queryParams.join('&')}`;
 
   const response = await apiClient.get(`/savings-calculator-new/entries/${id}/export-excel${queryString}`, {
     responseType: 'blob'
@@ -160,14 +160,14 @@ export const exportSavingsExcelNew = async (id: string, targetMonth?: string, ve
 };
 
 export const exportDemandShiftExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
-  const queryParams: string[] = [];
+  const queryParams: string[] = [`_t=${Date.now()}`];
   if (targetMonth && targetMonth !== 'all') {
     queryParams.push(`month=${targetMonth}`);
   }
   if (version) {
     queryParams.push(`version=${version}`);
   }
-  const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+  const queryString = `?${queryParams.join('&')}`;
 
   const response = await apiClient.get(`/savings-calculator-new/entries/${id}/demand-shift-insights/export-excel${queryString}`, {
     responseType: 'blob'
