@@ -686,6 +686,34 @@ export class SavingsCalculatorNewService {
       slotsData.push(...monthlySlots);
     }
 
+    // Query IEX Fees from Resource Center for SLDC/NLDC scheduling fees
+    const latestMonthToProcess = monthsToProcess[0]?.[0] || '';
+    const [yS, mS] = latestMonthToProcess.split('-');
+    const yyyymmVal = (parseInt(yS, 10) || 2026) * 100 + (parseInt(mS, 10) || 5);
+    const iexFees = await prisma.iexFees.findFirst({ where: { month: yyyymmVal } });
+    const nldcSchedulingFees = Number(iexFees?.nldcSchedulingFees || 20);
+    const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 1500);
+
+    const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
+    slotsData.forEach(s => {
+      if (s.selectedSource !== 'DISCOM' && s.maxEnergyPerSlot > 0) {
+        if (s.selectedSource === 'DAM') tradedDays.DAM.add(s.date);
+        else if (s.selectedSource === 'GDAM') tradedDays.GDAM.add(s.date);
+        else if (s.selectedSource === 'RTM') tradedDays.RTM.add(s.date);
+      }
+    });
+
+    const totalDamDays = tradedDays.DAM.size;
+    const totalGdamDays = tradedDays.GDAM.size;
+    const totalRtmDays = tradedDays.RTM.size;
+    const allTradedDates = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]);
+    const totalDaysTraded = allTradedDates.size;
+
+    const nldcSchedulingCost = nldcSchedulingFees * totalDaysTraded;
+    const sldcSchedulingCost = sldcSchedulingFees * (totalDamDays + totalGdamDays + totalRtmDays);
+    const dailyFixedOverhead = nldcSchedulingCost + sldcSchedulingCost;
+    const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * 5;
+
     const proltMarginVal = Number(entry.proltMargin) || 0;
     const traderMarginVal = Number(entry.traderMargin) || 0;
     const consultancyFeeVal = Number(entry.consultancyFee) || 0;
@@ -695,7 +723,7 @@ export class SavingsCalculatorNewService {
     const traderMarginCost = totalMarketEnergyKwh * traderMarginVal * 1.18;
 
     // Calculate gross savings before PROLT percentage margin
-    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal;
+    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
     const grossSavings = Math.max(0, totalBaselineCost - baseOtherCosts);
 
     // Treat proltMarginVal as percentage of gross savings (e.g. 15 = 15% or 0.15 = 15%)
@@ -741,11 +769,11 @@ export class SavingsCalculatorNewService {
       discom: entry.discom,
       oaDetailed: {
         breakdown,
-        dailyFixedOverhead: 0,
-        nldcSchedulingCost: 0,
-        sldcSchedulingCost: 0,
-        bidApplicationFees: 0,
-        totalDaysTraded: 0,
+        dailyFixedOverhead,
+        nldcSchedulingCost,
+        sldcSchedulingCost,
+        bidApplicationFees,
+        totalDaysTraded,
         totals: aggregatedTotals
       }
     };

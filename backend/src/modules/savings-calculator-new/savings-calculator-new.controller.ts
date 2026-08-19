@@ -224,4 +224,26 @@ export class SavingsCalculatorNewController {
       });
     }
   }
+
+  static async exportExcel(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const targetMonth = req.query.month as string | undefined;
+      const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
+      
+      const { SavingsCalculatorNewExportService } = await import('./savings-calculator-new.export');
+      const buffer = await SavingsCalculatorNewExportService.exportToExcel(id as string, targetMonth as string | undefined, version);
+      
+      const entry = await SavingsCalculatorNewService.getEntryOrVersion(id as string, version);
+      const safeName = (entry?.clientName || 'Client').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      const filename = `${safeName}_Savings_Analysis${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(buffer);
+    } catch (error: any) {
+      console.error('Error exporting new savings excel:', error);
+      res.status(500).json({ message: error.message || 'Excel export failed.' });
+    }
+  }
 }

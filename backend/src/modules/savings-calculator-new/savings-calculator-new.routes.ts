@@ -14,8 +14,9 @@ router.delete('/entries/:id', SavingsCalculatorNewController.delete);
 router.get('/entries/:id/history', SavingsCalculatorNewController.getHistory);
 router.get('/entries/:id/client-overview', SavingsCalculatorNewController.getClientOverview);
 
-// Calculation Endpoints
+// Calculation & Export Endpoints
 router.get('/entries/:id/calculate', SavingsCalculatorNewController.calculateSavings);
 router.get('/entries/:id/market-decision', SavingsCalculatorNewController.calculateMarketDecision);
+router.get('/entries/:id/export-excel', SavingsCalculatorNewController.exportExcel);
 
 export default router;

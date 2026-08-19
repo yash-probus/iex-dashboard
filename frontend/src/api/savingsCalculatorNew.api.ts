@@ -125,3 +125,33 @@ export const fetchEntryHistoryNew = async (id: string): Promise<any[]> => {
   const response = await apiClient.get(`/savings-calculator-new/entries/${id}/history`);
   return response.data.data;
 };
+
+export const exportSavingsExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
+  const queryParams: string[] = [];
+  if (targetMonth && targetMonth !== 'all') {
+    queryParams.push(`month=${targetMonth}`);
+  }
+  if (version) {
+    queryParams.push(`version=${version}`);
+  }
+  const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
+  const response = await apiClient.get(`/savings-calculator-new/entries/${id}/export-excel${queryString}`, {
+    responseType: 'blob'
+  });
+
+  const blob = new Blob([response.data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+  const safeName = (customerName || 'Client').replace(/\s+/g, '_');
+  const filename = `${safeName}_Custom_TOD_Savings_Analysis${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};

@@ -43,7 +43,8 @@ import {
   calculateMarketDecisionNew,
   fetchSavingsNewEntries,
   SavingsCalculatorNewEntry,
-  MarketDecisionResult
+  MarketDecisionResult,
+  exportSavingsExcelNew
 } from '../api/savingsCalculatorNew.api';
 import { exportToCSV } from '../utils/export';
 import { exportSavingsExcel } from '../api/savingsCalculator.api';
@@ -313,6 +314,31 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 }}
               >
                 Export Simulation CSV
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FileDownloadIcon />}
+                onClick={async () => {
+                  if (!id) return;
+                  try {
+                    await exportSavingsExcelNew(id, selectedSimMonth || undefined, undefined, calcEntry?.clientName);
+                  } catch (err: any) {
+                    setSnackbar({ open: true, message: err.message || 'Excel export failed', severity: 'error' });
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#10B981',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#059669', borderColor: 'divider' }
+                }}
+              >
+                Export Excel Report
               </Button>
               <Button
                 variant="outlined"
