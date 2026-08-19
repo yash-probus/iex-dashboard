@@ -89,8 +89,15 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                 return;
               }
             }
-            const total = (Number(s.discomEnergy) || 0) + (Number(s.marketEnergy) || 0);
-            const oa = s.marketEnergy || 0;
+            if (isNaN(hh)) return;
+
+            const discomE = Number(s.discomEnergy) || 0;
+            const marketE = Number(s.marketEnergy) || 0;
+            const maxEnergy = Number(s.maxEnergyPerSlot) || Number(s.consumptionKwh) || 0;
+
+            const total = (discomE + marketE) > 0 ? (discomE + marketE) : maxEnergy;
+            const isOA = s.selectedSource ? (s.selectedSource !== 'DISCOM') : (marketE > 0);
+            const oa = isOA ? (marketE > 0 ? marketE : maxEnergy) : 0;
             
             if (hh >= 10 && hh < 19) {
               block10to7.used += total; block10to7.oa += oa;
@@ -102,8 +109,27 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               block7to3.used += total; block7to3.oa += oa;
             }
           });
-        } else {
-          // Mock data if slotsData is missing
+        }
+        
+        const sumBlocks = block10to7.used + block5to10.used + block3to5.used + block7to3.used;
+        if (sumBlocks === 0 && marketDecisionResult.todSummaries && marketDecisionResult.todSummaries.length > 0) {
+          marketDecisionResult.todSummaries.forEach((t: any) => {
+            const startH = t.startTime ? parseInt(t.startTime.split(':')[0], 10) : 0;
+            const used = Number(t.consumptionKwh || t.discomUnits || t.totalEnergyKwh || 0);
+            const oa = Number(t.marketEnergyKwh || t.oaUnits || 0);
+
+            if (startH >= 10 && startH < 19) {
+              block10to7.used += used; block10to7.oa += oa;
+            } else if (startH >= 5 && startH < 10) {
+              block5to10.used += used; block5to10.oa += oa;
+            } else if (startH >= 3 && startH < 5) {
+              block3to5.used += used; block3to5.oa += oa;
+            } else {
+              block7to3.used += used; block7to3.oa += oa;
+            }
+          });
+        } else if (sumBlocks === 0 && totalEnergyKwh > 0) {
+          // Fallback distribution if slotsData is missing
           block10to7 = { used: totalEnergyKwh * 0.5, oa: totalMarketEnergyKwh * 0.6 };
           block5to10 = { used: totalEnergyKwh * 0.15, oa: totalMarketEnergyKwh * 0.15 };
           block3to5 = { used: totalEnergyKwh * 0.05, oa: totalMarketEnergyKwh * 0.05 };

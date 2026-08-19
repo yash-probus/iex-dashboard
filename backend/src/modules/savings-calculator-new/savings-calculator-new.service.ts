@@ -610,6 +610,8 @@ export class SavingsCalculatorNewService {
           comparedLowestPrice,
           selectedSource,
           maxEnergyPerSlot: 0,
+          discomEnergy: 0,
+          marketEnergy: 0,
           optimizedCost: 0,
           baselineCost: 0,
           istsLoss,
@@ -646,12 +648,16 @@ export class SavingsCalculatorNewService {
             sb.baselineCost = takeEnergy * slotDiscomPrice;
 
             if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
+              sb.marketEnergy = takeEnergy;
+              sb.discomEnergy = 0;
               sb.optimizedCost = takeEnergy * sb.comparedLowestPrice;
               totalMarketEnergyKwh += takeEnergy;
               totalLandedExchangeCost += sb.optimizedCost;
               slotMarketEnergy += takeEnergy;
               slotMarketCost += sb.optimizedCost;
             } else {
+              sb.discomEnergy = takeEnergy;
+              sb.marketEnergy = 0;
               sb.optimizedCost = sb.baselineCost;
               totalDiscomAfterProlt += sb.optimizedCost;
               slotDiscomCost += sb.optimizedCost;
@@ -659,6 +665,8 @@ export class SavingsCalculatorNewService {
             allocatedEnergy += takeEnergy;
           } else {
             sb.maxEnergyPerSlot = 0;
+            sb.discomEnergy = 0;
+            sb.marketEnergy = 0;
             sb.baselineCost = 0;
             sb.optimizedCost = 0;
           }
