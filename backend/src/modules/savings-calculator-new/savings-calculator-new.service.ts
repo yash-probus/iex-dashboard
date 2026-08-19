@@ -857,11 +857,11 @@ export class SavingsCalculatorNewService {
     const totalDiscomAfterOABeforeEd = totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge;
     const electricityDutyAfterOAVal = applyEd ? Math.round(totalDiscomAfterOABeforeEd * (edPercent / 100)) : 0;
 
-    // Full baseline DISCOM cost including FPPA surcharge and Electricity Duty
-    const fullBaselineDiscomCost = totalBaselineCost + fppaSurchargeVal + electricityDutyVal;
+    // Full baseline DISCOM cost including FPPA surcharge, Demand Charge, and Electricity Duty
+    const fullBaselineDiscomCost = totalBaselineCost + fppaSurchargeVal + calculatedDemandCharge + electricityDutyVal;
 
-    // Full Open Access + Remaining DISCOM cost including FPPA, ED, fees and overheads
-    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + fppaAfterOAVal + electricityDutyAfterOAVal + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
+    // Full Open Access + Remaining DISCOM cost including FPPA, ED, Demand Charge, fees and overheads
+    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
 
     // Gross Savings = Full Baseline DISCOM Cost - Full OA DISCOM Cost
     const grossSavings = Math.max(0, fullBaselineDiscomCost - baseOtherCosts);
