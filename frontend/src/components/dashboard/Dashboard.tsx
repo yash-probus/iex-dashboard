@@ -157,26 +157,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
         const marketSummaryMap: Record<string, any> = { DAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, GDAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, RTM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 } };
         
         marketDecisionResult.slotsData.forEach((slot: any) => {
-          const dParts = slot.date.split('-');
+          const marketSource = slot.selectedSource || slot.marketSource;
+          const isMarket = marketSource && marketSource !== 'DISCOM';
+          const qtyKwh = isMarket ? (slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0) : 0;
+          const rate = slot.comparedLowestPrice ?? (marketSource === 'GDAM' ? (slot.gdamLanding || 0) : marketSource === 'RTM' ? (slot.rtmLanding || 0) : (slot.damLanding || 0));
+
           let dateStr = slot.date;
-          if (dParts.length === 3) {
+          if (slot.date && typeof slot.date === 'string' && slot.date.includes('-')) {
+            const dParts = slot.date.split('-');
+            if (dParts.length === 3) {
               if (dParts[0].length === 4) dateStr = `${dParts[2]}-${new Date(slot.date).toLocaleString('en-US', {month: 'short'})}`;
               else if (dParts[2].length === 4) dateStr = `${dParts[0]}-${new Date(dParts[2]+"-"+dParts[1]+"-"+dParts[0]).toLocaleString('en-US', {month: 'short'})}`;
               else dateStr = slot.date.substring(0, 6);
-          } else if (slot.date.length > 6) {
+            } else if (slot.date.length > 6) {
               dateStr = slot.date.substring(0, 6);
+            }
           }
           const date = dateStr;
 
           if (!dailyMap[date]) {
             dailyMap[date] = { date, iso: date, qty: 0, DAM: 0, GDAM: 0, RTM: 0, activeSlots: 0, sumWeighted: 0, dominantMarket: 'DAM' };
           }
-          
-          if (slot.marketSource && slot.marketSource !== 'DISCOM' && slot.marketEnergy > 0) {
-            const qtyMWh = slot.marketEnergy / 1000;
-            const rate = slot.marketSource === 'GDAM' ? (slot.gdamLanding || 0) : slot.marketSource === 'RTM' ? (slot.rtmLanding || 0) : (slot.damLanding || 0);
-            const mkt = slot.marketSource as 'DAM' | 'GDAM' | 'RTM';
-            
+
+          if (isMarket && qtyKwh > 0) {
+            const qtyMWh = qtyKwh / 1000;
+            const mkt = marketSource as 'DAM' | 'GDAM' | 'RTM';
+
             dailyMap[date].qty += qtyMWh;
             dailyMap[date][mkt] += qtyMWh;
             dailyMap[date].activeSlots += 1;
@@ -189,7 +195,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             heatmapRecords.push({
               date: date,
-              timeblock: slot.timeblock,
+              timeblock: slot.timeblock || 1,
               qty: qtyMWh,
               rate: rate,
               market: mkt
@@ -203,24 +209,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
           return d;
         });
 
-        const tod = marketDecisionResult.todSummaries ? marketDecisionResult.todSummaries.map(t => ({
-          tod: t.slabName,
-          actualUnits: t.totalEnergyKwh || 0,
-          baselineBill: (t as any).baselineCost || 0,
-          oaRegional: t.marketEnergyKwh || 0,
-          oaConsumer: t.marketEnergyKwh || 0,
-          oaEnergyCharges: t.marketCostBase || 0,
-          discomAfterOA: (t.totalEnergyKwh || 0) - (t.marketEnergyKwh || 0),
-          coverage: t.totalEnergyKwh ? (t.marketEnergyKwh / t.totalEnergyKwh * 100) : 0,
-          deliveredEfficiency: 100,
-          avoidedDiscomBill: (t as any).savings || 0
-        })) : [];
+        const tod = marketDecisionResult.todSummaries ? marketDecisionResult.todSummaries.map((t: any) => {
+          const name = t.slotName || t.slabName || 'TOD Slot';
+          const totalUnits = Number(t.consumptionKwh ?? t.totalEnergyKwh ?? 0);
+          const baselineBill = Number(t.baselineCost ?? (totalUnits * (t.effectivePrice || 0)));
+          const oaRegional = Number(t.marketEnergyKwh ?? totalUnits);
+          const oaConsumer = Number(t.marketEnergyKwh ?? totalUnits);
+          const oaEnergyCharges = Number(t.marketCostBase ?? (oaRegional * (t.effectivePrice || 0)));
+          const discomAfterOA = Math.max(0, totalUnits - oaRegional);
+          const coverage = totalUnits > 0 ? (oaRegional / totalUnits * 100) : 0;
+          const avoidedDiscomBill = Number(t.savings ?? (baselineBill - oaEnergyCharges));
 
-        const oaCharges = marketDecisionResult.oaDetailed?.breakdown ? marketDecisionResult.oaDetailed.breakdown.map(b => ({
-          name: b.slabName,
-          amount: b.oaBill,
+          return {
+            tod: name,
+            actualUnits: totalUnits,
+            baselineBill: baselineBill,
+            oaRegional: oaRegional,
+            oaConsumer: oaConsumer,
+            oaEnergyCharges: oaEnergyCharges,
+            discomAfterOA: discomAfterOA,
+            coverage: coverage,
+            deliveredEfficiency: 100,
+            avoidedDiscomBill: avoidedDiscomBill
+          };
+        }) : [];
+
+        const oaCharges = marketDecisionResult.oaDetailed?.breakdown ? marketDecisionResult.oaDetailed.breakdown.map((b: any) => ({
+          name: b.slabName || b.slotName || 'OA Charge',
+          amount: b.oaBill || 0,
           rate: "---",
-          basis: `${b.oaUnits} kWh`
+          basis: `${b.oaUnits || 0} kWh`
         })) : [];
 
         // Use the selected month from clientOverview to find fees
@@ -229,6 +247,45 @@ export const Dashboard: React.FC<DashboardProps> = ({
         const finalSaving = currentMonthData?.savings || marketDecisionResult.totalSavings;
         const grossSaving = currentMonthData?.grossSavings || marketDecisionResult.totalSavings;
 
+        const discomAfterOABill = (marketDecisionResult.todSummaries || []).reduce((acc: number, t: any) => {
+          const totalUnits = Number(t.consumptionKwh ?? t.totalEnergyKwh ?? 0);
+          const marketUnits = Number(t.marketEnergyKwh ?? totalUnits);
+          const discomUnits = Math.max(0, totalUnits - marketUnits);
+          return acc + (discomUnits * (t.effectivePrice || 8.5));
+        }, 0);
+
+        const oaEnergyBill = (marketDecisionResult.todSummaries || []).reduce((acc: number, t: any) => {
+          return acc + Number(t.marketCostBase ?? t.baselineCost ?? 0);
+        }, 0);
+
+        const oaOperatingBill = (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) + (marketDecisionResult.oaDetailed?.bidApplicationFees || 0);
+
+        const mRes = marketDecisionResult as any;
+        const proltFees = (mRes.proltMarginCost || 0) + (mRes.traderMargin || 0) + (mRes.consultancyFee || 0) + (mRes.probusPlatformFee || 0) + (mRes.meteringCharges || 0);
+
+        const baselineBreakdown = [
+          {
+            name: 'Discom Energy & Capacity Charges',
+            baseline: marketDecisionResult.totalBaselineCost || 0,
+            afterOA: discomAfterOABill
+          },
+          {
+            name: 'Open Access Market Power Procurement',
+            baseline: 0,
+            afterOA: oaEnergyBill
+          },
+          {
+            name: 'Open Access Operating & Overhead Fees',
+            baseline: 0,
+            afterOA: oaOperatingBill
+          },
+          {
+            name: 'PROLT Platform & Advisory Margins',
+            baseline: 0,
+            afterOA: proltFees
+          }
+        ];
+
         detail = {
           baselineBill: marketDecisionResult.totalBaselineCost,
           combinedBill: marketDecisionResult.totalBaselineCost - marketDecisionResult.totalSavings,
@@ -236,13 +293,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           totalFees: fees,
           grossSaving: grossSaving,
           customerRetention: grossSaving > 0 ? (finalSaving / grossSaving) * 100 : 0,
-          discomAfterOA: (marketDecisionResult.todSummaries || []).reduce((acc: number, t: any) => acc + (t.totalEnergyKwh - t.marketEnergyKwh), 0) * 8.5, // approximate
-          oaBill: (marketDecisionResult.oaDetailed?.breakdown || []).reduce((acc: number, b: any) => acc + b.oaBill, 0),
-          oaEnergyCharges: (marketDecisionResult.todSummaries || []).reduce((acc: number, t: any) => acc + t.marketCostBase, 0),
-          oaOperatingCharges: (marketDecisionResult.oaDetailed?.dailyFixedOverhead || 0) + (marketDecisionResult.oaDetailed?.bidApplicationFees || 0),
+          discomAfterOA: discomAfterOABill,
+          oaBill: (marketDecisionResult.oaDetailed?.breakdown || []).reduce((acc: number, b: any) => acc + (b.oaBill || 0), 0),
+          oaEnergyCharges: oaEnergyBill,
+          oaOperatingCharges: oaOperatingBill,
           daily,
           tod,
-          baselineBreakdown: [],
+          baselineBreakdown,
           oaCharges,
           heatmapRecords,
           marketSummary: Object.keys(marketSummaryMap).map(mkt => ({
