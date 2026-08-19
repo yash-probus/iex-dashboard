@@ -671,6 +671,7 @@ export class SavingsCalculatorNewService {
     aggregatedTotals.traderMargin = traderMarginCost;
     aggregatedTotals.consultancyFee = consultancyFeeVal;
     aggregatedTotals.probusPlatformFee = probusPlatformFeeVal;
+    (aggregatedTotals as any).meteringCharges = meteringChargesVal;
 
     totalOptimizedCost = totalLandedExchangeCost + totalDiscomAfterProlt + proltMarginCost + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal;
     const totalSavings = totalBaselineCost - totalOptimizedCost;
