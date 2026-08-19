@@ -438,15 +438,16 @@ export class SavingsCalculatorExportService {
     addChargeRow('Trader Margin', traderMargin, traderRate, totalMarketEnergy);
     
     // SLDC Operating charges (per market per day)
-    const sldcCost = (oaDetailed as any).sldcSchedulingCost || 0;
-    
     // Calculate SLDC breakdown by market
     const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
     slotsData.forEach((s: any) => {
-      if (s.shouldBuyFromMarket && s.marketSource) {
-        if (s.marketSource === 'DAM') tradedDays.DAM.add(s.date);
-        else if (s.marketSource === 'GDAM') tradedDays.GDAM.add(s.date);
-        else if (s.marketSource === 'RTM') tradedDays.RTM.add(s.date);
+      const isMarket = s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM');
+      const mkt = s.selectedSource || s.marketSource;
+      const energy = s.maxEnergyPerSlot ?? s.marketEnergy ?? 0;
+      if (isMarket && mkt && energy > 0) {
+        if (mkt === 'DAM') tradedDays.DAM.add(s.date);
+        else if (mkt === 'GDAM') tradedDays.GDAM.add(s.date);
+        else if (mkt === 'RTM') tradedDays.RTM.add(s.date);
       }
     });
     
@@ -454,6 +455,8 @@ export class SavingsCalculatorExportService {
     const damSldcCost = tradedDays.DAM.size * sldcFeePerDay;
     const gdamSldcCost = tradedDays.GDAM.size * sldcFeePerDay;
     const rtmSldcCost = tradedDays.RTM.size * sldcFeePerDay;
+    const computedTotalSldc = damSldcCost + gdamSldcCost + rtmSldcCost;
+    const sldcCost = (oaDetailed as any).sldcSchedulingCost || computedTotalSldc;
     
     sheet.addRow(['SLDC Operating charges - DAM', Math.round(damSldcCost), '-', `${tradedDays.DAM.size} days`, '-']);
     sheet.addRow(['SLDC Operating charges - GDAM', Math.round(gdamSldcCost), '-', `${tradedDays.GDAM.size} days`, '-']);
