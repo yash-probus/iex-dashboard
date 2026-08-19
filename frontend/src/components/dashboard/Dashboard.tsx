@@ -101,8 +101,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         totalConsumption += m.totalEnergyKwh || 0;
         totalMarketEnergy += m.totalMarketEnergyKwh || 0;
         totalSavings += m.savings || 0;
-        totalGrossSavings += m.grossSavings || 0;
+        const mGross = m.grossSavings ?? (m.totalBaselineCost ? Math.max(0, m.totalBaselineCost - (m.totalOptimizedCost || 0)) : m.savings || 0);
+        totalGrossSavings += mGross;
       });
+
+      if (totalGrossSavings === 0 && marketDecisionResult) {
+        const mTotals = (marketDecisionResult.oaDetailed as any)?.totals || {};
+        totalGrossSavings = mTotals.grossSavings ?? (marketDecisionResult as any).grossSavings ?? marketDecisionResult.totalSavings ?? 0;
+      }
 
       // Set baseline cost based on active view (Overall vs Monthly)
       if (isOverall) {
@@ -303,9 +309,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         // Use the selected month from clientOverview to find fees
         const currentMonthData = clientOverview?.months?.find(m => m.month === activeMonth);
-        const fees = (currentMonthData?.grossSavings || 0) - (currentMonthData?.savings || 0);
-        const finalSaving = currentMonthData?.savings || marketDecisionResult.totalSavings;
-        const grossSaving = currentMonthData?.grossSavings || marketDecisionResult.totalSavings;
+        const mTotals = (marketDecisionResult?.oaDetailed as any)?.totals || {};
+        const grossSaving = currentMonthData?.grossSavings ?? mTotals.grossSavings ?? (marketDecisionResult as any)?.grossSavings ?? marketDecisionResult.totalSavings ?? 0;
+        const finalSaving = currentMonthData?.savings ?? marketDecisionResult.totalSavings ?? 0;
+        const fees = Math.max(0, grossSaving - finalSaving);
 
         const discomAfterOABill = (marketDecisionResult.todSummaries || []).reduce((acc: number, t: any) => {
           const totalUnits = Number(t.consumptionKwh ?? t.totalEnergyKwh ?? 0);

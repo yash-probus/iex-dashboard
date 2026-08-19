@@ -104,7 +104,8 @@ export default function SavingsCalculatorNewAnalysisPage() {
             totalMarketEnergyKwh: resM.totalMarketEnergyKwh,
             totalBaselineCost: resM.totalBaselineCost,
             totalOptimizedCost: resM.totalOptimizedCost,
-            savings: resM.totalSavings
+            savings: resM.totalSavings,
+            grossSavings: (resM as any).grossSavings ?? resM.oaDetailed?.totals?.grossSavings ?? Math.max(0, resM.totalBaselineCost - resM.totalLandedExchangeCost - resM.totalDiscomAfterProlt)
           });
         } catch (err) {
           console.warn(`Failed to run calculation for month ${m}:`, err);

@@ -762,6 +762,7 @@ export class SavingsCalculatorNewService {
       totalDiscomAfterProlt,
       totalOptimizedCost,
       totalSavings,
+      grossSavings,
       demandCharge: 0,
       electricityDuty: 0,
       arrearAmount: entry.arrearAmount ? Number(entry.arrearAmount) : 0,
@@ -807,9 +808,12 @@ export class SavingsCalculatorNewService {
         const netSavings = result.totalSavings;
         totalSavings += netSavings;
 
+        const grossSav = (result as any).grossSavings ?? (result.oaDetailed?.totals as any)?.grossSavings ?? Math.max(0, result.totalBaselineCost - result.totalLandedExchangeCost - result.totalDiscomAfterProlt);
+
         monthsData.push({
           month,
           savings: netSavings,
+          grossSavings: grossSav,
           totalEnergyKwh: result.totalEnergyKwh,
           totalMarketEnergyKwh: result.totalMarketEnergyKwh,
           totalBaselineCost: result.totalBaselineCost,
@@ -820,6 +824,7 @@ export class SavingsCalculatorNewService {
         monthsData.push({
           month,
           savings: 0,
+          grossSavings: 0,
           error: 'Calculation failed'
         });
       }
