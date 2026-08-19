@@ -1,98 +1,137 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
-  Box, Typography, Button, Paper, Grid, Card, CardContent, CircularProgress, Alert,
-  Table, TableBody, TableCell, TableHead, TableRow, Chip, Tabs, Tab, MenuItem, TextField
+  Box, Typography, Button, TextField, IconButton, Alert, Snackbar,
+  Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
+  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, Chip, Dialog, DialogTitle, DialogContent
 } from '@mui/material';
 import {
-  ArrowBack as ArrowBackIcon,
   Calculate as CalculateIcon,
+  Add as AddIcon,
+  Visibility as VisibilityIcon,
+  LightbulbOutlined as LightbulbIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Close as CloseIcon,
+  PlayArrow as PlayIcon,
   Download as DownloadIcon,
+  CheckCircle as CheckCircleIcon,
+  LocationOn as LocationIcon,
+  ElectricBolt as ElectricBoltIcon,
+  Category as CategoryIcon,
+  Bolt as BoltIcon,
+  Speed as SpeedIcon,
+  Business as BusinessIcon,
+  ArrowForward as ArrowForwardIcon,
+  FileDownload as FileDownloadIcon,
   BarChart as BarChartIcon,
-  PlayArrow as PlayIcon
+  History as HistoryIcon,
+  InfoOutlined as InfoOutlinedIcon,
+  Search as SearchIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { useNavigate, useParams } from 'react-router-dom';
+import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
+import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
+import EmptyTableState from '../components/dashboard/EmptyTableState';
+import { Dashboard } from '../components/dashboard/Dashboard';
+import { ProposalDashboardExport } from '../components/dashboard/ProposalDashboardExport';
+import { RedesignedSavingsReport } from '../components/savings-assistant/RedesignedSavingsReport';
 import {
   fetchSavingsNewEntryById,
   calculateMarketDecisionNew,
+  fetchSavingsNewEntries,
   SavingsCalculatorNewEntry,
   MarketDecisionResult
 } from '../api/savingsCalculatorNew.api';
 import { exportToCSV } from '../utils/export';
+import { exportSavingsExcel } from '../api/savingsCalculator.api';
 
 export default function SavingsCalculatorNewAnalysisPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [entry, setEntry] = useState<SavingsCalculatorNewEntry | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
-  const [result, setResult] = useState<MarketDecisionResult | null>(null);
-  const [allMonthsResult, setAllMonthsResult] = useState<MarketDecisionResult | null>(null);
-  const [monthlyResults, setMonthlyResults] = useState<Record<string, MarketDecisionResult>>({});
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [calcEntry, setCalcEntry] = useState<SavingsCalculatorNewEntry | null>(null);
+  const [cachedResults, setCachedResults] = useState<Record<string, MarketDecisionResult>>({});
+  const [calculating, setCalculating] = useState(false);
+  const [clientOverview, setClientOverview] = useState<any | null>(null);
+  const [selectedSimMonth, setSelectedSimMonth] = useState<string>('all');
+  const [graphDialogOpen, setGraphDialogOpen] = useState(false);
+  const [dynamicGraphDialogOpen, setDynamicGraphDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+  const [isPrintingRedesigned, setIsPrintingRedesigned] = useState(false);
+
+  const marketDecisionResult = cachedResults[selectedSimMonth] || cachedResults['all'] || null;
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const entryData = await fetchSavingsNewEntryById(id);
-        setEntry(entryData);
-
-        // Fetch All Months calculation
-        const resAll = await calculateMarketDecisionNew(id, 'all');
-        setAllMonthsResult(resAll);
-        setResult(resAll);
-
-        // Fetch calculation for each month configured
-        const months = Object.keys(entryData.todConsumptions || {});
-        const monthResultsMap: Record<string, MarketDecisionResult> = {};
-        for (const m of months) {
-          try {
-            const resM = await calculateMarketDecisionNew(id, m);
-            monthResultsMap[m] = resM;
-          } catch (e) {
-            console.warn(`Failed to calculate for month ${m}:`, e);
-          }
-        }
-        setMonthlyResults(monthResultsMap);
-      } catch (err: any) {
-        console.error('Failed to load calculation analysis:', err);
-        setError(err.message || 'Failed to load analysis data');
-      } finally {
-        setLoading(false);
-      }
+    const handleAfterPrint = () => {
+      document.body.classList.remove('printing-report');
+      setIsPrintingRedesigned(false);
     };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
 
-    loadData();
-  }, [id]);
+  const loadData = async () => {
+    if (!id) return;
+    setCalculating(true);
+    try {
+      const entryData = await fetchSavingsNewEntryById(id);
+      setCalcEntry(entryData);
 
-  const handleMonthChange = async (monthKey: string) => {
-    setSelectedMonth(monthKey);
-    if (monthKey === 'all') {
-      setResult(allMonthsResult);
-    } else if (monthlyResults[monthKey]) {
-      setResult(monthlyResults[monthKey]);
-    } else if (id) {
-      setLoading(true);
-      try {
-        const resM = await calculateMarketDecisionNew(id, monthKey);
-        setMonthlyResults(prev => ({ ...prev, [monthKey]: resM }));
-        setResult(resM);
-      } catch (e: any) {
-        setError(e.message || 'Failed to fetch calculation for month');
-      } finally {
-        setLoading(false);
+      const resultsMap: Record<string, MarketDecisionResult> = {};
+      const resAll = await calculateMarketDecisionNew(id, 'all');
+      resultsMap['all'] = resAll;
+
+      const months = Object.keys(entryData.todConsumptions || {});
+      const monthlyOverview: any[] = [];
+
+      for (const m of months) {
+        try {
+          const resM = await calculateMarketDecisionNew(id, m);
+          resultsMap[m] = resM;
+          monthlyOverview.push({
+            month: m,
+            totalEnergyKwh: resM.totalEnergyKwh,
+            totalMarketEnergyKwh: resM.totalMarketEnergyKwh,
+            totalBaselineCost: resM.totalBaselineCost,
+            totalOptimizedCost: resM.totalOptimizedCost,
+            savings: resM.totalSavings
+          });
+        } catch (err) {
+          console.warn(`Failed to run calculation for month ${m}:`, err);
+        }
       }
+
+      setCachedResults(resultsMap);
+      setClientOverview({
+        clientName: entryData.clientName,
+        sanctionedLoadKw: entryData.sanctionedLoadKw,
+        totalSavings: resAll.totalSavings,
+        months: monthlyOverview
+      });
+    } catch (err: any) {
+      console.error('Failed to load analysis:', err);
+      setSnackbar({ open: true, message: err.message || 'Failed to load analysis', severity: 'error' });
+    } finally {
+      setCalculating(false);
     }
   };
 
+  useEffect(() => {
+    loadData();
+  }, [id]);
+
   const handleExportCSV = () => {
-    if (!result || !result.slotsData) return;
-    const exportData = result.slotsData.map((row) => ({
+    if (!marketDecisionResult || !marketDecisionResult.slotsData) return;
+    const exportData = marketDecisionResult.slotsData.map((row) => ({
       'Date': row.date,
       'Timeblock': row.slot,
       'Time': row.timeStr,
@@ -108,38 +147,9 @@ export default function SavingsCalculatorNewAnalysisPage() {
       'Optimized Cost (₹)': row.optimizedCost ? Math.round(row.optimizedCost) : 0
     }));
 
-    const clientNameStr = entry?.clientName ? entry.clientName.replace(/\s+/g, '_') : 'client';
-    exportToCSV(exportData, `${clientNameStr}_custom_tod_analysis_${selectedMonth}.csv`);
+    const clientNameStr = calcEntry?.clientName ? calcEntry.clientName.replace(/\s+/g, '_') : 'client';
+    exportToCSV(exportData, `${clientNameStr}_custom_tod_simulation_${selectedSimMonth}.csv`);
   };
-
-  if (loading && !entry) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress sx={{ color: '#8B5CF6' }} />
-      </Box>
-    );
-  }
-
-  if (error || !entry || !result) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/savings-calculator-new')} sx={{ mb: 2 }}>
-          Back to List
-        </Button>
-        <Alert severity="error">{error || 'Data not found'}</Alert>
-      </Box>
-    );
-  }
-
-  const configuredMonths = Object.keys(entry.todConsumptions || {});
-  const netSavings = result.totalSavings || 0;
-  const savingsPct = result.totalBaselineCost ? (netSavings / result.totalBaselineCost) * 100 : 0;
-
-  const chartData = [
-    { name: 'Discom Baseline', Cost: Math.round(result.totalBaselineCost) },
-    { name: 'OA Optimized', Cost: Math.round(result.totalOptimizedCost) },
-    { name: 'Net Savings', Cost: Math.round(netSavings) }
-  ];
 
   const columns: ColumnDefinition[] = [
     { field: 'date', headerName: 'Date', align: 'center' },
@@ -190,169 +200,254 @@ export default function SavingsCalculatorNewAnalysisPage() {
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: 3 }}>
-      {/* Navigation Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
+    <Box sx={{ p: 3, width: '100%', maxWidth: '383mm', mx: 'auto', '@media print': { maxWidth: '383mm', p: 0 } }}>
+      <Box className="dashboard-content-to-hide">
+        {/* Top Header */}
+        <Box className="no-print" sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+          <IconButton
             onClick={() => navigate('/savings-calculator-new')}
-            sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', color: 'text.primary' }}
+            sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
           >
-            Back to Savings Calculator (New)
-          </Button>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#1E293B' }}>
-              Savings Analysis for {entry.clientName}
+            <ArrowBackIcon />
+          </IconButton>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              Savings Analysis for {calcEntry?.clientName}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              State: {entry.stateCode} | DISCOM: {entry.discom} | Sanctioned Load: {entry.sanctionedLoadKw ? `${entry.sanctionedLoadKw} kW` : '-'}
+              State: {calcEntry?.stateCode} | Discom: {calcEntry?.discom} | Load: {calcEntry?.sanctionedLoadKw ? `${calcEntry.sanctionedLoadKw} kW` : '-'}
             </Typography>
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<DownloadIcon />}
-          onClick={handleExportCSV}
-          sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 700, bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' } }}
+        <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider', minHeight: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
+          {/* Action Bar */}
+          <Box className="no-print" sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
+            <Button
+              variant="contained"
+              startIcon={<PlayIcon />}
+              onClick={loadData}
+              disabled={calculating}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                bgcolor: '#8B5CF6',
+                '&:hover': { bgcolor: '#7C3AED' }
+              }}
+            >
+              {calculating ? 'Analyzing...' : 'Refresh Simulation'}
+            </Button>
+
+            {selectedSimMonth !== 'all' && (
+              <>
+                <Button
+                  variant="contained"
+                  startIcon={<BarChartIcon />}
+                  onClick={() => setGraphDialogOpen(true)}
+                  disabled={calculating}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    bgcolor: '#F59E0B',
+                    '&:hover': { bgcolor: '#D97706' }
+                  }}
+                >
+                  Slot-wise Heatmap
+                </Button>
+
+                <Button
+                  variant="contained"
+                  startIcon={<BarChartIcon />}
+                  onClick={() => setDynamicGraphDialogOpen(true)}
+                  disabled={calculating}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    bgcolor: '#8B5CF6',
+                    '&:hover': { bgcolor: '#7C3AED' }
+                  }}
+                >
+                  Dynamic Heatmap
+                </Button>
+              </>
+            )}
+
+            {/* Month Tabs */}
+            <Box className="no-print" sx={{ width: '100%', mt: 2, borderTop: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={selectedSimMonth}
+                onChange={(e, v) => setSelectedSimMonth(v)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
+              >
+                <Tab label="Overall Summary" value="all" />
+                {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
+                  <Tab
+                    key={ym}
+                    label={ym}
+                    value={ym}
+                  />
+                ))}
+              </Tabs>
+            </Box>
+          </Box>
+
+          {/* Export Toolbar */}
+          {marketDecisionResult && (
+            <Box className="no-print" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, my: 2.5, width: '100%' }}>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportCSV}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#FFFFFF',
+                  color: 'text.primary',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#F8FAFC', borderColor: 'divider' }
+                }}
+              >
+                Export Simulation CSV
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={() => {
+                  const originalTitle = document.title;
+                  if (calcEntry?.clientName) {
+                    document.title = `${calcEntry.clientName}_Custom_TOD_Savings_Report`;
+                  }
+                  setIsPrintingRedesigned(true);
+                  document.body.classList.add('printing-report');
+                  setTimeout(() => {
+                    window.print();
+                    document.title = originalTitle;
+                  }, 500);
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#0F172A',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#1E293B', borderColor: 'divider' }
+                }}
+              >
+                Export PDF Report
+              </Button>
+            </Box>
+          )}
+
+          {calculating && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 2 }}>
+              <CircularProgress sx={{ color: '#8B5CF6' }} />
+              <Typography variant="body2" color="text.secondary">
+                Running custom TOD cost simulations and analyzing 15-minute slot metrics...
+              </Typography>
+            </Box>
+          )}
+
+          {/* Render Full Dashboard Component */}
+          {marketDecisionResult && !calculating && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+              <Box id="dashboard-screenshot-target" sx={{ mt: 1, bgcolor: '#F8FAFC', p: 2, borderRadius: 2 }}>
+                <Dashboard
+                  calcResult={marketDecisionResult}
+                  calcEntry={calcEntry as any}
+                  clientName={calcEntry?.clientName}
+                  clientOverview={clientOverview}
+                  marketDecisionResult={marketDecisionResult}
+                  selectedMonth={selectedSimMonth}
+                />
+              </Box>
+
+              {/* 15-Minute Interval Sourcing Detail Table */}
+              <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1E293B' }}>
+                  15-Minute Interval Landed Cost & Sourcing Table ({selectedSimMonth})
+                </Typography>
+                <TableContainer columns={columns} data={marketDecisionResult.slotsData || []} />
+              </Paper>
+            </Box>
+          )}
+        </Box>
+
+        {/* Heatmap Dialogs */}
+        <Dialog
+          open={graphDialogOpen}
+          onClose={() => setGraphDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
         >
-          Export Simulation CSV
-        </Button>
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+            Slot-wise Market Simulation
+            <IconButton onClick={() => setGraphDialogOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            {marketDecisionResult && (
+              <SlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={dynamicGraphDialogOpen}
+          onClose={() => setDynamicGraphDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+            Dynamic Slot-wise Market Simulation
+            <IconButton onClick={() => setDynamicGraphDialogOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            {marketDecisionResult && (
+              <DynamicSlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
+            )}
+          </DialogContent>
+        </Dialog>
       </Box>
 
-      {/* Month Selector Tabs */}
-      <Paper sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 1 }}>
-        <Tabs
-          value={selectedMonth}
-          onChange={(e, val) => handleMonthChange(val)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            '& .MuiTab-root': { fontWeight: 700, textTransform: 'none', borderRadius: 2, minHeight: 40 },
-            '& .Mui-selected': { color: '#8B5CF6' },
-            '& .MuiTabs-indicator': { backgroundColor: '#8B5CF6' }
-          }}
+      {/* Hidden PDF Report component rendered via Portal for high-res printing */}
+      {isPrintingRedesigned && calcEntry && Object.keys(cachedResults).length > 0 && createPortal(
+        <Box className="print-container">
+          <RedesignedSavingsReport
+            calcEntry={calcEntry}
+            allResults={Object.keys(cachedResults).map(m => ({ month: m, marketDecisionResult: cachedResults[m] }))}
+          />
+        </Box>,
+        document.body
+      )}
+
+      {/* Snackbar notification */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: '100%', borderRadius: 2 }}
         >
-          <Tab value="all" label="All Months Summary" />
-          {configuredMonths.map(m => (
-            <Tab key={m} value={m} label={m} />
-          ))}
-        </Tabs>
-      </Paper>
-
-      {/* Metric Cards */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ borderRadius: 3, borderLeft: '4px solid #3B82F6', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                TOTAL DISCOM BASELINE COST
-              </Typography>
-              <Typography variant="h4" fontWeight={800} sx={{ mt: 1, color: '#1E293B' }}>
-                ₹{Math.round(result.totalBaselineCost).toLocaleString('en-IN')}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ borderRadius: 3, borderLeft: '4px solid #10B981', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                OPEN ACCESS OPTIMIZED COST
-              </Typography>
-              <Typography variant="h4" fontWeight={800} sx={{ mt: 1, color: '#10B981' }}>
-                ₹{Math.round(result.totalOptimizedCost).toLocaleString('en-IN')}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ borderRadius: 3, borderLeft: '4px solid #8B5CF6', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                NET SAVINGS (₹)
-              </Typography>
-              <Typography variant="h4" fontWeight={800} sx={{ mt: 1, color: '#8B5CF6' }}>
-                ₹{Math.round(netSavings).toLocaleString('en-IN')}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ borderRadius: 3, borderLeft: '4px solid #F59E0B', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                SAVINGS PERCENTAGE
-              </Typography>
-              <Typography variant="h4" fontWeight={800} sx={{ mt: 1, color: '#F59E0B' }}>
-                {savingsPct.toFixed(2)}%
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* TOD Summaries Table */}
-      <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1E293B' }}>
-          Custom TOD Windows Tariff & Cost Breakdown ({selectedMonth === 'all' ? 'All Months' : selectedMonth})
-        </Typography>
-
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>TOD Window Name</TableCell>
-              <TableCell sx={{ fontWeight: 700 }} align="center">Start Time</TableCell>
-              <TableCell sx={{ fontWeight: 700 }} align="center">End Time</TableCell>
-              <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kWh)</TableCell>
-              <TableCell sx={{ fontWeight: 700 }} align="center">Discom Effective Price (₹/kWh)</TableCell>
-              <TableCell sx={{ fontWeight: 700 }} align="center">Discom Baseline Cost (₹)</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(result.todSummaries || []).map((tod, idx) => (
-              <TableRow key={idx}>
-                <TableCell sx={{ fontWeight: 600 }}>{tod.slotName}</TableCell>
-                <TableCell align="center">{tod.startTime}</TableCell>
-                <TableCell align="center">{tod.endTime}</TableCell>
-                <TableCell align="center">{tod.consumptionKwh.toLocaleString('en-IN')} kWh</TableCell>
-                <TableCell align="center">₹{tod.effectivePrice.toFixed(2)}</TableCell>
-                <TableCell align="center">₹{Math.round(tod.baselineCost).toLocaleString('en-IN')}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
-
-      {/* Landed Cost Comparison Chart */}
-      <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1E293B' }}>
-          Landed Cost Comparison (Discom Baseline vs Open Access)
-        </Typography>
-        <Box sx={{ width: '100%', height: 320 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value: any) => `₹${Number(value).toLocaleString('en-IN')}`} />
-              <Bar dataKey="Cost" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Box>
-      </Paper>
-
-      {/* 15-Minute Timeblock Level Data Table */}
-      <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1E293B' }}>
-          15-Minute Timeblock Landed Cost & Sourcing Analysis
-        </Typography>
-        <TableContainer columns={columns} data={result.slotsData || []} />
-      </Paper>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
