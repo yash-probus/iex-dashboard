@@ -30,56 +30,80 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
   const { costData, sourceDataProlt, sourceDataInsights } = useMemo(() => {
     const dailyData: Record<string, any> = {};
 
+    if (!marketDecisionResult || !marketDecisionResult.slotsData) {
+      return { costData: [], sourceDataProlt: [], sourceDataInsights: [] };
+    }
+
     // 1. Process Market Decision (PROLT)
-    marketDecisionResult.slotsData.forEach((slot) => {
-      const day = new Date(slot.date).getDate().toString();
+    marketDecisionResult.slotsData.forEach((slot: any) => {
+      let dayNum: number = 0;
+      if (slot.date) {
+        if (typeof slot.date === 'string' && slot.date.includes('-')) {
+          const parts = slot.date.split('-');
+          if (parts[0].length === 4) dayNum = parseInt(parts[2], 10);
+          else if (parts[2].length === 4) dayNum = parseInt(parts[0], 10);
+          else dayNum = parseInt(parts[0], 10);
+        } else if (!isNaN(Date.parse(slot.date))) {
+          dayNum = new Date(slot.date).getDate();
+        }
+      }
+      if (!dayNum || isNaN(dayNum)) {
+        dayNum = slot.timeblock || slot.slot || 1;
+      }
+      const day = dayNum.toString();
+
       if (!dailyData[day]) {
         dailyData[day] = {
           day,
           discomCost: 0,
           proltCost: 0,
           insightsCost: 0,
-          // For Source Graph PROLT
           proltDiscomEnergy: 0,
           proltDamEnergy: 0,
           proltRtmEnergy: 0,
           proltGdamEnergy: 0,
-          // For Source Graph INSIGHTS
           insightsDiscomEnergy: 0,
           insightsDamEnergy: 0,
           insightsRtmEnergy: 0,
           insightsGdamEnergy: 0,
-          // For Source Graph BASELINE (DISCOM only)
           baselineDiscomEnergy: 0,
         };
       }
 
-      const marketEnergy = slot.marketEnergy || 0;
-      const discomEnergy = slot.discomEnergy || 0;
-      const totalEnergyForSlot = marketEnergy + discomEnergy;
-      
-      const discomCostForSlot = (slot.discomLanding || 0) * discomEnergy;
-      const marketCostForSlot = (slot.bestMarketLanding || 0) * marketEnergy;
-      
-      dailyData[day].discomCost += (slot.discomLanding || 0) * totalEnergyForSlot;
-      dailyData[day].proltCost += (discomCostForSlot + marketCostForSlot);
+      const allocatedEnergy = slot.maxEnergyPerSlot ?? slot.energyKwh ?? ((slot.marketEnergy || 0) + (slot.discomEnergy || 0));
+      const marketSource = slot.selectedSource ?? slot.marketSource ?? 'DISCOM';
+      const isMarket = marketSource !== 'DISCOM';
+
+      const marketEnergy = slot.marketEnergy ?? (isMarket ? allocatedEnergy : 0);
+      const discomEnergy = slot.discomEnergy ?? (isMarket ? 0 : allocatedEnergy);
+      const totalEnergyForSlot = allocatedEnergy;
+
+      const discomLanding = slot.discomLandingPrice ?? slot.discomLanding ?? 0;
+      const bestMarketLanding = slot.comparedLowestPrice ?? slot.bestMarketLanding ?? 0;
+
+      const slotBaselineCost = slot.baselineCost ?? (discomLanding * totalEnergyForSlot);
+      const slotOptimizedCost = slot.optimizedCost ?? (isMarket ? (bestMarketLanding * allocatedEnergy) : slotBaselineCost);
+
+      dailyData[day].discomCost += slotBaselineCost;
+      dailyData[day].proltCost += slotOptimizedCost;
       dailyData[day].baselineDiscomEnergy += totalEnergyForSlot;
 
-      if (marketEnergy > 0) {
-        if (slot.marketSource === 'DAM') dailyData[day].proltDamEnergy += marketEnergy;
-        else if (slot.marketSource === 'RTM') dailyData[day].proltRtmEnergy += marketEnergy;
-        else if (slot.marketSource === 'GDAM') dailyData[day].proltGdamEnergy += marketEnergy;
+      if (isMarket && allocatedEnergy > 0) {
+        if (marketSource === 'DAM') dailyData[day].proltDamEnergy += allocatedEnergy;
+        else if (marketSource === 'RTM') dailyData[day].proltRtmEnergy += allocatedEnergy;
+        else if (marketSource === 'GDAM') dailyData[day].proltGdamEnergy += allocatedEnergy;
+      } else {
+        dailyData[day].proltDiscomEnergy += totalEnergyForSlot;
       }
-      dailyData[day].proltDiscomEnergy += discomEnergy;
     });
 
     // Add daily fixed overheads to PROLT Cost and Insights Cost
     if (marketDecisionResult.oaDetailed) {
       const { dailyFixedOverhead, bidApplicationFees } = marketDecisionResult.oaDetailed;
-      const totalOverheadForMonth = dailyFixedOverhead + bidApplicationFees;
+      const totalOverheadForMonth = (dailyFixedOverhead || 0) + (bidApplicationFees || 0);
       const daysInMonth = Object.keys(dailyData).length || 30;
       const extraDailyCost = totalOverheadForMonth / daysInMonth;
-      
+
       Object.keys(dailyData).forEach(day => {
         dailyData[day].proltCost += extraDailyCost;
         dailyData[day].insightsCost += extraDailyCost;
@@ -87,26 +111,40 @@ export const VisualAnalyticsCharts: React.FC<VisualAnalyticsChartsProps> = ({
     }
 
     // 2. Process Industry Insights
-    demandShiftInsights.slotsData.forEach((slot) => {
-      const day = new Date(slot.date).getDate().toString();
-      if (!dailyData[day]) return; // Should already exist from PROLT
+    if (demandShiftInsights && demandShiftInsights.slotsData) {
+      demandShiftInsights.slotsData.forEach((slot: any) => {
+        let dayNum: number = 0;
+        if (slot.date) {
+          if (typeof slot.date === 'string' && slot.date.includes('-')) {
+            const parts = slot.date.split('-');
+            if (parts[0].length === 4) dayNum = parseInt(parts[2], 10);
+            else if (parts[2].length === 4) dayNum = parseInt(parts[0], 10);
+            else dayNum = parseInt(parts[0], 10);
+          } else if (!isNaN(Date.parse(slot.date))) {
+            dayNum = new Date(slot.date).getDate();
+          }
+        }
+        const day = (dayNum || 1).toString();
+        if (!dailyData[day]) return;
 
-      const cost = (slot.costPerKwh || 0) * (slot.newEnergy || 0);
-      dailyData[day].insightsCost += cost;
+        const cost = (slot.costPerKwh || 0) * (slot.newEnergy || 0);
+        dailyData[day].insightsCost += cost;
 
-      const marketEnergy = slot.marketEnergy || 0;
-      const discomEnergy = slot.discomEnergy || 0;
+        const marketEnergy = slot.marketEnergy || 0;
+        const discomEnergy = slot.discomEnergy || 0;
+        const marketSource = slot.marketSource || 'DISCOM';
 
-      if (marketEnergy > 0) {
-        if (slot.marketSource === 'DAM') dailyData[day].insightsDamEnergy += marketEnergy;
-        else if (slot.marketSource === 'RTM') dailyData[day].insightsRtmEnergy += marketEnergy;
-        else if (slot.marketSource === 'GDAM') dailyData[day].insightsGdamEnergy += marketEnergy;
-      }
-      dailyData[day].insightsDiscomEnergy += discomEnergy;
-    });
+        if (marketEnergy > 0) {
+          if (marketSource === 'DAM') dailyData[day].insightsDamEnergy += marketEnergy;
+          else if (marketSource === 'RTM') dailyData[day].insightsRtmEnergy += marketEnergy;
+          else if (marketSource === 'GDAM') dailyData[day].insightsGdamEnergy += marketEnergy;
+        }
+        dailyData[day].insightsDiscomEnergy += discomEnergy;
+      });
+    }
 
     const finalData = Object.values(dailyData).sort((a, b) => parseInt(a.day) - parseInt(b.day));
-    
+
     return {
       costData: finalData,
       sourceDataProlt: finalData,
