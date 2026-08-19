@@ -882,18 +882,18 @@ const exportInsightsToExcel = async () => {
                   borderRadius: 2.5, 
                   fontWeight: 600, 
                   borderColor: 'divider',
-                  backgroundColor: '#0F172A',
+                  backgroundColor: '#10B981',
                   color: 'white',
                   px: 2.5,
                   py: 1,
                   whiteSpace: 'nowrap',
                   '&:hover': {
-                    backgroundColor: '#1E293B',
+                    backgroundColor: '#059669',
                     borderColor: 'divider'
                   }
                 }}
               >
-                Export Excel Sheet
+                Export Excel (Before TOD Shift)
               </Button>
 
               <Button
@@ -916,18 +916,18 @@ const exportInsightsToExcel = async () => {
                   borderRadius: 2.5,
                   fontWeight: 600,
                   borderColor: 'divider',
-                  backgroundColor: '#8B5CF6',
+                  backgroundColor: '#0284C7',
                   color: 'white',
                   px: 2.5,
                   py: 1,
                   whiteSpace: 'nowrap',
                   '&:hover': {
-                    backgroundColor: '#7C3AED',
+                    backgroundColor: '#0369A1',
                     borderColor: 'divider'
                   }
                 }}
               >
-                Export TOD Shifting Excel
+                Export Excel (After TOD Shift)
               </Button>
             </Box>
           )}

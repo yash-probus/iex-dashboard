@@ -44,7 +44,8 @@ import {
   fetchSavingsNewEntries,
   SavingsCalculatorNewEntry,
   MarketDecisionResult,
-  exportSavingsExcelNew
+  exportSavingsExcelNew,
+  exportDemandShiftExcelNew
 } from '../api/savingsCalculatorNew.api';
 import { exportToCSV } from '../utils/export';
 import { exportSavingsExcel } from '../api/savingsCalculator.api';
@@ -339,7 +340,32 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#059669', borderColor: 'divider' }
                 }}
               >
-                Export Excel Report
+                Export Excel (Before TOD Shift)
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FileDownloadIcon />}
+                onClick={async () => {
+                  if (!id) return;
+                  try {
+                    await exportDemandShiftExcelNew(id, selectedSimMonth || undefined, undefined, calcEntry?.clientName);
+                  } catch (err: any) {
+                    setSnackbar({ open: true, message: err.message || 'Excel export failed', severity: 'error' });
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#0284C7',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#0369A1', borderColor: 'divider' }
+                }}
+              >
+                Export Excel (After TOD Shift)
               </Button>
               <Button
                 variant="outlined"
