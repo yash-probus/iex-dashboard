@@ -98,16 +98,20 @@ export class SavingsCalculatorExportService {
     for (let b = 1; b <= 96; b++) {
       const row: any[] = [formatBlock(b)];
       days.forEach(day => {
-        const slot = slotsData.find((s: any) => s.date === day && s.timeblock === b) as any;
-        if (slot && slot.shouldBuyFromMarket) {
+        const slot = slotsData.find((s: any) => s.date === day && (s.timeblock === b || s.slot === b)) as any;
+        const isMarket = slot ? (slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM')) : false;
+        if (slot && isMarket) {
           // If won, show the MCP (base price) of the selected market
+          const marketSource = slot.selectedSource || slot.marketSource || 'DISCOM';
           let mcp = 0;
-          if (slot.marketSource === 'DAM') mcp = slot.damMcp || 0;
-          else if (slot.marketSource === 'RTM') mcp = slot.rtmMcp || 0;
-          else if (slot.marketSource === 'GDAM') mcp = slot.gdamMcp || 0;
-          row.push(Number(((slot.marketEnergy || 0) / 1000).toFixed(4)));
+          if (marketSource === 'DAM') mcp = slot.damLandingPrice ?? slot.damMcp ?? slot.comparedLowestPrice ?? 0;
+          else if (marketSource === 'RTM') mcp = slot.rtmLandingPrice ?? slot.rtmMcp ?? slot.comparedLowestPrice ?? 0;
+          else if (marketSource === 'GDAM') mcp = slot.gdamLandingPrice ?? slot.gdamMcp ?? slot.comparedLowestPrice ?? 0;
+          
+          const energyKwh = slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0;
+          row.push(Number((energyKwh / 1000).toFixed(4)));
           row.push(Number(mcp.toFixed(2)));
-          row.push(slot.marketSource || '-');
+          row.push(marketSource || '-');
         } else {
           row.push('-', '-', '-');
         }
@@ -128,8 +132,8 @@ export class SavingsCalculatorExportService {
     const totalRow: any[] = ['Total Quantity (MWh)'];
     days.forEach(day => {
       let dayTotal = 0;
-      slotsData.filter((s: any) => s.date === day && s.shouldBuyFromMarket).forEach((s: any) => {
-        dayTotal += (s.marketEnergy || 0);
+      slotsData.filter((s: any) => s.date === day && (s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM'))).forEach((s: any) => {
+        dayTotal += (s.maxEnergyPerSlot ?? s.marketEnergy ?? 0);
       });
       totalRow.push(Number((dayTotal / 1000).toFixed(4)), '-', '-');
     });

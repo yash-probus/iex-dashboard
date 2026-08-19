@@ -18,5 +18,6 @@ router.get('/entries/:id/client-overview', SavingsCalculatorNewController.getCli
 router.get('/entries/:id/calculate', SavingsCalculatorNewController.calculateSavings);
 router.get('/entries/:id/market-decision', SavingsCalculatorNewController.calculateMarketDecision);
 router.get('/entries/:id/export-excel', SavingsCalculatorNewController.exportExcel);
+router.get('/entries/:id/demand-shift-insights/export-excel', SavingsCalculatorNewController.exportDemandShiftExcel);
 
 export default router;
