@@ -346,7 +346,8 @@ export class SavingsCalculatorExportService {
     if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
-    const totalDiscomAfterOAWithMisc = (energyChargesAfterOA + demandCharges + electricityDutyAfterOA + misc) + arrear + lpsc;
+    const fppaChargesAfterOA = Math.round((result as any).fppaChargeAfterOA || 0);
+    const totalDiscomAfterOAWithMisc = (energyChargesAfterOA + fppaChargesAfterOA + demandCharges + electricityDutyAfterOA + misc) + arrear + lpsc;
     const afterTotalRow = sheet.addRow(['Total DISCOM Bill After Open Access', Math.round(totalDiscomAfterOAWithMisc)]);
     afterTotalRow.font = { bold: true };
     afterTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });

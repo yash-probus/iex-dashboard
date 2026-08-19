@@ -511,8 +511,8 @@ export class SavingsCalculatorNewService {
         }
       });
 
-      // Total per-kWh OA Surcharges & Overhead
-      const totalOaSurcharges = cssRate + addChargeRate + stuCharge + wheelingCharge + ctuCharge + 0.02;
+      // Total per-kWh OA Surcharges (CSS, STU, Wheeling, CTU, Additional Charges)
+      const totalOaSurcharges = cssRate + addChargeRate + stuCharge + wheelingCharge + ctuCharge;
 
       // Query market MCP for the month
       const query = `
