@@ -492,6 +492,19 @@ export class SavingsCalculatorNewService {
       const ctuCharges = !isNaN(yyyymmMonth) ? await prisma.ctuCharges.findFirst({ where: { month: yyyymmMonth } }) : null;
       const ctuCharge = ctuCharges?.ctu_charges_rs_per_kwh ? Number(ctuCharges.ctu_charges_rs_per_kwh) : 0;
 
+      // Query FPPA Charges backend table
+      const fppaDataList = !isNaN(yyyymmMonth) ? await prisma.fppaCharges.findMany({
+        where: {
+          state: { in: stateFormats },
+          month: yyyymmMonth
+        }
+      }) : [];
+      let fppaData = fppaDataList.find(f => f.discom === entry.discom);
+      if (!fppaData) {
+        fppaData = fppaDataList.find(f => !f.discom || f.discom === '');
+      }
+      const dbFppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
+
       const istsCharges = await prisma.istsCharges.findMany({
         where: {
           OR: [{ startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }]
