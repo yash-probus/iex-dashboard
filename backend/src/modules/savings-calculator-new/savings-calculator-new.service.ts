@@ -634,7 +634,7 @@ export class SavingsCalculatorNewService {
       });
 
       // Calculate Discom baseline cost and allocate energy across TOD windows
-      const maxEnergyPerSlot = monthPeakDemand * 0.25;
+      const defaultMaxEnergyPerSlot = monthPeakDemand * 0.25;
 
       for (const customSlot of customSlots) {
         const slotEnergyTotal = customSlot.consumptionKwh;
@@ -647,7 +647,8 @@ export class SavingsCalculatorNewService {
         // Filter 15-minute timeblocks belonging to this custom TOD slot
         const slotBlocks = monthlySlots.filter(s => s.customSlotId === customSlot.id || s.todSlab === (customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`));
         const totalActiveBlocks = slotBlocks.length || 1;
-        const energyPerBlock = Math.min(maxEnergyPerSlot, slotEnergyTotal / totalActiveBlocks);
+        const energyPerBlock = slotEnergyTotal / totalActiveBlocks;
+        const maxEnergyPerSlot = Math.max(defaultMaxEnergyPerSlot, energyPerBlock);
 
         let allocatedEnergy = 0;
         let slotMarketEnergy = 0;
@@ -699,7 +700,7 @@ export class SavingsCalculatorNewService {
             if (expBlock.discomEnergy <= 0) continue;
             
             for (const cheapBlock of cheapMarketBlocks) {
-              const currentHeadroom = maxEnergyPerSlot - cheapBlock.maxEnergyPerSlot;
+              const currentHeadroom = defaultMaxEnergyPerSlot - cheapBlock.maxEnergyPerSlot;
               if (currentHeadroom <= 0) continue;
 
               const shiftAmount = Math.min(expBlock.discomEnergy, currentHeadroom, expBlock.maxEnergyPerSlot * 0.3);
