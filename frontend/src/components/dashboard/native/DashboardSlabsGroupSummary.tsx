@@ -37,21 +37,21 @@ export const DashboardSlabsGroupSummary: React.FC<DashboardSlabsGroupSummaryProp
                           {row.date.substring(5)} {row.timeStr}
                         </TableCell>
                         <TableCell align="right" sx={{ fontSize: '11px', fontWeight: 600, color: '#16A34A', py: 0.75 }}>
-                          ₹{row.comparedLowestPrice.toFixed(2)}
+                          ₹{Number(row.comparedLowestPrice ?? row.bestMarketLanding ?? 0).toFixed(2)}
                           <span style={{ 
                             fontSize: '9px', 
                             fontWeight: 800, 
-                            color: row.selectedSource === 'DISCOM' ? '#64748B' : '#7C3AED',
-                            backgroundColor: row.selectedSource === 'DISCOM' ? '#F1F5F9' : '#F5F3FF',
+                            color: (row.selectedSource || row.marketSource) === 'DISCOM' ? '#64748B' : '#7C3AED',
+                            backgroundColor: (row.selectedSource || row.marketSource) === 'DISCOM' ? '#F1F5F9' : '#F5F3FF',
                             padding: '1px 4px',
                             borderRadius: '3px',
                             marginLeft: '4px'
                           }}>
-                            {row.selectedSource}
+                            {row.selectedSource || row.marketSource}
                           </span>
                         </TableCell>
                         <TableCell align="right" sx={{ fontSize: '11px', color: 'text.secondary', py: 0.75 }}>
-                          ₹{row.discomLandingPrice.toFixed(2)}
+                          ₹{Number(row.discomLandingPrice ?? row.discomLanding ?? 0).toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}

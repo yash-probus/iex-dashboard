@@ -24,10 +24,10 @@ export const DashboardTodCoverage: React.FC<DashboardTodCoverageProps> = ({ deta
               <Box sx={{ flexGrow: 1, position: 'relative', height: '14px', mr: 2 }}>
                 <Box sx={{ position: 'absolute', left: 0, top: 0, width: `${widthPct}%`, height: '100%', bgcolor: '#475569', borderRadius: '4px' }} />
                 <Box sx={{ position: 'absolute', left: 0, top: 0, width: `${(t.coverage / 100) * widthPct}%`, height: '100%', bgcolor: t.coverage > 20 ? '#10b981' : '#f59e0b', borderRadius: '4px', display: 'flex', alignItems: 'center', px: 1 }}>
-                  <Typography sx={{ color: '#fff', fontSize: '8px', fontWeight: 'bold' }}>{t.coverage > 0 ? t.coverage.toFixed(1) + '%' : ''}</Typography>
+                  <Typography sx={{ color: '#fff', fontSize: '8px', fontWeight: 'bold' }}>{t.coverage > 0 ? Number(t.coverage || 0).toFixed(1) + '%' : ''}</Typography>
                 </Box>
               </Box>
-              <Typography sx={{ width: '60px', textAlign: 'right', fontSize: '9px', color: '#94a3b8' }}>{(t.actualUnits / 1000).toFixed(1)} MWh</Typography>
+              <Typography sx={{ width: '60px', textAlign: 'right', fontSize: '9px', color: '#94a3b8' }}>{(Number(t.actualUnits || 0) / 1000).toFixed(1)} MWh</Typography>
             </Box>
           );
         })}

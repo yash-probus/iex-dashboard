@@ -14,7 +14,7 @@ export const DashboardMonthlyInsights: React.FC<DashboardMonthlyInsightsProps> =
     // Retention
     if (detail.customerRetention !== undefined) {
       items.push({
-        title: `${detail.customerRetention.toFixed(1)}% of gross savings retained`,
+        title: `${Number(detail.customerRetention || 0).toFixed(1)}% of gross savings retained`,
         desc: `The client retained ${formatLakh(detail.finalClientSaving)} after ${formatLakh(detail.totalFees)} of reported fees.`,
         color: '#10b981'
       });
@@ -30,7 +30,7 @@ export const DashboardMonthlyInsights: React.FC<DashboardMonthlyInsightsProps> =
       const rtmNote = maxMarket.market === 'RTM' ? ', indicating a strong reliance on near-term flexibility.' : '.';
       items.push({
         title: `${maxMarket.market} is the primary procurement channel`,
-        desc: `${maxMarket.share.toFixed(1)}% of scheduled volume came through ${maxMarket.market}${rtmNote}`,
+        desc: `${Number(maxMarket.share || 0).toFixed(1)}% of scheduled volume came through ${maxMarket.market}${rtmNote}`,
         color: maxMarket.market === 'DAM' ? '#eab308' : maxMarket.market === 'GDAM' ? '#10b981' : '#f43f5e'
       });
     }
@@ -46,13 +46,13 @@ export const DashboardMonthlyInsights: React.FC<DashboardMonthlyInsightsProps> =
       
       items.push({
         title: `Largest TOD opportunity: ${maxOpp.tod}`,
-        desc: `Coverage was only ${maxOpp.coverage.toFixed(1)}% despite ${formatNumber(maxOpp.actualUnits / 1000)} MWh consumption. Validate eligibility, price and operational constraints before increasing volume.`,
+        desc: `Coverage was only ${Number(maxOpp.coverage || 0).toFixed(1)}% despite ${formatNumber((maxOpp.actualUnits || 0) / 1000)} MWh consumption. Validate eligibility, price and operational constraints before increasing volume.`,
         color: '#1769e0'
       });
       
       items.push({
         title: `Strongest TOD penetration: ${maxPen.tod}`,
-        desc: `${maxPen.coverage.toFixed(1)}% of consumption was met through Open Access.`,
+        desc: `${Number(maxPen.coverage || 0).toFixed(1)}% of consumption was met through Open Access.`,
         color: '#10b981'
       });
     }
@@ -68,7 +68,7 @@ export const DashboardMonthlyInsights: React.FC<DashboardMonthlyInsightsProps> =
       
       items.push({
         title: 'Best daily volume and rate windows',
-        desc: `${maxVol.date} delivered ${formatNumber(maxVol.qty)} MWh. ${minRate.date} had the lowest quantity-weighted market rate at ₹${minRate.weightedRate.toFixed(2)}/kWh.`,
+        desc: `${maxVol.date} delivered ${formatNumber(maxVol.qty)} MWh. ${minRate.date} had the lowest quantity-weighted market rate at ₹${Number(minRate.weightedRate || 0).toFixed(2)}/kWh.`,
         color: '#8b5cf6'
       });
     }
@@ -94,7 +94,7 @@ export const DashboardMonthlyInsights: React.FC<DashboardMonthlyInsightsProps> =
 };
 
 function formatLakh(val: number) {
-  return '₹' + (val / 100000).toFixed(2) + 'L';
+  return '₹' + (Number(val || 0) / 100000).toFixed(2) + 'L';
 }
 
 function formatNumber(val: number) {

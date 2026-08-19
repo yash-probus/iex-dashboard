@@ -23,8 +23,8 @@ export const DashboardMarketMix: React.FC<DashboardMarketMixProps> = ({ detail }
               <Box sx={{ border: '1px solid #e2e8f0', borderRadius: '8px', p: 1.5, position: 'relative' }}>
                 <Box sx={{ position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: '2px', bgcolor: mktColor(mkt) }} />
                 <Typography sx={{ fontWeight: 'bold', fontSize: '12px', color: '#1e293b' }}>{mkt}</Typography>
-                <Typography sx={{ fontWeight: 'bold', fontSize: '20px', mt: 1 }}>{s.share.toFixed(1)}%</Typography>
-                <Typography sx={{ fontSize: '10px', color: '#64748b', mt: 0.5 }}>{s.qtyMWh.toFixed(2)} MWh - ₹{s.weightedRate.toFixed(2)}/kWh weighted rate</Typography>
+                <Typography sx={{ fontWeight: 'bold', fontSize: '20px', mt: 1 }}>{Number(s.share || 0).toFixed(1)}%</Typography>
+                <Typography sx={{ fontSize: '10px', color: '#64748b', mt: 0.5 }}>{Number(s.qtyMWh || 0).toFixed(2)} MWh - ₹{Number(s.weightedRate || 0).toFixed(2)}/kWh weighted rate</Typography>
                 <Typography sx={{ fontSize: '10px', color: '#94a3b8', mt: 0.5 }}>{s.activeSlots} positive slots across {s.activeDays} day(s)</Typography>
               </Box>
             </Grid>

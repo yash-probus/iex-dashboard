@@ -70,8 +70,8 @@ export const DashboardMarketBuyDecision: React.FC<DashboardMarketBuyDecisionProp
                       {row.marketSource}
                     </span>
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>₹{row.bestMarketLanding > 0 ? row.bestMarketLanding.toFixed(2) : '-'}</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.discomLanding.toFixed(2)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600, fontSize: '11px', px: 1 }}>₹{(row.bestMarketLanding || row.comparedLowestPrice) > 0 ? Number(row.bestMarketLanding || row.comparedLowestPrice).toFixed(2) : '-'}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{Number(row.discomLanding ?? row.discomLandingPrice ?? 0).toFixed(2)}</TableCell>
                   <TableCell align="center" sx={{ px: 1 }}>
                     <span style={{ 
                       textTransform: 'uppercase', 
@@ -85,8 +85,8 @@ export const DashboardMarketBuyDecision: React.FC<DashboardMarketBuyDecisionProp
                       {buyDecision ? 'Y' : 'N'}
                     </span>
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, color: row.savingsPerKwh > 0 ? '#16A34A' : 'inherit', fontSize: '11px', px: 1 }}>
-                    {row.savingsPerKwh > 0 ? `₹${row.savingsPerKwh.toFixed(2)}` : '-'}
+                  <TableCell align="right" sx={{ fontWeight: 600, color: (row.savingsPerKwh || 0) > 0 ? '#16A34A' : 'inherit', fontSize: '11px', px: 1 }}>
+                    {(row.savingsPerKwh || 0) > 0 ? `₹${Number(row.savingsPerKwh).toFixed(2)}` : '-'}
                   </TableCell>
                 </TableRow>
               );

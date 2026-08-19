@@ -129,12 +129,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Summary value after fees', color: 'green' },
         { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: 'Average client savings per month', color: 'green' },
         { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
-        { label: 'Metering charge payback', value: `${paybackMonths.toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
+        { label: 'Metering charge payback', value: `${(Number(paybackMonths) || 0).toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
         { label: 'Potential 5-year savings', value: formatIndianCurrency(potentialSavingsFiveYear), sub: 'Annual savings × 5 years', color: 'green' },
-        { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${oaCoverage.toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
+        { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${(Number(oaCoverage) || 0).toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: 'Billed electricity consumption' },
-        { label: 'Blended cost', value: `₹${blendedCost.toFixed(2)}`, sub: 'Average blended rate per kWh' },
-        { label: 'Net saving rate', value: `₹${netSavingRate.toFixed(2)}/kWh`, sub: 'Final client saving per consumed unit', color: 'green' },
+        { label: 'Blended cost', value: `₹${(Number(blendedCost) || 0).toFixed(2)}`, sub: 'Average blended rate per kWh' },
+        { label: 'Net saving rate', value: `₹${(Number(netSavingRate) || 0).toFixed(2)}/kWh`, sub: 'Final client saving per consumed unit', color: 'green' },
       ];
 
       flowData = {

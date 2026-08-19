@@ -36,11 +36,11 @@ export const DashboardCheapestSlots: React.FC<DashboardCheapestSlotsProps> = ({ 
                   {row.todSlab}
                 </span>
               </TableCell>
-              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.damLandingPrice > 0 ? row.damLandingPrice.toFixed(2) : '-'}</TableCell>
-              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.gdamLandingPrice > 0 ? row.gdamLandingPrice.toFixed(2) : '-'}</TableCell>
-              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.rtmLandingPrice > 0 ? row.rtmLandingPrice.toFixed(2) : '-'}</TableCell>
-              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{row.discomLandingPrice.toFixed(2)}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: '#16A34A', fontSize: '11px', px: 1 }}>₹{row.comparedLowestPrice.toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{(row.damLandingPrice || row.damLanding) > 0 ? Number(row.damLandingPrice || row.damLanding).toFixed(2) : '-'}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{(row.gdamLandingPrice || row.gdamLanding) > 0 ? Number(row.gdamLandingPrice || row.gdamLanding).toFixed(2) : '-'}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{(row.rtmLandingPrice || row.rtmLanding) > 0 ? Number(row.rtmLandingPrice || row.rtmLanding).toFixed(2) : '-'}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '11px', px: 1 }}>₹{Number(row.discomLandingPrice ?? row.discomLanding ?? 0).toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: '#16A34A', fontSize: '11px', px: 1 }}>₹{Number(row.comparedLowestPrice ?? row.bestMarketLanding ?? 0).toFixed(2)}</TableCell>
               <TableCell align="center" sx={{ px: 1 }}>
                 <span style={{ 
                   textTransform: 'uppercase', 
