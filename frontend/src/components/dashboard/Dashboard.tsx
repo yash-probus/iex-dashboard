@@ -157,10 +157,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         const marketSummaryMap: Record<string, any> = { DAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, GDAM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 }, RTM: { qtyMWh: 0, activeSlots: 0, activeDays: new Set(), sumWeighted: 0 } };
         
         marketDecisionResult.slotsData.forEach((slot: any) => {
-          const marketSource = slot.selectedSource || slot.marketSource;
-          const isMarket = marketSource && marketSource !== 'DISCOM';
-          const qtyKwh = isMarket ? (slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0) : 0;
-          const rate = slot.comparedLowestPrice ?? (marketSource === 'GDAM' ? (slot.gdamLanding || 0) : marketSource === 'RTM' ? (slot.rtmLanding || 0) : (slot.damLanding || 0));
+          const marketSource = slot.selectedSource || slot.marketSource || 'DISCOM';
+          const isMarket = marketSource !== 'DISCOM';
+          const qtyKwh = slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0;
+          const rate = isMarket
+            ? (slot.comparedLowestPrice ?? (marketSource === 'GDAM' ? (slot.gdamLanding || 0) : marketSource === 'RTM' ? (slot.rtmLanding || 0) : (slot.damLanding || 0)))
+            : (slot.discomLandingPrice || slot.discomLanding || 0);
 
           let dateStr = slot.date;
           if (slot.date && typeof slot.date === 'string' && slot.date.includes('-')) {
@@ -179,27 +181,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
             dailyMap[date] = { date, iso: date, qty: 0, DAM: 0, GDAM: 0, RTM: 0, activeSlots: 0, sumWeighted: 0, dominantMarket: 'DAM' };
           }
 
-          if (isMarket && qtyKwh > 0) {
+          if (qtyKwh > 0) {
             const qtyMWh = qtyKwh / 1000;
-            const mkt = marketSource as 'DAM' | 'GDAM' | 'RTM';
-
             dailyMap[date].qty += qtyMWh;
-            dailyMap[date][mkt] += qtyMWh;
             dailyMap[date].activeSlots += 1;
             dailyMap[date].sumWeighted += qtyMWh * rate;
 
-            marketSummaryMap[mkt].qtyMWh += qtyMWh;
-            marketSummaryMap[mkt].activeSlots += 1;
-            marketSummaryMap[mkt].activeDays.add(date);
-            marketSummaryMap[mkt].sumWeighted += qtyMWh * rate;
+            if (isMarket) {
+              const mkt = marketSource as 'DAM' | 'GDAM' | 'RTM';
+              dailyMap[date][mkt] += qtyMWh;
 
-            heatmapRecords.push({
-              date: date,
-              timeblock: slot.timeblock || 1,
-              qty: qtyMWh,
-              rate: rate,
-              market: mkt
-            });
+              marketSummaryMap[mkt].qtyMWh += qtyMWh;
+              marketSummaryMap[mkt].activeSlots += 1;
+              marketSummaryMap[mkt].activeDays.add(date);
+              marketSummaryMap[mkt].sumWeighted += qtyMWh * rate;
+
+              heatmapRecords.push({
+                date: date,
+                timeblock: slot.timeblock || 1,
+                qty: qtyMWh,
+                rate: rate,
+                market: mkt
+              });
+            }
           }
         });
 

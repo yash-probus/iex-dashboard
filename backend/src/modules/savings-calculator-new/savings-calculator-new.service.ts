@@ -571,16 +571,16 @@ export class SavingsCalculatorNewService {
 
         if (matchedCustomSlot) {
           const availableMarkets = [];
-          if (monthPeakDemand >= 1000 || sanctionedLoad >= 1000) {
-            if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
-            if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
-          }
+          if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
+          if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
           if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
 
           if (availableMarkets.length > 0) {
             availableMarkets.sort((a, b) => a.price - b.price);
-            comparedLowestPrice = availableMarkets[0].price;
-            selectedSource = availableMarkets[0].source;
+            if (availableMarkets[0].price < discomLandingPrice) {
+              comparedLowestPrice = availableMarkets[0].price;
+              selectedSource = availableMarkets[0].source;
+            }
           }
         }
 
