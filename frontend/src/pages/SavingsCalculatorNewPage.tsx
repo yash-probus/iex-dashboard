@@ -424,6 +424,7 @@ export default function SavingsCalculatorNewPage() {
     const parsed: Record<string, MonthTodData> = {};
     if (entry.todConsumptions && typeof entry.todConsumptions === 'object') {
       Object.entries(entry.todConsumptions).forEach(([m, val]: [string, any]) => {
+        if (m.startsWith('_') || !m.includes('-')) return;
         const [yearStr, monthStr] = m.split('-');
         const y = parseInt(yearStr, 10) || 2026;
         const mon = parseInt(monthStr, 10) || 4;
@@ -446,18 +447,19 @@ export default function SavingsCalculatorNewPage() {
         }
       });
     }
-    const months = Object.keys(parsed);
-    setTodConsumptions(months.length > 0 ? parsed : {
+    const validMonths = Object.keys(parsed);
+    setTodConsumptions(validMonths.length > 0 ? parsed : {
       '2026-04': {
         startDate: '2026-04-01',
         endDate: '2026-04-30',
         peakDemandKw: 1000,
         slots: [
-          { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
+          { id: 'tod-1', name: 'Peak Hours', startTime: '09:00', endTime: '12:00', consumptionKwh: 12000, effectivePrice: 9.20 },
+          { id: 'tod-2', name: 'Off-Peak Hours', startTime: '22:00', endTime: '06:00', consumptionKwh: 25000, effectivePrice: 5.80 }
         ]
       }
     });
-    setActiveMonth(months[0] || '2026-04');
+    setActiveMonth(validMonths.length > 0 ? validMonths[0] : '2026-04');
     setDialogOpen(true);
   };
 
@@ -585,8 +587,8 @@ export default function SavingsCalculatorNewPage() {
 
   const handleDeleteMonth = (monthToDelete: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    const remainingMonths = Object.keys(todConsumptions).filter(m => m !== monthToDelete);
-    if (remainingMonths.length === 0) {
+    const remainingMonths = Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-') && m !== monthToDelete);
+    if (remainingMonths.length === 0 && !monthToDelete.startsWith('_')) {
       setError('At least one month entry is required.');
       return;
     }
@@ -596,7 +598,7 @@ export default function SavingsCalculatorNewPage() {
       return updated;
     });
     if (activeMonth === monthToDelete) {
-      setActiveMonth(remainingMonths[0]);
+      setActiveMonth(remainingMonths[0] || '2026-04');
     }
   };
 
@@ -682,7 +684,7 @@ export default function SavingsCalculatorNewPage() {
       headerName: 'Custom TOD Windows',
       align: 'center',
       renderCell: (row: SavingsCalculatorNewEntry) => {
-        const months = Object.keys(row.todConsumptions || {});
+        const months = Object.keys(row.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-'));
         return (
           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
             {months.map(m => (
@@ -1125,7 +1127,7 @@ export default function SavingsCalculatorNewPage() {
 
             {/* Month Chips */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-              {Object.keys(todConsumptions).map(m => (
+              {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).map(m => (
                 <Chip
                   key={m}
                   label={m}
