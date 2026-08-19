@@ -312,12 +312,12 @@ export class SavingsCalculatorNewService {
     if (!entry) throw new Error('Entry not found');
 
     const todConsumptions = entry.todConsumptions as Record<string, any> | null;
-    if (!todConsumptions || Object.keys(todConsumptions).length === 0) {
+    if (!todConsumptions || Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).length === 0) {
       throw new Error('No TOD consumption data found.');
     }
 
-    let monthsToProcess = Object.entries(todConsumptions);
-    if (targetMonth) {
+    let monthsToProcess = Object.entries(todConsumptions).filter(([ym]) => !ym.startsWith('_') && ym.includes('-'));
+    if (targetMonth && targetMonth !== 'all') {
       monthsToProcess = monthsToProcess.filter(([ym]) => ym === targetMonth);
       if (monthsToProcess.length === 0) {
         throw new Error(`No consumption data found for month ${targetMonth}`);
@@ -365,7 +365,7 @@ export class SavingsCalculatorNewService {
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
 
-    const months = Object.keys(todConsumptions).sort();
+    const months = Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort();
     let totalSavings = 0;
     let totalOptimizedCost = 0;
     let totalBaselineCost = 0;
@@ -411,11 +411,11 @@ export class SavingsCalculatorNewService {
     const sanctionedLoad = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
 
     const todConsumptions = entry.todConsumptions as Record<string, any> | null;
-    if (!todConsumptions || Object.keys(todConsumptions).length === 0) {
+    if (!todConsumptions || Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).length === 0) {
       throw new Error('No TOD consumption data found.');
     }
 
-    let monthsToProcess = Object.entries(todConsumptions);
+    let monthsToProcess = Object.entries(todConsumptions).filter(([ym]) => !ym.startsWith('_') && ym.includes('-'));
     if (targetMonth && targetMonth !== 'all') {
       monthsToProcess = monthsToProcess.filter(([ym]) => ym === targetMonth);
     }
@@ -463,6 +463,10 @@ export class SavingsCalculatorNewService {
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
 
+      if (isNaN(year) || isNaN(month)) {
+        continue;
+      }
+
       const lastDay = new Date(year, month, 0).getDate();
       const startStr = (typeof monthData === 'object' && monthData.startDate) ? monthData.startDate : `${year}-${String(month).padStart(2, '0')}-01`;
       const endStr = (typeof monthData === 'object' && monthData.endDate) ? monthData.endDate : `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
@@ -485,7 +489,7 @@ export class SavingsCalculatorNewService {
       const wheelingCharge = stateCharges?.distributionWheelingCharges ? Number(stateCharges.distributionWheelingCharges) : 0;
 
       const yyyymmMonth = year * 100 + month;
-      const ctuCharges = await prisma.ctuCharges.findFirst({ where: { month: yyyymmMonth } });
+      const ctuCharges = !isNaN(yyyymmMonth) ? await prisma.ctuCharges.findFirst({ where: { month: yyyymmMonth } }) : null;
       const ctuCharge = ctuCharges?.ctu_charges_rs_per_kwh ? Number(ctuCharges.ctu_charges_rs_per_kwh) : 0;
 
       const istsCharges = await prisma.istsCharges.findMany({
@@ -836,7 +840,7 @@ export class SavingsCalculatorNewService {
       };
     }
 
-    const months = Object.keys(todConsumptions).sort();
+    const months = Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort();
     let totalSavings = 0;
     const monthsData = [];
 
