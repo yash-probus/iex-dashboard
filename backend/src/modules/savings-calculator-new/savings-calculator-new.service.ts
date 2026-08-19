@@ -684,36 +684,6 @@ export class SavingsCalculatorNewService {
             sb.optimizedCost = 0;
           }
         });
-
-        const slotName = customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`;
-        todSummaries.push({
-          month: yearMonth,
-          slotName: slotName,
-          slabName: slotName,
-          startTime: customSlot.startTime,
-          endTime: customSlot.endTime,
-          consumptionKwh: slotEnergyTotal,
-          totalEnergyKwh: slotEnergyTotal,
-          effectivePrice: slotDiscomPrice,
-          baselineCost: slotDiscomBaselineCost,
-          discomBill: slotDiscomBaselineCost,
-          marketEnergyKwh: slotMarketEnergy,
-          oaUnits: slotMarketEnergy,
-          consumerBusUnits: slotMarketEnergy,
-          discomUnits: slotEnergyTotal,
-          marketCostBase: slotMarketCost,
-          oaBill: slotMarketCost,
-          proltDiscomBill: slotDiscomCost,
-          savings: Math.max(0, slotDiscomBaselineCost - (slotMarketCost + slotDiscomCost))
-        });
-
-        aggregatedTotals.cssRate = cssRate;
-        aggregatedTotals.cssCharge += slotMarketEnergy * cssRate;
-        aggregatedTotals.rpoCharge += slotMarketEnergy * 0.25;
-        aggregatedTotals.pocCharge += slotMarketEnergy * ctuCharge;
-        aggregatedTotals.stuCharge += slotMarketEnergy * stuCharge;
-        aggregatedTotals.dcCharge += slotMarketEnergy * wheelingCharge;
-        aggregatedTotals.iexFee += slotMarketEnergy * 0.02;
       }
 
       if (useShiftedProfile) {
@@ -761,6 +731,61 @@ export class SavingsCalculatorNewService {
             }
           });
         }
+      }
+
+      // Build todSummaries per Custom TOD Slot based on final (unshifted or shifted) monthlySlots
+      for (const customSlot of customSlots) {
+        const slotName = customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`;
+        const slotDiscomPrice = Number(customSlot.effectivePrice) > 0 ? Number(customSlot.effectivePrice) : 8.5;
+        const slotBlocks = monthlySlots.filter(s => s.customSlotId === customSlot.id || s.todSlab === slotName);
+
+        let slotConsumptionKwh = 0;
+        let slotMarketEnergyKwh = 0;
+        let slotDiscomEnergyKwh = 0;
+        let slotBaselineCost = 0;
+        let slotMarketCost = 0;
+        let slotDiscomCost = 0;
+
+        slotBlocks.forEach(sb => {
+          slotConsumptionKwh += sb.maxEnergyPerSlot;
+          slotMarketEnergyKwh += sb.marketEnergy;
+          slotDiscomEnergyKwh += sb.discomEnergy;
+          slotBaselineCost += sb.baselineCost;
+          if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
+            slotMarketCost += sb.optimizedCost;
+          } else {
+            slotDiscomCost += sb.optimizedCost;
+          }
+        });
+
+        todSummaries.push({
+          month: yearMonth,
+          slotName: slotName,
+          slabName: slotName,
+          startTime: customSlot.startTime,
+          endTime: customSlot.endTime,
+          consumptionKwh: slotConsumptionKwh,
+          totalEnergyKwh: slotConsumptionKwh,
+          effectivePrice: slotDiscomPrice,
+          baselineCost: slotBaselineCost,
+          discomBill: slotBaselineCost,
+          marketEnergyKwh: slotMarketEnergyKwh,
+          oaUnits: slotMarketEnergyKwh,
+          consumerBusUnits: slotMarketEnergyKwh,
+          discomUnits: slotConsumptionKwh,
+          marketCostBase: slotMarketCost,
+          oaBill: slotMarketCost,
+          proltDiscomBill: slotDiscomCost,
+          savings: Math.max(0, slotBaselineCost - (slotMarketCost + slotDiscomCost))
+        });
+
+        aggregatedTotals.cssRate = cssRate;
+        aggregatedTotals.cssCharge += slotMarketEnergyKwh * cssRate;
+        aggregatedTotals.rpoCharge += slotMarketEnergyKwh * 0.25;
+        aggregatedTotals.pocCharge += slotMarketEnergyKwh * ctuCharge;
+        aggregatedTotals.stuCharge += slotMarketEnergyKwh * stuCharge;
+        aggregatedTotals.dcCharge += slotMarketEnergyKwh * wheelingCharge;
+        aggregatedTotals.iexFee += slotMarketEnergyKwh * 0.02;
       }
 
       slotsData.push(...monthlySlots);
