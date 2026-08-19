@@ -276,26 +276,23 @@ export class SavingsCalculatorExportService {
       sheet.addRow(['NPCL Prompt Payment Rebate (1%)', -Math.round(energyRebate1 + demandRebate1)]);
       sheet.addRow(['Net Energy & Demand Charges', Math.round(energyCharges + demandCharges)]);
     } else {
-      const grossTotal = energyCharges + demandCharges;
-      const baseTotal = grossTotal / (1 + (fppaPercent / 100));
-      const fppaCharges = grossTotal - baseTotal;
-      const energyShare = grossTotal > 0 ? energyCharges / grossTotal : 0;
-      const baseEnergyCharges = baseTotal * energyShare;
-      const baseDemandCharges = baseTotal - baseEnergyCharges;
+      const fppaCharges = Math.round(result.fppaCharge || 0);
+      const baseDemandCharges = Math.round(result.demandCharge || 0);
+      const baseEnergyCharges = Math.round(result.totalBaselineCost || 0);
 
-      sheet.addRow(['Energy Charges', Math.round(baseEnergyCharges)]);
-      sheet.addRow(['FPPA Surcharge', Math.round(fppaCharges)]);
-      sheet.addRow(['Demand & Fixed Charges', Math.round(baseDemandCharges)]);
+      sheet.addRow(['Energy Charges', baseEnergyCharges]);
+      sheet.addRow(['FPPA Surcharge', fppaCharges]);
+      sheet.addRow(['Demand & Fixed Charges', baseDemandCharges]);
     }
     
-    sheet.addRow(['Electricity Duty', Math.round(ed)]);
+    sheet.addRow(['Electricity Duty', Math.round(result.electricityDuty || 0)]);
     if (misc > 0) {
       const miscRow = sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
       rowMapping['miscellaneousChargesRow'] = miscRow.number;
     }
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
-    const totalBaselineWithMisc = (result.totalBaselineCost || 0) + arrear + lpsc;
+    const totalBaselineWithMisc = (result.totalBaselineCost || 0) + (result.fppaCharge || 0) + (result.demandCharge || 0) + (result.electricityDuty || 0) + arrear + lpsc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -310,7 +307,7 @@ export class SavingsCalculatorExportService {
     afterHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
     const electricityDutyAfterOA = (result as any).electricityDutyAfterOA ?? (result.electricityDuty || 0);
-    let energyChargesAfterOA = (result as any).discomEnergyChargesAfterOA ?? ((result.totalDiscomAfterProlt || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc);
+    let energyChargesAfterOA = (result as any).discomEnergyChargesAfterOA ?? (result.totalDiscomAfterProlt || 0);
     
     if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;
@@ -336,16 +333,13 @@ export class SavingsCalculatorExportService {
       sheet.addRow(['NPCL Prompt Payment Rebate (1%)', -Math.round(energyRebate1AfterOA + demandRebate1)]);
       sheet.addRow(['Net Energy & Demand Charges', Math.round(energyChargesAfterOA + demandCharges)]);
     } else {
-      const grossTotalAfterOA = energyChargesAfterOA + demandCharges;
-      const baseTotalAfterOA = grossTotalAfterOA / (1 + (fppaPercent / 100));
-      const fppaChargesAfterOA = grossTotalAfterOA - baseTotalAfterOA;
-      const energyShareAfterOA = grossTotalAfterOA > 0 ? energyChargesAfterOA / grossTotalAfterOA : 0;
-      const baseEnergyChargesAfterOA = baseTotalAfterOA * energyShareAfterOA;
-      const baseDemandChargesAfterOA = baseTotalAfterOA - baseEnergyChargesAfterOA;
+      const fppaChargesAfterOA = Math.round(result.fppaChargeAfterOA || 0);
+      const baseDemandChargesAfterOA = Math.round(result.demandCharge || 0);
+      const baseEnergyChargesAfterOA = Math.round(result.totalDiscomAfterProlt || 0);
 
-      sheet.addRow(['Energy Charges', Math.round(baseEnergyChargesAfterOA)]);
-      sheet.addRow(['FPPA Surcharge', Math.round(fppaChargesAfterOA)]);
-      sheet.addRow(['Demand & Fixed Charges', Math.round(baseDemandChargesAfterOA)]);
+      sheet.addRow(['Energy Charges', baseEnergyChargesAfterOA]);
+      sheet.addRow(['FPPA Surcharge', fppaChargesAfterOA]);
+      sheet.addRow(['Demand & Fixed Charges', baseDemandChargesAfterOA]);
     }
     
     sheet.addRow(['Electricity Duty', Math.round(electricityDutyAfterOA)]);

@@ -47,8 +47,14 @@ import {
   exportSavingsExcelNew,
   exportDemandShiftExcelNew
 } from '../api/savingsCalculatorNew.api';
+import html2canvas from 'html2canvas';
 import { exportToCSV } from '../utils/export';
-import { exportSavingsExcel } from '../api/savingsCalculator.api';
+import {
+  exportSavingsExcel,
+  exportProposalWord,
+  exportTechnicalProposalWord,
+  exportCommercialProposalWord
+} from '../api/savingsCalculator.api';
 
 export default function SavingsCalculatorNewAnalysisPage() {
   const { id } = useParams<{ id: string }>();
@@ -396,6 +402,189 @@ export default function SavingsCalculatorNewAnalysisPage() {
               >
                 Export PDF Report
               </Button>
+
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={async () => {
+                  if (!calcEntry || !marketDecisionResult) return;
+                  try {
+                    const totalSavings = marketDecisionResult.totalSavings || 0;
+                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).length || 1);
+                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
+                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
+                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
+                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
+                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
+                    const currentDate = new Date();
+                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
+
+                    let dashboard_screenshot = "";
+                    const dashboardEl = document.getElementById("proposal-export-target-new");
+                    if (dashboardEl) {
+                      try {
+                        const canvas = await html2canvas(dashboardEl, { scale: 2 });
+                        dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                      } catch (e) {
+                        console.error("html2canvas error:", e);
+                      }
+                    }
+
+                    const payload = {
+                      ...calcEntry,
+                      client_name: calcEntry.clientName,
+                      industry_name: calcEntry.industryName,
+                      sanctioned_load_kw: calcEntry.sanctionedLoadKw,
+                      state_code: calcEntry.stateCode,
+                      dashboard_screenshot,
+                      totalSavings: annualizedSavings.toLocaleString('en-IN'),
+                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'),
+                      billMonth,
+                      billMonthYear,
+                      currentMonthYear,
+                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
+                    };
+                    await exportProposalWord(payload);
+                  } catch (err: any) {
+                    setSnackbar({ open: true, message: err.message || 'Proposal export failed', severity: 'error' });
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#7C3AED',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#6D28D9', borderColor: 'divider' }
+                }}
+              >
+                Draft Proposal
+              </Button>
+
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={async () => {
+                  if (!calcEntry || !marketDecisionResult) return;
+                  try {
+                    const totalSavings = marketDecisionResult.totalSavings || 0;
+                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).length || 1);
+                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
+                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
+                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
+                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
+                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
+                    const currentDate = new Date();
+                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
+
+                    let dashboard_screenshot = "";
+                    const dashboardEl = document.getElementById("proposal-export-target-new");
+                    if (dashboardEl) {
+                      try {
+                        const canvas = await html2canvas(dashboardEl, { scale: 2 });
+                        dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                      } catch (e) {
+                        console.error("html2canvas error:", e);
+                      }
+                    }
+
+                    const payload = {
+                      ...calcEntry,
+                      client_name: calcEntry.clientName,
+                      industry_name: calcEntry.industryName,
+                      sanctioned_load_kw: calcEntry.sanctionedLoadKw,
+                      state_code: calcEntry.stateCode,
+                      dashboard_screenshot,
+                      totalSavings: annualizedSavings.toLocaleString('en-IN'),
+                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'),
+                      billMonth,
+                      billMonthYear,
+                      currentMonthYear,
+                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
+                    };
+                    await exportTechnicalProposalWord(payload);
+                  } catch (err: any) {
+                    setSnackbar({ open: true, message: err.message || 'Technical proposal export failed', severity: 'error' });
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#2563EB',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#1D4ED8', borderColor: 'divider' }
+                }}
+              >
+                Technical Proposal
+              </Button>
+
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={async () => {
+                  if (!calcEntry || !marketDecisionResult) return;
+                  try {
+                    const totalSavings = marketDecisionResult.totalSavings || 0;
+                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).length || 1);
+                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
+                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
+                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
+                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
+                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
+                    const currentDate = new Date();
+                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
+
+                    let dashboard_screenshot = "";
+                    const dashboardEl = document.getElementById("proposal-export-target-new");
+                    if (dashboardEl) {
+                      try {
+                        const canvas = await html2canvas(dashboardEl, { scale: 2 });
+                        dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                      } catch (e) {
+                        console.error("html2canvas error:", e);
+                      }
+                    }
+
+                    const payload = {
+                      ...calcEntry,
+                      client_name: calcEntry.clientName,
+                      industry_name: calcEntry.industryName,
+                      sanctioned_load_kw: calcEntry.sanctionedLoadKw,
+                      state_code: calcEntry.stateCode,
+                      dashboard_screenshot,
+                      totalSavings: annualizedSavings.toLocaleString('en-IN'),
+                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'),
+                      billMonth,
+                      billMonthYear,
+                      currentMonthYear,
+                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
+                    };
+                    await exportCommercialProposalWord(payload);
+                  } catch (err: any) {
+                    setSnackbar({ open: true, message: err.message || 'Commercial proposal export failed', severity: 'error' });
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#D97706',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#B45309', borderColor: 'divider' }
+                }}
+              >
+                Commercial Proposal
+              </Button>
             </Box>
           )}
 
@@ -429,6 +618,15 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 </Typography>
                 <TableContainer columns={columns} data={marketDecisionResult.slotsData || []} />
               </Paper>
+
+              <div id="proposal-export-target-new" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '1200px' }}>
+                <ProposalDashboardExport 
+                  clientOverview={clientOverview} 
+                  marketDecisionResult={marketDecisionResult} 
+                  demandShiftInsights={null} 
+                  selectedMonth={selectedSimMonth} 
+                />
+              </div>
             </Box>
           )}
         </Box>
