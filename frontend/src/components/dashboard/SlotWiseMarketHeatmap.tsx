@@ -21,8 +21,8 @@ export const SlotWiseMarketHeatmap: React.FC<SlotWiseMarketHeatmapProps> = ({ sl
   // Find the maximum energy value across all slots to scale opacity
   const maxEnergy = useMemo(() => {
     let max = 0;
-    slotsData?.forEach((slot) => {
-      const volume = slot.shouldBuyFromMarket ? (slot.marketEnergy || 0) : (slot.discomEnergy || 0);
+    slotsData?.forEach((slot: any) => {
+      const volume = slot.maxEnergyPerSlot ?? (slot.shouldBuyFromMarket ? (slot.marketEnergy || 0) : (slot.discomEnergy || 0));
       if (volume > max) max = volume;
     });
     return max > 0 ? max : 1;
@@ -33,13 +33,14 @@ export const SlotWiseMarketHeatmap: React.FC<SlotWiseMarketHeatmapProps> = ({ sl
     if (!slotsData || slotsData.length === 0) return [];
 
     const grouped: Record<string, SlotData[]> = {};
-    slotsData.forEach((slot) => {
+    slotsData.forEach((slot: any) => {
       if (!grouped[slot.date]) {
         grouped[slot.date] = Array(96).fill(null);
       }
-      const index = slot.timeblock - 1;
+      const tb = Number(slot.timeblock ?? slot.slot ?? 1);
+      const index = tb - 1;
       if (index >= 0 && index < 96) {
-        grouped[slot.date][index] = slot;
+        grouped[slot.date][index] = { ...slot, timeblock: tb };
       }
     });
 
@@ -54,28 +55,32 @@ export const SlotWiseMarketHeatmap: React.FC<SlotWiseMarketHeatmapProps> = ({ sl
     );
   }
 
-  const getCellColor = (slot: SlotData | null) => {
+  const getCellColor = (slot: any | null) => {
     if (!slot) return 'rgba(241, 245, 249, 1)'; // Missing data (#f1f5f9)
     
-    // Dynamic opacity based on volume
-    const volume = slot.shouldBuyFromMarket ? (slot.marketEnergy || 0) : (slot.discomEnergy || 0);
+    const isMarket = slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM');
+    const source = slot.selectedSource ?? slot.marketSource ?? 'DISCOM';
+    const volume = slot.maxEnergyPerSlot ?? (isMarket ? (slot.marketEnergy || 0) : (slot.discomEnergy || 0));
+
     let opacity = volume > 0 ? 0.2 + (0.8 * (volume / maxEnergy)) : 0.1;
     if (opacity > 1) opacity = 1;
 
-    if (!slot.shouldBuyFromMarket) return `rgba(148, 163, 184, ${opacity})`; // DISCOM (Gray)
-    if (slot.marketSource === 'DAM') return `rgba(245, 158, 11, ${opacity})`; // DAM (Amber)
-    if (slot.marketSource === 'GDAM') return `rgba(16, 185, 129, ${opacity})`; // GDAM (Green)
-    if (slot.marketSource === 'RTM') return `rgba(225, 112, 125, ${opacity})`; // RTM (Reddish/Pink)
+    if (!isMarket) return `rgba(148, 163, 184, ${opacity})`; // DISCOM (Gray)
+    if (source === 'DAM') return `rgba(245, 158, 11, ${opacity})`; // DAM (Amber)
+    if (source === 'GDAM') return `rgba(16, 185, 129, ${opacity})`; // GDAM (Green)
+    if (source === 'RTM') return `rgba(225, 112, 125, ${opacity})`; // RTM (Reddish/Pink)
     
     return `rgba(226, 232, 240, 1)`;
   };
 
-  const getTooltipContent = (slot: SlotData | null) => {
+  const getTooltipContent = (slot: any | null) => {
     if (!slot) return 'No data';
-    const source = slot.shouldBuyFromMarket ? slot.marketSource : 'DISCOM';
-    const volume = slot.shouldBuyFromMarket ? slot.marketEnergy : slot.discomEnergy;
+    const isMarket = slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM');
+    const source = slot.selectedSource ?? slot.marketSource ?? 'DISCOM';
+    const volume = slot.maxEnergyPerSlot ?? (isMarket ? slot.marketEnergy : slot.discomEnergy) ?? 0;
     
-    const startMinutes = (slot.timeblock - 1) * 15;
+    const tb = Number(slot.timeblock ?? slot.slot ?? 1);
+    const startMinutes = (tb - 1) * 15;
     const hour = Math.floor(startMinutes / 60);
     const min = startMinutes % 60;
     const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;

@@ -198,7 +198,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
               heatmapRecords.push({
                 date: date,
-                timeblock: slot.timeblock || 1,
+                timeblock: Number(slot.timeblock ?? slot.slot ?? slot.intervalNumber ?? 1),
                 qty: qtyMWh,
                 rate: rate,
                 market: mkt

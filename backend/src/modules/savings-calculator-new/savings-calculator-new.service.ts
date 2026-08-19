@@ -595,6 +595,7 @@ export class SavingsCalculatorNewService {
         return {
           date: dateStr,
           slot,
+          timeblock: slot,
           timeStr,
           todSlab: matchedTariffName,
           customSlotId: matchedCustomSlot?.id,
