@@ -752,9 +752,12 @@ export class SavingsCalculatorNewService {
 
     const meta = (entry.todConsumptions as any)?._meta || {};
 
-    const edPercent = (entry as any).electricityDutyPercent !== undefined && (entry as any).electricityDutyPercent !== null 
-      ? Number((entry as any).electricityDutyPercent) 
-      : (meta.electricityDutyPercent !== undefined ? Number(meta.electricityDutyPercent) : (entry.applyElectricityDuty !== false ? 5 : 0));
+    const applyEd = entry.applyElectricityDuty !== false;
+    const edPercent = applyEd 
+      ? ((entry as any).electricityDutyPercent !== undefined && (entry as any).electricityDutyPercent !== null 
+          ? Number((entry as any).electricityDutyPercent) 
+          : (meta.electricityDutyPercent !== undefined ? Number(meta.electricityDutyPercent) : 5))
+      : 0;
 
     const fppaPercent = (entry as any).fppaChargePercent !== undefined && (entry as any).fppaChargePercent !== null 
       ? Number((entry as any).fppaChargePercent) 
@@ -768,11 +771,11 @@ export class SavingsCalculatorNewService {
     const calculatedDemandCharge = Math.round(demandLoad * demandChargeKwRate);
     const fppaSurchargeVal = Math.round(totalBaselineCost * (fppaPercent / 100));
     const totalDiscomBeforeEd = totalBaselineCost + fppaSurchargeVal + calculatedDemandCharge;
-    const electricityDutyVal = Math.round(totalDiscomBeforeEd * (edPercent / 100));
+    const electricityDutyVal = applyEd ? Math.round(totalDiscomBeforeEd * (edPercent / 100)) : 0;
 
     const fppaAfterOAVal = Math.round(totalDiscomAfterProlt * (fppaPercent / 100));
     const totalDiscomAfterOABeforeEd = totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge;
-    const electricityDutyAfterOAVal = Math.round(totalDiscomAfterOABeforeEd * (edPercent / 100));
+    const electricityDutyAfterOAVal = applyEd ? Math.round(totalDiscomAfterOABeforeEd * (edPercent / 100)) : 0;
 
     aggregatedTotals.proltMarginCost = proltMarginCost;
     aggregatedTotals.traderMargin = traderMarginCost;
