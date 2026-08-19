@@ -408,7 +408,7 @@ export class SavingsCalculatorNewService {
     if (!entry) throw new Error('Entry not found');
 
     const stateCode = entry.stateCode || 'MH';
-    const sanctionedLoad = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
+    const sanctionedLoad = (entry.sanctionedLoadKw && Number(entry.sanctionedLoadKw) > 0) ? Number(entry.sanctionedLoadKw) : 1000;
 
     const todConsumptions = entry.todConsumptions as Record<string, any> | null;
     if (!todConsumptions || Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).length === 0) {
@@ -588,10 +588,12 @@ export class SavingsCalculatorNewService {
 
         if (matchedCustomSlot) {
           const availableMarkets = [];
-          const is1MWOrMore = (sanctionedLoad >= 1000) || (monthPeakDemand >= 1000);
+          const totalMonthUnits = customSlots.reduce((sum, cs) => sum + (cs.consumptionKwh || 0), 0);
+          const avgLoadKw = totalMonthUnits / (lastDay * 24);
+          const is1MWOrMore = (sanctionedLoad >= 1000) || (monthPeakDemand >= 1000) || (avgLoadKw >= 500) || (totalMonthUnits >= 100000);
 
           if (is1MWOrMore) {
-            // Sanctioned Load >= 1000 kW (1 MW): can buy from DAM, RTM, and GDAM
+            // Sanctioned Load >= 1000 kW (1 MW) or High Consumption: can buy from DAM, RTM, and GDAM
             if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
             if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
             if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
