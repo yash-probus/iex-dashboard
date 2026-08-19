@@ -473,7 +473,7 @@ export class SavingsCalculatorExportService {
     totalEstRow.font = { bold: true };
     totalEstRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
-    const totalGrossBill = result.totalLandedExchangeCost + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees;
+    const totalGrossBill = (result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees;
     const totalGrossRow = sheet.addRow(['Total Bill (OA + DISCOM After PROLT)', Math.round(totalGrossBill)]);
     totalGrossRow.font = { bold: true };
     totalGrossRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -764,7 +764,7 @@ export class SavingsCalculatorExportService {
     const totalSavingRowData: any[] = ['Total Saving'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `${colChar}${discomCostRowNumber}-${colChar}${totalPowerCostOARowNumber}`;
+      const formula = `MAX(0,${colChar}${discomCostRowNumber}-${colChar}${totalPowerCostOARowNumber})`;
       totalSavingRowData.push({ formula });
     });
     const totalSavingRow = sheet.addRow(totalSavingRowData);
@@ -873,7 +873,7 @@ export class SavingsCalculatorExportService {
     const savingForBizRowData: any[] = ['Saving for your business'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `${colChar}${totalSavingRowNumber}-${colChar}${totalAmountRowNumber}`;
+      const formula = `MAX(0,${colChar}${totalSavingRowNumber}-${colChar}${totalAmountRowNumber})`;
       savingForBizRowData.push({ formula });
     });
     const savingForBizRow = sheet.addRow(savingForBizRowData);

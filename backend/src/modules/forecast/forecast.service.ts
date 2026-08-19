@@ -1259,6 +1259,52 @@ export class ForecastService {
         });
       }
 
+      if (rawFormatted.length === 0) {
+        // Ultimate Fallback: Find latest available date in NppAdjustedGenerationData
+        const latestActual = await prisma.nppAdjustedGenerationData.findFirst({
+          orderBy: { date: 'desc' },
+          select: { date: true }
+        });
+        if (latestActual && latestActual.date) {
+          const fallbackRecords = await prisma.nppAdjustedGenerationData.findMany({
+            where: { date: latestActual.date },
+            orderBy: { timeStr: 'asc' }
+          });
+          fallbackRecords.forEach((a: any) => {
+            const totalActual = (a.thermal || 0) + (a.gas || 0) + (a.nuclear || 0) + (a.hydro || 0) + (a.wind || 0) + (a.solar || 0);
+            const timeStr = a.timeStr || '00:00';
+            const parts = timeStr.split(':');
+            const hNum = parseInt(parts[0], 10) || 0;
+            const mNum = parseInt(parts[1], 10) || 0;
+            const minutes = hNum * 60 + mNum;
+            const intervalNumber = Math.floor(minutes / 15) + 1;
+            const endMinutes = minutes + 15;
+            const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
+            const endM = String(endMinutes % 60).padStart(2, '0');
+            const hourStr = String(hNum + 1).padStart(2, '0');
+            const startH = String(hNum).padStart(2, '0');
+            const startM = String(mNum).padStart(2, '0');
+            const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+
+            rawFormatted.push({
+              date: a.date,
+              hour: hourStr,
+              timeBlock,
+              intervalNumber,
+              generation: totalActual > 0 ? Number(totalActual.toFixed(2)) : 0,
+              actualGeneration: Number(totalActual.toFixed(2)),
+              confidence: 'N/A',
+              thermal: a.thermal,
+              gas: a.gas,
+              nuclear: a.nuclear,
+              hydro: a.hydro,
+              wind: a.wind,
+              solar: a.solar
+            });
+          });
+        }
+      }
+
       if (rawFormatted.length > 0) {
         intervals.push(...this.aggregateGenerationIntervals(rawFormatted, interval));
       }

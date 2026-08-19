@@ -619,7 +619,7 @@ export class SavingsCalculatorNewService {
 
       for (const customSlot of customSlots) {
         const slotEnergyTotal = customSlot.consumptionKwh;
-        const slotDiscomPrice = customSlot.effectivePrice;
+        const slotDiscomPrice = Number(customSlot.effectivePrice) > 0 ? Number(customSlot.effectivePrice) : 8.5;
         const slotDiscomBaselineCost = slotEnergyTotal * slotDiscomPrice;
 
         totalBaselineCost += slotDiscomBaselineCost;
@@ -679,8 +679,16 @@ export class SavingsCalculatorNewService {
           marketCostBase: slotMarketCost,
           oaBill: slotMarketCost,
           proltDiscomBill: slotDiscomCost,
-          savings: slotDiscomBaselineCost - (slotMarketCost + slotDiscomCost)
+          savings: Math.max(0, slotDiscomBaselineCost - (slotMarketCost + slotDiscomCost))
         });
+
+        aggregatedTotals.cssRate = cssRate;
+        aggregatedTotals.cssCharge += slotMarketEnergy * cssRate;
+        aggregatedTotals.rpoCharge += slotMarketEnergy * 0.25;
+        aggregatedTotals.pocCharge += slotMarketEnergy * ctuCharge;
+        aggregatedTotals.stuCharge += slotMarketEnergy * stuCharge;
+        aggregatedTotals.dcCharge += slotMarketEnergy * wheelingCharge;
+        aggregatedTotals.iexFee += slotMarketEnergy * 0.02;
       }
 
       slotsData.push(...monthlySlots);
@@ -738,7 +746,7 @@ export class SavingsCalculatorNewService {
     (aggregatedTotals as any).grossSavings = grossSavings;
 
     totalOptimizedCost = baseOtherCosts + proltMarginCost;
-    const totalSavings = totalBaselineCost - totalOptimizedCost;
+    const totalSavings = Math.max(0, totalBaselineCost - totalOptimizedCost);
 
     const breakdown = todSummaries.map(t => ({
       slabName: t.slotName || t.slabName,

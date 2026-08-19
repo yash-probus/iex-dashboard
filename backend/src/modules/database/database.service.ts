@@ -280,6 +280,73 @@ export class DatabaseService {
         ]
       });
 
+      if (rawRecords.length === 0) {
+        const adjustedRecords = await prisma.nppAdjustedGenerationData.findMany({
+          where: {
+            date: {
+              gte: targetStartDate,
+              lte: targetEndDate
+            }
+          },
+          orderBy: [
+            { date: 'asc' },
+            { timeStr: 'asc' }
+          ]
+        });
+
+        if (adjustedRecords.length > 0) {
+          const adjustedData = adjustedRecords.map(r => ({
+            timeStr: `${r.date} ${r.timeStr}`,
+            thermal: r.thermal || 0,
+            gas: r.gas || 0,
+            nuclear: r.nuclear || 0,
+            hydro: r.hydro || 0,
+            wind: r.wind || 0,
+            solar: r.solar || 0
+          }));
+
+          return {
+            raw: adjustedData.map(r => ({ ...r, dataUpdatedAt: r.timeStr, fetchedAt: r.timeStr })),
+            adjusted: adjustedData
+          };
+        }
+
+        // Fallback: Find latest available date in nppAdjustedGenerationData or nppRawGenerationData
+        const latestAdjusted = await prisma.nppAdjustedGenerationData.findFirst({
+          orderBy: { date: 'desc' },
+          select: { date: true }
+        });
+        const latestRaw = await prisma.nppRawGenerationData.findFirst({
+          orderBy: { date: 'desc' },
+          select: { date: true }
+        });
+
+        const fallbackDate = latestAdjusted?.date || latestRaw?.date;
+        if (fallbackDate) {
+          const fallbackAdjusted = await prisma.nppAdjustedGenerationData.findMany({
+            where: { date: fallbackDate },
+            orderBy: { timeStr: 'asc' }
+          });
+
+          if (fallbackAdjusted.length > 0) {
+            const adjustedData = fallbackAdjusted.map(r => ({
+              timeStr: `${r.date} ${r.timeStr}`,
+              thermal: r.thermal || 0,
+              gas: r.gas || 0,
+              nuclear: r.nuclear || 0,
+              hydro: r.hydro || 0,
+              wind: r.wind || 0,
+              solar: r.solar || 0
+            }));
+
+            return {
+              raw: adjustedData.map(r => ({ ...r, dataUpdatedAt: r.timeStr, fetchedAt: r.timeStr })),
+              adjusted: adjustedData
+            };
+          }
+        }
+      }
+
       // Aggregate logic
       const adjustedMap: Record<string, GenerationBucket> = {};
 
