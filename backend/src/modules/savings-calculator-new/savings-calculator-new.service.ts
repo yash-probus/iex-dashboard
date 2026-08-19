@@ -830,14 +830,6 @@ export class SavingsCalculatorNewService {
 
     const traderMarginCost = totalMarketEnergyKwh * traderMarginVal * 1.18;
 
-    // Calculate gross savings before PROLT percentage margin
-    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
-    const grossSavings = Math.max(0, totalBaselineCost - baseOtherCosts);
-
-    // Treat proltMarginVal as percentage of gross savings (e.g. 15 = 15% or 0.15 = 15%)
-    const proltMarginPct = proltMarginVal > 1 ? (proltMarginVal / 100) : proltMarginVal;
-    const proltMarginCost = grossSavings * proltMarginPct;
-
     const meta = (entry.todConsumptions as any)?._meta || {};
 
     const applyEd = entry.applyElectricityDuty !== false;
@@ -865,6 +857,19 @@ export class SavingsCalculatorNewService {
     const totalDiscomAfterOABeforeEd = totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge;
     const electricityDutyAfterOAVal = applyEd ? Math.round(totalDiscomAfterOABeforeEd * (edPercent / 100)) : 0;
 
+    // Full baseline DISCOM cost including FPPA surcharge and Electricity Duty
+    const fullBaselineDiscomCost = totalBaselineCost + fppaSurchargeVal + electricityDutyVal;
+
+    // Full Open Access + Remaining DISCOM cost including FPPA, ED, fees and overheads
+    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + fppaAfterOAVal + electricityDutyAfterOAVal + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
+
+    // Gross Savings = Full Baseline DISCOM Cost - Full OA DISCOM Cost
+    const grossSavings = Math.max(0, fullBaselineDiscomCost - baseOtherCosts);
+
+    // Treat proltMarginVal as percentage of gross savings (e.g. 15 = 15% or 0.15 = 15%)
+    const proltMarginPct = proltMarginVal > 1 ? (proltMarginVal / 100) : proltMarginVal;
+    const proltMarginCost = grossSavings * proltMarginPct;
+
     aggregatedTotals.proltMarginCost = proltMarginCost;
     aggregatedTotals.traderMargin = traderMarginCost;
     aggregatedTotals.consultancyFee = consultancyFeeVal;
@@ -873,7 +878,7 @@ export class SavingsCalculatorNewService {
     (aggregatedTotals as any).grossSavings = grossSavings;
 
     totalOptimizedCost = baseOtherCosts + proltMarginCost;
-    const totalSavings = Math.max(0, totalBaselineCost - totalOptimizedCost);
+    const totalSavings = Math.max(0, fullBaselineDiscomCost - totalOptimizedCost);
 
     const breakdown = todSummaries.map(t => ({
       slabName: t.slotName || t.slabName,
