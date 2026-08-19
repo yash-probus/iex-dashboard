@@ -588,9 +588,17 @@ export class SavingsCalculatorNewService {
 
         if (matchedCustomSlot) {
           const availableMarkets = [];
-          if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
-          if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
-          if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
+          const is1MWOrMore = (sanctionedLoad >= 1000) || (monthPeakDemand >= 1000);
+
+          if (is1MWOrMore) {
+            // Sanctioned Load >= 1000 kW (1 MW): can buy from DAM, RTM, and GDAM
+            if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
+            if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
+            if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
+          } else {
+            // Sanctioned Load < 1000 kW: can ONLY buy from GDAM (or DISCOM)
+            if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
+          }
 
           if (availableMarkets.length > 0) {
             availableMarkets.sort((a, b) => a.price - b.price);
