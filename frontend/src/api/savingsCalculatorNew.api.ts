@@ -26,6 +26,9 @@ export interface SavingsCalculatorNewEntry {
   probusPlatformFee?: number;
   todConsumptions?: Record<string, { slots: CustomTodSlot[] } | any>;
   applyElectricityDuty?: boolean;
+  electricityDutyPercent?: number;
+  fppaChargePercent?: number;
+  demandChargeKwRate?: number;
   billedDemandKv?: number | null;
   powerFactor?: number | null;
   arrearAmount?: number | null;

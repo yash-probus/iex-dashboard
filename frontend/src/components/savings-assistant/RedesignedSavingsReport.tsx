@@ -653,16 +653,34 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                 <Table size="small">
                   <TableBody>
                     <TableRow>
-                      <TableCell sx={{ color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0', py: 2 }}>DISCOM-only baseline</TableCell>
-                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 2 }}>₹{Math.round(totalBaselineCost).toLocaleString('en-IN')}</TableCell>
+                      <TableCell sx={{ color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0', py: 1.5 }}>DISCOM Baseline Energy Cost</TableCell>
+                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 1.5 }}>₹{Math.round(totalBaselineCost).toLocaleString('en-IN')}</TableCell>
                     </TableRow>
+                    {!!marketDecisionResult.fppaCharge && (
+                      <TableRow>
+                        <TableCell sx={{ color: '#475569', fontWeight: 600, borderBottom: '1px solid #E2E8F0', py: 1.5 }}>FPPA Surcharge ({marketDecisionResult.fppaPercent || 10}%)</TableCell>
+                        <TableCell sx={{ fontWeight: 700, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 1.5 }}>₹{Math.round(marketDecisionResult.fppaCharge).toLocaleString('en-IN')}</TableCell>
+                      </TableRow>
+                    )}
+                    {!!marketDecisionResult.demandCharge && (
+                      <TableRow>
+                        <TableCell sx={{ color: '#475569', fontWeight: 600, borderBottom: '1px solid #E2E8F0', py: 1.5 }}>Demand Charges ({marketDecisionResult.demandChargeKwRate || 250} ₹/kW)</TableCell>
+                        <TableCell sx={{ fontWeight: 700, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 1.5 }}>₹{Math.round(marketDecisionResult.demandCharge).toLocaleString('en-IN')}</TableCell>
+                      </TableRow>
+                    )}
+                    {!!marketDecisionResult.electricityDuty && (
+                      <TableRow>
+                        <TableCell sx={{ color: '#475569', fontWeight: 600, borderBottom: '1px solid #E2E8F0', py: 1.5 }}>Electricity Duty ({marketDecisionResult.electricityDutyPercent || 5}%)</TableCell>
+                        <TableCell sx={{ fontWeight: 700, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 1.5 }}>₹{Math.round(marketDecisionResult.electricityDuty).toLocaleString('en-IN')}</TableCell>
+                      </TableRow>
+                    )}
                     <TableRow>
-                      <TableCell sx={{ color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0', py: 2 }}>Final customer cost</TableCell>
-                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 2 }}>₹{Math.round(finalCost).toLocaleString('en-IN')}</TableCell>
+                      <TableCell sx={{ color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0', py: 1.5 }}>Final customer cost</TableCell>
+                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', borderBottom: '1px solid #E2E8F0', py: 1.5 }}>₹{Math.round(finalCost).toLocaleString('en-IN')}</TableCell>
                     </TableRow>
                     <TableRow sx={{ backgroundColor: '#E8F5EE' }}>
-                      <TableCell sx={{ color: '#0F172A', fontWeight: 800, py: 2, borderBottom: 'none' }}>Confirmed gross saving</TableCell>
-                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', py: 2, borderBottom: 'none' }}>₹{Math.round(totalSavings).toLocaleString('en-IN')}</TableCell>
+                      <TableCell sx={{ color: '#0F172A', fontWeight: 800, py: 1.5, borderBottom: 'none' }}>Confirmed gross saving</TableCell>
+                      <TableCell sx={{ fontWeight: 800, textAlign: 'right', py: 1.5, borderBottom: 'none' }}>₹{Math.round(totalSavings).toLocaleString('en-IN')}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>

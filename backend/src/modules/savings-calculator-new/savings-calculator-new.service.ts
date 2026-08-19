@@ -738,6 +738,30 @@ export class SavingsCalculatorNewService {
     const proltMarginPct = proltMarginVal > 1 ? (proltMarginVal / 100) : proltMarginVal;
     const proltMarginCost = grossSavings * proltMarginPct;
 
+    const meta = (entry.todConsumptions as any)?._meta || {};
+
+    const edPercent = (entry as any).electricityDutyPercent !== undefined && (entry as any).electricityDutyPercent !== null 
+      ? Number((entry as any).electricityDutyPercent) 
+      : (meta.electricityDutyPercent !== undefined ? Number(meta.electricityDutyPercent) : (entry.applyElectricityDuty !== false ? 5 : 0));
+
+    const fppaPercent = (entry as any).fppaChargePercent !== undefined && (entry as any).fppaChargePercent !== null 
+      ? Number((entry as any).fppaChargePercent) 
+      : (meta.fppaChargePercent !== undefined ? Number(meta.fppaChargePercent) : 10);
+
+    const demandChargeKwRate = (entry as any).demandChargeKwRate !== undefined && (entry as any).demandChargeKwRate !== null 
+      ? Number((entry as any).demandChargeKwRate) 
+      : (meta.demandChargeKwRate !== undefined ? Number(meta.demandChargeKwRate) : 250);
+
+    const demandLoad = entry.billedDemandKv ? Number(entry.billedDemandKv) : (entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 1000);
+    const calculatedDemandCharge = Math.round(demandLoad * demandChargeKwRate);
+    const fppaSurchargeVal = Math.round(totalBaselineCost * (fppaPercent / 100));
+    const totalDiscomBeforeEd = totalBaselineCost + fppaSurchargeVal + calculatedDemandCharge;
+    const electricityDutyVal = Math.round(totalDiscomBeforeEd * (edPercent / 100));
+
+    const fppaAfterOAVal = Math.round(totalDiscomAfterProlt * (fppaPercent / 100));
+    const totalDiscomAfterOABeforeEd = totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge;
+    const electricityDutyAfterOAVal = Math.round(totalDiscomAfterOABeforeEd * (edPercent / 100));
+
     aggregatedTotals.proltMarginCost = proltMarginCost;
     aggregatedTotals.traderMargin = traderMarginCost;
     aggregatedTotals.consultancyFee = consultancyFeeVal;
@@ -771,8 +795,14 @@ export class SavingsCalculatorNewService {
       totalOptimizedCost,
       totalSavings,
       grossSavings,
-      demandCharge: 0,
-      electricityDuty: 0,
+      demandCharge: calculatedDemandCharge,
+      electricityDuty: electricityDutyVal,
+      electricityDutyAfterOA: electricityDutyAfterOAVal,
+      fppaPercent,
+      fppaCharge: fppaSurchargeVal,
+      fppaChargeAfterOA: fppaAfterOAVal,
+      electricityDutyPercent: edPercent,
+      demandChargeKwRate,
       arrearAmount: entry.arrearAmount ? Number(entry.arrearAmount) : 0,
       currentLpsc: entry.currentLpsc ? Number(entry.currentLpsc) : 0,
       discom: entry.discom,
