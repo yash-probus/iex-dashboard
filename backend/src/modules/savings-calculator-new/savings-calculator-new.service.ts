@@ -664,16 +664,24 @@ export class SavingsCalculatorNewService {
     const probusPlatformFeeVal = Number(entry.probusPlatformFee) || 0;
     const meteringChargesVal = Number(entry.meteringCharges) || 0;
 
-    const proltMarginCost = totalMarketEnergyKwh * proltMarginVal;
     const traderMarginCost = totalMarketEnergyKwh * traderMarginVal * 1.18;
+
+    // Calculate gross savings before PROLT percentage margin
+    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal;
+    const grossSavings = Math.max(0, totalBaselineCost - baseOtherCosts);
+
+    // Treat proltMarginVal as percentage of gross savings (e.g. 15 = 15% or 0.15 = 15%)
+    const proltMarginPct = proltMarginVal > 1 ? (proltMarginVal / 100) : proltMarginVal;
+    const proltMarginCost = grossSavings * proltMarginPct;
 
     aggregatedTotals.proltMarginCost = proltMarginCost;
     aggregatedTotals.traderMargin = traderMarginCost;
     aggregatedTotals.consultancyFee = consultancyFeeVal;
     aggregatedTotals.probusPlatformFee = probusPlatformFeeVal;
     (aggregatedTotals as any).meteringCharges = meteringChargesVal;
+    (aggregatedTotals as any).grossSavings = grossSavings;
 
-    totalOptimizedCost = totalLandedExchangeCost + totalDiscomAfterProlt + proltMarginCost + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal;
+    totalOptimizedCost = baseOtherCosts + proltMarginCost;
     const totalSavings = totalBaselineCost - totalOptimizedCost;
 
     return {

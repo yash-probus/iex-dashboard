@@ -239,7 +239,7 @@ export default function SavingsCalculatorNewPage() {
   const [voltageLevel, setVoltageLevel] = useState('11 kV');
 
   // Margins & Fees Fields
-  const [proltMargin, setProltMargin] = useState<string>('0.05');
+  const [proltMargin, setProltMargin] = useState<string>('15');
   const [traderMargin, setTraderMargin] = useState<string>('0.02');
   const [meteringCharges, setMeteringCharges] = useState<string>('0');
   const [consultancyFee, setConsultancyFee] = useState<string>('0');
@@ -351,7 +351,7 @@ export default function SavingsCalculatorNewPage() {
     setDiscom('MSEDCL');
     setConsumerCategory('Industrial');
     setVoltageLevel('11 kV');
-    setProltMargin('0.05');
+    setProltMargin('15');
     setTraderMargin('0.02');
     setMeteringCharges('0');
     setConsultancyFee('0');
@@ -402,7 +402,9 @@ export default function SavingsCalculatorNewPage() {
     setDiscom(entry.discom || 'MSEDCL');
     setConsumerCategory(entry.consumerCategory || 'Industrial');
     setVoltageLevel(entry.voltageLevel || '11 kV');
-    setProltMargin(entry.proltMargin !== undefined && entry.proltMargin !== null ? String(entry.proltMargin) : '0.05');
+    setProltMargin(entry.proltMargin !== undefined && entry.proltMargin !== null 
+      ? (Number(entry.proltMargin) <= 1 && Number(entry.proltMargin) > 0 ? String(Number(entry.proltMargin) * 100) : String(entry.proltMargin)) 
+      : '15');
     setTraderMargin(entry.traderMargin !== undefined && entry.traderMargin !== null ? String(entry.traderMargin) : '0.02');
     setMeteringCharges(entry.meteringCharges !== undefined && entry.meteringCharges !== null ? String(entry.meteringCharges) : '0');
     setConsultancyFee(entry.consultancyFee !== undefined && entry.consultancyFee !== null ? String(entry.consultancyFee) : '0');
@@ -994,9 +996,9 @@ export default function SavingsCalculatorNewPage() {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
                 <TextField
-                  label="PROLT Margin (₹/kWh)"
+                  label="PROLT Margin (% of Savings)"
                   type="number"
-                  inputProps={{ step: 0.01 }}
+                  inputProps={{ step: 0.1 }}
                   value={proltMargin}
                   onChange={(e) => setProltMargin(e.target.value)}
                   fullWidth

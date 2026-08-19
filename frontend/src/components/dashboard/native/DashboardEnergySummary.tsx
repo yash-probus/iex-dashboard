@@ -27,8 +27,8 @@ export const DashboardEnergySummary: React.FC<DashboardEnergySummaryProps> = ({
               <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 {marketDecisionResult.todSummaries.map((summary: any, idx: number) => (
                   <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName}</Typography>
-                    <Typography variant="caption" fontWeight={700}>{summary.totalEnergyKwh.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName || summary.slotName}</Typography>
+                    <Typography variant="caption" fontWeight={700}>{Number(summary.consumptionKwh ?? summary.totalEnergyKwh ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh</Typography>
                   </Box>
                 ))}
               </Box>
@@ -44,8 +44,8 @@ export const DashboardEnergySummary: React.FC<DashboardEnergySummaryProps> = ({
               Market Sourced Energy
             </Typography>
             <Typography variant="h3" sx={{ fontWeight: 700, color: '#16A34A', mb: marketDecisionResult?.todSummaries ? 1.5 : 0 }}>
-              {(marketDecisionResult
-                ? marketDecisionResult.totalMarketEnergyKwh
+              {Number(marketDecisionResult
+                ? (marketDecisionResult.totalMarketEnergyKwh ?? marketDecisionResult.totalEnergyKwh)
                 : (calcResult?.totalMarketEnergyKwh || 0)
               ).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
             </Typography>
@@ -53,10 +53,10 @@ export const DashboardEnergySummary: React.FC<DashboardEnergySummaryProps> = ({
               <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 {marketDecisionResult.todSummaries.map((summary: any, idx: number) => (
                   <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName}</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{summary.slabName || summary.slotName}</Typography>
                     <Typography variant="caption" fontWeight={700} color="#16A34A">
-                      {summary.marketEnergyKwh.toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
-                      {summary.marketCostBase !== undefined && ` • ₹${summary.marketCostBase.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                      {Number(summary.marketEnergyKwh ?? summary.consumptionKwh ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} kWh
+                      {summary.marketCostBase !== undefined && summary.marketCostBase !== null && ` • ₹${Number(summary.marketCostBase).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
                     </Typography>
                   </Box>
                 ))}
