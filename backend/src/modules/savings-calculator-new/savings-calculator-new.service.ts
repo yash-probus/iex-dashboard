@@ -622,6 +622,10 @@ export class SavingsCalculatorNewService {
         const energyPerBlock = Math.min(maxEnergyPerSlot, slotEnergyTotal / totalActiveBlocks);
 
         let allocatedEnergy = 0;
+        let slotMarketEnergy = 0;
+        let slotMarketCost = 0;
+        let slotDiscomCost = 0;
+
         slotBlocks.forEach(sb => {
           if (allocatedEnergy < slotEnergyTotal) {
             const takeEnergy = Math.min(energyPerBlock, slotEnergyTotal - allocatedEnergy);
@@ -632,9 +636,12 @@ export class SavingsCalculatorNewService {
               sb.optimizedCost = takeEnergy * sb.comparedLowestPrice;
               totalMarketEnergyKwh += takeEnergy;
               totalLandedExchangeCost += sb.optimizedCost;
+              slotMarketEnergy += takeEnergy;
+              slotMarketCost += sb.optimizedCost;
             } else {
               sb.optimizedCost = sb.baselineCost;
               totalDiscomAfterProlt += sb.optimizedCost;
+              slotDiscomCost += sb.optimizedCost;
             }
             allocatedEnergy += takeEnergy;
           } else {
@@ -644,14 +651,26 @@ export class SavingsCalculatorNewService {
           }
         });
 
+        const slotName = customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`;
         todSummaries.push({
           month: yearMonth,
-          slotName: customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`,
+          slotName: slotName,
+          slabName: slotName,
           startTime: customSlot.startTime,
           endTime: customSlot.endTime,
           consumptionKwh: slotEnergyTotal,
+          totalEnergyKwh: slotEnergyTotal,
           effectivePrice: slotDiscomPrice,
-          baselineCost: slotDiscomBaselineCost
+          baselineCost: slotDiscomBaselineCost,
+          discomBill: slotDiscomBaselineCost,
+          marketEnergyKwh: slotMarketEnergy,
+          oaUnits: slotMarketEnergy,
+          consumerBusUnits: slotMarketEnergy,
+          discomUnits: slotEnergyTotal,
+          marketCostBase: slotMarketCost,
+          oaBill: slotMarketCost,
+          proltDiscomBill: slotDiscomCost,
+          savings: slotDiscomBaselineCost - (slotMarketCost + slotDiscomCost)
         });
       }
 
@@ -684,6 +703,16 @@ export class SavingsCalculatorNewService {
     totalOptimizedCost = baseOtherCosts + proltMarginCost;
     const totalSavings = totalBaselineCost - totalOptimizedCost;
 
+    const breakdown = todSummaries.map(t => ({
+      slabName: t.slotName || t.slabName,
+      discomUnits: t.consumptionKwh,
+      oaUnits: t.marketEnergyKwh,
+      discomBill: t.baselineCost,
+      proltDiscomBill: t.proltDiscomBill,
+      consumerBusUnits: t.marketEnergyKwh,
+      oaBill: t.marketCostBase
+    }));
+
     return {
       clientId: entry.id,
       clientName: entry.clientName,
@@ -702,7 +731,7 @@ export class SavingsCalculatorNewService {
       currentLpsc: entry.currentLpsc ? Number(entry.currentLpsc) : 0,
       discom: entry.discom,
       oaDetailed: {
-        breakdown: [],
+        breakdown,
         dailyFixedOverhead: 0,
         nldcSchedulingCost: 0,
         sldcSchedulingCost: 0,
