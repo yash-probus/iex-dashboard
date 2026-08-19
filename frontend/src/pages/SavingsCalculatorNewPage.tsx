@@ -575,6 +575,23 @@ export default function SavingsCalculatorNewPage() {
     }
   };
 
+  const handleDeleteMonth = (monthToDelete: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const remainingMonths = Object.keys(todConsumptions).filter(m => m !== monthToDelete);
+    if (remainingMonths.length === 0) {
+      setError('At least one month entry is required.');
+      return;
+    }
+    setTodConsumptions(prev => {
+      const updated = { ...prev };
+      delete updated[monthToDelete];
+      return updated;
+    });
+    if (activeMonth === monthToDelete) {
+      setActiveMonth(remainingMonths[0]);
+    }
+  };
+
   const handleSaveEntry = async () => {
     if (!clientName || !industryName || !address) {
       setError('Please fill in required fields (Client Name, Industry, Address).');
@@ -1063,6 +1080,7 @@ export default function SavingsCalculatorNewPage() {
                   label={m}
                   color={activeMonth === m ? 'primary' : 'default'}
                   onClick={() => setActiveMonth(m)}
+                  onDelete={(e) => handleDeleteMonth(m, e)}
                   sx={{ fontWeight: 600, bgcolor: activeMonth === m ? '#8B5CF6' : undefined }}
                 />
               ))}
