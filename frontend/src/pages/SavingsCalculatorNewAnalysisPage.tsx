@@ -98,7 +98,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
       const resAll = await calculateMarketDecisionNew(id, 'all');
       resultsMap['all'] = resAll;
 
-      const months = Object.keys(entryData.todConsumptions || {});
+      const months = Object.keys(entryData.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-'));
       const monthlyOverview: any[] = [];
 
       for (const m of months) {
@@ -291,7 +291,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
               >
                 <Tab label="Overall Summary" value="all" />
-                {Object.keys(calcEntry?.todConsumptions || {}).sort().map((ym) => (
+                {Object.keys(calcEntry?.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym) => (
                   <Tab
                     key={ym}
                     label={ym}
@@ -410,7 +410,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   if (!calcEntry || !marketDecisionResult) return;
                   try {
                     const totalSavings = marketDecisionResult.totalSavings || 0;
-                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).length || 1);
+                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).length || 1);
                     const avgMonthlySavings = Math.round(totalSavings / numMonths);
                     const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
                     const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
@@ -471,7 +471,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   if (!calcEntry || !marketDecisionResult) return;
                   try {
                     const totalSavings = marketDecisionResult.totalSavings || 0;
-                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).length || 1);
+                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).length || 1);
                     const avgMonthlySavings = Math.round(totalSavings / numMonths);
                     const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
                     const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
@@ -532,7 +532,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   if (!calcEntry || !marketDecisionResult) return;
                   try {
                     const totalSavings = marketDecisionResult.totalSavings || 0;
-                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).length || 1);
+                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).length || 1);
                     const avgMonthlySavings = Math.round(totalSavings / numMonths);
                     const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
                     const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
