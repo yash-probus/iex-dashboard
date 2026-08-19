@@ -1069,6 +1069,7 @@ export class ForecastService {
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'NPP' || market.toUpperCase() === 'GENERATION') {
       try {
+        const allDates = new Set<string>();
         let rows: Array<{ date_str: string }> = [];
         try {
           rows = await prisma.$queryRawUnsafe(
@@ -1078,14 +1079,26 @@ export class ForecastService {
              ORDER BY date_str DESC`
           );
         } catch (e1) {
-          rows = await prisma.$queryRawUnsafe(
-            `SELECT DISTINCT (forecast_for_timestamp::date)::text as date_str
-             FROM forecasting.generation_forecasting
-             WHERE forecast_for_timestamp IS NOT NULL
-             ORDER BY date_str DESC`
-          );
+          try {
+            rows = await prisma.$queryRawUnsafe(
+              `SELECT DISTINCT (forecast_for_timestamp::date)::text as date_str
+               FROM forecasting.generation_forecasting
+               WHERE forecast_for_timestamp IS NOT NULL
+               ORDER BY date_str DESC`
+            );
+          } catch (e2) {}
         }
-        return rows.map(r => r.date_str);
+        if (Array.isArray(rows)) {
+          rows.forEach(r => { if (r.date_str) allDates.add(r.date_str.split('T')[0]); });
+        }
+
+        const actualRecords = await prisma.nppAdjustedGenerationData.findMany({
+          select: { date: true },
+          distinct: ['date']
+        });
+        actualRecords.forEach(a => { if (a.date) allDates.add(a.date); });
+
+        return Array.from(allDates).sort((a, b) => b.localeCompare(a));
       } catch (e) {
         console.error('[ForecastService] Error fetching NPP dates:', e);
         return [];
@@ -1209,6 +1222,42 @@ export class ForecastService {
           ...item.sources
         };
       });
+
+      if (rawFormatted.length === 0 && actualRecords.length > 0) {
+        // Build intervals from actualRecords if no forecast rows found
+        actualRecords.forEach((a: any) => {
+          const totalActual = (a.thermal || 0) + (a.gas || 0) + (a.nuclear || 0) + (a.hydro || 0) + (a.wind || 0) + (a.solar || 0);
+          const timeStr = a.timeStr || '00:00';
+          const parts = timeStr.split(':');
+          const hNum = parseInt(parts[0], 10) || 0;
+          const mNum = parseInt(parts[1], 10) || 0;
+          const minutes = hNum * 60 + mNum;
+          const intervalNumber = Math.floor(minutes / 15) + 1;
+          const endMinutes = minutes + 15;
+          const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
+          const endM = String(endMinutes % 60).padStart(2, '0');
+          const hourStr = String(hNum + 1).padStart(2, '0');
+          const startH = String(hNum).padStart(2, '0');
+          const startM = String(mNum).padStart(2, '0');
+          const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+
+          rawFormatted.push({
+            date: a.date,
+            hour: hourStr,
+            timeBlock,
+            intervalNumber,
+            generation: totalActual > 0 ? Number(totalActual.toFixed(2)) : 0,
+            actualGeneration: Number(totalActual.toFixed(2)),
+            confidence: 'N/A',
+            thermal: a.thermal,
+            gas: a.gas,
+            nuclear: a.nuclear,
+            hydro: a.hydro,
+            wind: a.wind,
+            solar: a.solar
+          });
+        });
+      }
 
       if (rawFormatted.length > 0) {
         intervals.push(...this.aggregateGenerationIntervals(rawFormatted, interval));
