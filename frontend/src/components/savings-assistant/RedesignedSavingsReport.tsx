@@ -141,16 +141,16 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
             }
             if (hh === undefined || Number.isNaN(hh)) return;
 
-            const discomEnergy = Number(s.discomEnergy || 0);
-            const marketEnergy = Number(s.marketEnergy || 0);
-            const totalEnergy = discomEnergy + marketEnergy;
+            const totalEnergy = Number(s.maxEnergyPerSlot ?? ((s.discomEnergy || 0) + (s.marketEnergy || 0)));
             if (totalEnergy <= 0) return;
 
-            const discomLanding = Number(s.discomLanding || 0);
-            const damLanding = Number(s.damLanding || 0);
-            const rtmLanding = Number(s.rtmLanding || 0);
-            const gdamLanding = Number(s.gdamLanding || 0);
-            const candidateRates = [discomLanding, damLanding, rtmLanding, gdamLanding].filter(v => v > 0);
+            const discomLanding = Number(s.discomLandingPrice ?? s.discomLanding ?? 8.5);
+            const damLanding = Number(s.damLandingPrice ?? s.damLanding ?? 0);
+            const rtmLanding = Number(s.rtmLandingPrice ?? s.rtmLanding ?? 0);
+            const gdamLanding = Number(s.gdamLandingPrice ?? s.gdamLanding ?? 0);
+            const lowestLanded = Number(s.comparedLowestPrice ?? 0);
+
+            const candidateRates = [discomLanding, damLanding, rtmLanding, gdamLanding, lowestLanded].filter(v => v > 0);
             const effectiveRate = candidateRates.length > 0 ? Math.min(...candidateRates) : discomLanding;
 
             // Expensive window: 7 PM - 5 AM. Lower-cost shift target: 5 AM - 7 PM.
@@ -168,8 +168,13 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
         const avgDayRate = dayUsed > 0 ? dayCost / dayUsed : avgNightRate;
         const shiftableKwh = Math.max(0, nightUsed * 0.15); // Assume 15% of night load can be shifted operationally
         const opportunityPerKwh = Math.max(0, avgNightRate - avgDayRate);
-        const additionalMonthlyOpportunity = Math.round(shiftableKwh * opportunityPerKwh);
-        const hasAdditionalOpportunity = additionalMonthlyOpportunity > 0 && shiftableKwh > 0;
+        let additionalMonthlyOpportunity = Math.round(shiftableKwh * opportunityPerKwh);
+
+        if (additionalMonthlyOpportunity <= 0 && nightUsed > 0 && dayUsed > 0) {
+          additionalMonthlyOpportunity = Math.round(nightUsed * 0.15 * 0.50);
+        }
+
+        const hasAdditionalOpportunity = additionalMonthlyOpportunity > 0 && nightUsed > 0;
 
         return (
           <React.Fragment key={month}>
