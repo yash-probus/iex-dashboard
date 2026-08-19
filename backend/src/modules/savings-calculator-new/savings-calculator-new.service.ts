@@ -403,7 +403,7 @@ export class SavingsCalculatorNewService {
   }
 
   // Calculate Market Decision for custom TOD slots
-  static async calculateMarketDecision(id: string, targetMonth?: string, version?: number) {
+  static async calculateMarketDecision(id: string, targetMonth?: string, version?: number, useShiftedProfile: boolean = false) {
     const entry = await this.getEntryOrVersion(id, version);
     if (!entry) throw new Error('Entry not found');
 
@@ -714,6 +714,53 @@ export class SavingsCalculatorNewService {
         aggregatedTotals.stuCharge += slotMarketEnergy * stuCharge;
         aggregatedTotals.dcCharge += slotMarketEnergy * wheelingCharge;
         aggregatedTotals.iexFee += slotMarketEnergy * 0.02;
+      }
+
+      if (useShiftedProfile) {
+        // Shift energy from high-cost DISCOM slots to lower-cost market slots
+        const cheapMarketBlocks = monthlySlots.filter(s => s.selectedSource !== 'DISCOM' && s.comparedLowestPrice > 0);
+        const expensiveDiscomBlocks = monthlySlots.filter(s => s.selectedSource === 'DISCOM' && s.maxEnergyPerSlot > 0);
+
+        if (cheapMarketBlocks.length > 0 && expensiveDiscomBlocks.length > 0) {
+          cheapMarketBlocks.sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
+          expensiveDiscomBlocks.sort((a, b) => b.discomLandingPrice - a.discomLandingPrice);
+
+          for (const expBlock of expensiveDiscomBlocks) {
+            if (expBlock.discomEnergy <= 0) continue;
+            
+            for (const cheapBlock of cheapMarketBlocks) {
+              const currentHeadroom = maxEnergyPerSlot - cheapBlock.maxEnergyPerSlot;
+              if (currentHeadroom <= 0) continue;
+
+              const shiftAmount = Math.min(expBlock.discomEnergy, currentHeadroom, expBlock.maxEnergyPerSlot * 0.3);
+              if (shiftAmount <= 0) continue;
+
+              expBlock.discomEnergy -= shiftAmount;
+              expBlock.maxEnergyPerSlot -= shiftAmount;
+              expBlock.baselineCost = expBlock.maxEnergyPerSlot * expBlock.discomLandingPrice;
+              expBlock.optimizedCost = expBlock.baselineCost;
+
+              cheapBlock.marketEnergy += shiftAmount;
+              cheapBlock.maxEnergyPerSlot += shiftAmount;
+              cheapBlock.optimizedCost = cheapBlock.maxEnergyPerSlot * cheapBlock.comparedLowestPrice;
+
+              if (expBlock.discomEnergy <= 0) break;
+            }
+          }
+
+          // Re-aggregate monthly totals after shift
+          totalMarketEnergyKwh = 0;
+          totalLandedExchangeCost = 0;
+          totalDiscomAfterProlt = 0;
+          monthlySlots.forEach(sb => {
+            if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
+              totalMarketEnergyKwh += sb.marketEnergy;
+              totalLandedExchangeCost += sb.optimizedCost;
+            } else {
+              totalDiscomAfterProlt += sb.optimizedCost;
+            }
+          });
+        }
       }
 
       slotsData.push(...monthlySlots);

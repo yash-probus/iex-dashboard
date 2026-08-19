@@ -12,7 +12,7 @@ export class SavingsCalculatorNewExportService {
       const allResults = [];
       
       for (const m of months) {
-        const result = await SavingsCalculatorNewService.calculateMarketDecision(id, m, version);
+        const result = await SavingsCalculatorNewService.calculateMarketDecision(id, m, version, false);
         allResults.push({ monthStr: m, result });
       }
       
@@ -30,7 +30,7 @@ export class SavingsCalculatorNewExportService {
       }
     } else {
       const entry = await SavingsCalculatorNewService.getEntryOrVersion(id, version);
-      const result = await SavingsCalculatorNewService.calculateMarketDecision(id, monthStr, version);
+      const result = await SavingsCalculatorNewService.calculateMarketDecision(id, monthStr, version, false);
       const sheetName = monthStr;
       await (SavingsCalculatorExportService as any).addSavingsSheet(workbook, sheetName, result, entry, monthStr);
     }
@@ -48,7 +48,7 @@ export class SavingsCalculatorNewExportService {
       const allResults = [];
       
       for (const m of months) {
-        const result = await SavingsCalculatorNewService.calculateMarketDecision(id, m, version);
+        const result = await SavingsCalculatorNewService.calculateMarketDecision(id, m, version, true);
         allResults.push({ monthStr: m, result });
       }
       
@@ -66,7 +66,7 @@ export class SavingsCalculatorNewExportService {
       }
     } else {
       const entry = await SavingsCalculatorNewService.getEntryOrVersion(id, version);
-      const result = await SavingsCalculatorNewService.calculateMarketDecision(id, monthStr, version);
+      const result = await SavingsCalculatorNewService.calculateMarketDecision(id, monthStr, version, true);
       const sheetName = `${monthStr}-Shift`;
       await (SavingsCalculatorExportService as any).addSavingsSheet(workbook, sheetName, result, entry, monthStr);
     }
