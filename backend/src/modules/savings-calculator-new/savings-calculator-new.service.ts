@@ -456,6 +456,8 @@ export class SavingsCalculatorNewService {
 
     const slotsData: any[] = [];
     const todSummaries: any[] = [];
+    let monthlyDbFppaSum = 0;
+    let monthlyDbFppaCount = 0;
 
     for (const [yearMonth, monthData] of monthsToProcess) {
       const customSlots = this.parseCustomTodSlots(monthData);
@@ -504,6 +506,8 @@ export class SavingsCalculatorNewService {
         fppaData = fppaDataList.find(f => !f.discom || f.discom === '');
       }
       const dbFppaPercent = fppaData?.fppaChargePercent ? Number(fppaData.fppaChargePercent) : 0;
+      monthlyDbFppaSum += dbFppaPercent;
+      monthlyDbFppaCount++;
 
       const istsCharges = await prisma.istsCharges.findMany({
         where: {
@@ -839,9 +843,12 @@ export class SavingsCalculatorNewService {
           : (meta.electricityDutyPercent !== undefined ? Number(meta.electricityDutyPercent) : 5))
       : 0;
 
-    const fppaPercent = (entry as any).fppaChargePercent !== undefined && (entry as any).fppaChargePercent !== null 
-      ? Number((entry as any).fppaChargePercent) 
-      : (meta.fppaChargePercent !== undefined ? Number(meta.fppaChargePercent) : 10);
+    // FPPA % is brought directly from backend FppaCharges database table for the state/discom/months
+    const fppaPercent = monthlyDbFppaCount > 0 
+      ? (monthlyDbFppaSum / monthlyDbFppaCount)
+      : ((entry as any).fppaChargePercent !== undefined && (entry as any).fppaChargePercent !== null && Number((entry as any).fppaChargePercent) > 0
+          ? Number((entry as any).fppaChargePercent)
+          : (meta.fppaChargePercent !== undefined && Number(meta.fppaChargePercent) > 0 ? Number(meta.fppaChargePercent) : 0));
 
     const demandChargeKwRate = (entry as any).demandChargeKwRate !== undefined && (entry as any).demandChargeKwRate !== null 
       ? Number((entry as any).demandChargeKwRate) 
