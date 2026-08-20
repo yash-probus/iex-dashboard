@@ -1050,7 +1050,7 @@ export default function SavingsCalculatorNewPage() {
             </Box>
 
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   label="Electricity Duty (%)"
                   type="number"
@@ -1061,18 +1061,7 @@ export default function SavingsCalculatorNewPage() {
                   size="small"
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="FPPA Surcharge (%)"
-                  type="number"
-                  inputProps={{ step: 0.1 }}
-                  value={fppaChargePercent}
-                  onChange={(e) => setFppaChargePercent(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   label="Demand Charge Rate (₹/kW/month)"
                   type="number"
