@@ -326,7 +326,7 @@ export default function SavingsCalculatorNewPage() {
   }, []);
 
   const categoryOptions = useMemo(() => {
-    const set = new Set<string>(CATEGORY_OPTIONS);
+    const set = new Set<string>();
     apiTariffs.forEach((row: any) => {
       const matchState = !stateCode ||
         row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
@@ -340,8 +340,19 @@ export default function SavingsCalculatorNewPage() {
         }
       }
     });
+
+    if (set.size === 0) {
+      CATEGORY_OPTIONS.forEach(cat => set.add(cat));
+    }
+
     return Array.from(set);
   }, [apiTariffs, stateCode]);
+
+  useEffect(() => {
+    if (categoryOptions.length > 0 && !categoryOptions.includes(consumerCategory)) {
+      setConsumerCategory(categoryOptions[0]);
+    }
+  }, [categoryOptions]);
 
   const stateOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -450,7 +461,7 @@ export default function SavingsCalculatorNewPage() {
     setSanctionedLoadKva('1111.11');
     setStateCode('UP');
     setDiscom('MVVNL');
-    setConsumerCategory('Industrial');
+    setConsumerCategory(categoryOptions[0] || 'HV-2 | Urban Schedule (Large & Heavy Power)');
     setVoltageLevel('11 kV');
     setProltMargin('15');
     setTraderMargin('0.02');
