@@ -6,9 +6,9 @@ interface DashboardEnergySummaryProps {
   marketDecisionResult: any;
 }
 
-export const DashboardEnergySummary: React.FC<DashboardEnergySummaryProps> = ({ 
-  calcResult, 
-  marketDecisionResult 
+export const DashboardEnergySummary: React.FC<DashboardEnergySummaryProps> = ({
+  calcResult,
+  marketDecisionResult
 }) => {
   if (!calcResult && !marketDecisionResult) return null;
 
