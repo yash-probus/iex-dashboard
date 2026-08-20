@@ -41,78 +41,60 @@ export class ProposalService {
         throw new Error(`Template file not found at ${templatePath}`);
       }
 
-      // Try Node.js PizZip template replacement (pure Node, zero python dependency)
+      // Primary: Try Python script (python-docx cleanly replaces cell text, calculates totals, and strips all yellow highlights)
       try {
-        const zip = new PizZip(fs.readFileSync(templatePath, 'binary'));
-        let xml = zip.file('word/document.xml')?.asText() || '';
-
-        // 1. Title Paragraph P2
-        const clientName = (clientData.client_name || clientData.industry_name || clientData.clientName || 'CLIENT').toUpperCase();
-        xml = xml.replace(/XXXXXXXXXXXXX/g, clientName);
-
-        // 2. Table 0 Cells
-        const tableSplit = xml.split(/<w:tbl\b[^>]*>/);
-        if (tableSplit.length > 1) {
-          let t0Xml = tableSplit[1].split('</w:tbl>')[0];
-          let t0Rows = t0Xml.split('</w:tr>');
-          if (t0Rows.length > 1) {
-            let r1Cells = t0Rows[1].split('</w:tc>');
-            if (r1Cells.length >= 4) {
-              const loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '1000 kW');
-              const connVal = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '11 kV');
-              const discomVal = String(clientData.discom_name || clientData.discom || 'DISCOM');
-              const feederVal = String(clientData.feeder_type || 'Dedicated Feeder');
-
-              r1Cells[0] = r1Cells[0].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${loadVal}</w:t>`);
-              r1Cells[1] = r1Cells[1].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${connVal}</w:t>`);
-              r1Cells[2] = r1Cells[2].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${discomVal}</w:t>`);
-              r1Cells[3] = r1Cells[3].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${feederVal}</w:t>`);
-              t0Rows[1] = r1Cells.join('</w:tc>');
-            }
-            t0Xml = t0Rows.join('</w:tr>');
-          }
-          tableSplit[1] = t0Xml + '</w:tbl>' + tableSplit[1].split('</w:tbl>').slice(1).join('</w:tbl>');
-          xml = tableSplit.join('<w:tbl>');
-        }
-
-        // 3. Financial Prices Replacement (Table 2, 3, 4)
-        const c_supply = Number(clientData.abt_supply_cost) || 450000;
-        const c_service = Number(clientData.abt_service_cost) || 350000;
-        const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
-        const c_total = c_supply + c_service + c_liaison;
-        const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
-
-        xml = xml.replace('₹450,000.00', formatRupee(c_supply));
-        xml = xml.replace('₹350,000.00', formatRupee(c_service));
-        xml = xml.replace('₹300,000.00', formatRupee(c_liaison));
-        xml = xml.replace('₹11,00,000.00', formatRupee(c_total));
-        xml = xml.replace('1,50,000.00', formatRupee(c_bg).replace('₹', ''));
-        xml = xml.replace('₹1,50,000.00', formatRupee(c_bg));
-
-        // Table 3
-        xml = xml.replace('₹1,00,000.00', formatRupee(Number(clientData.iex_annual_fee) || 100000));
-        xml = xml.replace('₹7,000.00', formatRupee(Number(clientData.sldc_monthly_noc) || 7000));
-        xml = xml.replace('20,000.00', formatRupee(Number(clientData.st11_settlement) || 20000).replace('₹', ''));
-
-        // Table 4
-        if (clientData.trading_margin) xml = xml.replace('2p/kWh', clientData.trading_margin);
-        if (clientData.value_share) xml = xml.replace('15%', clientData.value_share);
-        if (clientData.smart_metering_infra) xml = xml.replace('₹1,25,000.00', formatRupee(Number(clientData.smart_metering_infra) || 125000));
-
-        zip.file('word/document.xml', xml);
-        return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
-      } catch (nodeErr) {
-        console.warn('Node PizZip generation failed, falling back to Python:', nodeErr);
-        // Fallback to Python if available
         const scriptPath = path.join(__dirname, '../../../scripts/generate_commercial_proposal.py');
         const tmpDir = os.tmpdir();
         const tmpOutputPath = path.join(tmpDir, `commercial_proposal_${Date.now()}.docx`);
         const payload = { ...clientData, template_path: templatePath, output_path: tmpOutputPath };
         execFileSync('python3', [scriptPath, JSON.stringify(payload)], { encoding: 'utf-8' });
-        const buf = fs.readFileSync(tmpOutputPath);
-        try { fs.unlinkSync(tmpOutputPath); } catch (e) {}
-        return buf;
+        
+        if (fs.existsSync(tmpOutputPath)) {
+          const buf = fs.readFileSync(tmpOutputPath);
+          try { fs.unlinkSync(tmpOutputPath); } catch (e) {}
+          return buf;
+        }
+      } catch (pythonErr: any) {
+        console.warn('Python script execution failed, falling back to Node PizZip:', pythonErr.stderr || pythonErr.message);
       }
+
+      // Fallback: Pure Node.js PizZip template replacement
+      const zip = new PizZip(fs.readFileSync(templatePath, 'binary'));
+      let xml = zip.file('word/document.xml')?.asText() || '';
+
+      // 1. Remove all yellow highlights
+      xml = xml.replace(/<w:highlight [^/>]*\/>/g, '');
+
+      // 2. Title Paragraph P2
+      const clientName = (clientData.client_name || clientData.industry_name || clientData.clientName || 'CLIENT').toUpperCase();
+      xml = xml.replace(/XXXXXXXXXXXXX/g, clientName);
+
+      // 3. Financial Prices Replacement (Table 2, 3, 4)
+      const c_supply = Number(clientData.abt_supply_cost) || 450000;
+      const c_service = Number(clientData.abt_service_cost) || 350000;
+      const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
+      const c_total = c_supply + c_service + c_liaison;
+      const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
+
+      xml = xml.replace('₹450,000.00', formatRupee(c_supply));
+      xml = xml.replace('₹350,000.00', formatRupee(c_service));
+      xml = xml.replace('₹300,000.00', formatRupee(c_liaison));
+      xml = xml.replace('₹11,00,000.00', formatRupee(c_total));
+      xml = xml.replace('1,50,000.00', formatRupee(c_bg).replace('₹', ''));
+      xml = xml.replace('₹1,50,000.00', formatRupee(c_bg));
+
+      // Table 3
+      xml = xml.replace('₹1,00,000.00', formatRupee(Number(clientData.iex_annual_fee) || 100000));
+      xml = xml.replace('₹7,000.00', formatRupee(Number(clientData.sldc_monthly_noc) || 7000));
+      xml = xml.replace('20,000.00', formatRupee(Number(clientData.st11_settlement) || 20000).replace('₹', ''));
+
+      // Table 4
+      if (clientData.trading_margin) xml = xml.replace('2p/kWh', clientData.trading_margin);
+      if (clientData.value_share) xml = xml.replace('15%', clientData.value_share);
+      if (clientData.smart_metering_infra) xml = xml.replace('₹1,25,000.00', formatRupee(Number(clientData.smart_metering_infra) || 125000));
+
+      zip.file('word/document.xml', xml);
+      return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
     }
 
     let templateFilename = 'proposal_template.docx';

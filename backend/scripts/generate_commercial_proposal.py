@@ -99,6 +99,23 @@ def generate_proposal(data_json):
     if os.path.dirname(output_path):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
     doc.save(output_path)
+
+    # Strip all yellow highlights from document.xml so output is clean
+    import zipfile
+    import re
+    try:
+        with zipfile.ZipFile(output_path, 'r') as zin:
+            files = {name: zin.read(name) for name in zin.namelist()}
+        if 'word/document.xml' in files:
+            xml_str = files['word/document.xml'].decode('utf-8')
+            clean_xml = re.sub(r'<w:highlight [^/>]*/>', '', xml_str)
+            files['word/document.xml'] = clean_xml.encode('utf-8')
+            with zipfile.ZipFile(output_path, 'w') as zout:
+                for name, content in files.items():
+                    zout.writestr(name, content)
+    except Exception as e:
+        print(f"Warning: Could not strip highlights: {e}")
+
     print(f"Successfully generated commercial proposal at {output_path}")
 
 if __name__ == '__main__':
