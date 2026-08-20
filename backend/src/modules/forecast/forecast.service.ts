@@ -1,6 +1,7 @@
 import prisma from '../../config/prisma';
 import { VidyutPravahScraper } from '../../services/scraper.service';
 import { NppAdjustmentService } from '../dataset/npp-adjustment.service';
+import { StarrocksService } from '../../services/starrocks.service';
 
 
 export interface ForecastIntervalData {
@@ -729,7 +730,7 @@ export class ForecastService {
         let formatted: DemandForecastIntervalData[] = [];
 
         try {
-          const [records, actualRecords] = await Promise.all([
+          const [records, actualMap] = await Promise.all([
             prisma.$queryRawUnsafe(
               `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy
                FROM "forecasting"."consumer_demand_forecasting"
@@ -737,17 +738,8 @@ export class ForecastService {
                ORDER BY timestamp ASC, slot_number ASC`,
               dates
             ) as Promise<any[]>,
-            prisma.nppAdjustedDemandData.findMany({
-              where: { date: { in: dates } }
-            }).then(res => res.length > 0 ? res : prisma.nppRawDemandData.findMany({ where: { date: { in: dates } } }))
+            StarrocksService.getConsumerActualDemandMap(dates)
           ]);
-
-          const actualMap = new Map<string, number>();
-          actualRecords.forEach((a: any) => {
-            const tStr = a.timeStr ? (a.timeStr.includes(' ') ? a.timeStr.split(' ')[0] : a.timeStr) : '';
-            if (tStr) actualMap.set(`${a.date}_${tStr}`, Number(a.demandMet));
-            if (a.timeStr) actualMap.set(`${a.date}_${a.timeStr}`, Number(a.demandMet));
-          });
 
           formatted = records.map((r: any) => {
             const dateStr = r.date_str || (
