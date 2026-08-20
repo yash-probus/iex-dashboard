@@ -68,19 +68,19 @@ def generate_proposal(data_json):
         c_bg = float(data.get('bank_guarantee_cost', 150000))
         c_total = c_supply + c_service + c_liaison
         
-        if len(t2.rows) > 2: set_cell_value(t2.rows[2].cells[4], format_rupee(c_supply))
-        if len(t2.rows) > 3: set_cell_value(t2.rows[3].cells[4], format_rupee(c_service))
-        if len(t2.rows) > 4: set_cell_value(t2.rows[4].cells[4], format_rupee(c_liaison))
-        if len(t2.rows) > 5: set_cell_value(t2.rows[5].cells[4], format_rupee(c_liaison))
-        if len(t2.rows) > 6: set_cell_value(t2.rows[6].cells[4], format_rupee(c_total), bold=True)
-        if len(t2.rows) > 8: set_cell_value(t2.rows[8].cells[4], format_rupee(c_bg))
+        if len(t2.rows) > 2: set_cell_value(t2.rows[2].cells[-1], format_rupee(c_supply))
+        if len(t2.rows) > 3: set_cell_value(t2.rows[3].cells[-1], format_rupee(c_service))
+        if len(t2.rows) > 4: set_cell_value(t2.rows[4].cells[-1], format_rupee(c_liaison))
+        if len(t2.rows) > 5: set_cell_value(t2.rows[5].cells[-1], format_rupee(c_liaison))
+        if len(t2.rows) > 6: set_cell_value(t2.rows[6].cells[-1], format_rupee(c_total), bold=True)
+        if len(t2.rows) > 8: set_cell_value(t2.rows[8].cells[-1], format_rupee(c_bg))
 
     # 4. Update Table 3 (Fixed Recurring Charges)
     if len(doc.tables) > 3:
         t3 = doc.tables[3]
-        if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[4], format_rupee(data.get('iex_annual_fee', 100000)))
-        if len(t3.rows) > 2: set_cell_value(t3.rows[2].cells[4], format_rupee(data.get('sldc_monthly_noc', 7000)))
-        if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[4], format_rupee(data.get('st11_settlement', 20000)))
+        if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(data.get('iex_annual_fee', 100000)))
+        if len(t3.rows) > 2: set_cell_value(t3.rows[2].cells[-1], format_rupee(data.get('sldc_monthly_noc', 7000)))
+        if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[-1], format_rupee(data.get('st11_settlement', 20000)))
 
     # 5. Update Table 4 (Probus Fees)
     if len(doc.tables) > 4:
@@ -91,10 +91,10 @@ def generate_proposal(data_json):
         if not vs.endswith('%'): vs += '%'
         smart = float(data.get('smart_metering_infra', 125000))
         
-        if len(t4.rows) > 1: set_cell_value(t4.rows[1].cells[4], tm)
-        if len(t4.rows) > 2: set_cell_value(t4.rows[2].cells[4], pf)
-        if len(t4.rows) > 3: set_cell_value(t4.rows[3].cells[4], vs)
-        if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[4], format_rupee(smart))
+        if len(t4.rows) > 1: set_cell_value(t4.rows[1].cells[-1], tm)
+        if len(t4.rows) > 2: set_cell_value(t4.rows[2].cells[-1], pf)
+        if len(t4.rows) > 3: set_cell_value(t4.rows[3].cells[-1], vs)
+        if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[-1], format_rupee(smart))
 
     if os.path.dirname(output_path):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)

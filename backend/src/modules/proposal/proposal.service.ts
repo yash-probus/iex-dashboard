@@ -59,39 +59,84 @@ export class ProposalService {
       }
 
       // Fallback: Pure Node.js PizZip template replacement
+      function setLastCellText(rowXml: string, newText: string, isBold?: boolean) {
+        let cells = rowXml.split('</w:tc>');
+        if (cells.length > 1) {
+          const lastIdx = cells.length - 2;
+          const boldXml = isBold ? '<w:b/><w:bCs/>' : '';
+          const cellContent = `<w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${newText}</w:t></w:r>`;
+          cells[lastIdx] = cells[lastIdx].replace(/<w:p\b[^>]*>[\s\S]*<\/w:p>/, `<w:p>${cellContent}</w:p>`);
+        }
+        return cells.join('</w:tc>');
+      }
+
       const zip = new PizZip(fs.readFileSync(templatePath, 'binary'));
       let xml = zip.file('word/document.xml')?.asText() || '';
 
-      // 1. Remove all yellow highlights
+      // 1. Remove all yellow highlights in entire XML
       xml = xml.replace(/<w:highlight [^/>]*\/>/g, '');
 
       // 2. Title Paragraph P2
       const clientName = (clientData.client_name || clientData.industry_name || clientData.clientName || 'CLIENT').toUpperCase();
       xml = xml.replace(/XXXXXXXXXXXXX/g, clientName);
 
-      // 3. Financial Prices Replacement (Table 2, 3, 4)
-      const c_supply = Number(clientData.abt_supply_cost) || 450000;
-      const c_service = Number(clientData.abt_service_cost) || 350000;
-      const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
-      const c_total = c_supply + c_service + c_liaison;
-      const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
+      // 3. Process Tables
+      const tblRegex = /<w:tbl\b[\s\S]*?<\/w:tbl>/g;
+      let tableIndex = 0;
+      xml = xml.replace(tblRegex, (match) => {
+        const currentIdx = tableIndex++;
+        let rows = match.split('</w:tr>');
 
-      xml = xml.replace('₹450,000.00', formatRupee(c_supply));
-      xml = xml.replace('₹350,000.00', formatRupee(c_service));
-      xml = xml.replace('₹300,000.00', formatRupee(c_liaison));
-      xml = xml.replace('₹11,00,000.00', formatRupee(c_total));
-      xml = xml.replace('1,50,000.00', formatRupee(c_bg).replace('₹', ''));
-      xml = xml.replace('₹1,50,000.00', formatRupee(c_bg));
+        if (currentIdx === 0) {
+          if (rows.length > 1) {
+            let cells = rows[1].split('</w:tc>');
+            if (cells.length >= 4) {
+              const loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '1000 kW');
+              const connVal = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '11 kV');
+              const discomVal = String(clientData.discom_name || clientData.discom || 'DISCOM');
+              const feederVal = String(clientData.feeder_type || 'Dedicated Feeder');
 
-      // Table 3
-      xml = xml.replace('₹1,00,000.00', formatRupee(Number(clientData.iex_annual_fee) || 100000));
-      xml = xml.replace('₹7,000.00', formatRupee(Number(clientData.sldc_monthly_noc) || 7000));
-      xml = xml.replace('20,000.00', formatRupee(Number(clientData.st11_settlement) || 20000).replace('₹', ''));
+              cells[0] = cells[0].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${loadVal}</w:t>`);
+              cells[1] = cells[1].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${connVal}</w:t>`);
+              cells[2] = cells[2].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${discomVal}</w:t>`);
+              cells[3] = cells[3].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${feederVal}</w:t>`);
+              rows[1] = cells.join('</w:tc>');
+            }
+          }
+        } else if (currentIdx === 2) {
+          // Table 2 (Fixed One-Time Cost)
+          const c_supply = Number(clientData.abt_supply_cost) || 450000;
+          const c_service = Number(clientData.abt_service_cost) || 350000;
+          const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
+          const c_total = c_supply + c_service + c_liaison;
+          const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
 
-      // Table 4
-      if (clientData.trading_margin) xml = xml.replace('2p/kWh', clientData.trading_margin);
-      if (clientData.value_share) xml = xml.replace('15%', clientData.value_share);
-      if (clientData.smart_metering_infra) xml = xml.replace('₹1,25,000.00', formatRupee(Number(clientData.smart_metering_infra) || 125000));
+          if (rows[2]) rows[2] = setLastCellText(rows[2], formatRupee(c_supply), false);
+          if (rows[3]) rows[3] = setLastCellText(rows[3], formatRupee(c_service), false);
+          if (rows[4]) rows[4] = setLastCellText(rows[4], formatRupee(c_liaison), false);
+          if (rows[5]) rows[5] = setLastCellText(rows[5], formatRupee(c_liaison), false);
+          if (rows[6]) rows[6] = setLastCellText(rows[6], formatRupee(c_total), true); // TOTAL CELL!
+          if (rows[8]) rows[8] = setLastCellText(rows[8], formatRupee(c_bg), false);
+        } else if (currentIdx === 3) {
+          // Table 3 (Fixed Recurring Charges)
+          if (rows[1]) rows[1] = setLastCellText(rows[1], formatRupee(Number(clientData.iex_annual_fee) || 100000), false);
+          if (rows[2]) rows[2] = setLastCellText(rows[2], formatRupee(Number(clientData.sldc_monthly_noc) || 7000), false);
+          if (rows[3]) rows[3] = setLastCellText(rows[3], formatRupee(Number(clientData.st11_settlement) || 20000), false);
+        } else if (currentIdx === 4) {
+          // Table 4 (Probus Fees)
+          const tm = String(clientData.trading_margin || '2p/kWh');
+          const pf = String(clientData.platform_fee || '2p/kWh');
+          const vs = String(clientData.value_share || '15%');
+          const smart = Number(clientData.smart_metering_infra) || 125000;
+
+          if (rows[1]) rows[1] = setLastCellText(rows[1], tm, false);
+          if (rows[2]) rows[2] = setLastCellText(rows[2], pf, false);
+          if (rows[3]) rows[3] = setLastCellText(rows[3], vs, false);
+          if (rows[4]) rows[4] = setLastCellText(rows[4], formatRupee(smart), false);
+        }
+
+        return rows.join('</w:tr>');
+      });
 
       zip.file('word/document.xml', xml);
       return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
