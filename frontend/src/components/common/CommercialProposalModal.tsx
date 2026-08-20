@@ -31,10 +31,7 @@ export interface CommercialProposalModalProps {
 
 const FEEDER_OPTIONS = [
   'Dedicated Feeder',
-  'Express Feeder',
-  'Urban Feeder',
-  'Rural Feeder',
-  'Industrial Feeder'
+  'Mixed Feeder'
 ];
 
 export default function CommercialProposalModal({
