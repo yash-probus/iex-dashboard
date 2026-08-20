@@ -280,8 +280,8 @@ export default function SavingsCalculatorNewPage() {
   const [address, setAddress] = useState('');
   const [sanctionedLoadKw, setSanctionedLoadKw] = useState('');
   const [sanctionedLoadKva, setSanctionedLoadKva] = useState('');
-  const [stateCode, setStateCode] = useState('MH');
-  const [discom, setDiscom] = useState('MSEDCL');
+  const [stateCode, setStateCode] = useState('UP');
+  const [discom, setDiscom] = useState('MVVNL');
   const [consumerCategory, setConsumerCategory] = useState('Industrial');
   const [voltageLevel, setVoltageLevel] = useState('11 kV');
 
@@ -448,8 +448,8 @@ export default function SavingsCalculatorNewPage() {
     setAddress('');
     setSanctionedLoadKw('1000');
     setSanctionedLoadKva('1111.11');
-    setStateCode('MH');
-    setDiscom('MSEDCL');
+    setStateCode('UP');
+    setDiscom('MVVNL');
     setConsumerCategory('Industrial');
     setVoltageLevel('11 kV');
     setProltMargin('15');
