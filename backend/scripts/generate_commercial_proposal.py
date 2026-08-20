@@ -2,6 +2,7 @@ import sys
 import json
 import os
 import docx
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 def format_rupee(val):
     if val is None or val == '':
