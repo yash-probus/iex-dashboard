@@ -798,6 +798,8 @@ export default function SavingsCalculatorNewPage() {
       }
 
       setDialogOpen(false);
+      setTodDialogOpen(false);
+      setProltDialogOpen(false);
       loadEntries();
     } catch (err: any) {
       console.error('Save failed:', err);
