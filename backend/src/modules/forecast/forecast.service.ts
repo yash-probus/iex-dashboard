@@ -26,7 +26,7 @@ export interface DemandForecastIntervalData {
   hour: string;
   timeBlock: string;
   intervalNumber: number;
-  demand: number | null; // in MW or kW
+  demand: number; // in MW or kW
   actualDemand?: number | null;
   frequency?: number; // in Hz
 }
@@ -668,7 +668,7 @@ export class ForecastService {
             const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
             const intervalNumber = Math.floor(minutes / 15) + 1;
 
-            const forecastedVal = (r.forecast_demand !== null && r.forecast_demand !== undefined && Number(r.forecast_demand) > 0) ? Number(r.forecast_demand) : null;
+            const forecastedVal = r.forecast_demand !== null ? Number(r.forecast_demand) : 0;
             const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${intervalNumber}`) ?? actualMap.get(`${dates[0]}_${hourStr}`) ?? actualMap.get(`${dates[0]}_${intervalNumber}`) ?? null;
 
             return {
@@ -827,7 +827,6 @@ export class ForecastService {
 
     // Analytics computation
     let sumDemand = 0;
-    let demandCount = 0;
     let maxDemand = -Infinity;
     let minDemand = Infinity;
 
@@ -841,27 +840,24 @@ export class ForecastService {
       const dem = row.demand;
       const actual = row.actualDemand !== null && row.actualDemand !== undefined ? Number(row.actualDemand) : null;
       
-      if (dem !== null && dem !== undefined) {
-        sumDemand += dem;
-        demandCount++;
-        if (dem > maxDemand) maxDemand = dem;
-        if (dem < minDemand) minDemand = dem;
+      sumDemand += dem;
+      if (dem > maxDemand) maxDemand = dem;
+      if (dem < minDemand) minDemand = dem;
 
-        if (actual !== null) {
-          sumActualDemand += actual;
-          actualCount++;
-          const absErr = Math.abs(actual - dem);
-          sumAbsoluteError += absErr;
-          
-          if (actual > 0) {
-            sumPercentageError += (absErr / actual);
-            errorCount++;
-          }
+      if (actual !== null) {
+        sumActualDemand += actual;
+        actualCount++;
+        const absErr = Math.abs(actual - dem);
+        sumAbsoluteError += absErr;
+        
+        if (actual > 0) {
+          sumPercentageError += (absErr / actual);
+          errorCount++;
         }
       }
     }
 
-    const averageDemand = demandCount > 0 ? sumDemand / demandCount : null;
+    const averageDemand = intervals.length > 0 ? sumDemand / intervals.length : 0;
     const mae = actualCount > 0 ? sumAbsoluteError / actualCount : null;
     const mape = errorCount > 0 ? (sumPercentageError / errorCount) * 100 : null;
     const wmape = sumActualDemand > 0 ? (sumAbsoluteError / sumActualDemand) * 100 : null;
@@ -869,10 +865,10 @@ export class ForecastService {
     return {
       intervals,
       analytics: {
-        averageDemand: averageDemand !== null ? Math.round(averageDemand) : 'N/A',
-        maxDemand: maxDemand === -Infinity ? 'N/A' : maxDemand,
-        minDemand: minDemand === Infinity ? 'N/A' : minDemand,
-        totalEnergyKwh: demandCount > 0 ? Math.round(sumDemand * 0.25) : 'N/A',
+        averageDemand: Math.round(averageDemand),
+        maxDemand: maxDemand === -Infinity ? 0 : maxDemand,
+        minDemand: minDemand === Infinity ? 0 : minDemand,
+        totalEnergyKwh: Math.round(sumDemand * 0.25), // assuming 15min intervals for total energy integration
         mape: mape !== null ? `${mape.toFixed(2)}%` : 'N/A',
         mae: mae !== null ? parseFloat(mae.toFixed(2)) : 'N/A',
         wmape: wmape !== null ? `${wmape.toFixed(2)}%` : 'N/A'
@@ -890,8 +886,7 @@ export class ForecastService {
         const hourRecords = records.filter(r => parseInt(r.hour) === h + 1);
         if (hourRecords.length === 0) continue;
 
-        const validDemands = hourRecords.filter(r => r.demand !== null && r.demand !== undefined);
-        const avgDemand = validDemands.length > 0 ? validDemands.reduce((acc, r) => acc + (r.demand || 0), 0) / validDemands.length : null;
+        const avgDemand = hourRecords.reduce((acc, r) => acc + r.demand, 0) / hourRecords.length;
 
         let avgActual: number | null = null;
         const validActuals = hourRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined);
@@ -904,7 +899,7 @@ export class ForecastService {
           hour: hourStr,
           timeBlock: `${hourStr}:00 - ${(h + 1).toString().padStart(2, '0')}:00`,
           intervalNumber: h + 1,
-          demand: avgDemand !== null ? parseFloat(avgDemand.toFixed(2)) : null,
+          demand: parseFloat(avgDemand.toFixed(2)),
           actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null
         });
       }
@@ -920,8 +915,7 @@ export class ForecastService {
 
       return Object.keys(dailyMap).map(date => {
         const dateRecords = dailyMap[date];
-        const validDemands = dateRecords.filter(r => r.demand !== null && r.demand !== undefined);
-        const avgDemand = validDemands.length > 0 ? validDemands.reduce((acc, r) => acc + (r.demand || 0), 0) / validDemands.length : null;
+        const avgDemand = dateRecords.reduce((acc, r) => acc + r.demand, 0) / dateRecords.length;
 
         let avgActual: number | null = null;
         const validActuals = dateRecords.filter(r => r.actualDemand !== null && r.actualDemand !== undefined);
@@ -934,7 +928,7 @@ export class ForecastService {
           hour: '24',
           timeBlock: 'Full Day',
           intervalNumber: 1,
-          demand: avgDemand !== null ? parseFloat(avgDemand.toFixed(2)) : null,
+          demand: parseFloat(avgDemand.toFixed(2)),
           actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null
         };
       });
@@ -1064,30 +1058,16 @@ export class ForecastService {
             distinct: ['date']
           })
         ]);
-        const forecastDates = new Set<string>();
         const allDates = new Set<string>();
-
         v2Rows.forEach(r => {
-          const dStr = r.timestamp.toISOString().split('T')[0];
-          forecastDates.add(dStr);
-          allDates.add(dStr);
+          const istDate = new Date(r.timestamp.getTime() + (5.5 * 60 * 60 * 1000));
+          allDates.add(istDate.toISOString().split('T')[0]);
         });
         if (Array.isArray(genRows)) {
-          genRows.forEach((r: any) => {
-            if (r.date_str) {
-              const dStr = r.date_str.split('T')[0];
-              forecastDates.add(dStr);
-              allDates.add(dStr);
-            }
-          });
+          genRows.forEach((r: any) => { if (r.date_str) allDates.add(r.date_str.split('T')[0]); });
         }
         actualRows.forEach(r => { if (r.date) allDates.add(r.date); });
-
-        // Sort forecast dates first (newest to oldest), then remaining actual dates
-        const sortedForecast = Array.from(forecastDates).sort((a, b) => b.localeCompare(a));
-        const remainingActual = Array.from(allDates).filter(d => !forecastDates.has(d)).sort((a, b) => b.localeCompare(a));
-
-        return [...sortedForecast, ...remainingActual];
+        return Array.from(allDates).sort((a, b) => b.localeCompare(a));
       } catch (e) { return []; }
     } else if (market.toUpperCase() === 'NPP' || market.toUpperCase() === 'GENERATION') {
       try {
