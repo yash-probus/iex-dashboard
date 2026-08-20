@@ -962,14 +962,14 @@ export default function SavingsCalculatorNewPage() {
               disabled={!isStepValid(stepIndex)}
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 5) {
+                  if (stepIndex < 6) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     handleSaveEntry();
                   }
                 }
               }}
-              endIcon={stepIndex === 5 ? undefined : <ArrowForwardIcon />}
+              endIcon={stepIndex === 6 ? undefined : <ArrowForwardIcon />}
               sx={{
                 textTransform: 'none',
                 borderRadius: 2.5,
@@ -978,7 +978,7 @@ export default function SavingsCalculatorNewPage() {
                 '&:hover': { bgcolor: '#7C3AED' }
               }}
             >
-              {stepIndex === 5 ? (dialogMode === 'create' ? 'Save Client Entry' : 'Update Client Entry') : 'Continue'}
+              {stepIndex === 6 ? (dialogMode === 'create' ? 'Save Client Entry' : 'Update Client Entry') : 'Continue'}
             </Button>
           </Box>
         </Card>
@@ -1108,7 +1108,7 @@ export default function SavingsCalculatorNewPage() {
           <Box sx={{ width: '100%', height: 6, bgcolor: '#E2E8F0', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
             <Box sx={{
               height: '100%',
-              width: `${((activeStep + 1) / 6) * 100}%`,
+              width: `${((activeStep + 1) / 7) * 100}%`,
               background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
               transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
             }} />
@@ -1316,12 +1316,12 @@ export default function SavingsCalculatorNewPage() {
             )
           })}
 
-          {/* Step 4: Margins & Platform Charges */}
+          {/* Step 4: Grid Charges & Discom Parameters */}
           {renderStep(4, {
             icon: <ElectricBoltIcon />,
-            title: 'Margins & Platform Charges',
-            question: 'Configure commercial margins and statutory charges',
-            summary: `PROLT Margin: ${proltMargin}% | ED: ${electricityDutyPercent}%`,
+            title: 'Grid Charges & Discom Parameters',
+            question: 'What are your electricity duty and demand charge rates?',
+            summary: `Electricity Duty: ${electricityDutyPercent}% | Demand Charge: ₹${demandChargeKwRate}/kW/month`,
             content: (
               <Grid container spacing={2} sx={{ mt: 0.5 }}>
                 <Grid item xs={12} sm={6}>
@@ -1342,58 +1342,6 @@ export default function SavingsCalculatorNewPage() {
                     inputProps={{ step: 1 }}
                     value={demandChargeKwRate}
                     onChange={(e) => setDemandChargeKwRate(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="PROLT Margin (% of Savings)"
-                    type="number"
-                    inputProps={{ step: 0.1 }}
-                    value={proltMargin}
-                    onChange={(e) => setProltMargin(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Trader Margin (₹/kWh)"
-                    type="number"
-                    inputProps={{ step: 0.01 }}
-                    value={traderMargin}
-                    onChange={(e) => setTraderMargin(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Metering Charges (₹)"
-                    type="number"
-                    value={meteringCharges}
-                    onChange={(e) => setMeteringCharges(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Consultancy Fee (₹)"
-                    type="number"
-                    value={consultancyFee}
-                    onChange={(e) => setConsultancyFee(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Probus Platform Fee (₹)"
-                    type="number"
-                    value={probusPlatformFee}
-                    onChange={(e) => setProbusPlatformFee(e.target.value)}
                     fullWidth
                     size="small"
                   />
@@ -1603,6 +1551,60 @@ export default function SavingsCalculatorNewPage() {
                     </TableBody>
                   </Table>
                 </Paper>
+              </Box>
+            )
+          })}
+
+          {/* Step 6: Margin Details (At the very end like old calculator) */}
+          {renderStep(6, {
+            icon: <AccountBalanceIcon />,
+            title: 'Margin Details',
+            question: 'What are the commercial margin rates for this client?',
+            summary: `Trader Margin: ₹${traderMargin}/kWh | PROLT Margin: ${proltMargin}%`,
+            content: (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
+                <TextField
+                  label="Trader Margin (₹/kWh)"
+                  type="number"
+                  inputProps={{ step: 0.01 }}
+                  value={traderMargin}
+                  onChange={(e) => setTraderMargin(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+                <TextField
+                  label="PROLT Consultancy Fee (₹)"
+                  type="number"
+                  value={consultancyFee}
+                  onChange={(e) => setConsultancyFee(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+                <TextField
+                  label="Metering Charges (₹)"
+                  type="number"
+                  value={meteringCharges}
+                  onChange={(e) => setMeteringCharges(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+                <TextField
+                  label="Probus Platform Subscription Fee (₹)"
+                  type="number"
+                  value={probusPlatformFee}
+                  onChange={(e) => setProbusPlatformFee(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+                <TextField
+                  label="PROLT Margin (% of total savings)"
+                  type="number"
+                  inputProps={{ step: 0.1 }}
+                  value={proltMargin}
+                  onChange={(e) => setProltMargin(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
               </Box>
             )
           })}
