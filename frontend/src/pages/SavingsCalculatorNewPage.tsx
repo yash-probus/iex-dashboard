@@ -300,22 +300,43 @@ export default function SavingsCalculatorNewPage() {
   // Master Data State
   const [apiStates, setApiStates] = useState<any[]>([]);
   const [apiDiscoms, setApiDiscoms] = useState<any[]>([]);
+  const [apiTariffs, setApiTariffs] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        const [statesRes, discomsRes] = await Promise.all([
+        const [statesRes, discomsRes, tariffRes] = await Promise.all([
           getResourceData('region-state'),
-          getResourceData('discom-list')
+          getResourceData('discom-list'),
+          getResourceData('state-tariff')
         ]);
         if (statesRes.success && statesRes.data) setApiStates(statesRes.data);
         if (discomsRes.success && discomsRes.data) setApiDiscoms(discomsRes.data);
+        if (tariffRes.success && tariffRes.data) setApiTariffs(tariffRes.data);
       } catch (err) {
         console.warn('Using default master state/discom list:', err);
       }
     };
     fetchMasterData();
   }, []);
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set<string>(CATEGORY_OPTIONS);
+    apiTariffs.forEach((row: any) => {
+      const matchState = !stateCode ||
+        row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+        (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
+      if (matchState && row.consumerCategory) {
+        const sub = row.subCategory && row.subCategory.trim();
+        if (sub && sub !== '-' && sub !== '') {
+          set.add(`${row.consumerCategory} | ${sub}`);
+        } else {
+          set.add(row.consumerCategory);
+        }
+      }
+    });
+    return Array.from(set);
+  }, [apiTariffs, stateCode]);
 
   const stateOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -1050,7 +1071,7 @@ export default function SavingsCalculatorNewPage() {
                   fullWidth
                   size="small"
                 >
-                  {CATEGORY_OPTIONS.map((c) => (
+                  {categoryOptions.map((c) => (
                     <MenuItem key={c} value={c}>
                       {c}
                     </MenuItem>
