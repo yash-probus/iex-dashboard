@@ -121,6 +121,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       const oaCoverage = totalConsumption > 0 ? (totalMarketEnergy / totalConsumption) * 100 : 0;
       const blendedCost = totalConsumption > 0 ? (totalBaselineCost - totalSavings) / totalConsumption : 0;
+      const avgDiscomCost = totalConsumption > 0 ? (totalBaselineCost / totalConsumption) : 0;
       const netSavingRate = totalConsumption > 0 ? (totalSavings / totalConsumption) : 0;
       const monthCount = monthsToProcess.length;
       avgMonthlySavings = monthCount > 0 ? totalSavings / monthCount : 0;
@@ -129,17 +130,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
       annualizedSavings = avgMonthlySavings * 12;
       potentialSavingsFiveYear = annualizedSavings * 5;
 
-      // When overall, the old dashboard multiplied some things by 12/mCount for "Annual".
-      // But we will stick to aggregate values here to match the old DashboardKPIs props we implemented
+      // Dynamic KPIs with clear annotations
       kpis = [
-        { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Summary value after fees', color: 'green' },
+        { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Average Annual Savings', color: 'green' },
         { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: 'Average client savings per month', color: 'green' },
         { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
         { label: 'Metering charge payback', value: `${(Number(paybackMonths) || 0).toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
         { label: 'Potential 5-year savings', value: formatIndianCurrency(potentialSavingsFiveYear), sub: 'Annual savings × 5 years', color: 'green' },
-        { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${(Number(oaCoverage) || 0).toFixed(1)}%`, sub: 'Consumer-bus OA energy ÷ consumption', color: 'amber' },
-        { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: 'Billed electricity consumption' },
-        { label: 'Blended cost', value: `₹${(Number(blendedCost) || 0).toFixed(2)}`, sub: 'Average blended rate per kWh' },
+        { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${(Number(oaCoverage) || 0).toFixed(1)}%`, sub: 'Average Monthly Energy Bought from OA', color: 'amber' },
+        { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: isOverall ? 'Annualized electricity consumption (12 months)' : 'Billed electricity consumption' },
+        { label: 'Blended Cost - OA', value: `₹${(Number(blendedCost) || 0).toFixed(2)}/kWh`, sub: 'Average blended rate per kWh' },
+        { label: 'Average DISCOM Cost', value: `₹${(Number(avgDiscomCost) || 0).toFixed(2)}/kWh`, sub: 'Baseline utility tariff without OA' },
         { label: 'Net saving rate', value: `₹${(Number(netSavingRate) || 0).toFixed(2)}/kWh`, sub: 'Final client saving per consumed unit', color: 'green' },
       ];
 
