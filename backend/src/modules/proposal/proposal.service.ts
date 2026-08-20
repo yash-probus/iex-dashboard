@@ -1,11 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 // @ts-ignore
 import ImageModule from 'docxtemplater-image-module-free';
 import { ChartGeneratorService } from './chartGenerator.service';
-
 import { execFileSync } from 'child_process';
 
 export class ProposalService {
@@ -13,17 +13,29 @@ export class ProposalService {
     if (type === 'commercial') {
       const scriptPath = path.join(__dirname, '../../../scripts/generate_commercial_proposal.py');
       const templatePath = path.join(__dirname, '../../../assets/templates/commercial_proposal_template.docx');
-      const tmpOutputPath = path.join(__dirname, `../../../../scratch/commercial_proposal_${Date.now()}.docx`);
+      const tmpDir = os.tmpdir();
+      const tmpOutputPath = path.join(tmpDir, `commercial_proposal_${Date.now()}.docx`);
+
+      const actualTemplate = fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx')
+        ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx'
+        : templatePath;
 
       const payload = {
         ...clientData,
-        template_path: fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx')
-          ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx'
-          : templatePath,
+        template_path: actualTemplate,
         output_path: tmpOutputPath
       };
 
-      execFileSync('python3', [scriptPath, JSON.stringify(payload)]);
+      try {
+        execFileSync('python3', [scriptPath, JSON.stringify(payload)], { encoding: 'utf-8' });
+      } catch (err: any) {
+        console.error('Python generate_commercial_proposal.py failed:', err.stderr || err.stdout || err.message);
+        throw new Error(`Failed to generate commercial proposal document: ${err.message}`);
+      }
+
+      if (!fs.existsSync(tmpOutputPath)) {
+        throw new Error(`Generated proposal file not found at ${tmpOutputPath}`);
+      }
 
       const buf = fs.readFileSync(tmpOutputPath);
       try { fs.unlinkSync(tmpOutputPath); } catch (e) {}

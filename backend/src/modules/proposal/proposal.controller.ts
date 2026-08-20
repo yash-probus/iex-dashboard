@@ -42,7 +42,7 @@ export class ProposalController {
       res.send(docBuffer);
     } catch (error: any) {
       console.error('Error generating commercial proposal:', error);
-      res.status(500).json({ error: 'Failed to generate commercial proposal' });
+      res.status(500).json({ error: error.message || 'Failed to generate commercial proposal' });
     }
   }
 }

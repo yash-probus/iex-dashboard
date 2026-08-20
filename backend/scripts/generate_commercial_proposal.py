@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 import docx
 
 def format_rupee(val):
@@ -95,6 +96,8 @@ def generate_proposal(data_json):
         if len(t4.rows) > 3: set_cell_value(t4.rows[3].cells[4], vs)
         if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[4], format_rupee(smart))
 
+    if os.path.dirname(output_path):
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
     doc.save(output_path)
     print(f"Successfully generated commercial proposal at {output_path}")
 
