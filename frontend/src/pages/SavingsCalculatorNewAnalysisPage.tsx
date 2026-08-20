@@ -222,7 +222,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
             <ArrowBackIcon />
           </IconButton>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            <Typography variant="h2" sx={{ fontWeight: 700, color: 'text.primary' }}>
               Savings Analysis for {calcEntry?.clientName}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -292,11 +292,11 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 scrollButtons="auto"
                 sx={{ minHeight: 40, '& .MuiTab-root': { textTransform: 'none', minHeight: 40, fontWeight: 600 } }}
               >
-                <Tab label="Overall Summary" value="all" />
+                <Tab label="Overall" value="all" />
                 {Object.keys(calcEntry?.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym) => (
                   <Tab
                     key={ym}
-                    label={ym}
+                    label={new Date(`${ym}-01`).toLocaleString('default', { month: 'long', year: 'numeric' })}
                     value={ym}
                   />
                 ))}
