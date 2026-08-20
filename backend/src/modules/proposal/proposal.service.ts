@@ -6,13 +6,33 @@ import Docxtemplater from 'docxtemplater';
 import ImageModule from 'docxtemplater-image-module-free';
 import { ChartGeneratorService } from './chartGenerator.service';
 
+import { execFileSync } from 'child_process';
+
 export class ProposalService {
   public async generateProposal(clientData: any, type: 'technical' | 'commercial' | 'default' = 'default'): Promise<Buffer> {
+    if (type === 'commercial') {
+      const scriptPath = path.join(__dirname, '../../../scripts/generate_commercial_proposal.py');
+      const templatePath = path.join(__dirname, '../../../assets/templates/commercial_proposal_template.docx');
+      const tmpOutputPath = path.join(__dirname, `../../../../scratch/commercial_proposal_${Date.now()}.docx`);
+
+      const payload = {
+        ...clientData,
+        template_path: fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx')
+          ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx'
+          : templatePath,
+        output_path: tmpOutputPath
+      };
+
+      execFileSync('python3', [scriptPath, JSON.stringify(payload)]);
+
+      const buf = fs.readFileSync(tmpOutputPath);
+      try { fs.unlinkSync(tmpOutputPath); } catch (e) {}
+      return buf;
+    }
+
     let templateFilename = 'proposal_template.docx';
     if (type === 'technical') {
       templateFilename = 'technical_proposal_template.docx';
-    } else if (type === 'commercial') {
-      templateFilename = 'commercial_proposal_template.docx';
     }
 
     const templatePath = path.join(__dirname, '../../../assets/templates/', templateFilename);

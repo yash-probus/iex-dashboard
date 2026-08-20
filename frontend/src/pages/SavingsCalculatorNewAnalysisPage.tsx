@@ -55,6 +55,7 @@ import {
   exportTechnicalProposalWord,
   exportCommercialProposalWord
 } from '../api/savingsCalculator.api';
+import CommercialProposalModal from '../components/common/CommercialProposalModal';
 
 export default function SavingsCalculatorNewAnalysisPage() {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +68,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
   const [selectedSimMonth, setSelectedSimMonth] = useState<string>('all');
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
   const [dynamicGraphDialogOpen, setDynamicGraphDialogOpen] = useState(false);
+  const [commercialModalOpen, setCommercialModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -528,49 +530,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
               <Button
                 variant="outlined"
                 startIcon={<DownloadIcon />}
-                onClick={async () => {
-                  if (!calcEntry || !marketDecisionResult) return;
-                  try {
-                    const totalSavings = marketDecisionResult.totalSavings || 0;
-                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).length || 1);
-                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
-                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
-                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
-                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
-                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
-                    const currentDate = new Date();
-                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
-
-                    let dashboard_screenshot = "";
-                    const dashboardEl = document.getElementById("proposal-export-target-new");
-                    if (dashboardEl) {
-                      try {
-                        const canvas = await html2canvas(dashboardEl, { scale: 2 });
-                        dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-                      } catch (e) {
-                        console.error("html2canvas error:", e);
-                      }
-                    }
-
-                    const payload = {
-                      ...calcEntry,
-                      client_name: calcEntry.clientName,
-                      industry_name: calcEntry.industryName,
-                      sanctioned_load_kw: calcEntry.sanctionedLoadKw,
-                      state_code: calcEntry.stateCode,
-                      dashboard_screenshot,
-                      totalSavings: annualizedSavings.toLocaleString('en-IN'),
-                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'),
-                      billMonth,
-                      billMonthYear,
-                      currentMonthYear,
-                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
-                    };
-                    await exportCommercialProposalWord(payload);
-                  } catch (err: any) {
-                    setSnackbar({ open: true, message: err.message || 'Commercial proposal export failed', severity: 'error' });
-                  }
-                }}
+                onClick={() => setCommercialModalOpen(true)}
                 sx={{
                   textTransform: 'none',
                   borderRadius: 2.5,
@@ -683,6 +643,30 @@ export default function SavingsCalculatorNewAnalysisPage() {
         </Box>,
         document.body
       )}
+
+      {/* Commercial Proposal Custom Modal */}
+      <CommercialProposalModal
+        open={commercialModalOpen}
+        onClose={() => setCommercialModalOpen(false)}
+        initialData={{
+          client_name: calcEntry?.clientName,
+          industry_name: calcEntry?.industryName,
+          sanctioned_load: calcEntry?.sanctionedLoadKw,
+          connectivity: calcEntry?.voltageLevel,
+          discom_name: calcEntry?.discom,
+          traderMargin: calcEntry?.traderMargin,
+          probusPlatformFee: calcEntry?.probusPlatformFee,
+          proltMargin: calcEntry?.proltMargin
+        }}
+        onSubmit={async (formData) => {
+          try {
+            await exportCommercialProposalWord(formData);
+            setSnackbar({ open: true, message: 'Commercial proposal downloaded successfully!', severity: 'success' });
+          } catch (err: any) {
+            setSnackbar({ open: true, message: err.message || 'Commercial proposal export failed', severity: 'error' });
+          }
+        }}
+      />
 
       {/* Snackbar notification */}
       <Snackbar

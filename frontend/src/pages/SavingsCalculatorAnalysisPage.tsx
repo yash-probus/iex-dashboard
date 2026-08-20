@@ -70,6 +70,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { numberToIndianWords } from '../utils/numberToIndianWords';
 import html2canvas from 'html2canvas';
+import CommercialProposalModal from '../components/common/CommercialProposalModal';
 
 export default function SavingsCalculatorAnalysisPage() {
   const { id } = useParams<{ id: string }>();
@@ -87,6 +88,7 @@ export default function SavingsCalculatorAnalysisPage() {
   const [calcTab, setCalcTab] = useState(0);
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
   const [demandShiftGraphOpen, setDemandShiftGraphOpen] = useState(false);
+  const [commercialModalOpen, setCommercialModalOpen] = useState(false);
   const [dynamicGraphDialogOpen, setDynamicGraphDialogOpen] = useState(false);
   const [dynamicDemandShiftGraphOpen, setDynamicDemandShiftGraphOpen] = useState(false);
   const [marketDecisionOpen, setMarketDecisionOpen] = useState(false);
@@ -721,96 +723,7 @@ const exportInsightsToExcel = async () => {
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
-                onClick={async () => {
-                  if (!calcEntry) return;
-                  try {
-                    const totalSavings = clientOverview?.totalSavings || 0;
-                    const numMonths = Math.max(1, clientOverview?.months?.length || 1);
-                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
-                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
-                    
-                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
-                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
-                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
-                    
-                    const currentDate = new Date();
-                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
-                    
-                    const monthsWords = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
-                    const monthsCount = Math.min(12, clientOverview?.months?.length || 0);
-                    const monthsCountWord = monthsCount > 0 && monthsCount < monthsWords.length ? monthsWords[monthsCount] : "Six";
-                    
-                    const monthlyData: any[] = [];
-                    if (clientOverview && clientOverview.months) {
-                        clientOverview.months.forEach((m) => {
-                            const ma = m as any;
-                            const consumption = m.totalEnergyKwh || 0;
-                            const cleared = ma.oaConsumer ?? ma.clearedUnitsKwh ?? ma.cleared ?? (ma.oaCoverage != null ? (consumption * ma.oaCoverage / 100) : (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - (ma.busLoss ? ma.busLoss / 100 : 0.1211)) : 0));
-                            const oaCost = ma.totalOptimizedCost || 0;
-                            const discomCost = m.totalBaselineCost || 0;
-                            const saving = m.savings || 0;
-                            
-                            const pct = consumption > 0 ? Math.round((cleared / consumption) * 100) : 0;
-                            const ppcDiscom = consumption > 0 ? (discomCost / consumption) : 0;
-                            const ppcProlt = consumption > 0 ? (oaCost / consumption) : 0;
-                            const savingUnit = consumption > 0 ? (saving / consumption) : 0;
-
-                            monthlyData.push({
-                                month_name: m.month || '',
-                                cleared: Math.round(cleared).toLocaleString('en-IN'),
-                                consumption: Math.round(consumption).toLocaleString('en-IN'),
-                                oa_cost: Math.round(oaCost).toLocaleString('en-IN'),
-                                discom_cost: Math.round(discomCost).toLocaleString('en-IN'),
-                                cleared_pct: `${pct}%`,
-                                ppc_discom: `₹${ppcDiscom.toFixed(2)}`,
-                                ppc_prolt: `₹${ppcProlt.toFixed(2)}`,
-                                saving: `₹${Math.round(saving).toLocaleString('en-IN')}`,
-                                saving_unit: `₹${savingUnit.toFixed(2)}`
-                            });
-                        });
-                    }
-
-                    const totalConsumption = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
-                    const totalCleared = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || curr.oaConsumer || 0), 0) || 0;
-                    const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
-
-                    let dashboard_screenshot = "";
-                    const dashboardEl = document.getElementById("proposal-export-target");
-                    if (dashboardEl) {
-                        try {
-                            const canvas = await html2canvas(dashboardEl, { scale: 2 });
-                            dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-                        } catch (e) {
-                            console.error("html2canvas error:", e);
-                        }
-                    }
-
-                    const payload = {
-                      ...hardcodedPayload,
-                      ...calcEntry,
-                      monthlyData,
-                      months_count_word: monthsCountWord,
-                      procurement_potential: procurementPotential,
-                      dashboard_screenshot: dashboard_screenshot,
-                      // @ts-ignore
-                      savings_in_words: numberToIndianWords ? numberToIndianWords(annualizedSavings) : 'Twenty Five',
-                      totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
-                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
-                      paybackDays: 150,
-                      billMonth,
-                      billMonthYear,
-                      currentMonthYear,
-                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
-                    };
-                    await exportCommercialProposalWord(payload);
-                  } catch (err: any) {
-                    setSnackbar({
-                      open: true,
-                      message: err.message || 'Export failed',
-                      severity: 'error'
-                    });
-                  }
-                }}
+                onClick={() => setCommercialModalOpen(true)}
                 sx={{ 
                   textTransform: 'none', 
                   borderRadius: 2.5, 
@@ -1109,6 +1022,30 @@ const exportInsightsToExcel = async () => {
         </Box>,
         document.body
       )}
+
+      {/* Commercial Proposal Custom Modal */}
+      <CommercialProposalModal
+        open={commercialModalOpen}
+        onClose={() => setCommercialModalOpen(false)}
+        initialData={{
+          client_name: calcEntry?.clientName,
+          industry_name: calcEntry?.industryName,
+          sanctioned_load: calcEntry?.sanctionedLoadKw,
+          connectivity: calcEntry?.voltageLevel,
+          discom_name: calcEntry?.discom,
+          traderMargin: calcEntry?.traderMargin,
+          probusPlatformFee: calcEntry?.probusPlatformFee,
+          proltMargin: calcEntry?.proltMargin
+        }}
+        onSubmit={async (formData) => {
+          try {
+            await exportCommercialProposalWord(formData);
+            setSnackbar({ open: true, message: 'Commercial proposal downloaded successfully!', severity: 'success' });
+          } catch (err: any) {
+            setSnackbar({ open: true, message: err.message || 'Commercial proposal export failed', severity: 'error' });
+          }
+        }}
+      />
     </Box>
   );
 }
