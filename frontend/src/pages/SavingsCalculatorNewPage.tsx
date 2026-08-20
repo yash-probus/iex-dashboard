@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Box, Typography, Button, TextField, IconButton, Alert, alpha, OutlinedInput,
+  Box, Typography, Button, TextField, IconButton, Alert, alpha, OutlinedInput, Card,
   Grid, Paper, Tooltip, Table, TableBody, TableCell, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem, FormControlLabel, RadioGroup, Radio, FormControl, FormLabel, Select, InputAdornment, Divider, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
@@ -19,7 +19,10 @@ import {
   Speed as SpeedIcon,
   ExpandMore as ExpandMoreIcon,
   AccountBalance as AccountBalanceIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  ArrowForward as ArrowForwardIcon,
+  CheckCircle as CheckCircleIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
@@ -264,10 +267,11 @@ export default function SavingsCalculatorNewPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Dialog state
+  // Dialog state & Step Wizard
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState<number>(0);
 
   // Form Fields matching old UI
   const [clientPrefix, setClientPrefix] = useState('M/s');
@@ -471,12 +475,14 @@ export default function SavingsCalculatorNewPage() {
     });
     setActiveMonth('2026-04');
     setNewMonthInput(getCurrentYearMonth());
+    setActiveStep(0);
     setDialogOpen(true);
   };
 
   const handleOpenEdit = (entry: SavingsCalculatorNewEntry) => {
     setDialogMode('edit');
     setSelectedEntryId(entry.id);
+    setActiveStep(0);
     let fullClientName = entry.clientName || '';
     const matchedPrefix = ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'M/s'].find(p => fullClientName.startsWith(`${p} `));
     if (matchedPrefix) {
@@ -860,6 +866,117 @@ export default function SavingsCalculatorNewPage() {
     slots: []
   };
 
+  const isStepValid = (stepIndex: number) => {
+    if (stepIndex === 0) return Boolean(clientName && industryName && address);
+    if (stepIndex === 1) return Boolean(stateCode && discom);
+    if (stepIndex === 2) return Boolean(consumerCategory && voltageLevel);
+    if (stepIndex === 3) return Boolean(sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw)) && Number(sanctionedLoadKw) > 0);
+    return true;
+  };
+
+  const renderStep = (stepIndex: number, stepMeta: { icon: React.ReactNode; title: string; question: string; summary: string; content: React.ReactNode }) => {
+    const isCompleted = activeStep > stepIndex;
+    const isActive = activeStep === stepIndex;
+
+    if (isCompleted) {
+      return (
+        <Card
+          key={stepIndex}
+          elevation={0}
+          sx={{
+            border: '1px solid #E2E8F0',
+            borderRadius: '12px',
+            p: 2,
+            bgcolor: '#F8FAFC',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CheckCircleIcon sx={{ color: '#10B981', fontSize: 20 }} />
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {stepMeta.title}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1E293B' }}>
+                {stepMeta.summary}
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton size="small" onClick={() => setActiveStep(stepIndex)}>
+            <EditIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+          </IconButton>
+        </Card>
+      );
+    }
+
+    if (isActive) {
+      return (
+        <Card
+          key={stepIndex}
+          elevation={0}
+          sx={{
+            border: '2px solid #8B5CF6',
+            borderRadius: '16px',
+            p: 3,
+            boxShadow: '0 4px 12px -2px rgba(139, 92, 246, 0.08)',
+            bgcolor: '#FFF'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+            <Box sx={{ color: '#8B5CF6', display: 'flex', alignItems: 'center' }}>
+              {stepMeta.icon}
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1E293B', fontSize: '1.05rem' }}>
+              {stepMeta.question}
+            </Typography>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            {stepMeta.content}
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+            {stepIndex > 0 && (
+              <Button
+                onClick={() => setActiveStep(stepIndex - 1)}
+                sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, color: 'text.secondary' }}
+              >
+                Back
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              disabled={!isStepValid(stepIndex)}
+              onClick={() => {
+                if (isStepValid(stepIndex)) {
+                  if (stepIndex < 5) {
+                    setActiveStep(stepIndex + 1);
+                  } else {
+                    handleSaveEntry();
+                  }
+                }
+              }}
+              endIcon={stepIndex === 5 ? undefined : <ArrowForwardIcon />}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2.5,
+                fontWeight: 600,
+                bgcolor: '#8B5CF6',
+                '&:hover': { bgcolor: '#7C3AED' }
+              }}
+            >
+              {stepIndex === 5 ? (dialogMode === 'create' ? 'Save Client Entry' : 'Update Client Entry') : 'Continue'}
+            </Button>
+          </Box>
+        </Card>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: 3 }}>
       {/* Top Header & Search Bar */}
@@ -967,10 +1084,7 @@ export default function SavingsCalculatorNewPage() {
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, p: 3, pb: 1 }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, color: '#1E293B' }}>
-              {dialogMode === 'create' ? 'Create Client Profile (Custom TOD)' : 'Edit Client Profile (Custom TOD)'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Enter facility connection details, custom TOD windows, and tariff parameters
+              {dialogMode === 'create' ? 'Create New Entry' : 'Edit Entry'}
             </Typography>
           </Box>
           <IconButton onClick={handleCloseDialog} size="small">
@@ -978,23 +1092,32 @@ export default function SavingsCalculatorNewPage() {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent dividers sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3, bgcolor: '#F8FAFC' }}>
-          {/* Card 1: Client Details */}
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <CategoryIcon sx={{ color: '#8B5CF6' }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
-                Client Information
-              </Typography>
-            </Box>
+        <DialogContent sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5, bgcolor: '#F8FAFC' }}>
+          {/* Progress Bar */}
+          <Box sx={{ width: '100%', height: 6, bgcolor: '#E2E8F0', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
+            <Box sx={{
+              height: '100%',
+              width: `${((activeStep + 1) / 6) * 100}%`,
+              background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
+              transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+            }} />
+          </Box>
 
-            <Grid container spacing= {2}>
-              <Grid item xs={12} sm={6}>
+          {/* Step 0: Client & Facility Details */}
+          {renderStep(0, {
+            icon: <BusinessIcon />,
+            title: 'Client Information',
+            question: 'Who is the client for this simulation?',
+            summary: `Client: ${clientPrefix ? `${clientPrefix} ` : ''}${clientName} (${industryName})`,
+            content: (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
                 <TextField
                   label="Client Name *"
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   fullWidth
+                  required
+                  variant="outlined"
                   size="small"
                   InputProps={{
                     startAdornment: (
@@ -1004,7 +1127,8 @@ export default function SavingsCalculatorNewPage() {
                           onChange={(e) => setClientPrefix(e.target.value)}
                           variant="standard"
                           disableUnderline
-                          sx={{ fontSize: '14px', fontWeight: 600, color: 'text.secondary', mr: 1 }}
+                          displayEmpty
+                          sx={{ '& .MuiSelect-select': { py: 0, pr: 1, color: 'text.secondary' } }}
                         >
                           <MenuItem value=""><em>None</em></MenuItem>
                           <MenuItem value="Mr.">Mr.</MenuItem>
@@ -1017,111 +1141,131 @@ export default function SavingsCalculatorNewPage() {
                     ),
                   }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   label="Industry Name *"
                   value={industryName}
                   onChange={(e) => setIndustryName(e.target.value)}
                   fullWidth
+                  required
+                  variant="outlined"
                   size="small"
                 />
-              </Grid>
-              <Grid item xs={12}>
                 <TextField
                   label="Address *"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   fullWidth
-                  size="small"
+                  required
                   multiline
-                  rows={2}
+                  rows={3}
+                  variant="outlined"
+                  size="small"
                 />
-              </Grid>
-            </Grid>
-          </Paper>
+              </Box>
+            )
+          })}
 
-          {/* Card 2: Facility & Provider Location */}
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <LocationIcon sx={{ color: '#8B5CF6' }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
-                State, Provider & Tariff Category
-              </Typography>
-            </Box>
+          {/* Step 1: Location & DISCOM */}
+          {renderStep(1, {
+            icon: <LocationIcon />,
+            title: 'Location & DISCOM',
+            question: 'Where is your facility located and who is your DISCOM?',
+            summary: `Location: ${stateCode} | DISCOM: ${discom}`,
+            content: (
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label="State Code *"
+                    value={stateCode}
+                    onChange={(e) => {
+                      setStateCode(e.target.value);
+                      const stateDiscoms = STATE_DISCOM_MASTER[e.target.value]?.discoms || [];
+                      if (stateDiscoms.length > 0) setDiscom(stateDiscoms[0].code);
+                    }}
+                    fullWidth
+                    size="small"
+                  >
+                    {stateOptions.map((s) => (
+                      <MenuItem key={s.code} value={s.code}>
+                        {s.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label="DISCOM *"
+                    value={discom}
+                    onChange={(e) => setDiscom(e.target.value)}
+                    fullWidth
+                    size="small"
+                  >
+                    {discomOptions.map((d) => (
+                      <MenuItem key={d.code} value={d.code}>
+                        {d.code} - {d.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              </Grid>
+            )
+          })}
 
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  select
-                  label="State Code *"
-                  value={stateCode}
-                  onChange={(e) => {
-                    const newCode = e.target.value;
-                    setStateCode(newCode);
-                    const firstDiscom = STATE_DISCOM_MASTER[newCode]?.discoms[0]?.code || '';
-                    setDiscom(firstDiscom);
-                  }}
-                  fullWidth
-                  size="small"
-                >
-                  {stateOptions.map((s) => (
-                    <MenuItem key={s.code} value={s.code}>
-                      {s.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+          {/* Step 2: Consumer Category & Voltage Level */}
+          {renderStep(2, {
+            icon: <CategoryIcon />,
+            title: 'Consumer Category & Voltage',
+            question: 'What is your consumer category and voltage level?',
+            summary: `Category: ${consumerCategory} | Voltage: ${voltageLevel}`,
+            content: (
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label="Consumer Category *"
+                    value={consumerCategory}
+                    onChange={(e) => setConsumerCategory(e.target.value)}
+                    fullWidth
+                    size="small"
+                  >
+                    {categoryOptions.map((c) => (
+                      <MenuItem key={c} value={c}>
+                        {c}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label="Voltage Category *"
+                    value={voltageLevel}
+                    onChange={(e) => setVoltageLevel(e.target.value)}
+                    fullWidth
+                    size="small"
+                  >
+                    {VOLTAGE_OPTIONS.map((v) => (
+                      <MenuItem key={v} value={v}>
+                        {v}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  select
-                  label="DISCOM *"
-                  value={discom}
-                  onChange={(e) => setDiscom(e.target.value)}
-                  fullWidth
-                  size="small"
-                >
-                  {discomOptions.map((d) => (
-                    <MenuItem key={d.code} value={d.code}>
-                      {d.code} - {d.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  select
-                  label="Consumer Category *"
-                  value={consumerCategory}
-                  onChange={(e) => setConsumerCategory(e.target.value)}
-                  fullWidth
-                  size="small"
-                >
-                  {categoryOptions.map((c) => (
-                    <MenuItem key={c} value={c}>
-                      {c}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  label="Voltage Category *"
-                  value={voltageLevel}
-                  onChange={(e) => setVoltageLevel(e.target.value)}
-                  fullWidth
-                  size="small"
-                >
-                  {VOLTAGE_OPTIONS.map((v) => (
-                    <MenuItem key={v} value={v}>
-                      {v}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', gap: 1.5 }}>
+            )
+          })}
+
+          {/* Step 3: Sanctioned Load */}
+          {renderStep(3, {
+            icon: <SpeedIcon />,
+            title: 'Sanctioned Load',
+            question: 'What is your sanctioned load capacity?',
+            summary: `Sanctioned Load: ${sanctionedLoadKw} kW (${sanctionedLoadKva} kVA)`,
+            content: (
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     label="Sanctioned Load (kW) *"
                     type="number"
@@ -1138,6 +1282,8 @@ export default function SavingsCalculatorNewPage() {
                     fullWidth
                     size="small"
                   />
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     label="Sanctioned Load (kVA)"
                     type="number"
@@ -1154,338 +1300,306 @@ export default function SavingsCalculatorNewPage() {
                     fullWidth
                     size="small"
                   />
-                </Box>
+                </Grid>
               </Grid>
-            </Grid>
-          </Paper>
+            )
+          })}
 
-          {/* Card 3: Margins & Platform Charges */}
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <ElectricBoltIcon sx={{ color: '#8B5CF6' }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
-                Margins & Platform Charges
-              </Typography>
-            </Box>
-
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Electricity Duty (%)"
-                  type="number"
-                  inputProps={{ step: 0.1 }}
-                  value={electricityDutyPercent}
-                  onChange={(e) => setElectricityDutyPercent(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Demand Charge Rate (₹/kW/month)"
-                  type="number"
-                  inputProps={{ step: 1 }}
-                  value={demandChargeKwRate}
-                  onChange={(e) => setDemandChargeKwRate(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="PROLT Margin (% of Savings)"
-                  type="number"
-                  inputProps={{ step: 0.1 }}
-                  value={proltMargin}
-                  onChange={(e) => setProltMargin(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Trader Margin (₹/kWh)"
-                  type="number"
-                  inputProps={{ step: 0.01 }}
-                  value={traderMargin}
-                  onChange={(e) => setTraderMargin(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Metering Charges (₹)"
-                  type="number"
-                  value={meteringCharges}
-                  onChange={(e) => setMeteringCharges(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Consultancy Fee (₹)"
-                  type="number"
-                  value={consultancyFee}
-                  onChange={(e) => setConsultancyFee(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Probus Platform Fee (₹)"
-                  type="number"
-                  value={probusPlatformFee}
-                  onChange={(e) => setProbusPlatformFee(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-            </Grid>
-          </Paper>
-
-          {/* Card 4: Monthly Custom TOD, Billed Dates & Peak Demand */}
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BoltIcon sx={{ color: '#8B5CF6' }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
-                  Custom TOD Consumption & Billing Data
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <TextField
-                  type="month"
-                  size="small"
-                  value={newMonthInput}
-                  onChange={(e) => setNewMonthInput(e.target.value)}
-                  sx={{ width: 190 }}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <Button variant="outlined" size="small" onClick={handleAddMonth} sx={{ borderColor: '#8B5CF6', color: '#8B5CF6' }}>
-                  Add Month
-                </Button>
-              </Box>
-            </Box>
-
-            {/* Month Chips */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-              {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).map(m => (
-                <Chip
-                  key={m}
-                  label={m}
-                  color={activeMonth === m ? 'primary' : 'default'}
-                  onClick={() => setActiveMonth(m)}
-                  onDelete={(e) => handleDeleteMonth(m, e)}
-                  sx={{ fontWeight: 600, bgcolor: activeMonth === m ? '#8B5CF6' : undefined }}
-                />
-              ))}
-            </Box>
-
-            <Box sx={{ bgcolor: '#F8FAFC', p: 2, borderRadius: 2, mb: 2, border: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
-                Billing Data & Demand for {activeMonth}
-              </Typography>
-
-              <Grid container spacing={2} alignItems="center">
+          {/* Step 4: Margins & Platform Charges */}
+          {renderStep(4, {
+            icon: <ElectricBoltIcon />,
+            title: 'Margins & Platform Charges',
+            question: 'Configure commercial margins and statutory charges',
+            summary: `PROLT Margin: ${proltMargin}% | ED: ${electricityDutyPercent}%`,
+            content: (
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Electricity Duty (%)"
+                    type="number"
+                    inputProps={{ step: 0.1 }}
+                    value={electricityDutyPercent}
+                    onChange={(e) => setElectricityDutyPercent(e.target.value)}
+                    fullWidth
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Demand Charge Rate (₹/kW/month)"
+                    type="number"
+                    inputProps={{ step: 1 }}
+                    value={demandChargeKwRate}
+                    onChange={(e) => setDemandChargeKwRate(e.target.value)}
+                    fullWidth
+                    size="small"
+                  />
+                </Grid>
                 <Grid item xs={12} sm={4}>
-                  <FormControl component="fieldset">
-                    <FormLabel component="legend" sx={{ fontSize: '12px', color: 'text.secondary', mb: 0.5 }}>Electricity Duty Applied?</FormLabel>
-                    <RadioGroup
-                      row
-                      value={applyElectricityDuty ? 'Yes' : 'No'}
-                      onChange={(e) => setApplyElectricityDuty(e.target.value === 'Yes')}
-                    >
-                      <FormControlLabel value="Yes" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Yes</Typography>} />
-                      <FormControlLabel value="No" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">No</Typography>} />
-                    </RadioGroup>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={8}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                    BILLED CONSUMPTION DATE RANGE
-                  </Typography>
-                  <DateRangePicker
-                    startDate={activeMonthData.startDate || `${activeMonth}-01`}
-                    endDate={activeMonthData.endDate || `${activeMonth}-30`}
-                    onChange={(start, end) => handleUpdateBilledDates(start, end)}
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
                   <TextField
-                    label="Peak Demand (kW)"
+                    label="PROLT Margin (% of Savings)"
                     type="number"
-                    size="small"
-                    fullWidth
-                    value={activeMonthData.peakDemandKw || ''}
-                    onChange={(e) => handleUpdatePeakDemand(Number(e.target.value))}
-                    placeholder="e.g. 1000"
-                    sx={{ bgcolor: '#FFFFFF' }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Power Factor"
-                    type="number"
-                    inputProps={{ step: 0.01, min: 0, max: 1 }}
-                    value={powerFactor}
-                    onChange={(e) => setPowerFactor(e.target.value)}
+                    inputProps={{ step: 0.1 }}
+                    value={proltMargin}
+                    onChange={(e) => setProltMargin(e.target.value)}
                     fullWidth
                     size="small"
-                    sx={{ bgcolor: '#FFFFFF' }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Trader Margin (₹/kWh)"
+                    type="number"
+                    inputProps={{ step: 0.01 }}
+                    value={traderMargin}
+                    onChange={(e) => setTraderMargin(e.target.value)}
+                    fullWidth
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Metering Charges (₹)"
+                    type="number"
+                    value={meteringCharges}
+                    onChange={(e) => setMeteringCharges(e.target.value)}
+                    fullWidth
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Consultancy Fee (₹)"
+                    type="number"
+                    value={consultancyFee}
+                    onChange={(e) => setConsultancyFee(e.target.value)}
+                    fullWidth
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Probus Platform Fee (₹)"
+                    type="number"
+                    value={probusPlatformFee}
+                    onChange={(e) => setProbusPlatformFee(e.target.value)}
+                    fullWidth
+                    size="small"
                   />
                 </Grid>
               </Grid>
-            </Box>
+            )
+          })}
 
-            {/* Custom TOD Slots Table */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle2" fontWeight={700} color="#1E293B">
-                Custom TOD Windows for {activeMonth}
-              </Typography>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={handleAddTodSlot}
-                sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' } }}
-              >
-                Add TOD Slot
-              </Button>
-            </Box>
+          {/* Step 5: Custom TOD Consumptions */}
+          {renderStep(5, {
+            icon: <BoltIcon />,
+            title: 'Custom TOD Consumptions',
+            question: 'Configure monthly TOD time slots & DISCOM effective prices',
+            summary: `Configured Months: ${Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).join(', ')}`,
+            content: (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 0.5 }}>
+                {/* Month Tabs */}
+                <Paper elevation={0} sx={{ p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: '#F8FAFC' }}>
+                  <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 0.5, alignItems: 'center' }}>
+                    {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym) => (
+                      <Chip
+                        key={ym}
+                        label={ym}
+                        color={activeMonth === ym ? 'primary' : 'default'}
+                        onClick={() => setActiveMonth(ym)}
+                        onDelete={(e) => handleDeleteMonth(ym, e)}
+                        sx={{ fontWeight: activeMonth === ym ? 700 : 500 }}
+                      />
+                    ))}
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
+                      <TextField
+                        size="small"
+                        type="month"
+                        value={newMonthInput}
+                        onChange={(e) => setNewMonthInput(e.target.value)}
+                        sx={{ bgcolor: '#FFF', width: 140 }}
+                      />
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        onClick={handleAddMonth}
+                        sx={{ textTransform: 'none', whiteSpace: 'nowrap', borderRadius: 2 }}
+                      >
+                        Add Month
+                      </Button>
+                    </Box>
+                  </Box>
+                </Paper>
 
-            {(() => {
-              const activeMonthOverlaps = getOverlappingSlotMap(activeMonthData.slots || []);
-              return (
-                <>
-                  {activeMonthOverlaps.size > 0 && (
-                    <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                      <strong>Time Slot Overlap Warning:</strong> Custom TOD slots for {activeMonth} contain overlapping time windows! (e.g., {
-                        Array.from(activeMonthOverlaps.entries()).slice(0, 2).map(([idx, overlaps]) => (
-                          `Slot ${idx + 1} (${activeMonthData.slots[idx]?.startTime || '00:00'} - ${activeMonthData.slots[idx]?.endTime || '24:00'}) overlaps with ${overlaps.map(o => `Slot ${o + 1}`).join(', ')}`
-                        )).join('; ')
-                      }). Please adjust start/end times so time slots do not overlap.
-                    </Alert>
-                  )}
+                {/* Overlap Alert Banner */}
+                {(() => {
+                  const slots = (activeMonthData.slots || []) as CustomTodSlot[];
+                  const overlapMap = getOverlappingSlotMap(slots);
+                  if (overlapMap.size > 0) {
+                    return (
+                      <Alert severity="error" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
+                        TOD Time Slots overlap! Please adjust start and end times so slots do not overlap.
+                      </Alert>
+                    );
+                  }
+                  return null;
+                })()}
 
+                {/* Active Month Parameters */}
+                <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                      Billing Period & Peak Demand for {activeMonth}
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleAddTodSlot}
+                      sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' }, textTransform: 'none', borderRadius: 2 }}
+                    >
+                      + Add TOD Slot
+                    </Button>
+                  </Box>
+
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={8}>
+                      <DateRangePicker
+                        startDate={activeMonthData.startDate || `${activeMonth}-01`}
+                        endDate={activeMonthData.endDate || `${activeMonth}-30`}
+                        onChange={(start, end) => handleUpdateBilledDates(start, end)}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField
+                        label="Peak Demand (kW)"
+                        type="number"
+                        size="small"
+                        value={activeMonthData.peakDemandKw || ''}
+                        onChange={(e) => handleUpdatePeakDemand(Number(e.target.value))}
+                        fullWidth
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {/* Slot Table */}
                   <Table size="small">
                     <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 700 }}>Slot Name</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }} align="center">Start Time (HH:MM)</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }} align="center">End Time (HH:MM)</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kWh)</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kVAh)</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }} align="center">Effective Price (₹/kWh)</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }} align="center">Actions</TableCell>
+                      <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                        <TableCell sx={{ fontWeight: 700 }}>TOD Slot Name</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>Start Time</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>End Time</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kWh)</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kVAh)</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>Effective Price (₹/kWh)</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>Action</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {(activeMonthData.slots || []).map((slot, idx) => {
-                        const currentPf = (powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0) ? Number(powerFactor) : 0.9;
-                        const kvahVal = slot.consumptionKwh ? (slot.consumptionKwh / currentPf).toFixed(2).replace(/\.00$/, '') : '';
-                        const isOverlapping = activeMonthOverlaps.has(idx);
+                      {(() => {
+                        const slots = (activeMonthData.slots || []) as CustomTodSlot[];
+                        const overlapMap = getOverlappingSlotMap(slots);
+                        const currentPf = powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0 ? Number(powerFactor) : 0.99;
 
-                        return (
-                          <TableRow key={slot.id || idx} sx={{ bgcolor: isOverlapping ? '#FEF2F2' : 'inherit' }}>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        return slots.map((slot, idx) => {
+                          const isOverlapping = overlapMap.has(idx);
+                          const kwhVal = Number(slot.consumptionKwh) || 0;
+                          const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
+
+                          return (
+                            <TableRow key={slot.id || idx} sx={{ bgcolor: isOverlapping ? '#FEF2F2' : 'inherit' }}>
+                              <TableCell>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <TextField
+                                    size="small"
+                                    value={slot.name || ''}
+                                    onChange={(e) => handleUpdateTodSlot(idx, 'name', e.target.value)}
+                                    placeholder={`Slot ${idx + 1}`}
+                                  />
+                                  {isOverlapping && (
+                                    <Chip label="Overlap" size="small" color="error" sx={{ ml: 1, fontSize: 10, height: 20, fontWeight: 700 }} />
+                                  )}
+                                </Box>
+                              </TableCell>
+                              <TableCell align="center">
                                 <TextField
                                   size="small"
-                                  value={slot.name || ''}
-                                  onChange={(e) => handleUpdateTodSlot(idx, 'name', e.target.value)}
-                                  placeholder={`Slot ${idx + 1}`}
+                                  type="time"
+                                  error={isOverlapping}
+                                  value={slot.startTime || '00:00'}
+                                  onChange={(e) => handleUpdateTodSlot(idx, 'startTime', e.target.value)}
+                                  inputProps={{ step: 300 }}
+                                  sx={{ width: 110 }}
                                 />
-                                {isOverlapping && (
-                                  <Chip label="Overlap" size="small" color="error" sx={{ ml: 1, fontSize: 10, height: 20, fontWeight: 700 }} />
-                                )}
-                              </Box>
-                            </TableCell>
-                            <TableCell align="center">
-                              <TextField
-                                size="small"
-                                type="time"
-                                error={isOverlapping}
-                                value={slot.startTime || '00:00'}
-                                onChange={(e) => handleUpdateTodSlot(idx, 'startTime', e.target.value)}
-                                inputProps={{ step: 300 }}
-                                sx={{ width: 110 }}
-                              />
-                            </TableCell>
-                            <TableCell align="center">
-                              <TextField
-                                size="small"
-                                type="time"
-                                error={isOverlapping}
-                                value={slot.endTime || '24:00'}
-                                onChange={(e) => handleUpdateTodSlot(idx, 'endTime', e.target.value)}
-                                inputProps={{ step: 300 }}
-                                sx={{ width: 110 }}
-                              />
-                            </TableCell>
-                            <TableCell align="center">
-                              <TextField
-                                size="small"
-                                type="number"
-                                value={slot.consumptionKwh}
-                                onChange={(e) => handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value)}
-                                sx={{ width: 110 }}
-                              />
-                            </TableCell>
-                      <TableCell align="center">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={kvahVal}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val && !isNaN(Number(val))) {
-                              handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
-                            } else {
-                              handleUpdateTodSlot(idx, 'consumptionKwh', 0);
-                            }
-                          }}
-                          sx={{ width: 110 }}
-                        />
-                      </TableCell>
-                    <TableCell align="center">
-                      <TextField
-                        size="small"
-                        type="number"
-                        inputProps={{ step: 0.1 }}
-                        value={slot.effectivePrice}
-                        onChange={(e) => handleUpdateTodSlot(idx, 'effectivePrice', e.target.value)}
-                        sx={{ width: 130 }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton color="error" size="small" onClick={() => handleRemoveTodSlot(idx)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              </TableBody>
-            </Table>
-                </>
-              );
-            })()}
-          </Paper>
+                              </TableCell>
+                              <TableCell align="center">
+                                <TextField
+                                  size="small"
+                                  type="time"
+                                  error={isOverlapping}
+                                  value={slot.endTime || '24:00'}
+                                  onChange={(e) => handleUpdateTodSlot(idx, 'endTime', e.target.value)}
+                                  inputProps={{ step: 300 }}
+                                  sx={{ width: 110 }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <TextField
+                                  size="small"
+                                  type="number"
+                                  value={slot.consumptionKwh}
+                                  onChange={(e) => handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value)}
+                                  sx={{ width: 110 }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <TextField
+                                  size="small"
+                                  type="number"
+                                  value={kvahVal}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val && !isNaN(Number(val))) {
+                                      handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
+                                    } else {
+                                      handleUpdateTodSlot(idx, 'consumptionKwh', 0);
+                                    }
+                                  }}
+                                  sx={{ width: 110 }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <TextField
+                                  size="small"
+                                  type="number"
+                                  inputProps={{ step: 0.1 }}
+                                  value={slot.effectivePrice}
+                                  onChange={(e) => handleUpdateTodSlot(idx, 'effectivePrice', e.target.value)}
+                                  sx={{ width: 130 }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <IconButton color="error" size="small" onClick={() => handleRemoveTodSlot(idx)}>
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        });
+                      })()}
+                    </TableBody>
+                  </Table>
+                </Paper>
+              </Box>
+            )
+          })}
         </DialogContent>
 
         <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between', bgcolor: '#F8FAFC' }}>
           <Button onClick={handleCloseDialog} color="inherit" sx={{ fontWeight: 600 }}>
             Cancel
-          </Button>
-          <Button onClick={handleSaveEntry} variant="contained" sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' }, fontWeight: 700 }}>
-            Save Entry
           </Button>
         </DialogActions>
       </Dialog>
