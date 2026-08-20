@@ -5,6 +5,7 @@ const router = Router();
 
 // CRUD Endpoints
 router.get('/entries', SavingsCalculatorNewController.getAll);
+router.get('/entries/resource-defaults', SavingsCalculatorNewController.getResourceDefaults);
 router.post('/entries', SavingsCalculatorNewController.create);
 router.get('/entries/:id', SavingsCalculatorNewController.getById);
 router.put('/entries/:id', SavingsCalculatorNewController.update);

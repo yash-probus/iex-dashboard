@@ -274,4 +274,27 @@ export class SavingsCalculatorNewController {
       res.status(500).json({ message: error.message || 'Demand shift excel export failed.' });
     }
   }
+
+  static async getResourceDefaults(req: Request, res: Response) {
+    try {
+      const { stateCode, discom, consumerCategory, voltageLevel, monthStr } = req.query;
+      const defaults = await SavingsCalculatorNewService.getResourceDefaults({
+        stateCode: stateCode ? String(stateCode) : undefined,
+        discom: discom ? String(discom) : undefined,
+        consumerCategory: consumerCategory ? String(consumerCategory) : undefined,
+        voltageLevel: voltageLevel ? String(voltageLevel) : undefined,
+        monthStr: monthStr ? String(monthStr) : undefined,
+      });
+      return res.status(200).json({
+        success: true,
+        data: defaults
+      });
+    } catch (error: any) {
+      console.error('[SavingsCalculatorNewController] Error in getResourceDefaults:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to fetch resource defaults.'
+      });
+    }
+  }
 }

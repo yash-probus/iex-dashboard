@@ -83,6 +83,17 @@ export const fetchSavingsNewEntryById = async (id: string, version?: number): Pr
   return response.data.data;
 };
 
+export const fetchResourceDefaults = async (params: {
+  stateCode?: string;
+  discom?: string;
+  consumerCategory?: string;
+  voltageLevel?: string;
+  monthStr?: string;
+}): Promise<{ fppaChargePercent: number; demandChargeKwRate: number; electricityDutyPercent: number }> => {
+  const response = await apiClient.get('/savings-calculator-new/entries/resource-defaults', { params });
+  return response.data.data || { fppaChargePercent: 10.0, demandChargeKwRate: 250.0, electricityDutyPercent: 5.0 };
+};
+
 export const createSavingsNewEntry = async (data: Partial<SavingsCalculatorNewEntry>): Promise<SavingsCalculatorNewEntry> => {
   const response = await apiClient.post('/savings-calculator-new/entries', data);
   return response.data.data;

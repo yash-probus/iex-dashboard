@@ -28,6 +28,7 @@ import {
   createSavingsNewEntry,
   updateSavingsNewEntry,
   deleteSavingsNewEntry,
+  fetchResourceDefaults,
   SavingsCalculatorNewEntry,
   CustomTodSlot
 } from '../api/savingsCalculatorNew.api';
@@ -340,6 +341,29 @@ export default function SavingsCalculatorNewPage() {
   useEffect(() => {
     loadEntries();
   }, []);
+
+  useEffect(() => {
+    if (!dialogOpen || dialogMode === 'edit') return;
+    const loadResourceDefaults = async () => {
+      try {
+        const defaults = await fetchResourceDefaults({
+          stateCode,
+          discom,
+          consumerCategory,
+          voltageLevel,
+          monthStr: activeMonth
+        });
+        if (defaults) {
+          if (defaults.fppaChargePercent !== undefined) setFppaChargePercent(String(defaults.fppaChargePercent));
+          if (defaults.demandChargeKwRate !== undefined) setDemandChargeKwRate(String(defaults.demandChargeKwRate));
+          if (defaults.electricityDutyPercent !== undefined) setElectricityDutyPercent(String(defaults.electricityDutyPercent));
+        }
+      } catch (err) {
+        console.warn('Could not load resource defaults:', err);
+      }
+    };
+    loadResourceDefaults();
+  }, [dialogOpen, dialogMode, stateCode, discom, consumerCategory, voltageLevel, activeMonth]);
 
   const handleOpenCreate = () => {
     setDialogMode('create');

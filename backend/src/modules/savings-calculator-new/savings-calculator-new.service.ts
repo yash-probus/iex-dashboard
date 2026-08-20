@@ -984,4 +984,85 @@ export class SavingsCalculatorNewService {
       totalSavings
     };
   }
+
+  static async getResourceDefaults(params: {
+    stateCode?: string;
+    discom?: string;
+    consumerCategory?: string;
+    voltageLevel?: string;
+    monthStr?: string;
+  }) {
+    const { stateCode = 'MH', discom, consumerCategory = 'Industrial', monthStr = '2026-04' } = params;
+
+    const stateMap: Record<string, string[]> = {
+      'MH': ['MH', 'Maharashtra'],
+      'GJ': ['GJ', 'Gujarat'],
+      'KA': ['KA', 'Karnataka'],
+      'TN': ['TN', 'Tamil Nadu'],
+      'AP': ['AP', 'Andhra Pradesh'],
+      'TS': ['TS', 'Telangana'],
+      'DL': ['DL', 'Delhi'],
+      'HR': ['HR', 'Haryana'],
+      'PB': ['PB', 'Punjab'],
+      'RJ': ['RJ', 'Rajasthan'],
+      'UP': ['UP', 'Uttar Pradesh'],
+      'MP': ['MP', 'Madhya Pradesh'],
+      'CG': ['CG', 'Chhattisgarh'],
+      'WB': ['WB', 'West Bengal'],
+      'OD': ['OD', 'Odisha']
+    };
+    const stateFormats = stateMap[stateCode] || [stateCode];
+
+    const [yStr, mStr] = (monthStr || '2026-04').split('-');
+    const year = parseInt(yStr, 10) || 2026;
+    const month = parseInt(mStr, 10) || 4;
+    const yyyymm = year * 100 + month;
+    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+
+    // 1. Query FPPA Charges
+    let fppaChargePercent = 10.0;
+    if (!isNaN(yyyymm)) {
+      const fppaList = await prisma.fppaCharges.findMany({
+        where: {
+          state: { in: stateFormats },
+          month: yyyymm
+        }
+      });
+      let fppaData = discom ? fppaList.find(f => f.discom === discom) : undefined;
+      if (!fppaData) {
+        fppaData = fppaList.find(f => !f.discom || f.discom === '');
+      }
+      if (!fppaData && fppaList.length > 0) {
+        fppaData = fppaList[0];
+      }
+      if (fppaData?.fppaChargePercent) {
+        fppaChargePercent = Number(fppaData.fppaChargePercent);
+      }
+    }
+
+    // 2. Query Demand Charge Rate from StateCharges
+    let demandChargeKwRate = 250.0;
+    const parsedCategory = consumerCategory?.toLowerCase().includes('ind') ? 'Industrial' : 'Commercial';
+    const stateCharges = await prisma.stateCharges.findFirst({
+      where: {
+        state: { in: stateFormats },
+        category: parsedCategory,
+        fromDate: { lte: new Date(startStr) },
+        toDate: { gte: new Date(startStr) }
+      }
+    });
+
+    if (stateCharges?.demandFixedChargeKvaPerMonthRs) {
+      demandChargeKwRate = Number(stateCharges.demandFixedChargeKvaPerMonthRs);
+    }
+
+    // 3. Electricity Duty
+    let electricityDutyPercent = 5.0;
+
+    return {
+      fppaChargePercent,
+      demandChargeKwRate,
+      electricityDutyPercent
+    };
+  }
 }
