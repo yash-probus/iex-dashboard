@@ -582,37 +582,11 @@ export class SavingsCalculatorExportService {
 
     const numMonths = allResults.length;
 
-    // Calculation Base
-    const calcBaseRow = sheet.addRow(['Calculation Base:', 'Demand (MW)', ...Array(numMonths).fill('')]);
-    calcBaseRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6E0B4' } };
-    calcBaseRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6E0B4' } };
-    calcBaseRow.getCell(1).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-    calcBaseRow.getCell(2).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-    
-
-
-    // TOD Header
-    const todHeaderRow = sheet.addRow(['TOD', ...monthHeaders]);
-    todHeaderRow.height = 25;
-    todHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    todHeaderRow.eachCell(c => {
-      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
-      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-    });
-    
     const uniqueTods = new Set<string>();
     allResults.forEach(r => {
       r.result.todSummaries.forEach((t: any) => uniqueTods.add(t.slabName));
     });
     const todSlabs = Array.from(uniqueTods).sort();
-
-    const demandMw = (entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 0) / 1000;
-    
-    todSlabs.forEach(tod => {
-      sheet.addRow([tod, ...Array(numMonths).fill(demandMw)]);
-    });
-
-    sheet.addRow([]);
 
     // Savings section
     const savingsHeaderRow = sheet.addRow(['Savings', ...monthHeaders]);
