@@ -382,12 +382,13 @@ export default function SavingsCalculatorNewPage() {
   const handleOpenEdit = (entry: SavingsCalculatorNewEntry) => {
     setDialogMode('edit');
     setSelectedEntryId(entry.id);
-    let fullClientName = entry.clientName;
-    if (fullClientName.startsWith('M/s ')) {
-      setClientPrefix('M/s');
-      setClientName(fullClientName.replace('M/s ', ''));
+    let fullClientName = entry.clientName || '';
+    const matchedPrefix = ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'M/s'].find(p => fullClientName.startsWith(`${p} `));
+    if (matchedPrefix) {
+      setClientPrefix(matchedPrefix);
+      setClientName(fullClientName.substring(matchedPrefix.length + 1));
     } else {
-      setClientPrefix('M/s');
+      setClientPrefix('');
       setClientName(fullClientName);
     }
     setIndustryName(entry.industryName);
@@ -854,6 +855,11 @@ export default function SavingsCalculatorNewPage() {
                           disableUnderline
                           sx={{ fontSize: '14px', fontWeight: 600, color: 'text.secondary', mr: 1 }}
                         >
+                          <MenuItem value=""><em>None</em></MenuItem>
+                          <MenuItem value="Mr.">Mr.</MenuItem>
+                          <MenuItem value="Ms.">Ms.</MenuItem>
+                          <MenuItem value="Mrs.">Mrs.</MenuItem>
+                          <MenuItem value="Dr.">Dr.</MenuItem>
                           <MenuItem value="M/s">M/s</MenuItem>
                         </Select>
                       </InputAdornment>
@@ -1221,50 +1227,71 @@ export default function SavingsCalculatorNewPage() {
                   <TableCell sx={{ fontWeight: 700 }} align="center">Start Time (HH:MM)</TableCell>
                   <TableCell sx={{ fontWeight: 700 }} align="center">End Time (HH:MM)</TableCell>
                   <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kWh)</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kVAh)</TableCell>
                   <TableCell sx={{ fontWeight: 700 }} align="center">Effective Price (₹/kWh)</TableCell>
                   <TableCell sx={{ fontWeight: 700 }} align="center">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {(activeMonthData.slots || []).map((slot, idx) => (
-                  <TableRow key={slot.id || idx}>
-                    <TableCell>
-                      <TextField
-                        size="small"
-                        value={slot.name || ''}
-                        onChange={(e) => handleUpdateTodSlot(idx, 'name', e.target.value)}
-                        placeholder={`Slot ${idx + 1}`}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <TextField
-                        size="small"
-                        type="time"
-                        value={slot.startTime || '00:00'}
-                        onChange={(e) => handleUpdateTodSlot(idx, 'startTime', e.target.value)}
-                        inputProps={{ step: 300 }}
-                        sx={{ width: 120 }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <TextField
-                        size="small"
-                        type="time"
-                        value={slot.endTime || '24:00'}
-                        onChange={(e) => handleUpdateTodSlot(idx, 'endTime', e.target.value)}
-                        inputProps={{ step: 300 }}
-                        sx={{ width: 120 }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <TextField
-                        size="small"
-                        type="number"
-                        value={slot.consumptionKwh}
-                        onChange={(e) => handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value)}
-                        sx={{ width: 130 }}
-                      />
-                    </TableCell>
+                {(activeMonthData.slots || []).map((slot, idx) => {
+                  const currentPf = (powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0) ? Number(powerFactor) : 0.9;
+                  const kvahVal = slot.consumptionKwh ? (slot.consumptionKwh / currentPf).toFixed(2).replace(/\.00$/, '') : '';
+
+                  return (
+                    <TableRow key={slot.id || idx}>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          value={slot.name || ''}
+                          onChange={(e) => handleUpdateTodSlot(idx, 'name', e.target.value)}
+                          placeholder={`Slot ${idx + 1}`}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <TextField
+                          size="small"
+                          type="time"
+                          value={slot.startTime || '00:00'}
+                          onChange={(e) => handleUpdateTodSlot(idx, 'startTime', e.target.value)}
+                          inputProps={{ step: 300 }}
+                          sx={{ width: 110 }}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <TextField
+                          size="small"
+                          type="time"
+                          value={slot.endTime || '24:00'}
+                          onChange={(e) => handleUpdateTodSlot(idx, 'endTime', e.target.value)}
+                          inputProps={{ step: 300 }}
+                          sx={{ width: 110 }}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={slot.consumptionKwh}
+                          onChange={(e) => handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value)}
+                          sx={{ width: 110 }}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={kvahVal}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val && !isNaN(Number(val))) {
+                              handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
+                            } else {
+                              handleUpdateTodSlot(idx, 'consumptionKwh', 0);
+                            }
+                          }}
+                          sx={{ width: 110 }}
+                        />
+                      </TableCell>
                     <TableCell align="center">
                       <TextField
                         size="small"
@@ -1281,7 +1308,8 @@ export default function SavingsCalculatorNewPage() {
                       </IconButton>
                     </TableCell>
                   </TableRow>
-                ))}
+                );
+              })}
               </TableBody>
             </Table>
           </Paper>
