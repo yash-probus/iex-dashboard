@@ -38,7 +38,16 @@ def generate_proposal(data_json):
         if 'XXXXXXXXXXXXX' in p.text:
             p.text = p.text.replace('XXXXXXXXXXXXX', client_name.upper())
 
-    # 2. Update Table 0 (Facility Parameters)
+    # Helper function to set cell text with centered alignment and bold formatting
+    def set_cell_value(cell, text, bold=False):
+        cell.text = ""
+        p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run(str(text))
+        if bold:
+            run.bold = True
+
+    # 2. Update Table 0 (Facility Parameters: Sanctioned Load, Connectivity, DISCOM Name, Feeder Type)
     if len(doc.tables) > 0:
         t0 = doc.tables[0]
         if len(t0.rows) > 1:
@@ -46,18 +55,10 @@ def generate_proposal(data_json):
             sanctioned_load = str(data.get('sanctioned_load') or data.get('sanctioned_load_kw') or '1000 kW')
             if not sanctioned_load.lower().endswith('kw') and not sanctioned_load.lower().endswith('kva'):
                 sanctioned_load += ' kW'
-            r1[0].text = sanctioned_load
-            r1[1].text = str(data.get('connectivity') or data.get('voltage_level') or '11 kV')
-            r1[2].text = str(data.get('discom_name') or data.get('discom') or 'DISCOM')
-            r1[3].text = str(data.get('feeder_type') or 'Dedicated Feeder')
-
-    # Helper function to set cell text with bold formatting
-    def set_cell_value(cell, text, bold=False):
-        cell.text = ""
-        p = cell.paragraphs[0]
-        run = p.add_run(str(text))
-        if bold:
-            run.bold = True
+            set_cell_value(r1[0], sanctioned_load, bold=True)
+            set_cell_value(r1[1], str(data.get('connectivity') or data.get('voltage_level') or '11 kV'), bold=True)
+            set_cell_value(r1[2], str(data.get('discom_name') or data.get('discom') or 'DISCOM'), bold=True)
+            set_cell_value(r1[3], str(data.get('feeder_type') or 'Dedicated Feeder'), bold=True)
 
     # 3. Update Table 2 (Fixed One-Time Cost)
     if len(doc.tables) > 2:

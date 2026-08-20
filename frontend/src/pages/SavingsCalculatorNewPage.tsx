@@ -17,7 +17,8 @@ import {
   Category as CategoryIcon,
   Bolt as BoltIcon,
   Speed as SpeedIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
@@ -1111,17 +1112,17 @@ export default function SavingsCalculatorNewPage() {
             </Grid>
           </Paper>
 
-          {/* Card 3: Margins & Fees */}
+          {/* Card 3: DISCOM Tariff & Statutory Charges */}
           <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <ElectricBoltIcon sx={{ color: '#8B5CF6' }} />
+              <AccountBalanceIcon sx={{ color: '#0EA5E9' }} />
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
-                Margins & Platform Charges
+                DISCOM Tariff & Statutory Charges
               </Typography>
             </Box>
 
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   label="Electricity Duty (%)"
                   type="number"
@@ -1132,7 +1133,7 @@ export default function SavingsCalculatorNewPage() {
                   size="small"
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   label="Demand Charge Rate (₹/kW/month)"
                   type="number"
@@ -1145,6 +1146,29 @@ export default function SavingsCalculatorNewPage() {
               </Grid>
               <Grid item xs={12} sm={4}>
                 <TextField
+                  label="Metering Charges (₹)"
+                  type="number"
+                  value={meteringCharges}
+                  onChange={(e) => setMeteringCharges(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Card 4: Margins & Platform Charges */}
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <ElectricBoltIcon sx={{ color: '#8B5CF6' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                Margins & Platform Charges
+              </Typography>
+            </Box>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
                   label="PROLT Margin (% of Savings)"
                   type="number"
                   inputProps={{ step: 0.1 }}
@@ -1154,23 +1178,13 @@ export default function SavingsCalculatorNewPage() {
                   size="small"
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   label="Trader Margin (₹/kWh)"
                   type="number"
                   inputProps={{ step: 0.01 }}
                   value={traderMargin}
                   onChange={(e) => setTraderMargin(e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Metering Charges (₹)"
-                  type="number"
-                  value={meteringCharges}
-                  onChange={(e) => setMeteringCharges(e.target.value)}
                   fullWidth
                   size="small"
                 />

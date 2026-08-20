@@ -96,10 +96,10 @@ export class ProposalService {
               const discomVal = String(clientData.discom_name || clientData.discom || 'DISCOM');
               const feederVal = String(clientData.feeder_type || 'Dedicated Feeder');
 
-              cells[0] = cells[0].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${loadVal}</w:t>`);
-              cells[1] = cells[1].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${connVal}</w:t>`);
-              cells[2] = cells[2].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${discomVal}</w:t>`);
-              cells[3] = cells[3].replace(/<w:t\b[^>]*>[^<]*<\/w:t>/, `<w:t>${feederVal}</w:t>`);
+              cells[0] = setLastCellText(cells[0] + '</w:tc>', loadVal, true).replace('</w:tc>', '');
+              cells[1] = setLastCellText(cells[1] + '</w:tc>', connVal, true).replace('</w:tc>', '');
+              cells[2] = setLastCellText(cells[2] + '</w:tc>', discomVal, true).replace('</w:tc>', '');
+              cells[3] = setLastCellText(cells[3] + '</w:tc>', feederVal, true).replace('</w:tc>', '');
               rows[1] = cells.join('</w:tc>');
             }
           }
