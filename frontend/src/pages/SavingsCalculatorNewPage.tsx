@@ -321,8 +321,15 @@ export default function SavingsCalculatorNewPage() {
     }
   });
 
+  const getCurrentYearMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
   const [activeMonth, setActiveMonth] = useState<string>('2026-04');
-  const [newMonthInput, setNewMonthInput] = useState<string>('');
+  const [newMonthInput, setNewMonthInput] = useState<string>(getCurrentYearMonth());
 
   const loadEntries = async () => {
     setLoading(true);
@@ -400,6 +407,7 @@ export default function SavingsCalculatorNewPage() {
       }
     });
     setActiveMonth('2026-04');
+    setNewMonthInput(getCurrentYearMonth());
     setDialogOpen(true);
   };
 
@@ -606,7 +614,7 @@ export default function SavingsCalculatorNewPage() {
         }
       }));
       setActiveMonth(newMonthInput);
-      setNewMonthInput('');
+      setNewMonthInput(getCurrentYearMonth());
     }
   };
 
