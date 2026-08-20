@@ -821,13 +821,56 @@ export default function SavingsCalculatorNewPage() {
   );
 
   const columns: ColumnDefinition[] = [
-    { field: 'id', headerName: 'CLIENT ID', align: 'center', width: 90, sticky: true },
+    {
+      field: 'id',
+      headerName: 'CLIENT ID',
+      align: 'center',
+      width: 90,
+      sticky: true,
+      renderCell: (row: SavingsCalculatorNewEntry) => {
+        const index = filteredEntries.findIndex(e => e.id === row.id);
+        return index >= 0 ? index + 1 : 1;
+      }
+    },
     { field: 'clientName', headerName: 'CLIENT NAME', align: 'left', minWidth: 150, sticky: true, sortable: true },
     { field: 'industryName', headerName: 'INDUSTRY NAME', align: 'left', minWidth: 150, sticky: true, sortable: true },
     { field: 'sanctionedLoadKw', headerName: 'SANCTIONED LOAD (KW)', align: 'center', width: 140, sortable: true, valueFormatter: (v) => v ? Number(v).toLocaleString('en-IN') : '-' },
     { field: 'stateCode', headerName: 'STATE', align: 'center', width: 80, sortable: true },
     { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120, sortable: true },
     { field: 'consumerCategory', headerName: 'CATEGORY', align: 'left', width: 110, sortable: true },
+    { field: 'voltageLevel', headerName: 'VOLTAGE', align: 'center', width: 100, sortable: true },
+    {
+      field: 'createdAt',
+      headerName: 'CREATED AT',
+      align: 'center',
+      width: 160,
+      sortable: true,
+      valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
+    },
+    {
+      field: 'createdBy',
+      headerName: 'CREATED BY',
+      align: 'center',
+      width: 120,
+      sortable: true,
+      valueFormatter: (v) => v || '-'
+    },
+    {
+      field: 'updatedAt',
+      headerName: 'UPDATED AT',
+      align: 'center',
+      width: 160,
+      sortable: true,
+      valueFormatter: (v) => v ? new Date(v as string).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'
+    },
+    {
+      field: 'updatedBy',
+      headerName: 'UPDATED BY',
+      align: 'center',
+      width: 120,
+      sortable: true,
+      valueFormatter: (v) => v || '-'
+    },
     {
       field: 'actions',
       headerName: 'ACTIONS',
@@ -1018,7 +1061,7 @@ export default function SavingsCalculatorNewPage() {
           </Box>
           <Box>
             <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
-              Savings Calculator
+              Savings Calculator (New)
             </Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               Compare grid utility tariffs against energy market procurement clearing prices.
