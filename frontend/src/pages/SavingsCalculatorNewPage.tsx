@@ -408,6 +408,9 @@ export default function SavingsCalculatorNewPage() {
 
   const [activeMonth, setActiveMonth] = useState<string>('2026-04');
   const [newMonthInput, setNewMonthInput] = useState<string>(getCurrentYearMonth());
+  const [entryYear, setEntryYear] = useState<number>(2026);
+  const [entryMonth, setEntryMonth] = useState<number>(4);
+  const [expandedAccordion, setExpandedAccordion] = useState<string | false>('2026-04');
 
   const loadEntries = async () => {
     setLoading(true);
@@ -978,7 +981,7 @@ export default function SavingsCalculatorNewPage() {
                 '&:hover': { bgcolor: '#7C3AED' }
               }}
             >
-              {stepIndex === 6 ? (dialogMode === 'create' ? 'Save Client Entry' : 'Update Client Entry') : 'Continue'}
+              {stepIndex === 5 ? 'Preview Inputs' : (stepIndex === 6 ? (dialogMode === 'create' ? 'Save Client Entry' : 'Update Client Entry') : 'Continue')}
             </Button>
           </Box>
         </Card>
@@ -1353,45 +1356,11 @@ export default function SavingsCalculatorNewPage() {
           {/* Step 5: Custom TOD Consumptions */}
           {renderStep(5, {
             icon: <BoltIcon />,
-            title: 'Custom TOD Consumptions',
-            question: 'Configure monthly TOD time slots & DISCOM effective prices',
+            title: 'Enter ToD Consumption',
+            question: 'Add monthly consumption data for each Time-of-Day period',
             summary: `Configured Months: ${Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).join(', ')}`,
             content: (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 0.5 }}>
-                {/* Month Tabs */}
-                <Paper elevation={0} sx={{ p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: '#F8FAFC' }}>
-                  <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 0.5, alignItems: 'center' }}>
-                    {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym) => (
-                      <Chip
-                        key={ym}
-                        label={ym}
-                        color={activeMonth === ym ? 'primary' : 'default'}
-                        onClick={() => setActiveMonth(ym)}
-                        onDelete={(e) => handleDeleteMonth(ym, e)}
-                        sx={{ fontWeight: activeMonth === ym ? 700 : 500 }}
-                      />
-                    ))}
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
-                      <TextField
-                        size="small"
-                        type="month"
-                        value={newMonthInput}
-                        onChange={(e) => setNewMonthInput(e.target.value)}
-                        sx={{ bgcolor: '#FFF', width: 140 }}
-                      />
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<AddIcon />}
-                        onClick={handleAddMonth}
-                        sx={{ textTransform: 'none', whiteSpace: 'nowrap', borderRadius: 2 }}
-                      >
-                        Add Month
-                      </Button>
-                    </Box>
-                  </Box>
-                </Paper>
-
                 {/* Overlap Alert Banner */}
                 {(() => {
                   const slots = (activeMonthData.slots || []) as CustomTodSlot[];
@@ -1406,151 +1375,295 @@ export default function SavingsCalculatorNewPage() {
                   return null;
                 })()}
 
-                {/* Active Month Parameters */}
-                <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: '#FFFFFF' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E293B' }}>
-                      Billing Period & Peak Demand for {activeMonth}
-                    </Typography>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      onClick={handleAddTodSlot}
-                      sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' }, textTransform: 'none', borderRadius: 2 }}
+                {/* Monthly Accordions */}
+                {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym, index) => {
+                  const monthData = todConsumptions[ym] || { startDate: `${ym}-01`, endDate: `${ym}-30`, peakDemandKw: 1000, slots: [] };
+                  const isExpanded = expandedAccordion === 'initial' ? index === 0 : expandedAccordion === ym;
+
+                  return (
+                    <Accordion
+                      key={ym}
+                      expanded={isExpanded}
+                      onChange={(e, expanded) => setExpandedAccordion(expanded ? ym : false)}
+                      elevation={0}
+                      sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}
                     >
-                      + Add TOD Slot
-                    </Button>
-                  </Box>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
+                              {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteMonth(ym, e);
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" color="action" />
+                          </IconButton>
+                        </Box>
+                      </AccordionSummary>
 
-                  <Grid container spacing={2} sx={{ mb: 2 }}>
-                    <Grid item xs={12} sm={8}>
-                      <DateRangePicker
-                        startDate={activeMonthData.startDate || `${activeMonth}-01`}
-                        endDate={activeMonthData.endDate || `${activeMonth}-30`}
-                        onChange={(start, end) => handleUpdateBilledDates(start, end)}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Peak Demand (kW)"
-                        type="number"
-                        size="small"
-                        value={activeMonthData.peakDemandKw || ''}
-                        onChange={(e) => handleUpdatePeakDemand(Number(e.target.value))}
-                        fullWidth
-                      />
-                    </Grid>
-                  </Grid>
+                      <AccordionDetails sx={{ p: 2.5, pt: 1, bgcolor: '#FFFFFF' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                            Billing Period & Peak Demand for {ym}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                              setActiveMonth(ym);
+                              handleAddTodSlot();
+                            }}
+                            sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' }, textTransform: 'none', borderRadius: 2 }}
+                          >
+                            + Add TOD Slot
+                          </Button>
+                        </Box>
 
-                  {/* Slot Table */}
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                        <TableCell sx={{ fontWeight: 700 }}>TOD Slot Name</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Start Time</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>End Time</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kWh)</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kVAh)</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Effective Price (₹/kWh)</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Action</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {(() => {
-                        const slots = (activeMonthData.slots || []) as CustomTodSlot[];
-                        const overlapMap = getOverlappingSlotMap(slots);
-                        const currentPf = powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0 ? Number(powerFactor) : 0.99;
+                        <Grid container spacing={2} sx={{ mb: 2 }}>
+                          <Grid item xs={12} sm={8}>
+                            <DateRangePicker
+                              startDate={monthData.startDate || `${ym}-01`}
+                              endDate={monthData.endDate || `${ym}-30`}
+                              onChange={(start, end) => {
+                                setActiveMonth(ym);
+                                handleUpdateBilledDates(start, end);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <TextField
+                              label="Peak Demand (kW)"
+                              type="number"
+                              size="small"
+                              value={monthData.peakDemandKw || ''}
+                              onChange={(e) => {
+                                setActiveMonth(ym);
+                                handleUpdatePeakDemand(Number(e.target.value));
+                              }}
+                              fullWidth
+                            />
+                          </Grid>
+                        </Grid>
 
-                        return slots.map((slot, idx) => {
-                          const isOverlapping = overlapMap.has(idx);
-                          const kwhVal = Number(slot.consumptionKwh) || 0;
-                          const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
-
-                          return (
-                            <TableRow key={slot.id || idx} sx={{ bgcolor: isOverlapping ? '#FEF2F2' : 'inherit' }}>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <TextField
-                                    size="small"
-                                    value={slot.name || ''}
-                                    onChange={(e) => handleUpdateTodSlot(idx, 'name', e.target.value)}
-                                    placeholder={`Slot ${idx + 1}`}
-                                  />
-                                  {isOverlapping && (
-                                    <Chip label="Overlap" size="small" color="error" sx={{ ml: 1, fontSize: 10, height: 20, fontWeight: 700 }} />
-                                  )}
-                                </Box>
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="time"
-                                  error={isOverlapping}
-                                  value={slot.startTime || '00:00'}
-                                  onChange={(e) => handleUpdateTodSlot(idx, 'startTime', e.target.value)}
-                                  inputProps={{ step: 300 }}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="time"
-                                  error={isOverlapping}
-                                  value={slot.endTime || '24:00'}
-                                  onChange={(e) => handleUpdateTodSlot(idx, 'endTime', e.target.value)}
-                                  inputProps={{ step: 300 }}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="number"
-                                  value={slot.consumptionKwh}
-                                  onChange={(e) => handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value)}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="number"
-                                  value={kvahVal}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val && !isNaN(Number(val))) {
-                                      handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
-                                    } else {
-                                      handleUpdateTodSlot(idx, 'consumptionKwh', 0);
-                                    }
-                                  }}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="number"
-                                  inputProps={{ step: 0.1 }}
-                                  value={slot.effectivePrice}
-                                  onChange={(e) => handleUpdateTodSlot(idx, 'effectivePrice', e.target.value)}
-                                  sx={{ width: 130 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <IconButton color="error" size="small" onClick={() => handleRemoveTodSlot(idx)}>
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
+                        {/* Slot Table */}
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                              <TableCell sx={{ fontWeight: 700 }}>TOD Slot Name</TableCell>
+                              <TableCell align="center" sx={{ fontWeight: 700 }}>Start Time</TableCell>
+                              <TableCell align="center" sx={{ fontWeight: 700 }}>End Time</TableCell>
+                              <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kWh)</TableCell>
+                              <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kVAh)</TableCell>
+                              <TableCell align="center" sx={{ fontWeight: 700 }}>Effective Price (₹/kWh)</TableCell>
+                              <TableCell align="center" sx={{ fontWeight: 700 }}>Action</TableCell>
                             </TableRow>
-                          );
-                        });
-                      })()}
-                    </TableBody>
-                  </Table>
-                </Paper>
+                          </TableHead>
+                          <TableBody>
+                            {(() => {
+                              const slots = (monthData.slots || []) as CustomTodSlot[];
+                              const overlapMap = getOverlappingSlotMap(slots);
+                              const currentPf = powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0 ? Number(powerFactor) : 0.99;
+
+                              return slots.map((slot, idx) => {
+                                const isOverlapping = overlapMap.has(idx);
+                                const kwhVal = Number(slot.consumptionKwh) || 0;
+                                const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
+
+                                return (
+                                  <TableRow key={slot.id || idx} sx={{ bgcolor: isOverlapping ? '#FEF2F2' : 'inherit' }}>
+                                    <TableCell>
+                                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <TextField
+                                          size="small"
+                                          value={slot.name || ''}
+                                          onChange={(e) => {
+                                            setActiveMonth(ym);
+                                            handleUpdateTodSlot(idx, 'name', e.target.value);
+                                          }}
+                                          placeholder={`Slot ${idx + 1}`}
+                                        />
+                                        {isOverlapping && (
+                                          <Chip label="Overlap" size="small" color="error" sx={{ ml: 1, fontSize: 10, height: 20, fontWeight: 700 }} />
+                                        )}
+                                      </Box>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <TextField
+                                        size="small"
+                                        type="time"
+                                        error={isOverlapping}
+                                        value={slot.startTime || '00:00'}
+                                        onChange={(e) => {
+                                          setActiveMonth(ym);
+                                          handleUpdateTodSlot(idx, 'startTime', e.target.value);
+                                        }}
+                                        inputProps={{ step: 300 }}
+                                        sx={{ width: 110 }}
+                                      />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <TextField
+                                        size="small"
+                                        type="time"
+                                        error={isOverlapping}
+                                        value={slot.endTime || '24:00'}
+                                        onChange={(e) => {
+                                          setActiveMonth(ym);
+                                          handleUpdateTodSlot(idx, 'endTime', e.target.value);
+                                        }}
+                                        inputProps={{ step: 300 }}
+                                        sx={{ width: 110 }}
+                                      />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <TextField
+                                        size="small"
+                                        type="number"
+                                        value={slot.consumptionKwh}
+                                        onChange={(e) => {
+                                          setActiveMonth(ym);
+                                          handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value);
+                                        }}
+                                        sx={{ width: 110 }}
+                                      />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <TextField
+                                        size="small"
+                                        type="number"
+                                        value={kvahVal}
+                                        onChange={(e) => {
+                                          setActiveMonth(ym);
+                                          const val = e.target.value;
+                                          if (val && !isNaN(Number(val))) {
+                                            handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
+                                          } else {
+                                            handleUpdateTodSlot(idx, 'consumptionKwh', 0);
+                                          }
+                                        }}
+                                        sx={{ width: 110 }}
+                                      />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <TextField
+                                        size="small"
+                                        type="number"
+                                        inputProps={{ step: 0.1 }}
+                                        value={slot.effectivePrice}
+                                        onChange={(e) => {
+                                          setActiveMonth(ym);
+                                          handleUpdateTodSlot(idx, 'effectivePrice', e.target.value);
+                                        }}
+                                        sx={{ width: 130 }}
+                                      />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <IconButton color="error" size="small" onClick={() => {
+                                        setActiveMonth(ym);
+                                        handleRemoveTodSlot(idx);
+                                      }}>
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              });
+                            })()}
+                          </TableBody>
+                        </Table>
+                      </AccordionDetails>
+                    </Accordion>
+                  );
+                })}
+
+                {/* + Add New Month Accordion */}
+                <Accordion
+                  elevation={0}
+                  expanded={expandedAccordion === 'new_month'}
+                  onChange={(e, isExpanded) => setExpandedAccordion(isExpanded ? 'new_month' : false)}
+                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}
+                >
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>+ Add New Month</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 3, pt: 1 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Month</Typography>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                      <TextField
+                        select
+                        label="Year"
+                        value={entryYear}
+                        onChange={(e) => setEntryYear(Number(e.target.value))}
+                        size="small"
+                        sx={{ width: 120, bgcolor: '#FFF' }}
+                      >
+                        <MenuItem value={2023}>2023</MenuItem>
+                        <MenuItem value={2024}>2024</MenuItem>
+                        <MenuItem value={2025}>2025</MenuItem>
+                        <MenuItem value={2026}>2026</MenuItem>
+                        <MenuItem value={2027}>2027</MenuItem>
+                      </TextField>
+                      <TextField
+                        select
+                        label="Month"
+                        value={entryMonth}
+                        onChange={(e) => setEntryMonth(Number(e.target.value))}
+                        size="small"
+                        sx={{ width: 150, bgcolor: '#FFF' }}
+                      >
+                        <MenuItem value={1}>January</MenuItem>
+                        <MenuItem value={2}>February</MenuItem>
+                        <MenuItem value={3}>March</MenuItem>
+                        <MenuItem value={4}>April</MenuItem>
+                        <MenuItem value={5}>May</MenuItem>
+                        <MenuItem value={6}>June</MenuItem>
+                        <MenuItem value={7}>July</MenuItem>
+                        <MenuItem value={8}>August</MenuItem>
+                        <MenuItem value={9}>September</MenuItem>
+                        <MenuItem value={10}>October</MenuItem>
+                        <MenuItem value={11}>November</MenuItem>
+                        <MenuItem value={12}>December</MenuItem>
+                      </TextField>
+                    </Box>
+                    <Button
+                      variant="outlined"
+                      startIcon={<AddIcon />}
+                      fullWidth
+                      onClick={() => {
+                        const key = `${entryYear}-${String(entryMonth).padStart(2, '0')}`;
+                        if (!todConsumptions[key]) {
+                          const lastDay = new Date(entryYear, entryMonth, 0).getDate();
+                          setTodConsumptions(prev => ({
+                            ...prev,
+                            [key]: {
+                              startDate: `${key}-01`,
+                              endDate: `${key}-${String(lastDay).padStart(2, '0')}`,
+                              peakDemandKw: Number(sanctionedLoadKw) || 1000,
+                              slots: [
+                                { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
+                                { id: `tod-2`, name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
+                              ]
+                            }
+                          }));
+                          setActiveMonth(key);
+                          setExpandedAccordion(key);
+                        } else {
+                          setError('This month has already been added.');
+                        }
+                      }}
+                      sx={{ mt: 3, height: 48, textTransform: 'none', borderRadius: 2, borderStyle: 'dashed', color: '#1E293B', borderColor: '#CBD5E1' }}
+                    >
+                      + Add Month
+                    </Button>
+                  </AccordionDetails>
+                </Accordion>
               </Box>
             )
           })}
