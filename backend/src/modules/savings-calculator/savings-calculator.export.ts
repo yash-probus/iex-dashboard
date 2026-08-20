@@ -643,6 +643,7 @@ export class SavingsCalculatorExportService {
         rowData.push({ formula });
       });
       const addedRow = sheet.addRow(rowData);
+      for (let i = 2; i <= numMonths + 1; i++) addedRow.getCell(i).numFmt = '#,##,##0';
       todUnitsRowNums[tod] = addedRow.number;
     });
 
@@ -656,6 +657,7 @@ export class SavingsCalculatorExportService {
     });
     const totalClearedRow = sheet.addRow(totalClearedRowData);
     totalClearedRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) totalClearedRow.getCell(i).numFmt = '#,##,##0';
     const totalClearedRowNumber = totalClearedRow.number;
 
     const totalConsumptionRowData: any[] = ['Total Consumption As per Ebill'];
@@ -666,6 +668,7 @@ export class SavingsCalculatorExportService {
     });
     const totalConsumptionRow = sheet.addRow(totalConsumptionRowData);
     totalConsumptionRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) totalConsumptionRow.getCell(i).numFmt = '#,##,##0';
     const totalConsumptionRowNumber = totalConsumptionRow.number;
 
     const clearedVsActualRowData: any[] = ['Cleared vs Actual consumption %'];
@@ -685,6 +688,7 @@ export class SavingsCalculatorExportService {
     });
     const totalPowerCostOARow = sheet.addRow(totalPowerCostRowData);
     totalPowerCostOARow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) totalPowerCostOARow.getCell(i).numFmt = '"₹"#,##,##0';
     const totalPowerCostOARowNumber = totalPowerCostOARow.number;
 
     const discomCostRowData: any[] = ['Discom Cost'];
@@ -695,6 +699,7 @@ export class SavingsCalculatorExportService {
     });
     const discomCostRow = sheet.addRow(discomCostRowData);
     discomCostRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) discomCostRow.getCell(i).numFmt = '"₹"#,##,##0';
     const discomCostRowNumber = discomCostRow.number;
 
     const summaryMiscRowData: any[] = ['Miscellaneous Charges'];
@@ -708,7 +713,7 @@ export class SavingsCalculatorExportService {
       }
     });
     const summaryMiscRow = sheet.addRow(summaryMiscRowData);
-    for (let i = 2; i <= numMonths + 1; i++) summaryMiscRow.getCell(i).numFmt = '"₹"#,##0';
+    for (let i = 2; i <= numMonths + 1; i++) summaryMiscRow.getCell(i).numFmt = '"₹"#,##,##0';
 
     sheet.addRow([]);
 
@@ -743,6 +748,7 @@ export class SavingsCalculatorExportService {
     const totalSavingRow = sheet.addRow(totalSavingRowData);
     totalSavingRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     totalSavingRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) totalSavingRow.getCell(i).numFmt = '"₹"#,##,##0';
     const totalSavingRowNumber = totalSavingRow.number;
 
     const savingUnitRowData: any[] = ['Saving/Unit'];
@@ -763,6 +769,7 @@ export class SavingsCalculatorExportService {
       nocFeeRowData.push({ formula });
     });
     const nocFeeRow = sheet.addRow(nocFeeRowData);
+    for (let i = 2; i <= numMonths + 1; i++) nocFeeRow.getCell(i).numFmt = '"₹"#,##,##0';
     const nocFeeRowNumber = nocFeeRow.number;
 
     const iexRegRowData: any[] = ['IEX Registration Fee'];
@@ -772,6 +779,7 @@ export class SavingsCalculatorExportService {
       iexRegRowData.push({ formula });
     });
     const iexRegRow = sheet.addRow(iexRegRowData);
+    for (let i = 2; i <= numMonths + 1; i++) iexRegRow.getCell(i).numFmt = '"₹"#,##,##0';
     const iexRegRowNumber = iexRegRow.number;
 
     const consultancyRowData: any[] = ['Consultancy Fee'];
@@ -781,6 +789,7 @@ export class SavingsCalculatorExportService {
       consultancyRowData.push({ formula });
     });
     const consultancyRow = sheet.addRow(consultancyRowData);
+    for (let i = 2; i <= numMonths + 1; i++) consultancyRow.getCell(i).numFmt = '"₹"#,##,##0';
     const consultancyRowNumber = consultancyRow.number;
 
     sheet.addRow([]);
@@ -800,6 +809,7 @@ export class SavingsCalculatorExportService {
       traderMarginRowData.push({ formula });
     });
     const traderMarginRow = sheet.addRow(traderMarginRowData);
+    for (let i = 2; i <= numMonths + 1; i++) traderMarginRow.getCell(i).numFmt = '"₹"#,##,##0';
     const traderMarginRowNumber = traderMarginRow.number;
 
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
@@ -810,6 +820,7 @@ export class SavingsCalculatorExportService {
       platformFeeRowData.push({ formula });
     });
     const platformFeeRow = sheet.addRow(platformFeeRowData);
+    for (let i = 2; i <= numMonths + 1; i++) platformFeeRow.getCell(i).numFmt = '"₹"#,##,##0';
     const platformFeeRowNumber = platformFeeRow.number;
 
     const valueShareRowData: any[] = ['Value-Share for Energy Platform (15% of Saving)'];
@@ -819,6 +830,7 @@ export class SavingsCalculatorExportService {
       valueShareRowData.push({ formula });
     });
     const valueShareRow = sheet.addRow(valueShareRowData);
+    for (let i = 2; i <= numMonths + 1; i++) valueShareRow.getCell(i).numFmt = '"₹"#,##,##0';
     const valueShareRowNumber = valueShareRow.number;
 
     const totalAmountRowData: any[] = ['Total Amount'];
@@ -829,6 +841,7 @@ export class SavingsCalculatorExportService {
     });
     const totalAmountRow = sheet.addRow(totalAmountRowData);
     totalAmountRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) totalAmountRow.getCell(i).numFmt = '"₹"#,##,##0';
     totalAmountRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
     const totalAmountRowNumber = totalAmountRow.number;
 
@@ -839,7 +852,7 @@ export class SavingsCalculatorExportService {
       probusRevUnitRowData.push({ formula });
     });
     const probusRevUnitRow = sheet.addRow(probusRevUnitRowData);
-    for (let i = 2; i <= numMonths + 1; i++) probusRevUnitRow.getCell(i).numFmt = '0.00';
+    for (let i = 2; i <= numMonths + 1; i++) probusRevUnitRow.getCell(i).numFmt = '"₹"0.00';
 
     sheet.addRow([]);
 
@@ -851,6 +864,7 @@ export class SavingsCalculatorExportService {
     });
     const savingForBizRow = sheet.addRow(savingForBizRowData);
     savingForBizRow.font = { bold: true };
+    for (let i = 2; i <= numMonths + 1; i++) savingForBizRow.getCell(i).numFmt = '"₹"#,##,##0';
     savingForBizRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
     const savingForBizRowNumber = savingForBizRow.number;
 
@@ -873,6 +887,7 @@ export class SavingsCalculatorExportService {
     avgMonthlySavingRow.font = { bold: true };
     avgMonthlySavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgMonthlySavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    for (let i = 2; i <= numMonths + 1; i++) avgMonthlySavingRow.getCell(i).numFmt = '"₹"#,##,##0';
     const avgMonthlySavingRowNumber = avgMonthlySavingRow.number;
 
     const avgAnnualSavingFormula = `B${avgMonthlySavingRowNumber}*12`;
@@ -880,6 +895,7 @@ export class SavingsCalculatorExportService {
     avgAnnualSavingRow.font = { bold: true };
     avgAnnualSavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgAnnualSavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    for (let i = 2; i <= numMonths + 1; i++) avgAnnualSavingRow.getCell(i).numFmt = '"₹"#,##,##0';
 
     // Set column width for A
     sheet.getColumn(1).width = 50;
