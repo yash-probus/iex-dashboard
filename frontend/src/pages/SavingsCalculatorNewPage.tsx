@@ -1413,10 +1413,10 @@ export default function SavingsCalculatorNewPage() {
         open={todDialogOpen}
         onClose={(e, reason) => { if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') setTodDialogOpen(false); }}
         disableEscapeKeyDown
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 4, p: 2, bgcolor: '#F8FAFC' }
+          sx: { borderRadius: 4, p: 3, bgcolor: '#F8FAFC', maxWidth: '1200px', width: '95vw' }
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, pb: 0 }}>
@@ -1521,7 +1521,7 @@ export default function SavingsCalculatorNewPage() {
                   </Grid>
 
                   {/* Slot Table */}
-                  <Table size="small">
+                  <Table size="small" sx={{ minWidth: 950 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: '#F8FAFC' }}>
                         <TableCell sx={{ fontWeight: 700 }}>TOD Slot Name</TableCell>
