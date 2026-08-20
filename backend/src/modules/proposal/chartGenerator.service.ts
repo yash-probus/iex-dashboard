@@ -163,12 +163,13 @@ export class ChartGeneratorService {
         </html>
         `;
 
-        await page.setContent(html, { waitUntil: 'load' });
-        
-        const screenshot = await page.screenshot({ type: 'png' });
-        await browser.close();
-        
-        return screenshot as Buffer;
+        try {
+            await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
+            const screenshot = await page.screenshot({ type: 'png' });
+            return screenshot as Buffer;
+        } finally {
+            await browser.close().catch(() => {});
+        }
     }
 
     static async generateConsumptionMixChart(oaPercentage: number, discomPercentage: number, oaUnits: number, discomUnits: number): Promise<Buffer> {
