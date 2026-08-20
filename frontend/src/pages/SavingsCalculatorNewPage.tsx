@@ -214,6 +214,46 @@ interface MonthTodData {
   slots: CustomTodSlot[];
 }
 
+function parseTimeToMinutes(t: string): number {
+  if (!t) return 0;
+  const [h, m] = t.split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function getSlotIntervals(startTime: string, endTime: string): Array<[number, number]> {
+  const s = parseTimeToMinutes(startTime);
+  const e = parseTimeToMinutes(endTime);
+  if (s === e) return [];
+  if (s < e) return [[s, e]];
+  return [[s, 1440], [0, e]]; // Cross-midnight
+}
+
+function doSlotsOverlap(slotA: { startTime: string; endTime: string }, slotB: { startTime: string; endTime: string }): boolean {
+  const intA = getSlotIntervals(slotA.startTime, slotA.endTime);
+  const intB = getSlotIntervals(slotB.startTime, slotB.endTime);
+  for (const [s1, e1] of intA) {
+    for (const [s2, e2] of intB) {
+      if (Math.max(s1, s2) < Math.min(e1, e2)) return true;
+    }
+  }
+  return false;
+}
+
+function getOverlappingSlotMap(slots: CustomTodSlot[]): Map<number, number[]> {
+  const map = new Map<number, number[]>();
+  for (let i = 0; i < slots.length; i++) {
+    for (let j = i + 1; j < slots.length; j++) {
+      if (doSlotsOverlap(slots[i], slots[j])) {
+        if (!map.has(i)) map.set(i, []);
+        if (!map.has(j)) map.set(j, []);
+        map.get(i)!.push(j);
+        map.get(j)!.push(i);
+      }
+    }
+  }
+  return map;
+}
+
 export default function SavingsCalculatorNewPage() {
   const navigate = useNavigate();
 
@@ -507,12 +547,26 @@ export default function SavingsCalculatorNewPage() {
       peakDemandKw: Number(sanctionedLoadKw) || 1000,
       slots: []
     };
-    const newSlotNumber = currentMonthData.slots.length + 1;
+    const slots = currentMonthData.slots || [];
+    const newSlotNumber = slots.length + 1;
+
+    let defaultStart = '08:00';
+    let defaultEnd = '12:00';
+    if (slots.length > 0) {
+      const lastSlot = slots[slots.length - 1];
+      if (lastSlot.endTime) {
+        defaultStart = lastSlot.endTime;
+        const [h, m] = defaultStart.split(':').map(Number);
+        const endH = (h + 4) % 24;
+        defaultEnd = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+      }
+    }
+
     const newSlot: CustomTodSlot = {
       id: `tod-${Date.now()}-${newSlotNumber}`,
       name: `Slot ${newSlotNumber}`,
-      startTime: '08:00',
-      endTime: '12:00',
+      startTime: defaultStart,
+      endTime: defaultEnd,
       consumptionKwh: 5000,
       effectivePrice: 7.50
     };
@@ -520,7 +574,7 @@ export default function SavingsCalculatorNewPage() {
       ...prev,
       [activeMonth]: {
         ...currentMonthData,
-        slots: [...currentMonthData.slots, newSlot]
+        slots: [...slots, newSlot]
       }
     }));
   };
@@ -639,6 +693,23 @@ export default function SavingsCalculatorNewPage() {
     if (!clientName || !industryName || !address) {
       setError('Please fill in required fields (Client Name, Industry, Address).');
       return;
+    }
+
+    // Overlap validation check across all months
+    for (const [ym, monthData] of Object.entries(todConsumptions)) {
+      if (!ym.startsWith('_') && ym.includes('-')) {
+        const slots = (monthData.slots || []) as CustomTodSlot[];
+        const overlapMap = getOverlappingSlotMap(slots);
+        if (overlapMap.size > 0) {
+          const firstOverlapIdx = Array.from(overlapMap.keys())[0];
+          const overlappedIndices = overlapMap.get(firstOverlapIdx) || [];
+          const slotName = slots[firstOverlapIdx]?.name || `Slot ${firstOverlapIdx + 1}`;
+          const overlappedSlotNames = overlappedIndices.map(i => slots[i]?.name || `Slot ${i + 1}`).join(', ');
+          setError(`Cannot save entry: Custom TOD slots in month ${ym} have overlapping time ranges (${slotName} overlaps with ${overlappedSlotNames}). Please adjust start/end times so each TOD slot has a distinct time window.`);
+          setActiveMonth(ym);
+          return;
+        }
+      }
     }
 
     try {
@@ -1241,62 +1312,84 @@ export default function SavingsCalculatorNewPage() {
               </Button>
             </Box>
 
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>Slot Name</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="center">Start Time (HH:MM)</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="center">End Time (HH:MM)</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kWh)</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kVAh)</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="center">Effective Price (₹/kWh)</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {(activeMonthData.slots || []).map((slot, idx) => {
-                  const currentPf = (powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0) ? Number(powerFactor) : 0.9;
-                  const kvahVal = slot.consumptionKwh ? (slot.consumptionKwh / currentPf).toFixed(2).replace(/\.00$/, '') : '';
+            {(() => {
+              const activeMonthOverlaps = getOverlappingSlotMap(activeMonthData.slots || []);
+              return (
+                <>
+                  {activeMonthOverlaps.size > 0 && (
+                    <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+                      <strong>Time Slot Overlap Warning:</strong> Custom TOD slots for {activeMonth} contain overlapping time windows! (e.g., {
+                        Array.from(activeMonthOverlaps.entries()).slice(0, 2).map(([idx, overlaps]) => (
+                          `Slot ${idx + 1} (${activeMonthData.slots[idx]?.startTime || '00:00'} - ${activeMonthData.slots[idx]?.endTime || '24:00'}) overlaps with ${overlaps.map(o => `Slot ${o + 1}`).join(', ')}`
+                        )).join('; ')
+                      }). Please adjust start/end times so time slots do not overlap.
+                    </Alert>
+                  )}
 
-                  return (
-                    <TableRow key={slot.id || idx}>
-                      <TableCell>
-                        <TextField
-                          size="small"
-                          value={slot.name || ''}
-                          onChange={(e) => handleUpdateTodSlot(idx, 'name', e.target.value)}
-                          placeholder={`Slot ${idx + 1}`}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <TextField
-                          size="small"
-                          type="time"
-                          value={slot.startTime || '00:00'}
-                          onChange={(e) => handleUpdateTodSlot(idx, 'startTime', e.target.value)}
-                          inputProps={{ step: 300 }}
-                          sx={{ width: 110 }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <TextField
-                          size="small"
-                          type="time"
-                          value={slot.endTime || '24:00'}
-                          onChange={(e) => handleUpdateTodSlot(idx, 'endTime', e.target.value)}
-                          inputProps={{ step: 300 }}
-                          sx={{ width: 110 }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={slot.consumptionKwh}
-                          onChange={(e) => handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value)}
-                          sx={{ width: 110 }}
-                        />
-                      </TableCell>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700 }}>Slot Name</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }} align="center">Start Time (HH:MM)</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }} align="center">End Time (HH:MM)</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kWh)</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }} align="center">Consumption (kVAh)</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }} align="center">Effective Price (₹/kWh)</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }} align="center">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {(activeMonthData.slots || []).map((slot, idx) => {
+                        const currentPf = (powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0) ? Number(powerFactor) : 0.9;
+                        const kvahVal = slot.consumptionKwh ? (slot.consumptionKwh / currentPf).toFixed(2).replace(/\.00$/, '') : '';
+                        const isOverlapping = activeMonthOverlaps.has(idx);
+
+                        return (
+                          <TableRow key={slot.id || idx} sx={{ bgcolor: isOverlapping ? '#FEF2F2' : 'inherit' }}>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <TextField
+                                  size="small"
+                                  value={slot.name || ''}
+                                  onChange={(e) => handleUpdateTodSlot(idx, 'name', e.target.value)}
+                                  placeholder={`Slot ${idx + 1}`}
+                                />
+                                {isOverlapping && (
+                                  <Chip label="Overlap" size="small" color="error" sx={{ ml: 1, fontSize: 10, height: 20, fontWeight: 700 }} />
+                                )}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="center">
+                              <TextField
+                                size="small"
+                                type="time"
+                                error={isOverlapping}
+                                value={slot.startTime || '00:00'}
+                                onChange={(e) => handleUpdateTodSlot(idx, 'startTime', e.target.value)}
+                                inputProps={{ step: 300 }}
+                                sx={{ width: 110 }}
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <TextField
+                                size="small"
+                                type="time"
+                                error={isOverlapping}
+                                value={slot.endTime || '24:00'}
+                                onChange={(e) => handleUpdateTodSlot(idx, 'endTime', e.target.value)}
+                                inputProps={{ step: 300 }}
+                                sx={{ width: 110 }}
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <TextField
+                                size="small"
+                                type="number"
+                                value={slot.consumptionKwh}
+                                onChange={(e) => handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value)}
+                                sx={{ width: 110 }}
+                              />
+                            </TableCell>
                       <TableCell align="center">
                         <TextField
                           size="small"
@@ -1333,6 +1426,9 @@ export default function SavingsCalculatorNewPage() {
               })}
               </TableBody>
             </Table>
+                </>
+              );
+            })()}
           </Paper>
         </DialogContent>
 
