@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Box, Typography, Button, TextField, IconButton, Alert,
+  Box, Typography, Button, TextField, IconButton, Alert, alpha, OutlinedInput,
   Grid, Paper, Tooltip, Table, TableBody, TableCell, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem, FormControlLabel, RadioGroup, Radio, FormControl, FormLabel, Select, InputAdornment, Divider, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
@@ -18,7 +18,8 @@ import {
   Bolt as BoltIcon,
   Speed as SpeedIcon,
   ExpandMore as ExpandMoreIcon,
-  AccountBalance as AccountBalanceIcon
+  AccountBalance as AccountBalanceIcon,
+  History as HistoryIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
@@ -800,59 +801,53 @@ export default function SavingsCalculatorNewPage() {
   );
 
   const columns: ColumnDefinition[] = [
-    { field: 'clientName', headerName: 'Client Name', align: 'left' },
-    { field: 'industryName', headerName: 'Industry', align: 'left' },
-    { field: 'stateCode', headerName: 'State', align: 'center' },
-    { field: 'discom', headerName: 'Discom', align: 'center' },
-    { field: 'sanctionedLoadKw', headerName: 'Load (kW)', align: 'center', valueFormatter: (v) => v ? `${Number(v).toLocaleString()} kW` : '-' },
-    {
-      field: 'todConsumptions',
-      headerName: 'Custom TOD Windows',
-      align: 'center',
-      renderCell: (row: SavingsCalculatorNewEntry) => {
-        const months = Object.keys(row.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-'));
-        return (
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {months.map(m => (
-              <Chip key={m} label={m} size="small" variant="outlined" color="primary" />
-            ))}
-          </Box>
-        );
-      }
-    },
+    { field: 'id', headerName: 'CLIENT ID', align: 'center', width: 90, sticky: true },
+    { field: 'clientName', headerName: 'CLIENT NAME', align: 'left', minWidth: 150, sticky: true, sortable: true },
+    { field: 'industryName', headerName: 'INDUSTRY NAME', align: 'left', minWidth: 150, sticky: true, sortable: true },
+    { field: 'sanctionedLoadKw', headerName: 'SANCTIONED LOAD (KW)', align: 'center', width: 140, sortable: true, valueFormatter: (v) => v ? Number(v).toLocaleString('en-IN') : '-' },
+    { field: 'stateCode', headerName: 'STATE', align: 'center', width: 80, sortable: true },
+    { field: 'discom', headerName: 'DISCOM', align: 'left', width: 120, sortable: true },
+    { field: 'consumerCategory', headerName: 'CATEGORY', align: 'left', width: 110, sortable: true },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: 'ACTIONS',
       align: 'center',
+      width: 220,
+      stickyRight: true,
       renderCell: (row: SavingsCalculatorNewEntry) => (
-        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-          <Tooltip title="View Analysis">
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={() => navigate(`/savings-calculator-new/${row.id}/analysis`)}
-            >
-              <BarChartIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Edit Entry">
-            <IconButton
-              size="small"
-              color="info"
-              onClick={() => handleOpenEdit(row)}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete Entry">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => handleDeleteEntry(row.id)}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<CalculateIcon sx={{ fontSize: '14px !important' }} />}
+            onClick={() => navigate(`/savings-calculator-new/${row.id}/analysis`)}
+            sx={{
+              fontSize: '11px',
+              py: 0.5,
+              borderColor: '#8B5CF6',
+              color: '#8B5CF6',
+              textTransform: 'none',
+              borderRadius: 2,
+              '&:hover': {
+                borderColor: '#7C3AED',
+                bgcolor: 'rgba(139, 92, 246, 0.05)'
+              }
+            }}
+          >
+            View
+          </Button>
+
+          <IconButton size="small" onClick={() => handleOpenEdit(row)} sx={{ color: 'text.secondary' }}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+
+          <IconButton size="small" onClick={() => navigate(`/savings-calculator-new/${row.id}/analysis`)} sx={{ color: '#8B5CF6' }}>
+            <HistoryIcon fontSize="small" />
+          </IconButton>
+
+          <IconButton size="small" onClick={() => handleDeleteEntry(row.id)} sx={{ color: '#EF4444' }}>
+            <DeleteIcon fontSize="small" />
+          </IconButton>
         </Box>
       )
     }
@@ -867,37 +862,75 @@ export default function SavingsCalculatorNewPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: 3 }}>
-      {/* Title Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      {/* Top Header & Search Bar */}
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 2.5,
+        pb: 3,
+        borderBottom: '1px solid',
+        borderColor: 'divider'
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
           <Box sx={{
-            backgroundColor: '#8B5CF6',
-            color: 'white',
-            p: 1.5,
+            color: '#8B5CF6',
+            backgroundColor: `${alpha('#8B5CF6', 0.1)}`,
+            p: 2,
             borderRadius: 2,
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
             <CalculateIcon fontSize="large" />
           </Box>
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#1E293B' }}>
-              Savings Calculator (New)
+            <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
+              Savings Calculator
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Calculate Open Access Savings with Custom TOD Start/End Timings and Direct Discom Effective Prices
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              Compare grid utility tariffs against energy market procurement clearing prices.
             </Typography>
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpenCreate}
-          sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 700, bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' } }}
-        >
-          New Client Entry
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <OutlinedInput
+            placeholder="Search entries..."
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            startAdornment={
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              </InputAdornment>
+            }
+            sx={{
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+              minWidth: 250
+            }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpenCreate}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 2.5,
+              fontWeight: 600,
+              bgcolor: '#8B5CF6',
+              '&:hover': {
+                bgcolor: '#7C3AED'
+              },
+              px: 2.5,
+              py: 1
+            }}
+          >
+            Create New Entry
+          </Button>
+        </Box>
       </Box>
 
       {error && (
@@ -906,26 +939,19 @@ export default function SavingsCalculatorNewPage() {
         </Alert>
       )}
 
-      {/* Search & Action Bar */}
-      <Paper sx={{ p: 2, borderRadius: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
-        <TextField
-          placeholder="Search by client, industry, or discom..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          size="small"
-          fullWidth
-          InputProps={{
-            startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
-          }}
-        />
-      </Paper>
-
-      {/* Entries Table */}
+      {/* Entries Table Container */}
       <TableContainer
+        title="Savings Calculator Entries"
         columns={columns}
         data={filteredEntries}
         loading={loading}
-        emptyStateMessage={<EmptyTableState title="No entries found" description="Click 'New Client Entry' to add custom TOD calculation profile." />}
+        emptyStateMessage={
+          <EmptyTableState
+            title="No entries found"
+            description="Create your first client configuration entry to simulate and calculate savings."
+            onAddRecord={handleOpenCreate}
+          />
+        }
       />
 
       {/* Modal Dialog styled EXACTLY like the old Savings Calculator modal */}
