@@ -147,7 +147,19 @@ export default function ForecastPage() {
         
       const res = await apiClient.get(endpoint);
       if (res.data && res.data.success) {
-        setData(res.data.data.intervals || []);
+        const rawIntervals = res.data.data.intervals || [];
+        const normalizedIntervals = isGeneration
+          ? rawIntervals.map((row: any) => ({
+              ...row,
+              NUCLEAR: row.NUCLEAR ?? row.nuclear ?? 0,
+              THERMAL: row.THERMAL ?? row.thermal ?? 0,
+              WIND: row.WIND ?? row.wind ?? 0,
+              GAS: row.GAS ?? row.gas ?? 0,
+              HYDRO: row.HYDRO ?? row.hydro ?? 0,
+              SOLAR: row.SOLAR ?? row.solar ?? 0,
+            }))
+          : rawIntervals;
+        setData(normalizedIntervals);
         setSummaryMetrics(res.data.data.analytics || {});
       } else {
         setError('Invalid response from server.');
@@ -179,10 +191,17 @@ export default function ForecastPage() {
     }
 
     if (isGeneration) {
+      const mwFormatter = (v: any) => typeof v === 'number' ? `${v.toLocaleString('en-IN')} MW` : (v !== undefined && v !== null ? v : '-');
       return [
         ...baseColumns,
-        { field: 'generation', headerName: 'Forecasted Generation (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `${v.toLocaleString('en-IN')} MW` : (v !== undefined && v !== null ? v : '-') },
-        { field: 'actualGeneration', headerName: 'Actual Generation (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `${v.toLocaleString('en-IN')} MW` : (v !== undefined && v !== null ? v : '-') },
+        { field: 'NUCLEAR', headerName: 'NUCLEAR (MW)', align: 'center', valueFormatter: mwFormatter },
+        { field: 'THERMAL', headerName: 'THERMAL (MW)', align: 'center', valueFormatter: mwFormatter },
+        { field: 'WIND', headerName: 'WIND (MW)', align: 'center', valueFormatter: mwFormatter },
+        { field: 'GAS', headerName: 'GAS (MW)', align: 'center', valueFormatter: mwFormatter },
+        { field: 'HYDRO', headerName: 'HYDRO (MW)', align: 'center', valueFormatter: mwFormatter },
+        { field: 'SOLAR', headerName: 'SOLAR (MW)', align: 'center', valueFormatter: mwFormatter },
+        { field: 'generation', headerName: 'Total Forecasted (MW)', align: 'center', valueFormatter: mwFormatter },
+        { field: 'actualGeneration', headerName: 'Actual Generation (MW)', align: 'center', valueFormatter: mwFormatter },
         { field: 'confidence', headerName: 'Confidence', align: 'center' },
       ];
     }
@@ -260,7 +279,13 @@ export default function ForecastPage() {
   const getChartMetrics = (): ChartMetric[] => {
     if (isGeneration) {
       return [
-        { key: 'generation', name: 'Forecasted Generation (MW)', color: accentColor, type: 'area', yAxisId: 'left' },
+        { key: 'NUCLEAR', name: 'NUCLEAR', color: '#00BCD4', type: 'area', yAxisId: 'left', stackId: 'gen' },
+        { key: 'THERMAL', name: 'THERMAL', color: '#D84315', type: 'area', yAxisId: 'left', stackId: 'gen' },
+        { key: 'WIND', name: 'WIND', color: '#4CAF50', type: 'area', yAxisId: 'left', stackId: 'gen' },
+        { key: 'GAS', name: 'GAS', color: '#FFEB3B', type: 'area', yAxisId: 'left', stackId: 'gen' },
+        { key: 'HYDRO', name: 'HYDRO', color: '#2196F3', type: 'area', yAxisId: 'left', stackId: 'gen' },
+        { key: 'SOLAR', name: 'SOLAR', color: '#FF5722', type: 'area', yAxisId: 'left', stackId: 'gen' },
+        { key: 'generation', name: 'Total Forecasted Generation (MW)', color: '#8B5CF6', type: 'line', yAxisId: 'left' },
         { key: 'actualGeneration', name: 'Actual Generation (MW)', color: '#10B981', type: 'line', yAxisId: 'left' }
       ];
     }

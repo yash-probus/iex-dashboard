@@ -13,6 +13,7 @@ export interface ChartMetric {
   type: 'area' | 'line';
   yAxisId: 'left' | 'right';
   unit?: string;
+  stackId?: string;
 }
 
 interface MarketChartProps {
@@ -213,6 +214,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                     fillOpacity={1}
                     activeDot={{ r: 4, strokeWidth: 0 }}
                     connectNulls={true}
+                    stackId={metric.stackId}
                   />
                 );
               }
