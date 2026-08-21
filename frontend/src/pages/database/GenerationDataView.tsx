@@ -59,12 +59,12 @@ interface GenerationDataViewProps {
 }
 
 const COLORS = {
-  nuclear: '#00BCD4', // Cyan
-  thermal: '#D84315', // Brown / Amber-Orange
-  wind: '#4CAF50',    // Green
-  gas: '#FFEB3B',     // Yellow
-  hydro: '#2196F3',   // Blue
-  solar: '#FF5722'    // Red / Orange
+  thermal: '#EA580C', // Orange
+  gas: '#F59E0B',     // Amber
+  nuclear: '#8B5CF6', // Purple
+  hydro: '#3B8FF3',   // Blue
+  wind: '#10B981',    // Emerald
+  solar: '#EAB308'    // Yellow
 };
 
 export default function GenerationDataView({ 
