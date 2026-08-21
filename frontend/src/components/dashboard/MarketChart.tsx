@@ -68,6 +68,15 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
     return tickItem;
   };
 
+  const handleShowAll = () => {
+    setHiddenMetrics({});
+  };
+
+  const hiddenKeys = Object.keys(hiddenMetrics).filter(k => hiddenMetrics[k]);
+  const hiddenCount = hiddenKeys.length;
+  const hasHiddenMetrics = hiddenCount > 0;
+  const allHidden = metrics.length > 0 && hiddenCount === metrics.length;
+
   const getXAxisKey = () => {
     if (interval === 'daily' || interval === 'monthly') return 'label';
     if (data.length > 0) {
@@ -123,9 +132,67 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
             </Typography>
           </Box>
         </Box>
+        {hasHiddenMetrics && (
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={handleShowAll}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '12px',
+              color: '#8B5CF6',
+              borderColor: '#8B5CF6',
+              py: 0.5,
+              px: 1.5,
+              '&:hover': { bgcolor: 'rgba(139, 92, 246, 0.08)', borderColor: '#7C3AED' }
+            }}
+          >
+            Show All Series ({metrics.length - hiddenCount}/{metrics.length})
+          </Button>
+        )}
       </Box>
 
-      <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
+      <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0, position: 'relative' }}>
+        {allHidden && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              zIndex: 10,
+              bgcolor: 'rgba(255, 255, 255, 0.95)',
+              p: 3,
+              borderRadius: 3,
+              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
+              border: '1px solid #E2E8F0',
+              backdropFilter: 'blur(4px)'
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E293B', mb: 0.5 }}>
+              All Chart Series Hidden
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748B', mb: 2 }}>
+              You have hidden all series by clicking legend items.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={handleShowAll}
+              sx={{
+                bgcolor: '#8B5CF6',
+                '&:hover': { bgcolor: '#7C3AED' },
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Show All Series
+            </Button>
+          </Box>
+        )}
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
             <defs>
