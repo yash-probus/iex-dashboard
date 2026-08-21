@@ -34,8 +34,8 @@ export class StarrocksService {
         SELECT 
           DATE_FORMAT(datetime_slot, '%Y-%m-%d') as date_str,
           DATE_FORMAT(datetime_slot, '%H:%i') as time_str,
-          ROUND(SUM(block_apparent_energy), 2) as total_apparent_kvah,
-          ROUND(SUM(block_active_energy), 2) as total_active_kwh
+          ROUND(SUM(block_apparent_energy * 0.4), 2) as total_apparent_kvah,
+          ROUND(SUM(block_active_energy * 0.4), 2) as total_active_kwh
         FROM prolt_load_data 
         WHERE DATE_FORMAT(datetime_slot, '%Y-%m-%d') IN (?)
         GROUP BY datetime_slot
