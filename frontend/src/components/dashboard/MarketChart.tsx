@@ -269,6 +269,7 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
               if (hiddenMetrics[metric.key]) return null;
 
               if (metric.type === 'area') {
+                const isStacked = Boolean(metric.stackId);
                 return (
                   <Area
                     key={metric.key}
@@ -276,9 +277,10 @@ export default function MarketChart({ title, data, metrics, dateRangeLabel, inte
                     type="monotone"
                     dataKey={metric.key}
                     name={metric.name}
-                    fill={`url(#grad-${metric.key})`}
+                    fill={isStacked ? metric.color : `url(#grad-${metric.key})`}
                     stroke={metric.color}
-                    fillOpacity={1}
+                    strokeWidth={isStacked ? 1.5 : 2}
+                    fillOpacity={isStacked ? 0.95 : 1}
                     activeDot={{ r: 4, strokeWidth: 0 }}
                     connectNulls={true}
                     stackId={metric.stackId}
