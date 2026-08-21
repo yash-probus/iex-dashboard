@@ -259,6 +259,87 @@ function getOverlappingSlotMap(slots: CustomTodSlot[]): Map<number, number[]> {
   return map;
 }
 
+interface CoverageInfo {
+  coveredMinutes: number;
+  unallocatedMinutes: number;
+  coveredHoursStr: string;
+  unallocatedHoursStr: string;
+  isComplete24Hours: boolean;
+  gapSummary: string;
+}
+
+function formatMinuteToTime(minutes: number): string {
+  const m = ((minutes % 1440) + 1440) % 1440;
+  const hrs = Math.floor(m / 60);
+  const mins = m % 60;
+  return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+}
+
+function get24HourCoverageInfo(slots: CustomTodSlot[]): CoverageInfo {
+  const covered = new Array(1440).fill(false);
+
+  for (const slot of slots) {
+    if (!slot.startTime || !slot.endTime) continue;
+    const intervals = getSlotIntervals(slot.startTime, slot.endTime);
+    for (const [startMin, endMin] of intervals) {
+      const s = Math.max(0, Math.min(1440, startMin));
+      const e = Math.max(0, Math.min(1440, endMin));
+      for (let m = s; m < e; m++) {
+        covered[m] = true;
+      }
+    }
+  }
+
+  let coveredCount = 0;
+  for (let m = 0; m < 1440; m++) {
+    if (covered[m]) coveredCount++;
+  }
+
+  const unallocatedMinutes = 1440 - coveredCount;
+  const isComplete24Hours = unallocatedMinutes === 0;
+
+  const gaps: { start: string; end: string }[] = [];
+  let gapStart: number | null = null;
+
+  for (let m = 0; m < 1440; m++) {
+    if (!covered[m]) {
+      if (gapStart === null) gapStart = m;
+    } else {
+      if (gapStart !== null) {
+        gaps.push({
+          start: formatMinuteToTime(gapStart),
+          end: formatMinuteToTime(m)
+        });
+        gapStart = null;
+      }
+    }
+  }
+  if (gapStart !== null) {
+    gaps.push({
+      start: formatMinuteToTime(gapStart),
+      end: formatMinuteToTime(1440)
+    });
+  }
+
+  if (gaps.length > 1 && gaps[0].start === '00:00' && gaps[gaps.length - 1].end === '24:00') {
+    const lastGap = gaps.pop()!;
+    gaps[0].start = lastGap.start;
+  }
+
+  const gapSummary = gaps.map(g => `${g.start} - ${g.end}`).join(', ');
+  const coveredHoursNum = coveredCount / 60;
+  const unallocatedHoursNum = unallocatedMinutes / 60;
+
+  return {
+    coveredMinutes: coveredCount,
+    unallocatedMinutes,
+    coveredHoursStr: coveredHoursNum % 1 === 0 ? `${coveredHoursNum}h` : `${coveredHoursNum.toFixed(1)}h`,
+    unallocatedHoursStr: unallocatedHoursNum % 1 === 0 ? `${unallocatedHoursNum}h` : `${unallocatedHoursNum.toFixed(1)}h`,
+    isComplete24Hours,
+    gapSummary
+  };
+}
+
 export default function SavingsCalculatorNewPage() {
   const navigate = useNavigate();
 
@@ -1431,24 +1512,37 @@ export default function SavingsCalculatorNewPage() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Overlap Alert Banner */}
+          {/* Overlap & 24-Hour Coverage Alert Banners */}
           {(() => {
-            const slots = (activeMonthData.slots || []) as CustomTodSlot[];
+            const slots = ((todConsumptions[activeMonth] || {}).slots || []) as CustomTodSlot[];
             const overlapMap = getOverlappingSlotMap(slots);
-            if (overlapMap.size > 0) {
-              return (
-                <Alert severity="error" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
-                  TOD Time Slots overlap! Please adjust start and end times so slots do not overlap.
-                </Alert>
-              );
-            }
-            return null;
+            const coverage = get24HourCoverageInfo(slots);
+
+            return (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {overlapMap.size > 0 && (
+                  <Alert severity="error" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
+                    TOD Time Slots overlap! Please adjust start and end times so slots do not overlap.
+                  </Alert>
+                )}
+                {!coverage.isComplete24Hours ? (
+                  <Alert severity="warning" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
+                    24-Hour TOD Coverage Incomplete: {coverage.unallocatedHoursStr} unallocated out of 24 hours (Remaining time gap: {coverage.gapSummary}).
+                  </Alert>
+                ) : (
+                  <Alert severity="success" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
+                    Full 24-Hour TOD Coverage Configured (24h / 24h).
+                  </Alert>
+                )}
+              </Box>
+            );
           })()}
 
           {/* Monthly Accordions */}
           {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym, index) => {
             const monthData = todConsumptions[ym] || { startDate: `${ym}-01`, endDate: `${ym}-30`, peakDemandKw: 1000, slots: [] };
             const isExpanded = expandedAccordion === 'initial' ? index === 0 : expandedAccordion === ym;
+            const coverage = get24HourCoverageInfo(monthData.slots || []);
 
             return (
               <Accordion
@@ -1460,10 +1554,17 @@ export default function SavingsCalculatorNewPage() {
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
                         {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
                       </Typography>
+                      <Chip
+                        size="small"
+                        label={coverage.isComplete24Hours ? "24h Covered" : `${coverage.coveredHoursStr} / 24h (${coverage.unallocatedHoursStr} remaining)`}
+                        color={coverage.isComplete24Hours ? "success" : "warning"}
+                        variant="outlined"
+                        sx={{ fontWeight: 600, fontSize: 11 }}
+                      />
                     </Box>
                     <IconButton
                       size="small"
