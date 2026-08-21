@@ -29,19 +29,34 @@ export class StarrocksService {
 
     try {
       const pool = this.getPool();
-      // Prepare query for date range
-      const [rows]: any = await pool.query(`
+      // Query primary consumer meter 'X2521837'
+      let [rows]: any = await pool.query(`
         SELECT 
           DATE_FORMAT(datetime_slot, '%Y-%m-%d') as date_str,
           DATE_FORMAT(datetime_slot, '%H:%i') as time_str,
-          ROUND(AVG(block_apparent_energy * 0.4), 2) as total_apparent_kvah,
-          ROUND(AVG(block_active_energy * 0.4), 2) as total_active_kwh
+          ROUND(MAX(block_apparent_energy * 0.4), 2) as total_apparent_kvah,
+          ROUND(MAX(block_active_energy * 0.4), 2) as total_active_kwh
         FROM prolt_load_data 
         WHERE DATE_FORMAT(datetime_slot, '%Y-%m-%d') IN (?)
-          AND (meter_number = 'X2521837' OR meter_number IS NOT NULL)
-        GROUP BY datetime_slot
+          AND meter_number = 'X2521837'
+        GROUP BY datetime_slot, date_str, time_str
         ORDER BY datetime_slot ASC
       `, [dates]);
+
+      // Fallback query if specific meter query has no rows for date
+      if (!Array.isArray(rows) || rows.length === 0) {
+        [rows] = await pool.query(`
+          SELECT 
+            DATE_FORMAT(datetime_slot, '%Y-%m-%d') as date_str,
+            DATE_FORMAT(datetime_slot, '%H:%i') as time_str,
+            ROUND(MAX(block_apparent_energy * 0.4), 2) as total_apparent_kvah,
+            ROUND(MAX(block_active_energy * 0.4), 2) as total_active_kwh
+          FROM prolt_load_data 
+          WHERE DATE_FORMAT(datetime_slot, '%Y-%m-%d') IN (?)
+          GROUP BY datetime_slot, date_str, time_str
+          ORDER BY datetime_slot ASC
+        `, [dates]);
+      }
 
       if (Array.isArray(rows)) {
         rows.forEach((r: any) => {
