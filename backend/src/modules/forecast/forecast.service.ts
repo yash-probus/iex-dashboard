@@ -801,9 +801,14 @@ export class ForecastService {
             const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
             const hourNum = Math.floor((slotNum - 1) / 4) + 1;
 
-            const actualVal = r.actual_energy !== null && r.actual_energy !== undefined 
-              ? Number(r.actual_energy) 
-              : (actualMap.get(`${dateStr}_${startH}:${startM}`) ?? actualMap.get(`${dateStr}_${slotNum}`) ?? null);
+            const starrocksVal = actualMap.get(`${dateStr}_${startH}:${startM}`) ?? actualMap.get(`${dateStr}_${slotNum}`);
+            let actualVal: number | null = null;
+            if (starrocksVal !== undefined && starrocksVal !== null) {
+              actualVal = starrocksVal;
+            } else if (r.actual_energy !== null && r.actual_energy !== undefined) {
+              const rawAct = Number(r.actual_energy);
+              actualVal = rawAct > 300 ? Number((rawAct * 0.4).toFixed(2)) : rawAct;
+            }
 
             return {
               date: dateStr,
@@ -857,6 +862,26 @@ export class ForecastService {
         }
 
         if (formatted.length > 0) {
+          // Forward-fill actualDemand
+          let lastAct: number | null = null;
+          for (let i = 0; i < formatted.length; i++) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
+              lastAct = formatted[i].actualDemand ?? null;
+            } else if (lastAct !== null) {
+              formatted[i].actualDemand = lastAct;
+            }
+          }
+
+          // Backward-fill actualDemand
+          let firstAct: number | null = null;
+          for (let i = formatted.length - 1; i >= 0; i--) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
+              firstAct = formatted[i].actualDemand ?? null;
+            } else if (firstAct !== null) {
+              formatted[i].actualDemand = firstAct;
+            }
+          }
+
           intervals.push(...this.aggregateDemandIntervals(formatted, interval));
         }
       }

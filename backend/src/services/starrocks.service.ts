@@ -34,10 +34,11 @@ export class StarrocksService {
         SELECT 
           DATE_FORMAT(datetime_slot, '%Y-%m-%d') as date_str,
           DATE_FORMAT(datetime_slot, '%H:%i') as time_str,
-          ROUND(SUM(block_apparent_energy * 0.4), 2) as total_apparent_kvah,
-          ROUND(SUM(block_active_energy * 0.4), 2) as total_active_kwh
+          ROUND(AVG(block_apparent_energy * 0.4), 2) as total_apparent_kvah,
+          ROUND(AVG(block_active_energy * 0.4), 2) as total_active_kwh
         FROM prolt_load_data 
         WHERE DATE_FORMAT(datetime_slot, '%Y-%m-%d') IN (?)
+          AND (meter_number = 'X2521837' OR meter_number IS NOT NULL)
         GROUP BY datetime_slot
         ORDER BY datetime_slot ASC
       `, [dates]);
