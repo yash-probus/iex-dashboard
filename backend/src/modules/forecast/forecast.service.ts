@@ -47,6 +47,50 @@ export class ForecastService {
     return `${pad(startHour)}:${pad(startMin)}-${pad(endHour)}:${pad(endMin)}`;
   }
 
+  private static getISTComponents(timestamp: any) {
+    const d = new Date(timestamp);
+    if (isNaN(d.getTime())) {
+      return { dateStr: '', hourStr: '00:00', startH: '00', startM: '00', hour: '01', intervalNumber: 1, timeBlock: '00:00 - 00:15' };
+    }
+
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    };
+    const parts = new Intl.DateTimeFormat('en-CA', options).formatToParts(d);
+    
+    let year = '', month = '', day = '', hour = '00', minute = '00';
+    for (const part of parts) {
+      if (part.type === 'year') year = part.value;
+      if (part.type === 'month') month = part.value;
+      if (part.type === 'day') day = part.value;
+      if (part.type === 'hour') hour = part.value === '24' ? '00' : part.value;
+      if (part.type === 'minute') minute = part.value;
+    }
+    
+    const dateStr = `${year}-${month}-${day}`;
+    const startH = String(hour).padStart(2, '0');
+    const startM = String(minute).padStart(2, '0');
+    const hourStr = `${startH}:${startM}`;
+    const hNum = parseInt(startH, 10) || 0;
+    const mNum = parseInt(startM, 10) || 0;
+    const minutes = hNum * 60 + mNum;
+    const intervalNumber = Math.floor(minutes / 15) + 1;
+    
+    const nextMin = (mNum + 15) % 60;
+    const nextH = nextMin === 0 ? (hNum + 1) % 24 : hNum;
+    const nextHStr = String(nextH).padStart(2, '0');
+    const nextMStr = String(nextMin).padStart(2, '0');
+    const timeBlock = `${hourStr} - ${nextHStr}:${nextMStr}`;
+
+    return { dateStr, hourStr, startH, startM, hour: String(hNum + 1).padStart(2, '0'), intervalNumber, timeBlock };
+  }
+
   /**
    * Generates a date array between two dates
    */
@@ -654,20 +698,7 @@ export class ForecastService {
 
         if (records && records.length > 0) {
           const formatted = records.map(r => {
-            const d = new Date(r.timestamp);
-            // Check if timestamp is stored as UTC or local Date
-            const dateStr = d.toISOString().split('T')[0];
-            const hh = String(d.getUTCHours()).padStart(2, '0');
-            const mm = String(d.getUTCMinutes()).padStart(2, '0');
-            const hourStr = `${hh}:${mm}`;
-            
-            const nextMin = (d.getUTCMinutes() + 15) % 60;
-            const nextHour = nextMin === 0 ? (d.getUTCHours() + 1) % 24 : d.getUTCHours();
-            const timeBlock = `${hourStr} - ${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`;
-            
-            const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
-            const intervalNumber = Math.floor(minutes / 15) + 1;
-
+            const { dateStr, hourStr, intervalNumber, timeBlock } = ForecastService.getISTComponents(r.timestamp);
             const forecastedVal = r.forecast_demand !== null ? Number(r.forecast_demand) : 0;
             const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${intervalNumber}`) ?? actualMap.get(`${dates[0]}_${hourStr}`) ?? actualMap.get(`${dates[0]}_${intervalNumber}`) ?? null;
 
@@ -684,10 +715,20 @@ export class ForecastService {
           // Forward-fill actualDemand if NPP scraper has gaps between 15-minute readings
           let lastActual: number | null = null;
           for (let i = 0; i < formatted.length; i++) {
-            if (formatted[i].actualDemand !== null) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
               lastActual = formatted[i].actualDemand;
             } else if (lastActual !== null) {
               formatted[i].actualDemand = lastActual;
+            }
+          }
+
+          // Backward-fill actualDemand (if initial slots of day were missing from scraper)
+          let firstActual: number | null = null;
+          for (let i = formatted.length - 1; i >= 0; i--) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
+              firstActual = formatted[i].actualDemand;
+            } else if (firstActual !== null) {
+              formatted[i].actualDemand = firstActual;
             }
           }
 
@@ -1197,20 +1238,9 @@ export class ForecastService {
       }
 
       const rawFormatted = Array.from(timeMap.values()).map(item => {
-        const d = item.date;
-        const dateStr = d.toISOString().split('T')[0];
-        const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
-        const intervalNumber = Math.floor(minutes / 15) + 1;
-        const startH = String(d.getUTCHours()).padStart(2, '0');
-        const startM = String(d.getUTCMinutes()).padStart(2, '0');
-        const endMinutes = minutes + 15;
-        const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
-        const endM = String(endMinutes % 60).padStart(2, '0');
-        const hourNum = Math.floor(minutes / 60) + 1;
-        const hourStr = String(hourNum).padStart(2, '0');
-        const timeBlock = `${startH}:${startM} - ${endH}:${endM}`;
+        const { dateStr, hourStr, startH, startM, intervalNumber, timeBlock } = ForecastService.getISTComponents(item.date);
         const slotKey = `${startH}:${startM}`;
-        const actGen = actualMap.has(`${dateStr}_${slotKey}`) ? actualMap.get(`${dateStr}_${slotKey}`) : null;
+        const actGen = actualMap.has(`${dateStr}_${slotKey}`) ? actualMap.get(`${dateStr}_${slotKey}`) : (actualMap.has(`${dates[0]}_${slotKey}`) ? actualMap.get(`${dates[0]}_${slotKey}`) : null);
         const avgConf = item.confs.length > 0 ? (item.confs.reduce((a: number, b: number) => a + b, 0) / item.confs.length).toFixed(1) + '%' : 'N/A';
 
         return {
@@ -1224,6 +1254,26 @@ export class ForecastService {
           ...item.sources
         };
       });
+
+      // Forward-fill actualGeneration
+      let lastActualGen: number | null = null;
+      for (let i = 0; i < rawFormatted.length; i++) {
+        if (rawFormatted[i].actualGeneration !== null && rawFormatted[i].actualGeneration !== undefined) {
+          lastActualGen = rawFormatted[i].actualGeneration;
+        } else if (lastActualGen !== null) {
+          rawFormatted[i].actualGeneration = lastActualGen;
+        }
+      }
+
+      // Backward-fill actualGeneration (if initial slots of day were missing)
+      let firstActualGen: number | null = null;
+      for (let i = rawFormatted.length - 1; i >= 0; i--) {
+        if (rawFormatted[i].actualGeneration !== null && rawFormatted[i].actualGeneration !== undefined) {
+          firstActualGen = rawFormatted[i].actualGeneration;
+        } else if (firstActualGen !== null) {
+          rawFormatted[i].actualGeneration = firstActualGen;
+        }
+      }
 
       if (rawFormatted.length === 0 && actualRecords.length > 0) {
         // Build intervals from actualRecords if no forecast rows found
