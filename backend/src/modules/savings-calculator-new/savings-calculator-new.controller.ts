@@ -177,7 +177,7 @@ export class SavingsCalculatorNewController {
   static async calculateMarketDecision(req: Request, res: Response) {
     try {
       const id = String(req.params.id);
-      const targetMonth = req.query.month as string | undefined;
+      const targetMonth = req.query.monthStr as string | undefined;
       const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
 
       const result = await SavingsCalculatorNewService.calculateMarketDecision(id, targetMonth, version);

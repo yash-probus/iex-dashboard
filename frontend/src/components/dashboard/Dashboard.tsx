@@ -116,7 +116,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           totalBaselineCost = clientOverview.aggregatedCosts.totalDiscomCost || 0;
         }
       } else if (marketDecisionResult) {
-        totalBaselineCost = marketDecisionResult.totalBaselineCost || 0;
+        totalBaselineCost = marketDecisionResult.fullBaselineDiscomCost || marketDecisionResult.totalBaselineCost || 0;
       }
 
       const oaCoverage = totalConsumption > 0 ? (totalMarketEnergy / totalConsumption) * 100 : 0;

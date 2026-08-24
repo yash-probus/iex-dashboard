@@ -138,6 +138,7 @@ export interface MarketDecisionResult {
   totalEnergyKwh: number;
   totalMarketEnergyKwh: number;
   totalBaselineCost: number;
+  fullBaselineDiscomCost?: number;
   totalLandedExchangeCost: number;
   totalSavings: number;
   demandCharge?: number;
