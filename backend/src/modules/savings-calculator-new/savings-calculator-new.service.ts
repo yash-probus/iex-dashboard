@@ -647,7 +647,12 @@ export class SavingsCalculatorNewService {
           istsLoss,
           stuLoss,
           wheelingLoss,
-          expectedEnergy: 0
+          expectedEnergy: 0,
+          requiredEnergy: 0,
+          bankedEnergy: 0,
+          purchasedEnergy: 0,
+          marketCost: 0,
+          discomCost: 0
         };
       });
 
@@ -749,117 +754,76 @@ export class SavingsCalculatorNewService {
       });
       // --- END DAILY SLDC OPTIMIZATION ---
 
-      // Calculate Discom baseline cost and allocate energy across TOD windows (Formula: sanctionedLoad * 0.25)
+      // Calculate Discom baseline cost and allocate energy across TOD windows (Greedy Chronological Banking Algorithm)
 
       for (const customSlot of customSlots) {
         const slotEnergyTotal = customSlot.consumptionKwh;
         const slotDiscomPrice = Number(customSlot.effectivePrice) > 0 ? Number(customSlot.effectivePrice) : 8.5;
-        const slotDiscomBaselineCost = slotEnergyTotal * slotDiscomPrice;
-
-        totalBaselineCost += slotDiscomBaselineCost;
-        totalEnergyKwh += slotEnergyTotal;
-
-        // Filter 15-minute timeblocks belonging to this custom TOD slot
-        const slotBlocks = monthlySlots.filter(s => s.customSlotId === customSlot.id || s.todSlab === (customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`));
-        const totalActiveBlocks = slotBlocks.length || 1;
-        const energyPerBlock = slotEnergyTotal / totalActiveBlocks;
-        const maxEnergyPerSlot = Math.max(defaultMaxEnergyPerSlot, energyPerBlock);
-
-        let allocatedEnergy = 0;
-        let slotMarketEnergy = 0;
-        let slotMarketCost = 0;
-        let slotDiscomCost = 0;
-
-        slotBlocks.forEach(sb => {
-          if (allocatedEnergy < slotEnergyTotal) {
-            let takeEnergy = 0;
-            if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
-              takeEnergy = Math.min(defaultMaxEnergyPerSlot, slotEnergyTotal - allocatedEnergy);
-            } else {
-              takeEnergy = Math.min(energyPerBlock, slotEnergyTotal - allocatedEnergy);
-            }
-            sb.maxEnergyPerSlot = takeEnergy;
-            sb.baselineCost = takeEnergy * slotDiscomPrice;
-
-            if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
-              sb.marketEnergy = takeEnergy;
-              sb.discomEnergy = 0;
-              sb.optimizedCost = takeEnergy * sb.comparedLowestPrice;
-              totalMarketEnergyKwh += takeEnergy;
-              totalLandedExchangeCost += sb.optimizedCost;
-              slotMarketEnergy += takeEnergy;
-              slotMarketCost += sb.optimizedCost;
-            } else {
-              sb.discomEnergy = takeEnergy;
-              sb.marketEnergy = 0;
-              sb.optimizedCost = sb.baselineCost;
-              totalDiscomAfterProlt += sb.optimizedCost;
-              slotDiscomCost += sb.optimizedCost;
-            }
-            allocatedEnergy += takeEnergy;
-          } else {
-            sb.maxEnergyPerSlot = 0;
-            sb.discomEnergy = 0;
-            sb.marketEnergy = 0;
-            sb.baselineCost = 0;
-            sb.optimizedCost = 0;
-          }
-        });
-      }
-
-      if (useShiftedProfile) {
-        // Shift energy from high-cost DISCOM slots to lower-cost market slots
-        const cheapMarketBlocks = monthlySlots.filter(s => s.selectedSource !== 'DISCOM' && s.comparedLowestPrice > 0);
-        const expensiveDiscomBlocks = monthlySlots.filter(s => s.selectedSource === 'DISCOM' && s.maxEnergyPerSlot > 0);
-
-        if (cheapMarketBlocks.length > 0 && expensiveDiscomBlocks.length > 0) {
-          cheapMarketBlocks.sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
-          expensiveDiscomBlocks.sort((a, b) => b.discomLandingPrice - a.discomLandingPrice);
-
-          for (const expBlock of expensiveDiscomBlocks) {
-            if (expBlock.discomEnergy <= 0) continue;
-            
-            for (const cheapBlock of cheapMarketBlocks) {
-              const currentHeadroom = defaultMaxEnergyPerSlot - cheapBlock.maxEnergyPerSlot;
-              if (currentHeadroom <= 0) continue;
-
-              const shiftAmount = Math.min(expBlock.discomEnergy, currentHeadroom, expBlock.maxEnergyPerSlot * 0.3);
-              if (shiftAmount <= 0) continue;
-
-              expBlock.discomEnergy -= shiftAmount;
-              expBlock.maxEnergyPerSlot -= shiftAmount;
-              expBlock.baselineCost = expBlock.maxEnergyPerSlot * expBlock.baseDiscomPrice;
-              expBlock.optimizedCost = expBlock.baselineCost;
-
-              cheapBlock.marketEnergy += shiftAmount;
-              cheapBlock.maxEnergyPerSlot += shiftAmount;
-              cheapBlock.optimizedCost = cheapBlock.maxEnergyPerSlot * cheapBlock.comparedLowestPrice;
-
-              if (expBlock.discomEnergy <= 0) break;
-            }
-          }
-
-          // Re-aggregate monthly totals after shift
-          totalMarketEnergyKwh = 0;
-          totalLandedExchangeCost = 0;
-          totalDiscomAfterProlt = 0;
-          monthlySlots.forEach(sb => {
-            if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
-              totalMarketEnergyKwh += sb.marketEnergy;
-              totalLandedExchangeCost += sb.optimizedCost;
-            } else {
-              totalDiscomAfterProlt += sb.optimizedCost;
-            }
-          });
-        }
-      }
-
-      // Build todSummaries per Custom TOD Slot based on final (unshifted or shifted) monthlySlots
-      for (const customSlot of customSlots) {
         const slotName = customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`;
-        const slotDiscomPrice = Number(customSlot.effectivePrice) > 0 ? Number(customSlot.effectivePrice) : 8.5;
+        
+        // Filter 15-minute timeblocks belonging to this custom TOD slot
         const slotBlocks = monthlySlots.filter(s => s.customSlotId === customSlot.id || s.todSlab === slotName);
+        if (slotBlocks.length === 0) continue;
 
+        // Sort chronologically
+        slotBlocks.sort((a, b) => a.date.localeCompare(b.date) || a.timeblock - b.timeblock);
+        
+        const requiredEnergyPerSlot = slotEnergyTotal / slotBlocks.length;
+        
+        // Initialize requirements
+        slotBlocks.forEach(sb => {
+          sb.requiredEnergy = requiredEnergyPerSlot;
+          sb.bankedEnergy = 0;
+          sb.purchasedEnergy = 0;
+          sb.marketEnergy = 0;
+          sb.discomEnergy = 0;
+          sb.marketCost = 0;
+          sb.discomCost = 0;
+          sb.baselineCost = requiredEnergyPerSlot * slotDiscomPrice;
+        });
+
+        // Sort by cheapest price for greedy buying
+        const cheapToExpensive = [...slotBlocks].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
+
+        for (const buyerSlot of cheapToExpensive) {
+           let availableCapacity = defaultMaxEnergyPerSlot - buyerSlot.purchasedEnergy;
+           if (availableCapacity <= 0) continue;
+
+           const buyerIndex = slotBlocks.indexOf(buyerSlot);
+
+           // Forward Banking
+           for (let i = buyerIndex; i < slotBlocks.length; i++) {
+              const targetSlot = slotBlocks[i];
+              const unmetRequirement = targetSlot.requiredEnergy - targetSlot.bankedEnergy - targetSlot.purchasedEnergy;
+              
+              if (unmetRequirement > 0) {
+                  const amountToBuy = Math.min(availableCapacity, unmetRequirement);
+                  if (amountToBuy > 0) {
+                      buyerSlot.purchasedEnergy += amountToBuy;
+                      availableCapacity -= amountToBuy;
+                      
+                      if (i === buyerIndex) {
+                         targetSlot.purchasedEnergy += amountToBuy;
+                      } else {
+                         targetSlot.bankedEnergy += amountToBuy;
+                      }
+                      
+                      const cost = amountToBuy * buyerSlot.comparedLowestPrice;
+                      
+                      if (buyerSlot.selectedSource !== 'DISCOM' && buyerSlot.comparedLowestPrice > 0) {
+                          targetSlot.marketEnergy += amountToBuy;
+                          targetSlot.marketCost += cost;
+                      } else {
+                          targetSlot.discomEnergy += amountToBuy;
+                          targetSlot.discomCost += cost;
+                      }
+                  }
+              }
+              if (availableCapacity <= 0) break;
+           }
+        }
+
+        // Unfulfilled Fallback & Aggregation
         let slotConsumptionKwh = 0;
         let slotMarketEnergyKwh = 0;
         let slotDiscomEnergyKwh = 0;
@@ -868,15 +832,34 @@ export class SavingsCalculatorNewService {
         let slotDiscomCost = 0;
 
         slotBlocks.forEach(sb => {
-          slotConsumptionKwh += sb.maxEnergyPerSlot;
-          slotMarketEnergyKwh += sb.marketEnergy;
-          slotDiscomEnergyKwh += sb.discomEnergy;
-          slotBaselineCost += sb.baselineCost;
-          if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
-            slotMarketCost += sb.optimizedCost;
-          } else {
-            slotDiscomCost += sb.optimizedCost;
-          }
+           const unmet = sb.requiredEnergy - sb.bankedEnergy - sb.purchasedEnergy;
+           if (unmet > 0) {
+              sb.purchasedEnergy += unmet;
+              const cost = unmet * sb.comparedLowestPrice;
+              if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
+                 sb.marketEnergy += unmet;
+                 sb.marketCost += cost;
+              } else {
+                 sb.discomEnergy += unmet;
+                 sb.discomCost += cost;
+              }
+           }
+           
+           sb.maxEnergyPerSlot = sb.requiredEnergy; // For compatibility with older reporting functions
+           sb.optimizedCost = sb.marketCost + sb.discomCost;
+           
+           totalBaselineCost += sb.baselineCost;
+           totalEnergyKwh += sb.requiredEnergy;
+           totalMarketEnergyKwh += sb.marketEnergy;
+           totalLandedExchangeCost += sb.marketCost;
+           totalDiscomAfterProlt += sb.discomCost;
+
+           slotConsumptionKwh += sb.requiredEnergy;
+           slotMarketEnergyKwh += sb.marketEnergy;
+           slotDiscomEnergyKwh += sb.discomEnergy;
+           slotBaselineCost += sb.baselineCost;
+           slotMarketCost += sb.marketCost;
+           slotDiscomCost += sb.discomCost;
         });
 
         todSummaries.push({
