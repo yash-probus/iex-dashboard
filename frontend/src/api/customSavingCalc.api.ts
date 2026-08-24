@@ -158,7 +158,7 @@ export const exportSavingsExcelCustom = async (id: string, targetMonth?: string,
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  const safeName = (customerName || 'Client').replace(/\s+/g, '_');
+  const safeName = (customerName || 'Client').replace(/[^a-zA-Z0-9_\-]/g, '_');
   const filename = `${safeName}_Custom_Savings_Analysis${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
 
   const url = window.URL.createObjectURL(blob);
@@ -188,7 +188,7 @@ export const exportDemandShiftExcelCustom = async (id: string, targetMonth?: str
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
-  const safeName = (customerName || 'Client').replace(/\s+/g, '_');
+  const safeName = (customerName || 'Client').replace(/[^a-zA-Z0-9_\-]/g, '_');
   const filename = `${safeName}_Custom_Demand_Shift_Analysis${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
 
   const url = window.URL.createObjectURL(blob);
