@@ -447,8 +447,7 @@ export default function SavingsCalculatorNewPage() {
   // Additional Billing & Tariff Fields
   const [applyElectricityDuty, setApplyElectricityDuty] = useState<boolean>(true);
   const [electricityDutyPercent, setElectricityDutyPercent] = useState<string>('5.00');
-  const [fppaChargePercent, setFppaChargePercent] = useState<string>('10.00');
-  const [demandChargeKwRate, setDemandChargeKwRate] = useState<string>('250.00');
+
   const [billedDemandKv, setBilledDemandKv] = useState<string>('');
   const [powerFactor, setPowerFactor] = useState<string>('0.99');
   const [arrearAmount, setArrearAmount] = useState<string>('0');
@@ -594,8 +593,7 @@ export default function SavingsCalculatorNewPage() {
           monthStr: activeMonth
         });
         if (defaults) {
-          if (defaults.fppaChargePercent !== undefined) setFppaChargePercent(String(defaults.fppaChargePercent));
-          if (defaults.demandChargeKwRate !== undefined) setDemandChargeKwRate(String(defaults.demandChargeKwRate));
+
           if (defaults.electricityDutyPercent !== undefined) setElectricityDutyPercent(String(defaults.electricityDutyPercent));
         }
       } catch (err) {
@@ -682,8 +680,6 @@ export default function SavingsCalculatorNewPage() {
     setProbusPlatformFee(entry.probusPlatformFee !== undefined && entry.probusPlatformFee !== null ? String(entry.probusPlatformFee) : '0');
     setApplyElectricityDuty(entry.applyElectricityDuty !== undefined ? entry.applyElectricityDuty : true);
     setElectricityDutyPercent(entry.electricityDutyPercent !== undefined && entry.electricityDutyPercent !== null ? String(entry.electricityDutyPercent) : ((entry.todConsumptions as any)?._meta?.electricityDutyPercent !== undefined ? String((entry.todConsumptions as any)?._meta?.electricityDutyPercent) : '5.00'));
-    setFppaChargePercent(entry.fppaChargePercent !== undefined && entry.fppaChargePercent !== null ? String(entry.fppaChargePercent) : ((entry.todConsumptions as any)?._meta?.fppaChargePercent !== undefined ? String((entry.todConsumptions as any)?._meta?.fppaChargePercent) : '10.00'));
-    setDemandChargeKwRate(entry.demandChargeKwRate !== undefined && entry.demandChargeKwRate !== null ? String(entry.demandChargeKwRate) : ((entry.todConsumptions as any)?._meta?.demandChargeKwRate !== undefined ? String((entry.todConsumptions as any)?._meta?.demandChargeKwRate) : '250.00'));
     setBilledDemandKv(entry.billedDemandKv !== undefined && entry.billedDemandKv !== null ? String(entry.billedDemandKv) : '');
     setPowerFactor(entry.powerFactor !== undefined && entry.powerFactor !== null ? String(entry.powerFactor) : '0.99');
     setArrearAmount(entry.arrearAmount !== undefined && entry.arrearAmount !== null ? String(entry.arrearAmount) : '0');
@@ -925,8 +921,6 @@ export default function SavingsCalculatorNewPage() {
         probusPlatformFee: Number(probusPlatformFee) || 0,
         applyElectricityDuty,
         electricityDutyPercent: Number(electricityDutyPercent) || 0,
-        fppaChargePercent: Number(fppaChargePercent) || 0,
-        demandChargeKwRate: Number(demandChargeKwRate) || 0,
         billedDemandKv: billedDemandKv ? Number(billedDemandKv) : null,
         powerFactor: powerFactor ? Number(powerFactor) : null,
         arrearAmount: arrearAmount ? Number(arrearAmount) : 0,
@@ -935,8 +929,6 @@ export default function SavingsCalculatorNewPage() {
           ...todConsumptions,
           _meta: {
             electricityDutyPercent: Number(electricityDutyPercent) || 0,
-            fppaChargePercent: Number(fppaChargePercent) || 0,
-            demandChargeKwRate: Number(demandChargeKwRate) || 0,
           }
         }
       };
@@ -1537,28 +1529,17 @@ export default function SavingsCalculatorNewPage() {
           {renderStep(4, {
             icon: <ElectricBoltIcon />,
             title: 'Grid Charges & Discom Parameters',
-            question: 'What are your electricity duty and demand charge rates?',
-            summary: `Electricity Duty: ${electricityDutyPercent}% | Demand Charge: ₹${demandChargeKwRate}/kW/month`,
+            question: 'What is your electricity duty rate?',
+            summary: `Electricity Duty: ${electricityDutyPercent}%`,
             content: (
               <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={12}>
                   <TextField
                     label="Electricity Duty (%)"
                     type="number"
                     inputProps={{ step: 0.1 }}
                     value={electricityDutyPercent}
                     onChange={(e) => setElectricityDutyPercent(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Demand Charge Rate (₹/kW/month)"
-                    type="number"
-                    inputProps={{ step: 1 }}
-                    value={demandChargeKwRate}
-                    onChange={(e) => setDemandChargeKwRate(e.target.value)}
                     fullWidth
                     size="small"
                   />
