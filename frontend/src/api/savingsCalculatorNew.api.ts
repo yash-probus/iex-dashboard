@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { downloadBlob } from '../utils/downloadBlob';
 
 export interface CustomTodSlot {
   id?: string;
@@ -161,16 +162,7 @@ export const exportSavingsExcelNew = async (id: string, targetMonth?: string, ve
   const safeName = (customerName || 'Client').replace(/[^a-zA-Z0-9_\-]/g, '_');
   const filename = `${safeName}_Custom_TOD_Savings_Analysis${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
 
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  setTimeout(() => {
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  }, 10000);
+  downloadBlob(blob, filename);
 };
 
 export const exportDemandShiftExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
@@ -193,14 +185,5 @@ export const exportDemandShiftExcelNew = async (id: string, targetMonth?: string
   const safeName = (customerName || 'Client').replace(/[^a-zA-Z0-9_\-]/g, '_');
   const filename = `${safeName}_Custom_TOD_Demand_Shift_Analysis${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
 
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  setTimeout(() => {
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  }, 10000);
+  downloadBlob(blob, filename);
 };

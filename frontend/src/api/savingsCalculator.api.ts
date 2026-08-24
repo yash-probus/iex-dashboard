@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { downloadBlob } from '../utils/downloadBlob';
 
 export interface SavingsCalculatorEntry {
   id: string;
@@ -379,11 +380,7 @@ export const exportTechnicalProposalWord = async (clientData: any): Promise<void
     }
   }
   
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => window.URL.revokeObjectURL(url), 100);
+  downloadBlob(blob, filename);
 };
 
 export const exportCommercialProposalWord = async (clientData: any): Promise<void> => {
@@ -394,9 +391,6 @@ export const exportCommercialProposalWord = async (clientData: any): Promise<voi
   const blob = new Blob([response.data], {
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
   
   const contentDisposition = response.headers['content-disposition'];
   let filename = 'Commercial_Proposal.docx';
@@ -407,9 +401,5 @@ export const exportCommercialProposalWord = async (clientData: any): Promise<voi
     }
   }
   
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => window.URL.revokeObjectURL(url), 100);
+  downloadBlob(blob, filename);
 };
