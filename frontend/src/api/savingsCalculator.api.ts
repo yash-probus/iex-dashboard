@@ -264,7 +264,7 @@ export const exportSavingsExcel = async (id: string, targetMonth?: string, versi
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.URL.revokeObjectURL(url);
+  setTimeout(() => window.URL.revokeObjectURL(url), 10000);
 };
 
 export const exportDemandShiftExcel = async (id: string, targetMonth?: string, version?: number): Promise<void> => {
@@ -289,7 +289,7 @@ export const exportDemandShiftExcel = async (id: string, targetMonth?: string, v
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.URL.revokeObjectURL(url);
+  setTimeout(() => window.URL.revokeObjectURL(url), 10000);
 };
 
 export interface DemandShiftInsightsResult {
