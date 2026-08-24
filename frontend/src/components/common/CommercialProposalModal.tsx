@@ -249,6 +249,14 @@ export default function CommercialProposalModal({
           </Grid>
         </Paper>
 
+        {/* BOQ Heading */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <DescriptionIcon sx={{ color: '#059669' }} />
+          <Typography variant="subtitle1" fontWeight={700} color="#1E293B">
+            BOQ
+          </Typography>
+        </Box>
+
         {/* Pricing Table (Matching Word Document Layout) */}
         <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider', mb: 3 }}>
           <Table size="small" sx={{ '& .MuiTableCell-root': { borderBottom: '1px solid #E2E8F0', py: 1.5 } }}>
