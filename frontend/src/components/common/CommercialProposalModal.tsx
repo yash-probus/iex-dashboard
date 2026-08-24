@@ -282,6 +282,9 @@ export default function CommercialProposalModal({
                   <Typography variant="body2" sx={{ textDecoration: 'underline', mb: 0.5 }}>Supply:</Typography>
                   <Typography variant="body2" color="textSecondary">- ABT Meters Secure Make (0.2s Class Accuracy) - 3 Nos.</Typography>
                   <Typography variant="body2" color="textSecondary">- Indoor Meter Cubical with CT/PT (0.2s Class Accuracy) - {discomName.toUpperCase().includes('NPCL') && connectivity.includes('33') ? '2 Nos.' : '1 Nos.'}</Typography>
+                  {!(discomName.toUpperCase().includes('NPCL') && connectivity.includes('33')) && (
+                    <Typography variant="body2" color="textSecondary">- Outdoor CT/PT Unit (0.2s Class Accuracy) - 1 Nos.</Typography>
+                  )}
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>Lot</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>One Time</TableCell>
@@ -292,7 +295,12 @@ export default function CommercialProposalModal({
               <TableRow>
                 <TableCell sx={{ textAlign: 'center' }}>1.2</TableCell>
                 <TableCell>
-                  <Typography variant="body2" sx={{ textDecoration: 'underline', mb: 0.5 }}>Service: Installation, Commissioning & Testing</Typography>
+                  <Typography variant="body2" sx={{ textDecoration: 'underline', mb: 0.5 }}>Service: Installation, Commissioning, Testing & Sealing of Meters & Consultancy Charges thereof:</Typography>
+                  <Typography variant="body2" color="textSecondary">- ABT Meters- 3 Nos.</Typography>
+                  <Typography variant="body2" color="textSecondary">- Indoor CT/PT Unit- {discomName.toUpperCase().includes('NPCL') && connectivity.includes('33') ? '2 Nos.' : '1 Nos.'}</Typography>
+                  {!(discomName.toUpperCase().includes('NPCL') && connectivity.includes('33')) && (
+                    <Typography variant="body2" color="textSecondary">- Outdoor CT/PT Unit- 1 Nos.</Typography>
+                  )}
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>Lot</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>One Time</TableCell>
