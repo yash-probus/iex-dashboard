@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { 
-  Box, Typography, TextField, Button, CircularProgress, Alert, Paper
+  Box, Typography, TextField, Button, CircularProgress, Alert, Paper, IconButton
 } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../api/auth.api';
+import CanvasCaptcha from '../components/CanvasCaptcha';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,8 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Captcha states
-  const [captchaNum1, setCaptchaNum1] = useState(Math.floor(Math.random() * 10) + 1);
-  const [captchaNum2, setCaptchaNum2] = useState(Math.floor(Math.random() * 10) + 1);
+  const [captchaCode, setCaptchaCode] = useState('');
   const [userCaptcha, setUserCaptcha] = useState('');
 
   // Resend cooldown state
@@ -26,6 +27,7 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     document.documentElement.classList.add('login-page');
+    generateNewCaptcha();
     return () => {
       document.documentElement.classList.remove('login-page');
     };
@@ -43,8 +45,12 @@ export default function LoginPage() {
   }, [resendCooldown]);
 
   const generateNewCaptcha = () => {
-    setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
-    setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaCode(code);
     setUserCaptcha('');
   };
 
@@ -59,8 +65,7 @@ export default function LoginPage() {
     }
 
     if (step === 'EMAIL') {
-      const correctAnswer = captchaNum1 + captchaNum2;
-      if (parseInt(userCaptcha) !== correctAnswer) {
+      if (userCaptcha.trim().toUpperCase() !== captchaCode) {
         setError('Incorrect CAPTCHA. Please try again.');
         generateNewCaptcha();
         return;
@@ -219,28 +224,46 @@ export default function LoginPage() {
                   }}
                 />
 
-                <Typography variant="caption" sx={{ color: '#555', fontWeight: 600, mb: 0.5, display: 'block' }}>
-                  What is {captchaNum1} + {captchaNum2}? (Security Check)
+                <Typography variant="caption" sx={{ color: '#8892b0', fontWeight: 600, mb: 1, display: 'block', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  CAPTCHA CODE
                 </Typography>
-                <TextField
-                  fullWidth
-                  id="captcha"
-                  name="captcha"
-                  type="number"
-                  placeholder="Enter answer"
-                  value={userCaptcha}
-                  onChange={(e) => setUserCaptcha(e.target.value)}
-                  disabled={loading}
-                  size="small"
-                  sx={{ 
-                    mb: 3,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: '#f4f6f8',
-                      borderRadius: 1.5,
-                      '& fieldset': { border: '1px solid rgba(0,0,0,0.05)' }
-                    }
-                  }}
-                />
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                  <TextField
+                    fullWidth
+                    id="captcha"
+                    name="captcha"
+                    placeholder="ENTER CODE"
+                    value={userCaptcha}
+                    onChange={(e) => setUserCaptcha(e.target.value)}
+                    disabled={loading}
+                    size="small"
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': {
+                        bgcolor: '#1e293b',
+                        color: 'white',
+                        borderRadius: 1.5,
+                        '& fieldset': { border: '1px solid rgba(255,255,255,0.05)' }
+                      },
+                      '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.2)' }
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CanvasCaptcha code={captchaCode} />
+                    <IconButton 
+                      onClick={generateNewCaptcha} 
+                      disabled={loading}
+                      sx={{ 
+                        bgcolor: 'rgba(255,255,255,0.1)', 
+                        borderRadius: 2,
+                        width: 40,
+                        height: 40,
+                        '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+                      }}
+                    >
+                      <RefreshIcon sx={{ color: '#22d3ee' }} />
+                    </IconButton>
+                  </Box>
+                </Box>
 
                 <Button
                   type="submit"
