@@ -1026,6 +1026,7 @@ export class SavingsCalculatorNewService {
       todSummaries,
       totalEnergyKwh,
       totalMarketEnergyKwh,
+      pureEnergyCost: totalBaselineCost,
       totalBaselineCost: fullBaselineDiscomCost,
       fullBaselineDiscomCost,
       totalLandedExchangeCost,
