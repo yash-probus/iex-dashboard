@@ -173,12 +173,14 @@ export class ProposalService {
           const tm = String(clientData.trading_margin || '2p/kWh');
           const pf = String(clientData.platform_fee || '2p/kWh');
           const vs = String(clientData.value_share || '15%');
-          const smart = Number(clientData.smart_metering_infra) || 125000;
+          const smartRaw = String(clientData.smart_metering_infra || '125000');
+          const isNum = /^\d+$/.test(smartRaw.replace(/[^\d]/g, '')) && !/[a-zA-Z]/.test(smartRaw);
+          const smartVal = isNum ? formatRupee(Number(smartRaw.replace(/[^\d.-]/g, ''))) : smartRaw;
 
           if (rows[1]) rows[1] = setLastCellText(rows[1], tm, false);
           if (rows[2]) rows[2] = setLastCellText(rows[2], pf, false);
           if (rows[3]) rows[3] = setLastCellText(rows[3], vs, false);
-          if (rows[4]) rows[4] = setLastCellText(rows[4], formatRupee(smart), false);
+          if (rows[4]) rows[4] = setLastCellText(rows[4], smartVal, false);
         }
 
         return rows.join('</w:tr>');

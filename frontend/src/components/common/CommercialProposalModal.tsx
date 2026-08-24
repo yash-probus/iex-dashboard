@@ -82,7 +82,7 @@ export default function CommercialProposalModal({
   const [tradingMargin, setTradingMargin] = useState('2p/kWh');
   const [platformFee, setPlatformFee] = useState('2p/kWh');
   const [valueShare, setValueShare] = useState('15%');
-  const [smartMeteringInfra, setSmartMeteringInfra] = useState('125000');
+  const [smartMeteringInfra, setSmartMeteringInfra] = useState('100% Advance against PO/PI');
 
   useEffect(() => {
     if (open) {
@@ -112,7 +112,7 @@ export default function CommercialProposalModal({
       setTradingMargin(tm);
       setPlatformFee(pf);
       setValueShare(vs);
-      setSmartMeteringInfra('125000');
+      setSmartMeteringInfra('100% Advance against PO/PI');
     }
   }, [open, initialData]);
 
@@ -148,7 +148,6 @@ export default function CommercialProposalModal({
     setAbtSupplyCost(String(defaultSupply));
     setAbtServiceCost(String(defaultService));
     setUtilityLiaisoningCost(String(defaultLiaison));
-    setSmartMeteringInfra(String(defaultSmart));
   }, [discomName, connectivity, feederType, open]);
 
   const totalAbtSetup = (Number(abtSupplyCost) || 0) + (Number(abtServiceCost) || 0) + (Number(utilityLiaisoningCost) || 0);
@@ -173,7 +172,7 @@ export default function CommercialProposalModal({
         trading_margin: tradingMargin,
         platform_fee: platformFee,
         value_share: valueShare,
-        smart_metering_infra: Number(smartMeteringInfra) || 125000
+        smart_metering_infra: smartMeteringInfra
       };
       await onSubmit(payload);
       onClose();
@@ -428,7 +427,20 @@ export default function CommercialProposalModal({
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>Lot</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>One Time</TableCell>
-                <TableCell><TextField size="small" type="number" fullWidth InputProps={{ startAdornment: '₹' }} value={smartMeteringInfra} onChange={(e) => setSmartMeteringInfra(e.target.value)} /></TableCell>
+                <TableCell>
+                  <TextField 
+                    size="small" 
+                    select 
+                    fullWidth 
+                    value={smartMeteringInfra} 
+                    onChange={(e) => setSmartMeteringInfra(e.target.value)}
+                  >
+                    <MenuItem value="75% Advance against PO/PI">75% Advance against PO/PI</MenuItem>
+                    <MenuItem value="50% Advance against PO/PI">50% Advance against PO/PI</MenuItem>
+                    <MenuItem value="100% Advance against PO/PI">100% Advance against PO/PI</MenuItem>
+                    <MenuItem value="FOC for minimum 3 years contract period">FOC for minimum 3 years contract period</MenuItem>
+                  </TextField>
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
