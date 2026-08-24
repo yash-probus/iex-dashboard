@@ -582,17 +582,39 @@ export class SavingsCalculatorNewService {
         // Find which custom TOD slot covers this 15-minute timeblock
         const matchedCustomSlot = customSlots.find(cs => this.isTimeInWindow(timeStr, cs.startTime, cs.endTime));
 
-        // Exact Discom price given by user ("no extra tings nothing")
-        const discomLandingPrice = (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) ? Number(matchedCustomSlot.effectivePrice) : 8.5;
+        // Exact Discom price given by user
+        const baseDiscomPrice = (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) ? Number(matchedCustomSlot.effectivePrice) : 8.5;
+        const fppaMultiplier = 1 + (dbFppaPercent / 100);
+        const discomLandingPrice = baseDiscomPrice * fppaMultiplier;
+        
         const matchedTariffName = matchedCustomSlot ? (matchedCustomSlot.name || `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`) : 'OUTSIDE_TOD';
 
         const rawDam = rec.damMcp !== undefined ? rec.damMcp : rec.dammcp;
         const rawRtm = rec.rtmMcp !== undefined ? rec.rtmMcp : rec.rtmmcp;
         const rawGdam = rec.gdamMcp !== undefined ? rec.gdamMcp : rec.gdammcp;
 
-        const damLandingPrice = rawDam ? (Number(rawDam) / 1000) : 0;
-        const rtmLandingPrice = rawRtm ? (Number(rawRtm) / 1000) : 0;
-        const gdamLandingPrice = rawGdam ? (Number(rawGdam) / 1000) : 0;
+        // Base Costs (excluding MCP)
+        const traderMarginVal = Number(entry.traderMargin || 0);
+        const marginGst = traderMarginVal * 0.18;
+        
+        const commonBaseCosts = 
+          ctuCharge + // CTU
+          stuCharge + // STU
+          wheelingCharge + // Wheeling
+          0.1 + // Other Charges
+          0.02 + // Exchange Fees
+          0.0036 + // GST on Exchange Fees
+          traderMarginVal + // Trader Margin
+          marginGst + // GST on Trading Margin
+          cssRate + // Cross Subsidy
+          addChargeRate; // Additional Surcharge
+
+        // Additive Loss Multiplier
+        const additiveLossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
+
+        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
+        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
+        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -613,6 +635,7 @@ export class SavingsCalculatorNewService {
           rtmLandingPrice,
           gdamLandingPrice,
           discomLandingPrice,
+          baseDiscomPrice,
           comparedLowestPrice,
           selectedSource,
           is1MWOrMore,
@@ -623,12 +646,25 @@ export class SavingsCalculatorNewService {
           baselineCost: 0,
           istsLoss,
           stuLoss,
-          wheelingLoss
+          wheelingLoss,
+          expectedEnergy: 0
         };
       });
 
       // --- DAILY SLDC OPTIMIZATION ---
       const defaultMaxEnergyPerSlot = sanctionedLoad * 0.25;
+      
+      // Pre-calculate expected energy per slot based on actual consumption for accurate SLDC optimization
+      monthlySlots.forEach(s => s.expectedEnergy = 0);
+      for (const customSlot of customSlots) {
+        const slotEnergyTotal = customSlot.consumptionKwh;
+        const slotBlocks = monthlySlots.filter(s => s.customSlotId === customSlot.id || s.todSlab === (customSlot.name || `${customSlot.startTime}-${customSlot.endTime}`));
+        const totalActiveBlocks = slotBlocks.length || 1;
+        const energyPerBlock = slotEnergyTotal / totalActiveBlocks;
+        slotBlocks.forEach(sb => {
+          sb.expectedEnergy = Math.min(energyPerBlock, defaultMaxEnergyPerSlot);
+        });
+      }
 
       const slotsByDate = new Map<string, typeof monthlySlots>();
       monthlySlots.forEach(slot => {
@@ -648,7 +684,7 @@ export class SavingsCalculatorNewService {
           let sldcCost = markets.length * sldcSchedulingFees;
           
           dateSlots.forEach(slot => {
-            const maxEnergy = defaultMaxEnergyPerSlot;
+            const maxEnergy = slot.expectedEnergy || 0;
             let bestCost = slot.discomLandingPrice * maxEnergy;
             
             markets.forEach(market => {
@@ -679,7 +715,7 @@ export class SavingsCalculatorNewService {
 
         let discomOnlyCost = 0;
         dateSlots.forEach(slot => {
-          discomOnlyCost += slot.discomLandingPrice * defaultMaxEnergyPerSlot;
+          discomOnlyCost += slot.discomLandingPrice * (slot.expectedEnergy || 0);
         });
         lowestTotalCost = discomOnlyCost;
 
@@ -787,7 +823,7 @@ export class SavingsCalculatorNewService {
 
               expBlock.discomEnergy -= shiftAmount;
               expBlock.maxEnergyPerSlot -= shiftAmount;
-              expBlock.baselineCost = expBlock.maxEnergyPerSlot * expBlock.discomLandingPrice;
+              expBlock.baselineCost = expBlock.maxEnergyPerSlot * expBlock.baseDiscomPrice;
               expBlock.optimizedCost = expBlock.baselineCost;
 
               cheapBlock.marketEnergy += shiftAmount;

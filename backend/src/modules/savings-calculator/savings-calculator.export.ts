@@ -269,18 +269,22 @@ export class SavingsCalculatorExportService {
       const baseGrossEnergy = baseGrossTotal * energyShare;
       const baseGrossDemand = baseGrossTotal - baseGrossEnergy;
       
-      sheet.addRow(['Gross Base Energy Charges', Math.round(baseGrossEnergy)]);
+      const energyRow = sheet.addRow(['Gross Base Energy Charges', Math.round(baseGrossEnergy)]);
+      rowMapping['energyChargesRow'] = energyRow.number;
+      
       sheet.addRow(['FPPA Surcharge', Math.round(fppaCharges)]);
       sheet.addRow(['Gross Demand & Fixed Charges', Math.round(baseGrossDemand)]);
       sheet.addRow(['NPCL Rebate (10%)', -Math.round(energyRebate10 + demandRebate10)]);
       sheet.addRow(['NPCL Prompt Payment Rebate (1%)', -Math.round(energyRebate1 + demandRebate1)]);
       sheet.addRow(['Net Energy & Demand Charges', Math.round(energyCharges + demandCharges)]);
     } else {
-      const fppaCharges = Math.round(result.fppaCharge || 0);
+      const fppaCharges = Math.round((result as any).fppaSurcharge || 0);
       const baseDemandCharges = Math.round(result.demandCharge || 0);
-      const baseEnergyCharges = Math.round(result.totalBaselineCost || 0);
+      const baseEnergyCharges = Math.round((result as any).pureEnergyCost || result.totalBaselineCost || 0);
 
-      sheet.addRow(['Energy Charges', baseEnergyCharges]);
+      const energyRow = sheet.addRow(['Energy Charges', baseEnergyCharges]);
+      rowMapping['energyChargesRow'] = energyRow.number;
+      
       sheet.addRow(['FPPA Surcharge', fppaCharges]);
       sheet.addRow(['Demand & Fixed Charges', baseDemandCharges]);
     }
@@ -734,7 +738,7 @@ export class SavingsCalculatorExportService {
 
     sheet.addRow([]);
 
-    const ppcDiscomRowData: any[] = ['Power Purchase Cost (Discom Only)'];
+    const ppcDiscomRowData: any[] = ['Blended Cost per Unit (Discom Only) [Inc. Fixed Charges]'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
       const formula = `${colChar}${discomCostRowNumber}/${colChar}${totalConsumptionRowNumber}`;
@@ -745,7 +749,7 @@ export class SavingsCalculatorExportService {
     ppcDiscomRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) ppcDiscomRow.getCell(i).numFmt = '"₹"0.00';
 
-    const ppcProltRowData: any[] = ['Power Purchase Cost (With Prolt)'];
+    const ppcProltRowData: any[] = ['Blended Cost per Unit (With Prolt) [Inc. Fixed Charges]'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
       const formula = `${colChar}${totalPowerCostOARowNumber}/${colChar}${totalConsumptionRowNumber}`;

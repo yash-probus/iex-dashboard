@@ -1426,6 +1426,18 @@ export class CustomSavingCalcService {
     // ── SLDC-Aware Market Optimization ──────────────
     // Optimize market selection per date to minimize total cost including SLDC overhead
     const sldcFeePerMarketPerDay = sldcSchedulingFees; // ₹1500 per market per day
+    
+    // Estimate expected energy per slot based on actual consumption for accurate SLDC optimization
+    let totalExpectedConsumption = 0;
+    if (monthConsumptions) {
+      Object.keys(monthConsumptions).forEach(k => {
+         const key = k.toLowerCase();
+         if (key.includes('peak demand') || key.includes('sanctioned') || key === 'arrear amount' || key === 'current lpsc' || key === 'start date' || key === 'end date' || key === 'miscellaneous charges') return;
+         if (monthConsumptions[k]) totalExpectedConsumption += Number(monthConsumptions[k]);
+      });
+    }
+    const avgEnergyPerSlot = totalExpectedConsumption > 0 && slotsData.length > 0 ? (totalExpectedConsumption / slotsData.length) : maxEnergyPerSlot;
+    const expectedEnergy = Math.min(avgEnergyPerSlot, maxEnergyPerSlot);
 
     // Group slots by date
     const slotsByDate = new Map<string, typeof slotsData>();
@@ -1455,7 +1467,7 @@ export class CustomSavingCalcService {
       };
 
       marketableSlots.forEach(slot => {
-        const maxEnergy = maxEnergyPerSlot;
+        const maxEnergy = expectedEnergy;
         if (slot.marketLandings.DAM && slot.marketLandings.DAM < slot.discomLanding) {
           marketCosts.DAM += slot.marketLandings.DAM * maxEnergy;
           marketCounts.DAM++;
@@ -1476,7 +1488,7 @@ export class CustomSavingCalcService {
         let sldcCost = markets.length * sldcFeePerMarketPerDay;
 
         marketableSlots.forEach(slot => {
-          const maxEnergy = maxEnergyPerSlot;
+          const maxEnergy = expectedEnergy;
           let bestCost = slot.discomLanding * maxEnergy; // Default to DISCOM
 
 
@@ -1524,7 +1536,7 @@ export class CustomSavingCalcService {
 
       // Reassign markets based on optimal combination
       marketableSlots.forEach(slot => {
-        const maxEnergy = maxEnergyPerSlot;
+        const maxEnergy = expectedEnergy;
         let bestCost = slot.discomLanding * maxEnergy;
         let bestMarket = null;
 
