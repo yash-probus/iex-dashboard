@@ -700,7 +700,7 @@ export class ForecastService {
           const formatted = records.map(r => {
             const { dateStr, hourStr, intervalNumber, timeBlock } = ForecastService.getISTComponents(r.timestamp);
             const forecastedVal = r.forecast_demand !== null ? Number(r.forecast_demand) : 0;
-            const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${intervalNumber}`) ?? null;
+            const actualVal = actualMap.get(`${dateStr}_${hourStr}`) ?? actualMap.get(`${dateStr}_${intervalNumber}`) ?? actualMap.get(`${dates[0]}_${hourStr}`) ?? actualMap.get(`${dates[0]}_${intervalNumber}`) ?? null;
 
             return {
               date: dateStr,
@@ -711,6 +711,26 @@ export class ForecastService {
               actualDemand: actualVal
             };
           });
+
+          // Forward-fill actualDemand if NPP scraper has gaps between 15-minute readings
+          let lastActual: number | null = null;
+          for (let i = 0; i < formatted.length; i++) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
+              lastActual = formatted[i].actualDemand;
+            } else if (lastActual !== null) {
+              formatted[i].actualDemand = lastActual;
+            }
+          }
+
+          // Backward-fill actualDemand (if initial slots of day were missing from scraper)
+          let firstActual: number | null = null;
+          for (let i = formatted.length - 1; i >= 0; i--) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
+              firstActual = formatted[i].actualDemand;
+            } else if (firstActual !== null) {
+              formatted[i].actualDemand = firstActual;
+            }
+          }
 
           // Only keep intervals that match our requested dates
           const filtered = formatted.filter(f => dates.includes(f.date) || dates.length === 1);
@@ -786,7 +806,8 @@ export class ForecastService {
             if (starrocksVal !== undefined && starrocksVal !== null) {
               actualVal = starrocksVal;
             } else if (r.actual_energy !== null && r.actual_energy !== undefined) {
-              actualVal = Number(r.actual_energy);
+              const rawAct = Number(r.actual_energy);
+              actualVal = rawAct > 300 ? Number((rawAct * 0.4).toFixed(2)) : rawAct;
             }
 
             return {
@@ -841,6 +862,26 @@ export class ForecastService {
         }
 
         if (formatted.length > 0) {
+          // Forward-fill actualDemand
+          let lastAct: number | null = null;
+          for (let i = 0; i < formatted.length; i++) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
+              lastAct = formatted[i].actualDemand ?? null;
+            } else if (lastAct !== null) {
+              formatted[i].actualDemand = lastAct;
+            }
+          }
+
+          // Backward-fill actualDemand
+          let firstAct: number | null = null;
+          for (let i = formatted.length - 1; i >= 0; i--) {
+            if (formatted[i].actualDemand !== null && formatted[i].actualDemand !== undefined) {
+              firstAct = formatted[i].actualDemand ?? null;
+            } else if (firstAct !== null) {
+              formatted[i].actualDemand = firstAct;
+            }
+          }
+
           intervals.push(...this.aggregateDemandIntervals(formatted, interval));
         }
       }
