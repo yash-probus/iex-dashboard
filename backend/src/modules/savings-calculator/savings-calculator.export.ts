@@ -854,7 +854,7 @@ export class SavingsCalculatorExportService {
     const totalAmountRowData: any[] = ['Total Amount'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `SUM(${colChar}${nocFeeRowNumber}:${colChar}${consultancyRowNumber})+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
+      const formula = `SUM(${colChar}${nocFeeRowNumber}:${colChar}${consultancyRowNumber})+${colChar}${traderMarginRowNumber}+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
       totalAmountRowData.push({ formula });
     });
     const totalAmountRow = sheet.addRow(totalAmountRowData);
