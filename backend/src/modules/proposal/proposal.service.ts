@@ -94,13 +94,116 @@ export class ProposalService {
           const buf = fs.readFileSync(tmpOutputPath);
           try { fs.unlinkSync(tmpOutputPath); } catch (e) {}
           return buf;
-        } else {
-          throw new Error("Python script did not produce an output file.");
         }
       } catch (pythonErr: any) {
-        console.error('PYTHON SCRIPT ERROR:', pythonErr.stderr || pythonErr.message);
-        throw new Error('Failed to generate commercial proposal document. Python Script Error: ' + (pythonErr.stderr || pythonErr.message));
+        console.warn('Python script execution failed, falling back to Node PizZip:', pythonErr.stderr || pythonErr.message);
       }
+
+      // Fallback: Pure Node.js PizZip template replacement
+      function setLastCellText(rowXml: string, newText: string, isBold?: boolean) {
+        let cells = rowXml.split('</w:tc>');
+        if (cells.length > 1) {
+          const lastIdx = cells.length - 2;
+          const boldXml = isBold ? '<w:b/><w:bCs/>' : '';
+          const cellContent = `<w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${newText}</w:t></w:r>`;
+          cells[lastIdx] = cells[lastIdx].replace(/<w:p\b[^>]*>[\s\S]*<\/w:p>/, `<w:p>${cellContent}</w:p>`);
+        }
+        return cells.join('</w:tc>');
+      }
+
+      const zip = new PizZip(fs.readFileSync(templatePath, 'binary'));
+      let xml = zip.file('word/document.xml')?.asText() || '';
+
+      // 1. Remove all yellow highlights in entire XML
+      xml = xml.replace(/<w:highlight [^/>]*\/>/g, '');
+
+      // 2. Title Paragraph P2
+      const clientName = (clientData.client_name || clientData.industry_name || clientData.clientName || 'CLIENT').toUpperCase();
+      xml = xml.replace(/XXXXXXXXXXXXX/g, clientName);
+
+      // 3. Process Tables
+      const tblRegex = /<w:tbl\b[\s\S]*?<\/w:tbl>/g;
+      let tableIndex = 0;
+      xml = xml.replace(tblRegex, (match) => {
+        const currentIdx = tableIndex++;
+        let rows = match.split('</w:tr>');
+
+        if (currentIdx === 0) {
+          if (rows.length > 1) {
+            let cells = rows[1].split('</w:tc>');
+            if (cells.length >= 4) {
+              const loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '1000 kW');
+              const connVal = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '11 kV');
+              const discomVal = String(clientData.discom_name || clientData.discom || 'DISCOM');
+              const feederVal = String(clientData.feeder_type || 'Dedicated Feeder');
+
+              cells[0] = setLastCellText(cells[0] + '</w:tc>', loadVal, true).replace('</w:tc>', '');
+              cells[1] = setLastCellText(cells[1] + '</w:tc>', connVal, true).replace('</w:tc>', '');
+              cells[2] = setLastCellText(cells[2] + '</w:tc>', discomVal, true).replace('</w:tc>', '');
+              cells[3] = setLastCellText(cells[3] + '</w:tc>', feederVal, true).replace('</w:tc>', '');
+              rows[1] = cells.join('</w:tc>');
+            }
+          }
+        } else if (currentIdx === 3) {
+          // Table 3 (BOQ)
+          const c_supply = Number(clientData.abt_supply_cost) || 450000;
+          const c_service = Number(clientData.abt_service_cost) || 350000;
+          const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
+          const c_total_abt = c_supply + c_service + c_liaison;
+          
+          const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
+          
+          const c_iex = Number(clientData.iex_annual_fee) || 100000;
+          const c_noc = Number(clientData.sldc_monthly_noc) || 7000;
+          const c_st11 = Number(clientData.st11_settlement) || 20000;
+          const c_total_recurring = c_iex + c_noc + c_st11;
+          
+          const tm = String(clientData.trading_margin || '2p/kWh');
+          const pf = String(clientData.platform_fee || '2p/kWh');
+          let vs = String(clientData.value_share || '15%');
+          if (!vs.endsWith('%')) vs += '%';
+          const smart = Number(clientData.smart_metering_infra) || 125000;
+
+          if (rows[1]) rows[1] = setLastCellText(rows[1], formatRupee(c_total_abt), true);
+          if (rows[2]) {
+            let row2Str = rows[2];
+            if (clientData.indoor_ctpt_count) row2Str = row2Str.replace('1 Nos.', clientData.indoor_ctpt_count);
+            if (clientData.remove_outdoor_supply) row2Str = row2Str.replace(/<w:p\b[^>]*>.*?Outdoor CT\/PT.*?<\/w:p>/g, '');
+            rows[2] = setLastCellText(row2Str, formatRupee(c_supply), false);
+          }
+          if (rows[3]) rows[3] = setLastCellText(rows[3], formatRupee(c_service), false);
+          if (rows[4]) rows[4] = setLastCellText(rows[4], formatRupee(c_liaison), false);
+          
+          if (rows[5]) rows[5] = setLastCellText(rows[5], formatRupee(c_bg), true);
+          if (rows[6]) rows[6] = setLastCellText(rows[6], formatRupee(c_bg), false);
+          
+          if (rows[7]) rows[7] = setLastCellText(rows[7], formatRupee(c_total_recurring), true);
+          if (rows[8]) rows[8] = setLastCellText(rows[8], formatRupee(c_iex), false);
+          if (rows[9]) rows[9] = setLastCellText(rows[9], formatRupee(c_noc), false);
+          if (rows[10]) rows[10] = setLastCellText(rows[10], formatRupee(c_st11), false);
+          
+          if (rows[12]) rows[12] = setLastCellText(rows[12], tm, false);
+          if (rows[13]) rows[13] = setLastCellText(rows[13], pf, false);
+          if (rows[14]) rows[14] = setLastCellText(rows[14], vs, false);
+          if (rows[15]) rows[15] = setLastCellText(rows[15], formatRupee(smart), false);
+          
+        } else if (currentIdx === 4) {
+          // Table 4 (Terms & Conditions)
+          const paymentTerm = String(clientData.smart_metering_infra_payment_term || '100% Advance against PO/PI');
+          for (let i = 0; i < rows.length; i++) {
+            if (rows[i].includes('Prolt Energy Smart Metering')) {
+              // Instead of replacing the last cell, we need to replace the third column. 
+              // Since the last cell IS the third column in this table, setLastCellText works perfectly!
+              rows[i] = setLastCellText(rows[i], paymentTerm, false);
+            }
+          }
+        }
+
+        return rows.join('</w:tr>');
+      });
+
+      zip.file('word/document.xml', xml);
+      return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
     }
 
     let templateFilename = 'proposal_template.docx';
