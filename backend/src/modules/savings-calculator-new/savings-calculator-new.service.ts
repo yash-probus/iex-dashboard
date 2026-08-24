@@ -341,9 +341,10 @@ export class SavingsCalculatorNewService {
     }
 
     const decision = await this.calculateMarketDecision(id, targetMonth, version);
-    totalBaselineCost = decision.totalBaselineCost;
+    // Use full baseline cost to correctly compare against total optimized cost
+    totalBaselineCost = decision.fullBaselineDiscomCost;
     totalOptimizedCost = decision.totalOptimizedCost;
-    const totalSavings = totalBaselineCost - totalOptimizedCost;
+    const totalSavings = decision.totalSavings;
 
     return {
       clientId: entry.id,
@@ -871,7 +872,8 @@ export class SavingsCalculatorNewService {
     // Full Open Access + Remaining DISCOM cost including FPPA, ED, Demand Charge, fees and overheads
     const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
 
-    const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
+    // netSavings in the old calc is the savings BEFORE prolt margin and some platform fees, but AFTER trader margin
+    const netSavings = fullBaselineDiscomCost - (totalLandedExchangeCost + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + meteringChargesVal + dailyFixedOverhead + bidApplicationFees);
     const grossSavings = Math.max(0, netSavings);
 
     const proltMarginInput = Number((entry as any).proltMargin || 0);
