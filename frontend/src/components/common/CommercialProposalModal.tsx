@@ -35,6 +35,23 @@ const FEEDER_OPTIONS = [
   'Mixed Feeder'
 ];
 
+const VOLTAGE_OPTIONS = [
+  '11 kV',
+  '33 kV',
+  '66 kV',
+  '132 kV',
+  '220 kV'
+];
+
+const DISCOM_OPTIONS = [
+  'PVVNL',
+  'DVVNL',
+  'MVVNL',
+  'PuVVNL',
+  'KESCO',
+  'NPCL'
+];
+
 export default function CommercialProposalModal({
   open,
   onClose,
@@ -212,23 +229,35 @@ export default function CommercialProposalModal({
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
+                select
                 label="Connectivity / Voltage"
                 fullWidth
                 size="small"
                 value={connectivity}
                 onChange={(e) => setConnectivity(e.target.value)}
-                placeholder="e.g. 11 kV"
-              />
+              >
+                {VOLTAGE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt} value={opt}>
+                    {opt}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
+                select
                 label="DISCOM Name"
                 fullWidth
                 size="small"
                 value={discomName}
                 onChange={(e) => setDiscomName(e.target.value)}
-                placeholder="e.g. PVVNL"
-              />
+              >
+                {DISCOM_OPTIONS.map((opt) => (
+                  <MenuItem key={opt} value={opt}>
+                    {opt}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
