@@ -70,7 +70,18 @@ def generate_proposal(data_json):
         c_bg = float(data.get('bank_guarantee_cost', 150000))
         c_total = c_supply + c_service + c_liaison
         
-        if len(t2.rows) > 2: set_cell_value(t2.rows[2].cells[-1], format_rupee(c_supply))
+        if len(t2.rows) > 2: 
+            supply_cell = t2.rows[2].cells[1]
+            indoor_count = data.get('indoor_ctpt_count')
+            if indoor_count:
+                for p in supply_cell.paragraphs:
+                    p.text = p.text.replace('1 Nos.', indoor_count)
+            if data.get('remove_outdoor_supply'):
+                for p in supply_cell.paragraphs:
+                    if 'Outdoor CT/PT' in p.text:
+                        p.text = ''
+            set_cell_value(t2.rows[2].cells[-1], format_rupee(c_supply))
+        
         if len(t2.rows) > 3: set_cell_value(t2.rows[3].cells[-1], format_rupee(c_service))
         if len(t2.rows) > 4: set_cell_value(t2.rows[4].cells[-1], format_rupee(c_liaison))
         if len(t2.rows) > 5: set_cell_value(t2.rows[5].cells[-1], format_rupee(c_liaison))

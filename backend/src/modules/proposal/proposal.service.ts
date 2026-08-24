@@ -41,6 +41,45 @@ export class ProposalService {
         throw new Error(`Template file not found at ${templatePath}`);
       }
 
+      // Dynamic Defaults Logic
+      const state = String(clientData.state || '').trim().toUpperCase();
+      const discom = String(clientData.discom_name || clientData.discom || '').trim().toUpperCase();
+      const voltage = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '').trim().toUpperCase();
+      
+      let defaultSupply = 450000;
+      let defaultService = 350000;
+      let defaultLiaison = 300000;
+      let defaultSmart = 125000;
+      let indoorCount = "1 Nos.";
+      let removeOutdoorSupply = false;
+
+      if (state === 'UP') {
+        defaultLiaison = 395000;
+        defaultSmart = 170000;
+        
+        if (voltage.includes('33') && (voltage.includes('KV') || voltage.includes('K V'))) {
+          if (discom.includes('NPCL')) {
+            defaultSupply = 845000;
+            defaultService = 358000;
+            indoorCount = "2 Nos.";
+            removeOutdoorSupply = true;
+          } else {
+            defaultSupply = 745000;
+            defaultService = 358000;
+          }
+        } else { // 11kV (All Discoms)
+          defaultSupply = 565000;
+          defaultService = 338000;
+        }
+      }
+
+      clientData.abt_supply_cost = clientData.abt_supply_cost || defaultSupply;
+      clientData.abt_service_cost = clientData.abt_service_cost || defaultService;
+      clientData.utility_liaisoning_cost = clientData.utility_liaisoning_cost || defaultLiaison;
+      clientData.smart_metering_infra = clientData.smart_metering_infra || defaultSmart;
+      clientData.indoor_ctpt_count = indoorCount;
+      clientData.remove_outdoor_supply = removeOutdoorSupply;
+
       // Primary: Try Python script (python-docx cleanly replaces cell text, calculates totals, and strips all yellow highlights)
       try {
         const scriptPath = path.join(__dirname, '../../../scripts/generate_commercial_proposal.py');
@@ -105,13 +144,20 @@ export class ProposalService {
           }
         } else if (currentIdx === 2) {
           // Table 2 (Fixed One-Time Cost)
-          const c_supply = Number(clientData.abt_supply_cost) || 450000;
-          const c_service = Number(clientData.abt_service_cost) || 350000;
-          const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
+          const c_supply = Number(clientData.abt_supply_cost);
+          const c_service = Number(clientData.abt_service_cost);
+          const c_liaison = Number(clientData.utility_liaisoning_cost);
           const c_total = c_supply + c_service + c_liaison;
           const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
 
-          if (rows[2]) rows[2] = setLastCellText(rows[2], formatRupee(c_supply), false);
+          if (rows[2]) {
+            let row2Str = rows[2];
+            row2Str = row2Str.replace('1 Nos.', clientData.indoor_ctpt_count);
+            if (clientData.remove_outdoor_supply) {
+              row2Str = row2Str.replace(/<w:p\b[^>]*>.*?Outdoor CT\/PT.*?<\/w:p>/g, '');
+            }
+            rows[2] = setLastCellText(row2Str, formatRupee(c_supply), false);
+          }
           if (rows[3]) rows[3] = setLastCellText(rows[3], formatRupee(c_service), false);
           if (rows[4]) rows[4] = setLastCellText(rows[4], formatRupee(c_liaison), false);
           if (rows[5]) rows[5] = setLastCellText(rows[5], formatRupee(c_liaison), false);

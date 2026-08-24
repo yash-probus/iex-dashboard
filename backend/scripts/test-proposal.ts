@@ -6,28 +6,16 @@ async function test() {
   const service = new ProposalService();
 
   const dummyData = {
-    client_name: 'TEST CLIENT',
-    client_short_name: 'TEST',
-    client_city: 'Delhi',
-    end_month: 'June 2026',
-    start_month: 'February 2026',
-    duration: 'Five months',
-    start_month_name: 'February',
-    end_month_name: 'June',
-    year: '2026',
-    total_units: '5,00,000',
-    total_savings: '10,00,000',
-    sanctioned_load: '200',
-    savings_percentage: '90%',
-    utility_rate: '₹8.00',
-    iex_rate: '₹5.00',
-    monthly_savings: '₹2,00,000',
-    rate_diff: '₹3.00'
+    client_name: 'TEST NPCL CLIENT',
+    state: 'UP',
+    discom_name: 'NPCL',
+    voltage_level: '33 kV',
+    feeder_type: 'Independent'
   };
 
   try {
-    console.log('Generating proposal with dummy data...');
-    const buffer = await service.generateProposal(dummyData);
+    console.log('Generating commercial proposal for NPCL 33kV...');
+    const buffer = await service.generateProposal(dummyData, 'commercial');
     
     const outPath = path.join(__dirname, '../assets/templates/test_output.docx');
     fs.writeFileSync(outPath, buffer);
