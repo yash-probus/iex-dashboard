@@ -82,7 +82,7 @@ export class ProposalService {
       clientData.indoor_ctpt_count = indoorCount;
       clientData.remove_outdoor_supply = removeOutdoorSupply;
 
-      // Primary: Try Python script (python-docx cleanly replaces cell text, calculates totals, and strips all yellow highlights)
+      // Execute Python script to generate the document
       try {
         const scriptPath = path.join(__dirname, '../../../scripts/generate_commercial_proposal.py');
         const tmpDir = os.tmpdir();
@@ -94,108 +94,13 @@ export class ProposalService {
           const buf = fs.readFileSync(tmpOutputPath);
           try { fs.unlinkSync(tmpOutputPath); } catch (e) {}
           return buf;
+        } else {
+          throw new Error("Python script did not produce an output file.");
         }
       } catch (pythonErr: any) {
-        console.warn('Python script execution failed, falling back to Node PizZip:', pythonErr.stderr || pythonErr.message);
+        console.error('PYTHON SCRIPT ERROR:', pythonErr.stderr || pythonErr.message);
+        throw new Error('Failed to generate commercial proposal document. Python Script Error: ' + (pythonErr.stderr || pythonErr.message));
       }
-
-      // Fallback: Pure Node.js PizZip template replacement
-      function setLastCellText(rowXml: string, newText: string, isBold?: boolean) {
-        let cells = rowXml.split('</w:tc>');
-        if (cells.length > 1) {
-          const lastIdx = cells.length - 2;
-          const boldXml = isBold ? '<w:b/><w:bCs/>' : '';
-          const cellContent = `<w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${newText}</w:t></w:r>`;
-          cells[lastIdx] = cells[lastIdx].replace(/<w:p\b[^>]*>[\s\S]*<\/w:p>/, `<w:p>${cellContent}</w:p>`);
-        }
-        return cells.join('</w:tc>');
-      }
-
-      const zip = new PizZip(fs.readFileSync(templatePath, 'binary'));
-      let xml = zip.file('word/document.xml')?.asText() || '';
-
-      // 1. Remove all yellow highlights in entire XML
-      xml = xml.replace(/<w:highlight [^/>]*\/>/g, '');
-
-      // 2. Title Paragraph P2
-      const clientName = (clientData.client_name || clientData.industry_name || clientData.clientName || 'CLIENT').toUpperCase();
-      xml = xml.replace(/XXXXXXXXXXXXX/g, clientName);
-
-      // 3. Process Tables
-      const tblRegex = /<w:tbl\b[\s\S]*?<\/w:tbl>/g;
-      let tableIndex = 0;
-      xml = xml.replace(tblRegex, (match) => {
-        const currentIdx = tableIndex++;
-        let rows = match.split('</w:tr>');
-
-        if (currentIdx === 0) {
-          if (rows.length > 1) {
-            let cells = rows[1].split('</w:tc>');
-            if (cells.length >= 4) {
-              const loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '1000 kW');
-              const connVal = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '11 kV');
-              const discomVal = String(clientData.discom_name || clientData.discom || 'DISCOM');
-              const feederVal = String(clientData.feeder_type || 'Dedicated Feeder');
-
-              cells[0] = setLastCellText(cells[0] + '</w:tc>', loadVal, true).replace('</w:tc>', '');
-              cells[1] = setLastCellText(cells[1] + '</w:tc>', connVal, true).replace('</w:tc>', '');
-              cells[2] = setLastCellText(cells[2] + '</w:tc>', discomVal, true).replace('</w:tc>', '');
-              cells[3] = setLastCellText(cells[3] + '</w:tc>', feederVal, true).replace('</w:tc>', '');
-              rows[1] = cells.join('</w:tc>');
-            }
-          }
-        } else if (currentIdx === 2) {
-          // Table 2 (Fixed One-Time Cost)
-          const c_supply = Number(clientData.abt_supply_cost);
-          const c_service = Number(clientData.abt_service_cost);
-          const c_liaison = Number(clientData.utility_liaisoning_cost);
-          const c_total = c_supply + c_service + c_liaison;
-          const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
-
-          if (rows[2]) {
-            let row2Str = rows[2];
-            row2Str = row2Str.replace('1 Nos.', clientData.indoor_ctpt_count);
-            if (clientData.remove_outdoor_supply) {
-              row2Str = row2Str.replace(/<w:p\b[^>]*>.*?Outdoor CT\/PT.*?<\/w:p>/g, '');
-            }
-            rows[2] = setLastCellText(row2Str, formatRupee(c_supply), false);
-          }
-          if (rows[3]) rows[3] = setLastCellText(rows[3], formatRupee(c_service), false);
-          if (rows[4]) rows[4] = setLastCellText(rows[4], formatRupee(c_liaison), false);
-          if (rows[5]) rows[5] = setLastCellText(rows[5], formatRupee(c_liaison), false);
-          if (rows[6]) rows[6] = setLastCellText(rows[6], formatRupee(c_total), true); // TOTAL CELL!
-          if (rows[8]) rows[8] = setLastCellText(rows[8], formatRupee(c_bg), false);
-        } else if (currentIdx === 3) {
-          // Table 3 (Fixed Recurring Charges)
-          if (rows[1]) rows[1] = setLastCellText(rows[1], formatRupee(Number(clientData.iex_annual_fee) || 100000), false);
-          if (rows[2]) rows[2] = setLastCellText(rows[2], formatRupee(Number(clientData.sldc_monthly_noc) || 7000), false);
-          if (rows[3]) rows[3] = setLastCellText(rows[3], formatRupee(Number(clientData.st11_settlement) || 20000), false);
-        } else if (currentIdx === 4) {
-          // Table 4 (Probus Fees)
-          const tm = String(clientData.trading_margin || '2p/kWh');
-          const pf = String(clientData.platform_fee || '2p/kWh');
-          const vs = String(clientData.value_share || '15%');
-          const smart = Number(clientData.smart_metering_infra) || 125000;
-
-          if (rows[1]) rows[1] = setLastCellText(rows[1], tm, false);
-          if (rows[2]) rows[2] = setLastCellText(rows[2], pf, false);
-          if (rows[3]) rows[3] = setLastCellText(rows[3], vs, false);
-          if (rows[4]) rows[4] = setLastCellText(rows[4], formatRupee(smart), false);
-        } else if (currentIdx === 5) {
-          // Table 5 (Terms & Conditions)
-          const paymentTerm = String(clientData.smart_metering_infra_payment_term || '100% Advance against PO/PI');
-          for (let i = 0; i < rows.length; i++) {
-            if (rows[i].includes('Prolt Energy Smart Metering')) {
-              rows[i] = setLastCellText(rows[i], paymentTerm, false);
-            }
-          }
-        }
-
-        return rows.join('</w:tr>');
-      });
-
-      zip.file('word/document.xml', xml);
-      return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
     }
 
     let templateFilename = 'proposal_template.docx';

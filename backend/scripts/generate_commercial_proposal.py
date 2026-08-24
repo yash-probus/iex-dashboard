@@ -4,27 +4,28 @@ import os
 import docx
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-def format_rupee(val):
-    if val is None or val == '':
-        return ''
-    if isinstance(val, (int, float)):
-        # Format with Indian comma grouping
-        s, *d = f"{val:.2f}".split('.')
-        r = []
-        for i, ch in enumerate(reversed(s)):
-            if i == 3 or (i > 3 and (i - 3) % 2 == 0):
-                r.append(',')
-            r.append(ch)
-        formatted = "".join(reversed(r))
-        return f"₹{formatted}.{d[0]}" if d else f"₹{formatted}"
-    val_str = str(val).strip()
-    if val_str.startswith('₹'):
-        return val_str
+def format_rupee(amount):
     try:
-        num = float(val_str.replace(',', '').replace('₹', '').replace('/kWh', '').replace('%', ''))
-        return format_rupee(num)
-    except:
-        return val_str
+        if amount is None or str(amount).strip() == '':
+            return '₹ 0'
+        # Parse the amount safely, removing commas, Rs, etc.
+        amount_str = str(amount).replace(',', '').replace('₹', '').replace('Rs.', '').replace('Rs', '').strip()
+        num = float(amount_str)
+        # Format as Indian Rupee
+        s, *d = str(num).partition(".")
+        r = ",".join([s[x-2:x] for x in range(-3, -len(s), -2)][::-1] + [s[-3:]])
+        return f"₹ {r}"
+    except (ValueError, TypeError):
+        return str(amount)
+
+def safe_float(val, default=0.0):
+    try:
+        if val is None or str(val).strip() == '':
+            return default
+        val_str = str(val).replace(',', '').replace('₹', '').replace('Rs.', '').replace('Rs', '').strip()
+        return float(val_str)
+    except (ValueError, TypeError):
+        return default
 
 def generate_proposal(data_json):
     data = json.loads(data_json)
@@ -97,23 +98,23 @@ def generate_proposal(data_json):
         t3 = doc.tables[3]
         
         # Calculate totals
-        c_supply = float(data.get('abt_supply_cost', 450000))
-        c_service = float(data.get('abt_service_cost', 350000))
-        c_liaison = float(data.get('utility_liaisoning_cost', 300000))
+        c_supply = safe_float(data.get('abt_supply_cost'), 450000)
+        c_service = safe_float(data.get('abt_service_cost'), 350000)
+        c_liaison = safe_float(data.get('utility_liaisoning_cost'), 300000)
         c_total_abt = c_supply + c_service + c_liaison
         
-        c_bg = float(data.get('bank_guarantee_cost', 150000))
+        c_bg = safe_float(data.get('bank_guarantee_cost'), 150000)
         
-        c_iex = float(data.get('iex_annual_fee', 100000))
-        c_noc = float(data.get('sldc_monthly_noc', 7000))
-        c_st11 = float(data.get('st11_settlement', 20000))
+        c_iex = safe_float(data.get('iex_annual_fee'), 100000)
+        c_noc = safe_float(data.get('sldc_monthly_noc'), 7000)
+        c_st11 = safe_float(data.get('st11_settlement'), 20000)
         c_total_recurring = c_iex + c_noc + c_st11
         
         tm = str(data.get('trading_margin', '2p/kWh'))
         pf = str(data.get('platform_fee', '2p/kWh'))
         vs = str(data.get('value_share', '15%'))
         if not vs.endswith('%'): vs += '%'
-        smart = float(data.get('smart_metering_infra', 125000))
+        smart = safe_float(data.get('smart_metering_infra'), 125000)
 
         # Row 1: ABT Metering Total
         if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(c_total_abt), bold=True)
