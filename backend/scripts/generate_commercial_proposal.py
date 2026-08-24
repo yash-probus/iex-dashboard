@@ -102,20 +102,23 @@ def generate_proposal(data_json):
         pf = str(data.get('platform_fee', '2p/kWh'))
         vs = str(data.get('value_share', '15%'))
         if not vs.endswith('%'): vs += '%'
-        smart_raw = str(data.get('smart_metering_infra', '125000'))
-        import re
-        if re.search('[a-zA-Z]', smart_raw):
-            smart_val = smart_raw
-        else:
-            try:
-                smart_val = format_rupee(float(smart_raw.replace(',', '')))
-            except ValueError:
-                smart_val = smart_raw
+        smart = float(data.get('smart_metering_infra', 125000))
         
         if len(t4.rows) > 1: set_cell_value(t4.rows[1].cells[-1], tm)
         if len(t4.rows) > 2: set_cell_value(t4.rows[2].cells[-1], pf)
         if len(t4.rows) > 3: set_cell_value(t4.rows[3].cells[-1], vs)
-        if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[-1], smart_val)
+        if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[-1], format_rupee(smart))
+
+    # 6. Update Table 5 (Terms & Conditions)
+    if len(doc.tables) > 5:
+        t5 = doc.tables[5]
+        smart_payment_term = str(data.get('smart_metering_infra_payment_term', '100% Advance against PO/PI'))
+        
+        # Searching for 'Prolt Energy Smart Metering Infra' in the first column to replace the second column
+        for row in t5.rows:
+            if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[0].text:
+                set_cell_value(row.cells[1], smart_payment_term)
+                break
 
     if os.path.dirname(output_path):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)

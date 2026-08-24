@@ -82,7 +82,8 @@ export default function CommercialProposalModal({
   const [tradingMargin, setTradingMargin] = useState('2p/kWh');
   const [platformFee, setPlatformFee] = useState('2p/kWh');
   const [valueShare, setValueShare] = useState('15%');
-  const [smartMeteringInfra, setSmartMeteringInfra] = useState('100% Advance against PO/PI');
+  const [smartMeteringInfra, setSmartMeteringInfra] = useState('125000');
+  const [smartMeteringInfraPaymentTerm, setSmartMeteringInfraPaymentTerm] = useState('100% Advance against PO/PI');
 
   useEffect(() => {
     if (open) {
@@ -112,7 +113,8 @@ export default function CommercialProposalModal({
       setTradingMargin(tm);
       setPlatformFee(pf);
       setValueShare(vs);
-      setSmartMeteringInfra('100% Advance against PO/PI');
+      setSmartMeteringInfra('125000');
+      setSmartMeteringInfraPaymentTerm('100% Advance against PO/PI');
     }
   }, [open, initialData]);
 
@@ -172,7 +174,8 @@ export default function CommercialProposalModal({
         trading_margin: tradingMargin,
         platform_fee: platformFee,
         value_share: valueShare,
-        smart_metering_infra: smartMeteringInfra
+        smart_metering_infra: Number(smartMeteringInfra) || 125000,
+        smart_metering_infra_payment_term: smartMeteringInfraPaymentTerm
       };
       await onSubmit(payload);
       onClose();
@@ -427,24 +430,32 @@ export default function CommercialProposalModal({
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>Lot</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>One Time</TableCell>
-                <TableCell>
-                  <TextField 
-                    size="small" 
-                    select 
-                    fullWidth 
-                    value={smartMeteringInfra} 
-                    onChange={(e) => setSmartMeteringInfra(e.target.value)}
-                  >
-                    <MenuItem value="75% Advance against PO/PI">75% Advance against PO/PI</MenuItem>
-                    <MenuItem value="50% Advance against PO/PI">50% Advance against PO/PI</MenuItem>
-                    <MenuItem value="100% Advance against PO/PI">100% Advance against PO/PI</MenuItem>
-                    <MenuItem value="FOC for minimum 3 years contract period">FOC for minimum 3 years contract period</MenuItem>
-                  </TextField>
-                </TableCell>
+                <TableCell><TextField size="small" type="number" fullWidth InputProps={{ startAdornment: '₹' }} value={smartMeteringInfra} onChange={(e) => setSmartMeteringInfra(e.target.value)} /></TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </TableContainer>
+
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" fontWeight={700} color="#1E293B" sx={{ mb: 2 }}>Terms & Conditions</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Prolt Energy Smart Metering Infra Payment Term</Typography>
+              <TextField 
+                size="small" 
+                select 
+                fullWidth 
+                value={smartMeteringInfraPaymentTerm} 
+                onChange={(e) => setSmartMeteringInfraPaymentTerm(e.target.value)}
+              >
+                <MenuItem value="75% Advance against PO/PI">75% Advance against PO/PI</MenuItem>
+                <MenuItem value="50% Advance against PO/PI">50% Advance against PO/PI</MenuItem>
+                <MenuItem value="100% Advance against PO/PI">100% Advance against PO/PI</MenuItem>
+                <MenuItem value="FOC for minimum 3 years contract period">FOC for minimum 3 years contract period</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between', bgcolor: '#FFFFFF' }}>
