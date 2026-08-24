@@ -296,7 +296,9 @@ export class SavingsCalculatorExportService {
     }
     if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
-    const totalBaselineWithMisc = (result.totalBaselineCost || 0) + (result.fppaCharge || 0) + (result.demandCharge || 0) + (result.electricityDuty || 0) + arrear + lpsc;
+    const correctBaseEnergy = (result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0;
+    const correctFppa = (result as any).fppaCharge || (result as any).fppaSurcharge || 0;
+    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + (result.demandCharge || 0) + (result.electricityDuty || 0) + arrear + lpsc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
