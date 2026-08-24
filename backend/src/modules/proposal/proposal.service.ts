@@ -33,10 +33,10 @@ function formatRupee(val: any): string {
 export class ProposalService {
   public async generateProposal(clientData: any, type: 'technical' | 'commercial' | 'default' = 'default'): Promise<Buffer> {
     if (type === 'commercial') {
-      const templatePath = fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_33KV.docx')
-        ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_33KV.docx'
-        : (fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx') 
-            ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx'
+      const templatePath = fs.existsSync(path.join(__dirname, '../../../assets/templates/COMMERCIAL PROPOSAL_33KV.docx'))
+        ? path.join(__dirname, '../../../assets/templates/COMMERCIAL PROPOSAL_33KV.docx')
+        : (fs.existsSync(path.join(__dirname, '../../../assets/templates/commercial_proposal_template.docx')) 
+            ? path.join(__dirname, '../../../assets/templates/commercial_proposal_template.docx')
             : path.join(__dirname, '../../../assets/templates/commercial_proposal_template.docx'));
 
       if (!fs.existsSync(templatePath)) {
