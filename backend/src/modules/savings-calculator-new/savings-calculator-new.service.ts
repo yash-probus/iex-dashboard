@@ -585,9 +585,9 @@ export class SavingsCalculatorNewService {
         const rawRtm = rec.rtmMcp !== undefined ? rec.rtmMcp : rec.rtmmcp;
         const rawGdam = rec.gdamMcp !== undefined ? rec.gdamMcp : rec.gdammcp;
 
-        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) * lossMultiplier + totalOaSurcharges) : 0;
-        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * lossMultiplier + totalOaSurcharges) : 0;
-        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * lossMultiplier + totalOaSurcharges) : 0;
+        const damLandingPrice = rawDam ? (Number(rawDam) / 1000) : 0;
+        const rtmLandingPrice = rawRtm ? (Number(rawRtm) / 1000) : 0;
+        const gdamLandingPrice = rawGdam ? (Number(rawGdam) / 1000) : 0;
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -610,10 +610,8 @@ export class SavingsCalculatorNewService {
 
           if (availableMarkets.length > 0) {
             availableMarkets.sort((a, b) => a.price - b.price);
-            if (availableMarkets[0].price < discomLandingPrice) {
-              comparedLowestPrice = availableMarkets[0].price;
-              selectedSource = availableMarkets[0].source;
-            }
+            comparedLowestPrice = availableMarkets[0].price;
+            selectedSource = availableMarkets[0].source;
           }
         }
 
@@ -869,11 +867,13 @@ export class SavingsCalculatorNewService {
     // Full baseline DISCOM cost including FPPA surcharge, Demand Charge, and Electricity Duty
     const fullBaselineDiscomCost = totalBaselineCost + fppaSurchargeVal + calculatedDemandCharge + electricityDutyVal;
 
+    const oldOaSurcharges = aggregatedTotals.cssCharge + aggregatedTotals.rpoCharge + aggregatedTotals.pocCharge + aggregatedTotals.stuCharge + aggregatedTotals.dcCharge + aggregatedTotals.iexFee;
+    
     // Full Open Access + Remaining DISCOM cost including FPPA, ED, Demand Charge, fees and overheads
-    const baseOtherCosts = totalLandedExchangeCost + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
+    const baseOtherCosts = totalLandedExchangeCost + oldOaSurcharges + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
 
     // netSavings in the old calc is the savings BEFORE prolt margin and some platform fees, but AFTER trader margin
-    const netSavings = fullBaselineDiscomCost - (totalLandedExchangeCost + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + meteringChargesVal + dailyFixedOverhead + bidApplicationFees);
+    const netSavings = fullBaselineDiscomCost - (totalLandedExchangeCost + oldOaSurcharges + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + meteringChargesVal + dailyFixedOverhead + bidApplicationFees);
     const grossSavings = Math.max(0, netSavings);
 
     const proltMarginInput = Number((entry as any).proltMargin || 0);
