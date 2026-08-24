@@ -984,12 +984,14 @@ export class SavingsCalculatorNewService {
     aggregatedTotals.consultancyFee = consultancyFeeVal;
     aggregatedTotals.probusPlatformFee = probusPlatformFeeVal;
     (aggregatedTotals as any).meteringCharges = meteringChargesVal;
+    const nocFee = 7000;
+    const regFee = 8333;
     (aggregatedTotals as any).grossSavings = grossSavings;
+    (aggregatedTotals as any).nocFee = nocFee;
+    (aggregatedTotals as any).regFee = regFee;
 
     totalOptimizedCost = baseOtherCosts + proltMarginCost;
     
-    const nocFee = 7000;
-    const regFee = 8333;
     const totalSavings = Math.max(0, netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFeeVal - totalProltMarginCost);
 
     const breakdown = todSummaries.map(t => ({
