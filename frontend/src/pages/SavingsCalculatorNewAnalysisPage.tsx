@@ -380,7 +380,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#059669', borderColor: 'divider' }
                 }}
               >
-                Calculation Sheet (Before PROLT)
+                Calculation Sheet (Original TOD)
               </Button>
               <Button
                 variant="outlined"
@@ -405,7 +405,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#0369A1', borderColor: 'divider' }
                 }}
               >
-                Calculation Sheet (After PROLT)
+                Calculation Sheet (SHIFTED TOD)
               </Button>
               <Button
                 variant="outlined"
