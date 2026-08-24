@@ -955,6 +955,7 @@ export class SavingsCalculatorNewService {
 
     const months = Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort();
     let totalSavings = 0;
+    let totalDiscomCost = 0;
     const monthsData = [];
 
     for (const month of months) {
@@ -962,6 +963,7 @@ export class SavingsCalculatorNewService {
         const result = await this.calculateMarketDecision(id, month);
         const netSavings = result.totalSavings;
         totalSavings += netSavings;
+        totalDiscomCost += result.totalBaselineCost || 0;
 
         const grossSav = (result as any).grossSavings ?? (result.oaDetailed?.totals as any)?.grossSavings ?? Math.max(0, result.totalBaselineCost - result.totalLandedExchangeCost - result.totalDiscomAfterProlt);
 
@@ -989,7 +991,10 @@ export class SavingsCalculatorNewService {
       clientName: entry.clientName,
       industryName: entry.industryName,
       months: monthsData,
-      totalSavings
+      totalSavings,
+      aggregatedCosts: {
+        totalDiscomCost
+      }
     };
   }
 
