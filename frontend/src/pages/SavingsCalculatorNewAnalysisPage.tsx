@@ -155,7 +155,10 @@ export default function SavingsCalculatorNewAnalysisPage() {
         clientName: entryData.clientName,
         sanctionedLoadKw: entryData.sanctionedLoadKw,
         totalSavings: resAll.totalSavings,
-        months: monthlyOverview
+        months: monthlyOverview,
+        aggregatedCosts: {
+          totalDiscomCost: resAll.fullBaselineDiscomCost || resAll.totalBaselineCost || 0
+        }
       });
     } catch (err: any) {
       console.error('Failed to load analysis:', err);
