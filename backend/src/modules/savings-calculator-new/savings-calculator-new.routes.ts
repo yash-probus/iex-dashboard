@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { SavingsCalculatorNewController } from './savings-calculator-new.controller';
+import { authMiddleware } from '../../middleware/auth.middleware';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 // CRUD Endpoints
 router.get('/entries', SavingsCalculatorNewController.getAll);
