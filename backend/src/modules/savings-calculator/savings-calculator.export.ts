@@ -494,8 +494,7 @@ export class SavingsCalculatorExportService {
     const consultancyFeeVal = (result as any).aggregatedTotals?.consultancyFee || (entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 0);
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
     const probusPlatformFee = (result as any).aggregatedTotals?.probusPlatformFee || Math.round(result.totalMarketEnergyKwh * platformFeeRate);
-    const proltMarginVal = (result as any).aggregatedTotals?.proltMarginCost || (result as any).proltMarginCost || 0;
-
+    const proltMarginVal = (result as any).oaDetailed?.totals?.proltMarginCost || (result as any).aggregatedTotals?.proltMarginCost || (result as any).proltMarginCost || 0;
     const nocRow = sheet.addRow(['Monthly NOC Fee', nocFee]);
     rowMapping['nocFeeRow'] = nocRow.number;
 
