@@ -228,6 +228,30 @@ export class SavingsCalculatorNewController {
     }
   }
 
+  static async getDemandShiftInsights(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { targetMonth, version } = req.query;
+      
+      const result = await SavingsCalculatorNewService.calculateDemandShiftInsights(
+        id as string, 
+        targetMonth as string | undefined, 
+        version ? Number(version) : undefined
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      console.error('[SavingsCalculatorNewController] Error in getDemandShiftInsights:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to calculate demand shift insights'
+      });
+    }
+  }
+
   static async exportExcel(req: Request, res: Response) {
     try {
       const { id } = req.params;
