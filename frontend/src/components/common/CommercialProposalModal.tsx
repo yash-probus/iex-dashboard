@@ -187,7 +187,7 @@ export default function CommercialProposalModal({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth disableEnforceFocus>
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth disableEnforceFocus>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <DescriptionIcon sx={{ color: '#D97706' }} />
