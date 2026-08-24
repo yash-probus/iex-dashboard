@@ -847,15 +847,73 @@ export default function SavingsCalculatorNewPage() {
     if (!todConsumptions[newMonthInput]) {
       const [y, m] = newMonthInput.split('-');
       const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0).getDate();
+      const targetMonthNum = parseInt(m, 10);
+
+      let parsedCategory = consumerCategory;
+      let parsedSubCategory = '';
+      if (consumerCategory === "HV-1 A") { parsedCategory = "HV-1"; parsedSubCategory = "Commercial, Private Inst"; }
+      else if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
+      else if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
+      else if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
+      else if (consumerCategory.includes(' | ')) {
+        const parts = consumerCategory.split(' | ');
+        parsedCategory = parts[0];
+        parsedSubCategory = parts[1];
+      }
+
+      let parsedVoltageLevel = voltageLevel;
+      if (parsedVoltageLevel && parsedVoltageLevel.includes(' - ')) {
+        parsedVoltageLevel = parsedVoltageLevel.split(' - ')[0];
+      }
+
+      const matchingRows = apiTariffs.filter((row: any) => {
+        const matchState = !stateCode ||
+          row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
+          (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
+        const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
+        const matchVoltage = !voltageLevel || row.supplyVoltageCategory === parsedVoltageLevel;
+        const matchMonth = (row.month % 100) === targetMonthNum;
+        return matchState && matchCategory && matchVoltage && matchMonth;
+      });
+
+      const slotMap = new Map<string, any>();
+      matchingRows.forEach((row: any) => {
+         const start = row.todStartTime || '00:00';
+         const end = row.todEndTime || '23:59';
+         const price = row.energyRate ? Number(row.energyRate) : 0;
+         const key = `${start}-${end}`;
+         if (!slotMap.has(key)) {
+             slotMap.set(key, { start, end, price });
+         }
+      });
+
+      let generatedSlots: any[] = [];
+      if (slotMap.size > 0) {
+        let index = 1;
+        slotMap.forEach((val) => {
+           generatedSlots.push({
+             id: `tod-${index}`,
+             name: `Slot ${index}`,
+             startTime: val.start,
+             endTime: val.end,
+             consumptionKwh: 0,
+             effectivePrice: val.price
+           });
+           index++;
+        });
+      } else {
+         generatedSlots = [
+            { id: `tod-1`, name: 'Slot 1', startTime: '00:00', endTime: '23:59', consumptionKwh: 0, effectivePrice: 0 }
+         ];
+      }
+
       setTodConsumptions(prev => ({
         ...prev,
         [newMonthInput]: {
           startDate: `${newMonthInput}-01`,
           endDate: `${newMonthInput}-${String(lastDay).padStart(2, '0')}`,
           peakDemandKw: Number(sanctionedLoadKw) || 1000,
-          slots: [
-            { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
-          ]
+          slots: generatedSlots
         }
       }));
       setActiveMonth(newMonthInput);
