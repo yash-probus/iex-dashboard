@@ -190,7 +190,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
       'Optimized Cost (₹)': row.optimizedCost ? Math.round(row.optimizedCost) : 0
     }));
 
-    const clientNameStr = calcEntry?.clientName ? calcEntry.clientName.replace(/\s+/g, '_') : 'client';
+    const clientNameStr = calcEntry?.clientName ? calcEntry.clientName.replace(/[^a-zA-Z0-9_\-]/g, '_') : 'client';
     exportToExcel(exportData, `${clientNameStr}_market_buy_report_${selectedSimMonth}.xlsx`, 'Market Buy Report');
   };
 

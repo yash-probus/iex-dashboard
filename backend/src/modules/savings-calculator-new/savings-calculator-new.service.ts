@@ -662,7 +662,7 @@ export class SavingsCalculatorNewService {
         const totalActiveBlocks = slotBlocks.length || 1;
         const energyPerBlock = slotEnergyTotal / totalActiveBlocks;
         slotBlocks.forEach(sb => {
-          sb.expectedEnergy = Math.min(energyPerBlock, defaultMaxEnergyPerSlot);
+          sb.expectedEnergy = Math.min(defaultMaxEnergyPerSlot, slotEnergyTotal);
         });
       }
 
@@ -772,7 +772,12 @@ export class SavingsCalculatorNewService {
 
         slotBlocks.forEach(sb => {
           if (allocatedEnergy < slotEnergyTotal) {
-            const takeEnergy = Math.min(energyPerBlock, slotEnergyTotal - allocatedEnergy);
+            let takeEnergy = 0;
+            if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
+              takeEnergy = Math.min(defaultMaxEnergyPerSlot, slotEnergyTotal - allocatedEnergy);
+            } else {
+              takeEnergy = Math.min(energyPerBlock, slotEnergyTotal - allocatedEnergy);
+            }
             sb.maxEnergyPerSlot = takeEnergy;
             sb.baselineCost = takeEnergy * slotDiscomPrice;
 
