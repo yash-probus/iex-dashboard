@@ -182,6 +182,7 @@ export default function StateChargesPage() {
           alert('Upload successful!');
         } catch (err: any) {
           alert('Upload failed: ' + err.message);
+          return false;
         }
       }}
       onExport={handleExport}

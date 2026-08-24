@@ -155,6 +155,7 @@ export default function RegionStatePage() {
           alert('Upload successful!');
         } catch (err: any) {
           alert('Upload failed: ' + err.message);
+          return false;
         }
       }}
       onExport={handleExport}

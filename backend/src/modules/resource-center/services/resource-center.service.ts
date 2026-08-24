@@ -61,10 +61,71 @@ const sanitizePayload = (payload: any) => {
   return payload;
 };
 
+// Check for date overlaps in state-charges and ists-charges
+const checkDateOverlaps = async (resourceType: ResourceType, delegate: any, payloads: any[]) => {
+  if (resourceType !== 'state-charges' && resourceType !== 'ists-charges') return;
+
+  const isStateCharges = resourceType === 'state-charges';
+  const startField = isStateCharges ? 'fromDate' : 'startDate';
+  const endField = isStateCharges ? 'toDate' : 'endDate';
+
+  const getGroupKey = (p: any) => {
+    if (isStateCharges) {
+      return `${p.state || ''}_${p.discom || ''}_${p.category || ''}_${p.subCategory || ''}_${p.supplyVoltageCategory || ''}_${p.voltageLevel || ''}`;
+    }
+    return 'global';
+  };
+
+  // 1. Check overlaps within payloads
+  for (let i = 0; i < payloads.length; i++) {
+    const p1 = payloads[i];
+    const s1 = p1[startField] ? new Date(p1[startField]).getTime() : 0;
+    const e1 = p1[endField] ? new Date(p1[endField]).getTime() : 0;
+    if (!s1 || !e1) continue;
+
+    for (let j = i + 1; j < payloads.length; j++) {
+      const p2 = payloads[j];
+      if (getGroupKey(p1) !== getGroupKey(p2)) continue;
+      
+      const s2 = p2[startField] ? new Date(p2[startField]).getTime() : 0;
+      const e2 = p2[endField] ? new Date(p2[endField]).getTime() : 0;
+      if (!s2 || !e2) continue;
+
+      if (s1 <= e2 && s2 <= e1) {
+        throw new AppError(`Overlap detected within upload data for dates`, 400);
+      }
+    }
+  }
+
+  // 2. Check overlaps against DB
+  const existingRecords = await delegate.findMany();
+  
+  for (const p1 of payloads) {
+    const s1 = p1[startField] ? new Date(p1[startField]).getTime() : 0;
+    const e1 = p1[endField] ? new Date(p1[endField]).getTime() : 0;
+    if (!s1 || !e1) continue;
+
+    for (const p2 of existingRecords) {
+      if (p1.id && p1.id === p2.id) continue;
+      if (getGroupKey(p1) !== getGroupKey(p2)) continue;
+
+      const s2 = p2[startField] ? new Date(p2[startField]).getTime() : 0;
+      const e2 = p2[endField] ? new Date(p2[endField]).getTime() : 0;
+      if (!s2 || !e2) continue;
+
+      if (s1 <= e2 && s2 <= e1) {
+        throw new AppError(`Overlap detected with existing record for dates`, 400);
+      }
+    }
+  }
+};
+
 export const createResourceRecord = async (resourceType: ResourceType, payload: any) => {
   payload = sanitizePayload(payload);
   const tableInfo = RESOURCE_REGISTRY[resourceType];
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
+
+  await checkDateOverlaps(resourceType, delegate, [payload]);
 
   try {
     const created = await (delegate as any).create({
@@ -83,9 +144,11 @@ export const createBulkResourceRecords = async (resourceType: ResourceType, payl
   const tableInfo = RESOURCE_REGISTRY[resourceType];
   const delegate = prisma[tableInfo.modelName as keyof typeof prisma];
 
+  const sanitizedPayloads = payloadArray.map(sanitizePayload);
+  await checkDateOverlaps(resourceType, delegate, sanitizedPayloads);
+
   try {
-    const operations = payloadArray.map((rawPayload) => {
-      const payload = sanitizePayload(rawPayload);
+    const operations = sanitizedPayloads.map((payload) => {
       if (payload.id) {
         const { id, ...dataToUpdate } = payload;
         return (delegate as any).upsert({
@@ -121,6 +184,9 @@ export const updateResourceRecord = async (resourceType: ResourceType, id: numbe
   if (!existing) {
     throw new AppError('Record not found', 404);
   }
+
+  const mergedPayload = { ...existing, ...payload };
+  await checkDateOverlaps(resourceType, delegate, [mergedPayload]);
 
   // 2. Update
   try {

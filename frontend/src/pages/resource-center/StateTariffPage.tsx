@@ -189,6 +189,7 @@ export default function StateTariffPage() {
           alert('Upload successful!');
         } catch (err: any) {
           alert('Upload failed: ' + err.message);
+          return false;
         }
       }}
       onExport={handleExport}

@@ -241,6 +241,7 @@ export default function ResourcePageLayout({
       {config && (
         <ResourceFormModal
           open={isEntryDialogOpen}
+          isSubmitting={isSubmitting}
           title={config.title}
           fields={config.fields}
           onClose={() => setIsEntryDialogOpen(false)}
