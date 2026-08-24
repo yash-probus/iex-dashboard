@@ -19,7 +19,8 @@ export class SavingsCalculatorNewService {
 
   static async getById(id: string) {
     return (prisma as any).savingsCalculatorNewEntry.findUnique({
-      where: { id }
+      where: { id },
+      include: { history: true }
     });
   }
 

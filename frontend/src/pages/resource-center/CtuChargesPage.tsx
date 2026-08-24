@@ -101,7 +101,7 @@ export default function CtuChargesPage() {
   const baseColumns: ColumnDefinition[] = [
     { field: 'id', headerName: 'ID', align: 'center', width: 100 },
     { field: 'state', headerName: 'State', align: 'center', width: 200 },
-    { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
+    { field: 'month', headerName: 'Billing Month', align: 'center', width: 150, valueFormatter: formatMonth },
     { field: 'ctu_charges_rs_per_kwh', headerName: 'CTU Charges (Rs/kWh)', align: 'center', width: 250, valueFormatter: formatNum },
   ];
 
@@ -134,7 +134,7 @@ export default function CtuChargesPage() {
     const exportData = filteredData.map((row: any) => ({
       'ID': row.id,
       'State': row.state,
-      'Month': formatMonth(row.month),
+      'Billing Month': formatMonth(row.month),
       'CTU Charges (Rs/kWh)': row.ctu_charges_rs_per_kwh
     }));
     exportToCSV(exportData, config.exportFilename);

@@ -8,7 +8,7 @@ import { exportToCSV } from '../../utils/export';
 import { useResourceData } from '../../hooks/useResourceData';
 import { RESOURCE_CENTER_PAGES } from './constants/resourceCenter.constants';
 import { FppaCharges } from './types/resourceCenter.types';
-import { formatYYYYMM as formatMonth } from '../../utils/common';
+import { formatYYYYMM as formatMonth, getBillingMonthStr } from '../../utils/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUpdateResourceRecord, useDeleteResourceRecord } from '../../hooks/useResourceMutations';
 import ResourceFormModal from '../../components/admin/ResourceFormModal';
@@ -75,7 +75,7 @@ export default function FppaChargesPage() {
     if (!searchQuery) return true;
     const lowerQuery = searchQuery.toLowerCase();
     const monthStr = formatMonth(row.month).toLowerCase();
-    const billingMonthStr = row.billingMonth ? formatMonth(row.billingMonth).toLowerCase() : '';
+    const billingMonthStr = row.billingMonth ? formatMonth(row.billingMonth).toLowerCase() : getBillingMonthStr(row.month).toLowerCase();
     return (
       String(row.state).toLowerCase().includes(lowerQuery) ||
       (row.discom && String(row.discom).toLowerCase().includes(lowerQuery)) ||
@@ -91,8 +91,8 @@ export default function FppaChargesPage() {
     { field: 'id', headerName: 'ID', align: 'center', width: 100 },
     { field: 'state', headerName: 'State', align: 'center', width: 250 },
     { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
-    { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
-    { field: 'billingMonth', headerName: 'Billing Month', align: 'center', width: 150, valueFormatter: formatMonth },
+    { field: 'month', headerName: 'Calendar Month', align: 'center', width: 150, valueFormatter: formatMonth },
+    { field: 'billingMonth', headerName: 'Billing Month', align: 'center', width: 150, renderCell: (row: any) => row.billingMonth ? formatMonth(row.billingMonth) : getBillingMonthStr(row.month) },
     { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
   ];
 
@@ -126,8 +126,8 @@ export default function FppaChargesPage() {
       'ID': row.id,
       'State': row.state,
       'Discom': row.discom || '-',
-      'Month': formatMonth(row.month),
-      'Billing Month': row.billingMonth ? formatMonth(row.billingMonth) : '-',
+      'Calendar Month': formatMonth(row.month),
+      'Billing Month': row.billingMonth ? formatMonth(row.billingMonth) : getBillingMonthStr(row.month),
       'FPPA Charge %': row.fppaChargePercent
     }));
     exportToCSV(exportData, config.exportFilename);

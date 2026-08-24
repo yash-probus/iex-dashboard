@@ -66,6 +66,8 @@ export default function SavingsCalculatorNewAnalysisPage() {
   const [calculating, setCalculating] = useState(false);
   const [clientOverview, setClientOverview] = useState<any | null>(null);
   const [selectedSimMonth, setSelectedSimMonth] = useState<string>('all');
+  const [calcVersions, setCalcVersions] = useState<number[]>([]);
+  const [selectedCalcVersion, setSelectedCalcVersion] = useState<number | ''>('');
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
   const [dynamicGraphDialogOpen, setDynamicGraphDialogOpen] = useState(false);
   const [commercialModalOpen, setCommercialModalOpen] = useState(false);
@@ -93,11 +95,24 @@ export default function SavingsCalculatorNewAnalysisPage() {
     if (!id) return;
     setCalculating(true);
     try {
-      const entryData = await fetchSavingsNewEntryById(id);
+      const baseEntryData = await fetchSavingsNewEntryById(id);
+      
+      let versions: number[] = calcVersions;
+      if (calcVersions.length === 0) {
+        const history = (baseEntryData as any).history || [];
+        versions = history.map((h: any) => h.version).sort((a: any, b: any) => b - a);
+        setCalcVersions(versions);
+        if (versions.length > 0 && selectedCalcVersion === '') {
+          setSelectedCalcVersion(versions[0]);
+          return; // Let the useEffect re-trigger with the new version
+        }
+      }
+
+      const entryData = await fetchSavingsNewEntryById(id, selectedCalcVersion || undefined);
       setCalcEntry(entryData);
 
       const resultsMap: Record<string, MarketDecisionResult> = {};
-      const resAll = await calculateMarketDecisionNew(id, 'all');
+      const resAll = await calculateMarketDecisionNew(id, 'all', selectedCalcVersion || undefined);
       resultsMap['all'] = resAll;
 
       const months = Object.keys(entryData.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-'));
@@ -105,7 +120,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
 
       for (const m of months) {
         try {
-          const resM = await calculateMarketDecisionNew(id, m);
+          const resM = await calculateMarketDecisionNew(id, m, selectedCalcVersion || undefined);
           resultsMap[m] = resM;
           monthlyOverview.push({
             month: m,
@@ -138,7 +153,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
 
   useEffect(() => {
     loadData();
-  }, [id]);
+  }, [id, selectedCalcVersion]);
 
   const handleExportExcel = () => {
     if (!marketDecisionResult || !marketDecisionResult.slotsData) return;
@@ -234,6 +249,23 @@ export default function SavingsCalculatorNewAnalysisPage() {
         <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider', minHeight: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
           {/* Action Bar */}
           <Box className="no-print" sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
+            {calcVersions.length > 0 && (
+              <TextField
+                select
+                label="Version"
+                value={selectedCalcVersion}
+                onChange={(e) => setSelectedCalcVersion(Number(e.target.value))}
+                size="small"
+                sx={{ width: 120, bgcolor: 'background.paper' }}
+              >
+                {calcVersions.map((v) => (
+                  <MenuItem key={v} value={v}>
+                    v{v} {v === Math.max(...calcVersions) && '(Recent)'}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+
             <Button
               variant="contained"
               startIcon={<PlayIcon />}
@@ -331,7 +363,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 onClick={async () => {
                   if (!id) return;
                   try {
-                    await exportSavingsExcelNew(id, selectedSimMonth || undefined, undefined, calcEntry?.clientName);
+                    await exportSavingsExcelNew(id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry?.clientName);
                   } catch (err: any) {
                     setSnackbar({ open: true, message: err.message || 'Excel export failed', severity: 'error' });
                   }
@@ -356,7 +388,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 onClick={async () => {
                   if (!id) return;
                   try {
-                    await exportDemandShiftExcelNew(id, selectedSimMonth || undefined, undefined, calcEntry?.clientName);
+                    await exportDemandShiftExcelNew(id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry?.clientName);
                   } catch (err: any) {
                     setSnackbar({ open: true, message: err.message || 'Excel export failed', severity: 'error' });
                   }

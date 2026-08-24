@@ -92,6 +92,25 @@ export const formatYYYYMM = (m: any) => {
   return str;
 };
 
+export const getBillingMonthStr = (m: any) => {
+  if (!m) return '-';
+  const str = String(m);
+  if (str.length === 6) {
+    const year = parseInt(str.substring(0, 4), 10);
+    const monthIndex = parseInt(str.substring(4, 6), 10) - 1;
+    const date = new Date(year, monthIndex - 1);
+    return date.toLocaleString('default', { month: 'short' }) + ' ' + date.getFullYear();
+  }
+  
+  const num = Number(m);
+  if (num >= 1 && num <= 12) {
+      const date = new Date(2026, num - 2);
+      return date.toLocaleString('default', { month: 'short' }) + ' ' + date.getFullYear();
+  }
+  
+  return str;
+};
+
 export const formatToTwoDecimals = (
   value: string | number,
   decimal: number = 2,
