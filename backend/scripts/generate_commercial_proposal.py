@@ -92,17 +92,35 @@ def generate_proposal(data_json):
             set_cell_value(r1[2], str(data.get('discom_name') or data.get('discom') or 'DISCOM'), bold=True)
             set_cell_value(r1[3], str(data.get('feeder_type') or 'Dedicated Feeder'), bold=True)
 
-    # 3. Update Table 2 (Fixed One-Time Cost)
-    if len(doc.tables) > 2:
-        t2 = doc.tables[2]
+    # 3. Update Table 3 (Pricing/BOQ Table)
+    if len(doc.tables) > 3:
+        t3 = doc.tables[3]
+        
+        # Calculate totals
         c_supply = float(data.get('abt_supply_cost', 450000))
         c_service = float(data.get('abt_service_cost', 350000))
         c_liaison = float(data.get('utility_liaisoning_cost', 300000))
-        c_bg = float(data.get('bank_guarantee_cost', 150000))
-        c_total = c_supply + c_service + c_liaison
+        c_total_abt = c_supply + c_service + c_liaison
         
-        if len(t2.rows) > 2: 
-            supply_cell = t2.rows[2].cells[1]
+        c_bg = float(data.get('bank_guarantee_cost', 150000))
+        
+        c_iex = float(data.get('iex_annual_fee', 100000))
+        c_noc = float(data.get('sldc_monthly_noc', 7000))
+        c_st11 = float(data.get('st11_settlement', 20000))
+        c_total_recurring = c_iex + c_noc + c_st11
+        
+        tm = str(data.get('trading_margin', '2p/kWh'))
+        pf = str(data.get('platform_fee', '2p/kWh'))
+        vs = str(data.get('value_share', '15%'))
+        if not vs.endswith('%'): vs += '%'
+        smart = float(data.get('smart_metering_infra', 125000))
+
+        # Row 1: ABT Metering Total
+        if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(c_total_abt), bold=True)
+        
+        # Row 2: Supply
+        if len(t3.rows) > 2: 
+            supply_cell = t3.rows[2].cells[1]
             indoor_count = data.get('indoor_ctpt_count')
             if indoor_count:
                 for p in supply_cell.paragraphs:
@@ -111,44 +129,53 @@ def generate_proposal(data_json):
                 for p in supply_cell.paragraphs:
                     if 'Outdoor CT/PT' in p.text:
                         p.text = ''
-            set_cell_value(t2.rows[2].cells[-1], format_rupee(c_supply))
+            set_cell_value(t3.rows[2].cells[-1], format_rupee(c_supply))
+            
+        # Row 3: Service
+        if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[-1], format_rupee(c_service))
         
-        if len(t2.rows) > 3: set_cell_value(t2.rows[3].cells[-1], format_rupee(c_service))
-        if len(t2.rows) > 4: set_cell_value(t2.rows[4].cells[-1], format_rupee(c_liaison))
-        if len(t2.rows) > 5: set_cell_value(t2.rows[5].cells[-1], format_rupee(c_liaison))
-        if len(t2.rows) > 6: set_cell_value(t2.rows[6].cells[-1], format_rupee(c_total), bold=True)
-        if len(t2.rows) > 8: set_cell_value(t2.rows[8].cells[-1], format_rupee(c_bg))
+        # Row 4: Liaisoning
+        if len(t3.rows) > 4: set_cell_value(t3.rows[4].cells[-1], format_rupee(c_liaison))
+        
+        # Row 5: SLDC Security Deposit Total
+        if len(t3.rows) > 5: set_cell_value(t3.rows[5].cells[-1], format_rupee(c_bg), bold=True)
+        
+        # Row 6: UPSLDC Bank Guarantee
+        if len(t3.rows) > 6: set_cell_value(t3.rows[6].cells[-1], format_rupee(c_bg))
+        
+        # Row 7: Fixed Recurring Charges Total
+        if len(t3.rows) > 7: set_cell_value(t3.rows[7].cells[-1], format_rupee(c_total_recurring), bold=True)
+        
+        # Row 8: IEX Annual
+        if len(t3.rows) > 8: set_cell_value(t3.rows[8].cells[-1], format_rupee(c_iex))
+        
+        # Row 9: NOC
+        if len(t3.rows) > 9: set_cell_value(t3.rows[9].cells[-1], format_rupee(c_noc))
+        
+        # Row 10: ST-11
+        if len(t3.rows) > 10: set_cell_value(t3.rows[10].cells[-1], format_rupee(c_st11))
+        
+        # Row 12: Trading Margin
+        if len(t3.rows) > 12: set_cell_value(t3.rows[12].cells[-1], tm)
+        
+        # Row 13: Platform Fee
+        if len(t3.rows) > 13: set_cell_value(t3.rows[13].cells[-1], pf)
+        
+        # Row 14: Value Share
+        if len(t3.rows) > 14: set_cell_value(t3.rows[14].cells[-1], vs)
+        
+        # Row 15: Smart Metering
+        if len(t3.rows) > 15: set_cell_value(t3.rows[15].cells[-1], format_rupee(smart))
 
-    # 4. Update Table 3 (Fixed Recurring Charges)
-    if len(doc.tables) > 3:
-        t3 = doc.tables[3]
-        if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(data.get('iex_annual_fee', 100000)))
-        if len(t3.rows) > 2: set_cell_value(t3.rows[2].cells[-1], format_rupee(data.get('sldc_monthly_noc', 7000)))
-        if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[-1], format_rupee(data.get('st11_settlement', 20000)))
-
-    # 5. Update Table 4 (Probus Fees)
+    # 4. Update Table 4 (Terms & Conditions)
     if len(doc.tables) > 4:
         t4 = doc.tables[4]
-        tm = str(data.get('trading_margin', '2p/kWh'))
-        pf = str(data.get('platform_fee', '2p/kWh'))
-        vs = str(data.get('value_share', '15%'))
-        if not vs.endswith('%'): vs += '%'
-        smart = float(data.get('smart_metering_infra', 125000))
-        
-        if len(t4.rows) > 1: set_cell_value(t4.rows[1].cells[-1], tm)
-        if len(t4.rows) > 2: set_cell_value(t4.rows[2].cells[-1], pf)
-        if len(t4.rows) > 3: set_cell_value(t4.rows[3].cells[-1], vs)
-        if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[-1], format_rupee(smart))
-
-    # 6. Update Table 5 (Terms & Conditions)
-    if len(doc.tables) > 5:
-        t5 = doc.tables[5]
         smart_payment_term = str(data.get('smart_metering_infra_payment_term', '100% Advance against PO/PI'))
         
-        # Searching for 'Prolt Energy Smart Metering Infra' in the first column to replace the second column
-        for row in t5.rows:
-            if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[0].text:
-                set_cell_value(row.cells[1], smart_payment_term)
+        # Searching for 'Prolt Energy Smart Metering Infra' in the second column to replace the third column
+        for row in t4.rows:
+            if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[1].text:
+                set_cell_value(row.cells[2], smart_payment_term)
                 break
 
     if os.path.dirname(output_path):
