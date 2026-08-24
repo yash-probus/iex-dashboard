@@ -51,7 +51,7 @@ export class SavingsCalculatorNewController {
         stateCode, discom, consumerCategory, voltageLevel,
         proltMargin, traderMargin, meteringCharges, consultancyFee, probusPlatformFee,
         todConsumptions, applyElectricityDuty, billedDemandKv, powerFactor,
-        arrearAmount, currentLpsc, billDate, createdBy, updatedBy
+        arrearAmount, currentLpsc, billDate
       } = req.body;
 
       if (!clientName || !industryName || !address) {
@@ -76,7 +76,9 @@ export class SavingsCalculatorNewController {
         powerFactor: powerFactor !== undefined && powerFactor !== null ? Number(powerFactor) : null,
         arrearAmount: arrearAmount !== undefined && arrearAmount !== null ? Number(arrearAmount) : null,
         currentLpsc: currentLpsc !== undefined && currentLpsc !== null ? Number(currentLpsc) : null,
-        billDate, createdBy, updatedBy
+        billDate, 
+        createdBy: req.user?.username, 
+        updatedBy: req.user?.username
       });
 
       return res.status(201).json({
@@ -100,7 +102,7 @@ export class SavingsCalculatorNewController {
         stateCode, discom, consumerCategory, voltageLevel,
         proltMargin, traderMargin, meteringCharges, consultancyFee, probusPlatformFee,
         todConsumptions, applyElectricityDuty, billedDemandKv, powerFactor,
-        arrearAmount, currentLpsc, billDate, updatedBy
+        arrearAmount, currentLpsc, billDate
       } = req.body;
 
       const entry = await SavingsCalculatorNewService.update(id, {
@@ -118,7 +120,8 @@ export class SavingsCalculatorNewController {
         powerFactor: powerFactor !== undefined && powerFactor !== null ? Number(powerFactor) : null,
         arrearAmount: arrearAmount !== undefined && arrearAmount !== null ? Number(arrearAmount) : null,
         currentLpsc: currentLpsc !== undefined && currentLpsc !== null ? Number(currentLpsc) : null,
-        billDate, updatedBy
+        billDate, 
+        updatedBy: req.user?.username
       });
 
       return res.status(200).json({

@@ -83,7 +83,7 @@ const VALID_FIELDS: Record<ResourceType, string[]> = {
   'ctu-charges': ['state', 'month', 'ctu_charges_rs_per_kwh'],
   'state-charges': ['state', 'category', 'subCategory', 'supplyVoltageCategory', 'voltageLevel', 'fromDate', 'toDate', 'demandFixedChargeKvaPerMonthRs', 'crossSubsidy', 'distributionWheelingCharges', 'stuCharges', 'stuLossPercent', 'wheelingLossPercent', 'additionalCharge'],
   'state-tariff': ['stateCode', 'month', 'state', 'category', 'subCategory', 'voltageLevel', 'tod', 'todName', 'season', 'todStartHour', 'todEndHour', 'baseEnergyCharges', 'todRate', 'energyCharges'],
-  'fppa-charges': ['state', 'discom', 'month', 'fppaChargePercent']
+  'fppa-charges': ['state', 'discom', 'month', 'billingMonth', 'fppaChargePercent']
 };
 
 /**
@@ -145,7 +145,7 @@ export const validatePayload = (resourceType: ResourceType, payload: any): any =
   }
 
   // 3. Month Validation (1-12 or YYYYMM)
-  const monthFields = ['month'];
+  const monthFields = ['month', 'billingMonth'];
   for (const field of monthFields) {
     if (data[field] !== undefined && data[field] !== null) {
       const val = parseMonth(data[field]);

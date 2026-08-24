@@ -48,7 +48,7 @@ import {
   exportDemandShiftExcelNew
 } from '../api/savingsCalculatorNew.api';
 import html2canvas from 'html2canvas';
-import { exportToCSV } from '../utils/export';
+import { exportToExcel } from '../utils/export';
 import {
   exportSavingsExcel,
   exportProposalWord,
@@ -140,7 +140,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
     loadData();
   }, [id]);
 
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (!marketDecisionResult || !marketDecisionResult.slotsData) return;
     const exportData = marketDecisionResult.slotsData.map((row) => ({
       'Date': row.date,
@@ -159,7 +159,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
     }));
 
     const clientNameStr = calcEntry?.clientName ? calcEntry.clientName.replace(/\s+/g, '_') : 'client';
-    exportToCSV(exportData, `${clientNameStr}_custom_tod_simulation_${selectedSimMonth}.csv`);
+    exportToExcel(exportData, `${clientNameStr}_market_buy_report_${selectedSimMonth}.xlsx`, 'Market Buy Report');
   };
 
   const columns: ColumnDefinition[] = [
@@ -310,7 +310,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
               <Button
                 variant="outlined"
                 startIcon={<DownloadIcon />}
-                onClick={handleExportCSV}
+                onClick={handleExportExcel}
                 sx={{
                   textTransform: 'none',
                   borderRadius: 2.5,
@@ -323,7 +323,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#F8FAFC', borderColor: 'divider' }
                 }}
               >
-                Export Simulation CSV
+                MARKET BUY REPORT
               </Button>
               <Button
                 variant="outlined"
@@ -348,7 +348,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#059669', borderColor: 'divider' }
                 }}
               >
-                Export Excel (Before TOD Shift)
+                Calculation Sheet (Before PROLT)
               </Button>
               <Button
                 variant="outlined"
@@ -373,7 +373,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#0369A1', borderColor: 'divider' }
                 }}
               >
-                Export Excel (After TOD Shift)
+                Calculation Sheet (After PROLT)
               </Button>
               <Button
                 variant="outlined"
@@ -402,130 +402,15 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#1E293B', borderColor: 'divider' }
                 }}
               >
-                Export PDF Report
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>Technical Proposal</span>
+                  <Chip label="NEW" size="small" color="error" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 'bold' }} />
+                </Box>
               </Button>
 
-              <Button
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={async () => {
-                  if (!calcEntry || !marketDecisionResult) return;
-                  try {
-                    const totalSavings = marketDecisionResult.totalSavings || 0;
-                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).length || 1);
-                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
-                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
-                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
-                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
-                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
-                    const currentDate = new Date();
-                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
 
-                    let dashboard_screenshot = "";
-                    const dashboardEl = document.getElementById("proposal-export-target-new");
-                    if (dashboardEl) {
-                      try {
-                        const canvas = await html2canvas(dashboardEl, { scale: 2 });
-                        dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-                      } catch (e) {
-                        console.error("html2canvas error:", e);
-                      }
-                    }
 
-                    const payload = {
-                      ...calcEntry,
-                      client_name: calcEntry.clientName,
-                      industry_name: calcEntry.industryName,
-                      sanctioned_load_kw: calcEntry.sanctionedLoadKw,
-                      state_code: calcEntry.stateCode,
-                      dashboard_screenshot,
-                      totalSavings: annualizedSavings.toLocaleString('en-IN'),
-                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'),
-                      billMonth,
-                      billMonthYear,
-                      currentMonthYear,
-                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
-                    };
-                    await exportProposalWord(payload);
-                  } catch (err: any) {
-                    setSnackbar({ open: true, message: err.message || 'Proposal export failed', severity: 'error' });
-                  }
-                }}
-                sx={{
-                  textTransform: 'none',
-                  borderRadius: 2.5,
-                  fontWeight: 600,
-                  borderColor: 'divider',
-                  backgroundColor: '#7C3AED',
-                  color: 'white',
-                  px: 2.5,
-                  py: 1,
-                  '&:hover': { backgroundColor: '#6D28D9', borderColor: 'divider' }
-                }}
-              >
-                Draft Proposal
-              </Button>
 
-              <Button
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={async () => {
-                  if (!calcEntry || !marketDecisionResult) return;
-                  try {
-                    const totalSavings = marketDecisionResult.totalSavings || 0;
-                    const numMonths = Math.max(1, Object.keys(calcEntry.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).length || 1);
-                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
-                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
-                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
-                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
-                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
-                    const currentDate = new Date();
-                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
-
-                    let dashboard_screenshot = "";
-                    const dashboardEl = document.getElementById("proposal-export-target-new");
-                    if (dashboardEl) {
-                      try {
-                        const canvas = await html2canvas(dashboardEl, { scale: 2 });
-                        dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-                      } catch (e) {
-                        console.error("html2canvas error:", e);
-                      }
-                    }
-
-                    const payload = {
-                      ...calcEntry,
-                      client_name: calcEntry.clientName,
-                      industry_name: calcEntry.industryName,
-                      sanctioned_load_kw: calcEntry.sanctionedLoadKw,
-                      state_code: calcEntry.stateCode,
-                      dashboard_screenshot,
-                      totalSavings: annualizedSavings.toLocaleString('en-IN'),
-                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'),
-                      billMonth,
-                      billMonthYear,
-                      currentMonthYear,
-                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
-                    };
-                    await exportTechnicalProposalWord(payload);
-                  } catch (err: any) {
-                    setSnackbar({ open: true, message: err.message || 'Technical proposal export failed', severity: 'error' });
-                  }
-                }}
-                sx={{
-                  textTransform: 'none',
-                  borderRadius: 2.5,
-                  fontWeight: 600,
-                  borderColor: 'divider',
-                  backgroundColor: '#2563EB',
-                  color: 'white',
-                  px: 2.5,
-                  py: 1,
-                  '&:hover': { backgroundColor: '#1D4ED8', borderColor: 'divider' }
-                }}
-              >
-                Technical Proposal
-              </Button>
 
               <Button
                 variant="outlined"

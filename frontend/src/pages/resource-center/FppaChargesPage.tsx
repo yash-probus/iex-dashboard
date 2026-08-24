@@ -75,10 +75,12 @@ export default function FppaChargesPage() {
     if (!searchQuery) return true;
     const lowerQuery = searchQuery.toLowerCase();
     const monthStr = formatMonth(row.month).toLowerCase();
+    const billingMonthStr = row.billingMonth ? formatMonth(row.billingMonth).toLowerCase() : '';
     return (
       String(row.state).toLowerCase().includes(lowerQuery) ||
       (row.discom && String(row.discom).toLowerCase().includes(lowerQuery)) ||
       monthStr.includes(lowerQuery) ||
+      billingMonthStr.includes(lowerQuery) ||
       String(row.fppaChargePercent).toLowerCase().includes(lowerQuery)
     );
   });
@@ -90,6 +92,7 @@ export default function FppaChargesPage() {
     { field: 'state', headerName: 'State', align: 'center', width: 250 },
     { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
     { field: 'month', headerName: 'Month', align: 'center', width: 150, valueFormatter: formatMonth },
+    { field: 'billingMonth', headerName: 'Billing Month', align: 'center', width: 150, valueFormatter: formatMonth },
     { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
   ];
 
@@ -124,6 +127,7 @@ export default function FppaChargesPage() {
       'State': row.state,
       'Discom': row.discom || '-',
       'Month': formatMonth(row.month),
+      'Billing Month': row.billingMonth ? formatMonth(row.billingMonth) : '-',
       'FPPA Charge %': row.fppaChargePercent
     }));
     exportToCSV(exportData, config.exportFilename);

@@ -22,7 +22,9 @@ import {
   History as HistoryIcon,
   ArrowForward as ArrowForwardIcon,
   CheckCircle as CheckCircleIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  LightbulbOutlined as LightbulbIcon,
+  ArrowRightAlt as ArrowRightAltIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
@@ -33,11 +35,71 @@ import {
   createSavingsNewEntry,
   updateSavingsNewEntry,
   deleteSavingsNewEntry,
+  fetchSavingsNewEntryById,
+  fetchEntryHistoryNew,
   fetchResourceDefaults,
   SavingsCalculatorNewEntry,
   CustomTodSlot
 } from '../api/savingsCalculatorNew.api';
 import { getResourceData } from '../api/resourceCenter.api';
+
+const getChanges = (current: any, previous: any) => {
+  if (!previous) return [];
+  const changes: { label: string, old: any, new: any }[] = [];
+  const fields = [
+    { key: 'clientName', label: 'Client', isNumeric: false },
+    { key: 'industryName', label: 'Industry', isNumeric: false },
+    { key: 'address', label: 'Address', isNumeric: false },
+    { key: 'stateCode', label: 'State', isNumeric: false },
+    { key: 'discom', label: 'Discom', isNumeric: false },
+    { key: 'consumerCategory', label: 'Category', isNumeric: false },
+    { key: 'voltageLevel', label: 'Voltage', isNumeric: false },
+    { key: 'sanctionedLoadKw', label: 'Load (kW)', isNumeric: true },
+    { key: 'proltMargin', label: 'PROLT Margin', isNumeric: true },
+    { key: 'traderMargin', label: 'Trader Margin', isNumeric: true },
+    { key: 'meteringCharges', label: 'Metering Charges', isNumeric: true },
+    { key: 'consultancyFee', label: 'Consultancy Fee', isNumeric: true },
+    { key: 'probusPlatformFee', label: 'Platform Fee', isNumeric: true },
+    { key: 'applyElectricityDuty', label: 'Electricity Duty', isNumeric: false },
+    { key: 'billedDemandKv', label: 'Billed Demand (kV)', isNumeric: true },
+    { key: 'powerFactor', label: 'Power Factor', isNumeric: true },
+    { key: 'arrearAmount', label: 'Arrear Amount', isNumeric: true },
+    { key: 'currentLpsc', label: 'Current LPSC', isNumeric: true }
+  ];
+
+  fields.forEach(f => {
+    let valCurr = current[f.key];
+    let valPrev = previous[f.key];
+
+    if (f.isNumeric) {
+      const numCurr = valCurr !== undefined && valCurr !== null && valCurr !== '' ? Number(valCurr) : null;
+      const numPrev = valPrev !== undefined && valPrev !== null && valPrev !== '' ? Number(valPrev) : null;
+
+      const isBothNull = numCurr === null && numPrev === null;
+      const isOneNull = numCurr === null || numPrev === null;
+
+      if (!isBothNull && (isOneNull || numCurr !== numPrev)) {
+        changes.push({
+          label: f.label,
+          old: valPrev !== null && valPrev !== undefined && valPrev !== '' ? valPrev : 'None',
+          new: valCurr !== null && valCurr !== undefined && valCurr !== '' ? valCurr : 'None'
+        });
+      }
+    } else {
+      const strCurr = valCurr !== undefined && valCurr !== null ? String(valCurr).trim() : '';
+      const strPrev = valPrev !== undefined && valPrev !== null ? String(valPrev).trim() : '';
+      if (strCurr !== strPrev) {
+        changes.push({
+          label: f.label,
+          old: strPrev || 'None',
+          new: strCurr || 'None'
+        });
+      }
+    }
+  });
+
+  return changes;
+};
 
 // Comprehensive Indian States & Discoms Master Data
 const STATE_DISCOM_MASTER: Record<string, { name: string; discoms: { code: string; name: string }[] }> = {
@@ -339,11 +401,18 @@ function get24HourCoverageInfo(slots: CustomTodSlot[]): CoverageInfo {
     gapSummary
   };
 }
-
 export default function SavingsCalculatorNewPage() {
   const navigate = useNavigate();
 
   const [entries, setEntries] = useState<SavingsCalculatorNewEntry[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+
+  // Version History States
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyData, setHistoryData] = useState<any[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyClientName, setHistoryClientName] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -888,6 +957,22 @@ export default function SavingsCalculatorNewPage() {
     }
   };
 
+  const handleOpenHistory = async (entry: SavingsCalculatorNewEntry) => {
+    setHistoryClientName(entry.clientName);
+    setHistoryDialogOpen(true);
+    setHistoryLoading(true);
+    try {
+      const data = await fetchEntryHistoryNew(entry.id);
+      setHistoryData(data);
+    } catch (error) {
+      console.error(error);
+      setSnackbar({ open: true, message: 'Failed to fetch version history', severity: 'error' });
+      setHistoryDialogOpen(false);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   const handleDeleteEntry = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this entry?')) {
       try {
@@ -989,7 +1074,7 @@ export default function SavingsCalculatorNewPage() {
             <EditIcon fontSize="small" />
           </IconButton>
 
-          <IconButton size="small" onClick={() => navigate(`/savings-calculator-new/${row.id}/analysis`)} sx={{ color: '#8B5CF6' }}>
+          <IconButton size="small" onClick={() => handleOpenHistory(row)} title="Version History" sx={{ color: '#8B5CF6' }}>
             <HistoryIcon fontSize="small" />
           </IconButton>
 
@@ -1988,6 +2073,106 @@ export default function SavingsCalculatorNewPage() {
             {dialogMode === 'create' ? 'Save Client Entry' : 'Update Client Entry'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* History Dialog */}
+      <Dialog
+        open={historyDialogOpen}
+        onClose={() => setHistoryDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <HistoryIcon sx={{ color: '#8B5CF6' }} />
+            Version History: {historyClientName}
+          </Box>
+          <IconButton onClick={() => setHistoryDialogOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ bgcolor: 'background.default', p: 3 }}>
+          {historyLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : historyData && historyData.length > 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {historyData.map((v) => {
+                const previousVersion = historyData.find(p => p.version === v.version - 1);
+                const changes = previousVersion ? getChanges(v, previousVersion) : [];
+                return (
+                  <Paper key={v.id} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="subtitle1" fontWeight={700} color="primary">
+                        Version {v.version}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {new Date(v.changedAt).toLocaleString('en-IN')}
+                      </Typography>
+                    </Box>
+                    {previousVersion ? (
+                      changes.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {changes.map((c, i) => (
+                            <Grid item xs={12} sm={6} key={i}>
+                              <Typography variant="caption" color="text.secondary">{c.label}</Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'error.main' }}>
+                                  {String(c.old)}
+                                </Typography>
+                                <ArrowRightAltIcon fontSize="small" color="action" />
+                                <Typography variant="body2" fontWeight={600} color="success.main">
+                                  {String(c.new)}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                          No trackable changes in this version (might be TOD updates or other nested edits).
+                        </Typography>
+                      )
+                    ) : (
+                      <Grid container spacing={2}>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Client</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.clientName}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Industry</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.industryName}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">State</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.stateCode}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Load</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.sanctionedLoadKw} kW</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">Discom</Typography>
+                          <Typography variant="body2" fontWeight={600}>{v.discom}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="caption" color="text.secondary">PROLT / Trader / Metering</Typography>
+                          <Typography variant="body2" fontWeight={600}>₹{v.proltMargin} / ₹{v.traderMargin} / ₹{v.meteringCharges || 0}</Typography>
+                        </Grid>
+                      </Grid>
+                    )}
+                  </Paper>
+                );
+              })}
+            </Box>
+          ) : (
+            <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
+              No version history found. Update the entry to create versions.
+            </Typography>
+          )}
+        </DialogContent>
       </Dialog>
     </Box>
   );

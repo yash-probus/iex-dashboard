@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, DialogTitle, DialogContent, DialogActions, 
-  Button, TextField, MenuItem, Box, Grid
+  Button, TextField, MenuItem, Box, Grid, Checkbox, ListItemText
 } from '@mui/material';
 import { FormField } from '../../pages/admin/resource-center/config/resourceConfig';
 
@@ -27,7 +27,7 @@ export default function ResourceFormModal({
       } else {
         const defaults: Record<string, any> = {};
         fields.forEach(f => {
-          defaults[f.name] = f.type === 'number' ? '' : '';
+          defaults[f.name] = f.type === 'number' ? '' : f.type === 'dropdown-multi' ? [] : '';
         });
         setFormData(defaults);
       }
@@ -43,7 +43,11 @@ export default function ResourceFormModal({
 
   const handleSave = () => {
     // Basic validation: ensure all visible fields are filled
-    const isValid = visibleFields.every(f => formData[f.name] !== '' && formData[f.name] !== undefined);
+    const isValid = visibleFields.every(f => {
+      const val = formData[f.name];
+      if (f.type === 'dropdown-multi') return Array.isArray(val) && val.length > 0;
+      return val !== '' && val !== undefined;
+    });
     if (!isValid) {
       alert('All fields are mandatory.');
       return;
@@ -82,12 +86,13 @@ export default function ResourceFormModal({
         <Grid container spacing={3}>
           {visibleFields.map((field) => (
             <Grid item xs={12} sm={isLarge ? 6 : 12} key={field.name}>
-              {field.type === 'dropdown' ? (
+              {field.type === 'dropdown' || field.type === 'dropdown-multi' ? (
                 <TextField
                   select
+                  SelectProps={{ multiple: field.type === 'dropdown-multi' }}
                   fullWidth
                   label={field.label}
-                  value={formData[field.name] || ''}
+                  value={field.type === 'dropdown-multi' ? (formData[field.name] || []) : (formData[field.name] || '')}
                   onChange={(e) => handleChange(field.name, e.target.value, field.type)}
                   variant="outlined"
                   size="small"
@@ -95,11 +100,17 @@ export default function ResourceFormModal({
                 >
                   {typeof field.options === 'function' ? field.options(formData).map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                      {field.type === 'dropdown-multi' && (
+                        <Checkbox checked={(formData[field.name] || []).includes(opt.value)} size="small" />
+                      )}
+                      <ListItemText primary={opt.label} />
                     </MenuItem>
                   )) : field.options?.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                      {field.type === 'dropdown-multi' && (
+                        <Checkbox checked={(formData[field.name] || []).includes(opt.value)} size="small" />
+                      )}
+                      <ListItemText primary={opt.label} />
                     </MenuItem>
                   ))}
                 </TextField>

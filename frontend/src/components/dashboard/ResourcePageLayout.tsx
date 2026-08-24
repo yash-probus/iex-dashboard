@@ -48,6 +48,7 @@ export default function ResourcePageLayout({
 }: ResourcePageLayoutProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { isAdmin } = useAuth();
 
   const config = resourceType ? RESOURCE_CONFIG[resourceType] : null;
@@ -66,13 +67,30 @@ export default function ResourcePageLayout({
     document.body.removeChild(link);
   };
 
-  const handleManualEntrySubmit = (formData: any) => {
+  const handleManualEntrySubmit = async (formData: any) => {
     if (onUpload) {
-      // Convert standard formData into format expected by bulkUpload backend (array of objects)
-      // Usually the backend maps headers to database fields, but bulkUpload takes parsed JSON objects
-      // For simplicity, we just pass the object as an array of 1 item
-      onUpload([formData]);
-      setIsEntryDialogOpen(false);
+      setIsSubmitting(true);
+      try {
+        let records = [formData];
+        
+        for (const key in formData) {
+          if (Array.isArray(formData[key])) {
+             const expanded: any[] = [];
+             for (const record of records) {
+                for (const val of formData[key]) {
+                   expanded.push({ ...record, [key]: val });
+                }
+             }
+             records = expanded;
+          }
+        }
+        
+        const success = await onUpload(records);
+        if (success !== false) {
+          setIsEntryDialogOpen(false);
+        }
+      } catch (err) {}
+      setIsSubmitting(false);
     }
   };
 

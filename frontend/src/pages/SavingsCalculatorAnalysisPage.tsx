@@ -550,179 +550,6 @@ const exportInsightsToExcel = async () => {
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
-                onClick={async () => {
-                  if (!calcEntry) return;
-                  try {
-                    const totalSavings = clientOverview?.totalSavings || 0;
-                    const numMonths = Math.max(1, clientOverview?.months?.length || 1);
-                    const avgMonthlySavings = Math.round(totalSavings / numMonths);
-                    const annualizedSavings = Math.round((totalSavings * 12) / numMonths);
-                    
-                    const billDateObj = calcEntry.billDate ? new Date(calcEntry.billDate) : new Date();
-                    const billMonth = billDateObj.toLocaleString('default', { month: 'long' });
-                    const billMonthYear = `${billMonth} ${billDateObj.getFullYear()}`;
-                    
-                    const currentDate = new Date();
-                    const currentMonthYear = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
-                    
-                    const monthsWords = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
-                    const monthsCount = Math.min(12, clientOverview?.months?.length || 0);
-                    const monthsCountWord = monthsCount > 0 && monthsCount < monthsWords.length ? monthsWords[monthsCount] : "Six";
-                    
-                    const monthlyData: any[] = [];
-                    if (clientOverview && clientOverview.months) {
-                        clientOverview.months.forEach((m) => {
-                            const ma = m as any;
-                            const consumption = m.totalEnergyKwh || 0;
-                            const cleared = ma.oaConsumer ?? ma.clearedUnitsKwh ?? ma.cleared ?? (ma.oaCoverage != null ? (consumption * ma.oaCoverage / 100) : (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - (ma.busLoss ? ma.busLoss / 100 : 0.1211)) : 0));
-                            const oaCost = ma.totalOptimizedCost || 0;
-                            const discomCost = m.totalBaselineCost || 0;
-                            const saving = m.savings || 0;
-                            
-                            const pct = consumption > 0 ? Math.round((cleared / consumption) * 100) : 0;
-                            const ppcDiscom = consumption > 0 ? (discomCost / consumption) : 0;
-                            const ppcProlt = consumption > 0 ? (oaCost / consumption) : 0;
-                            const savingUnit = consumption > 0 ? (saving / consumption) : 0;
-                            const reductionPct = discomCost > 0 ? Math.round((saving / discomCost) * 100) : 0;
-
-                            monthlyData.push({
-                                month_name: m.month || '',
-                                raw_month: m.month ? m.month.split(' ')[0] : '',
-                                raw_year: m.month ? m.month.split(' ')[1] : '',
-                                cleared: Math.round(cleared).toLocaleString('en-IN'),
-                                consumption: Math.round(consumption).toLocaleString('en-IN'),
-                                oa_cost: Math.round(oaCost).toLocaleString('en-IN'),
-                                discom_cost: Math.round(discomCost).toLocaleString('en-IN'),
-                                cleared_pct: `${pct}%`,
-                                ppc_discom: `₹${ppcDiscom.toFixed(2)}`,
-                                ppc_prolt: `₹${ppcProlt.toFixed(2)}`,
-                                saving: `₹${Math.round(saving).toLocaleString('en-IN')}`,
-                                raw_saving: Math.round(saving),
-                                reduction_pct: reductionPct,
-                                saving_unit: `₹${savingUnit.toFixed(2)}`
-                            });
-                        });
-                    }
-
-                    // Sort monthlyData by highest savings to populate insights
-                    const sortedForInsights = [...monthlyData].sort((a, b) => b.raw_saving - a.raw_saving);
-                    
-                    let first_insight_month = "January 2026";
-                    let first_insight_month_only = "January";
-                    let first_insight_reduction = "17";
-                    let first_insight_saving = "2,00,000";
-                    let second_insight_month = "May 2026";
-                    let second_insight_month_only = "May";
-
-                    if (sortedForInsights.length > 0) {
-                        const top1 = sortedForInsights[0];
-                        first_insight_month = top1.month_name;
-                        first_insight_month_only = top1.raw_month;
-                        first_insight_reduction = top1.reduction_pct.toString();
-                        first_insight_saving = top1.raw_saving.toLocaleString('en-IN');
-                        
-                        if (sortedForInsights.length > 1) {
-                            const top2 = sortedForInsights[1];
-                            second_insight_month = top2.month_name;
-                            second_insight_month_only = top2.raw_month;
-                        } else {
-                            second_insight_month = top1.month_name;
-                            second_insight_month_only = top1.raw_month;
-                        }
-                    }
-
-                    const totalConsumption = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.totalEnergyKwh || 0), 0) || 1;
-                    const totalCleared = clientOverview?.months?.reduce((acc: number, curr: any) => acc + (curr.clearedUnitsKwh || curr.oaConsumer || 0), 0) || 0;
-                    const procurementPotential = Math.round((totalCleared / totalConsumption) * 100);
-
-                    let dashboard_screenshot = "";
-                    const dashboardEl = document.getElementById("proposal-export-target");
-                    if (dashboardEl) {
-                        try {
-                            const canvas = await html2canvas(dashboardEl, { scale: 2 });
-                            dashboard_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-                        } catch (e) {
-                            console.error("html2canvas error:", e);
-                        }
-                    }
-
-                    let first_insight_screenshot = "";
-                    const dashboardEl1 = document.getElementById("proposal-export-target-1");
-                    if (dashboardEl1) {
-                        try {
-                            const canvas = await html2canvas(dashboardEl1, { scale: 2 });
-                            first_insight_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-                        } catch (e) {
-                            console.error("html2canvas error:", e);
-                        }
-                    }
-
-                    let second_insight_screenshot = "";
-                    const dashboardEl2 = document.getElementById("proposal-export-target-2");
-                    if (dashboardEl2) {
-                        try {
-                            const canvas = await html2canvas(dashboardEl2, { scale: 2 });
-                            second_insight_screenshot = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-                        } catch (e) {
-                            console.error("html2canvas error:", e);
-                        }
-                    }
-
-                    const payload = {
-                      ...hardcodedPayload,
-                      ...calcEntry,
-                      monthlyData,
-                      first_insight_month,
-                      first_insight_month_only,
-                      first_insight_reduction,
-                      first_insight_saving,
-                      second_insight_month,
-                      second_insight_month_only,
-                      months_count_word: monthsCountWord,
-                      procurement_potential: procurementPotential,
-                      dashboard_screenshot,
-                      first_insight_screenshot,
-                      second_insight_screenshot,
-                      // @ts-ignore
-                      savings_in_words: numberToIndianWords ? numberToIndianWords(annualizedSavings) : 'Twenty Five',
-                      totalSavings: annualizedSavings.toLocaleString('en-IN'), // Maps to "AVERAGE ANNUAL SAVINGS" in the docx
-                      monthlySavings: avgMonthlySavings.toLocaleString('en-IN'), // Maps to "AVERAGE MONTHLY SAVINGS" in the docx
-                      paybackDays: 150,
-                      billMonth,
-                      billMonthYear,
-                      currentMonthYear,
-                      probusPlatformFee: calcEntry.probusPlatformFee || 150000
-                    };
-                    await exportTechnicalProposalWord(payload);
-                  } catch (err: any) {
-                    setSnackbar({
-                      open: true,
-                      message: err.message || 'Export failed',
-                      severity: 'error'
-                    });
-                  }
-                }}
-                sx={{ 
-                  textTransform: 'none', 
-                  borderRadius: 2.5, 
-                  fontWeight: 600, 
-                  borderColor: 'divider',
-                  backgroundColor: '#FFFFFF',
-                  color: 'text.primary',
-                  px: 2.5,
-                  py: 1,
-                  whiteSpace: 'nowrap',
-                  '&:hover': {
-                    backgroundColor: '#F8FAFC',
-                    borderColor: 'divider'
-                  }
-                }}
-              >
-                Draft Technical Proposal
-              </Button>
-              <Button 
-                variant="outlined" 
-                startIcon={<DownloadIcon />} 
                 onClick={() => setCommercialModalOpen(true)}
                 sx={{ 
                   textTransform: 'none', 
@@ -806,7 +633,7 @@ const exportInsightsToExcel = async () => {
                   }
                 }}
               >
-                Export Excel (Before TOD Shift)
+                Calculation Sheet (Before PROLT)
               </Button>
 
               <Button
@@ -840,7 +667,7 @@ const exportInsightsToExcel = async () => {
                   }
                 }}
               >
-                Export Excel (After TOD Shift)
+                Calculation Sheet (After PROLT)
               </Button>
             </Box>
           )}

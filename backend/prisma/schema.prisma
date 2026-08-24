@@ -788,6 +788,7 @@ model FppaCharges {
   state             String   @db.VarChar(100)
   discom            String?  @db.VarChar(200)
   month             Int
+  billingMonth      Int?     @map("billing_month")
   fppaChargePercent Decimal? @map("fppa_charge_percent") @db.Decimal(12, 6)
   updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
 

@@ -18,7 +18,7 @@ const getDiscomOptions = (formData: any) => {
   return [{ label: 'Other', value: 'Other' }];
 };
 
-export type FieldType = 'text' | 'number' | 'dropdown' | 'date';
+export type FieldType = 'text' | 'number' | 'dropdown' | 'dropdown-multi' | 'date';
 
 export interface FormField {
   name: string;
@@ -234,19 +234,21 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
     subtitle: 'Manage FPPA Charges records.',
     exportFilename: 'fppa-charges',
     emptyMessage: 'No FPPA Charges data available.',
-    searchPlaceholder: 'Search by state, month...',
-    searchableFields: ['state', 'month'],
+    searchPlaceholder: 'Search by state, month, billing month...',
+    searchableFields: ['state', 'month', 'billingMonth'],
     columns: [
       { field: 'id', headerName: 'ID', align: 'center', width: 100 },
       { field: 'state', headerName: 'State', align: 'center', width: 250 },
       { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
       { field: 'month', headerName: 'Month', align: 'center', width: 150 },
+      { field: 'billingMonth', headerName: 'Billing Month', align: 'center', width: 150 },
       { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 200, valueFormatter: formatNum },
     ],
     fields: [
       { name: 'state', label: 'State', type: 'dropdown', options: STATE_OPTIONS },
-      { name: 'discom', label: 'Discom', type: 'dropdown', options: getDiscomOptions },
+      { name: 'discom', label: 'Discom', type: 'dropdown-multi', options: getDiscomOptions },
       { name: 'month', label: 'Month (YYYYMM)', type: 'number' },
+      { name: 'billingMonth', label: 'Billing Month (YYYYMM)', type: 'number' },
       { name: 'fppaChargePercent', label: 'FPPA Charge %', type: 'number' },
     ]
   }
