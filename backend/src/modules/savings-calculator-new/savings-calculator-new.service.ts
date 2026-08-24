@@ -595,7 +595,7 @@ export class SavingsCalculatorNewService {
           const availableMarkets = [];
           const totalMonthUnits = customSlots.reduce((sum, cs) => sum + (cs.consumptionKwh || 0), 0);
           const avgLoadKw = totalMonthUnits / (lastDay * 24);
-          const is1MWOrMore = (sanctionedLoad >= 1000) || (monthPeakDemand >= 1000) || (avgLoadKw >= 500) || (totalMonthUnits >= 100000);
+          const is1MWOrMore = (sanctionedLoad >= 1000);
 
           if (is1MWOrMore) {
             // Sanctioned Load >= 1000 kW (1 MW) or High Consumption: can buy from DAM, RTM, and GDAM
