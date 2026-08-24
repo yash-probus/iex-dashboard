@@ -167,8 +167,10 @@ export const exportSavingsExcelNew = async (id: string, targetMonth?: string, ve
   link.setAttribute('download', filename);
   document.body.appendChild(link);
   link.click();
-  link.remove();
-  setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+  setTimeout(() => {
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  }, 10000);
 };
 
 export const exportDemandShiftExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
@@ -197,6 +199,8 @@ export const exportDemandShiftExcelNew = async (id: string, targetMonth?: string
   link.setAttribute('download', filename);
   document.body.appendChild(link);
   link.click();
-  link.remove();
-  setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+  setTimeout(() => {
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  }, 10000);
 };
