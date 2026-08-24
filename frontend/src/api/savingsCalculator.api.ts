@@ -359,23 +359,27 @@ export const exportTechnicalProposalWord = async (clientData: any): Promise<void
     responseType: 'blob',
   });
   
-  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const blob = new Blob([response.data], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+  const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   
   const contentDisposition = response.headers['content-disposition'];
   let filename = 'Technical_Proposal.docx';
   if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
-    if (filenameMatch && filenameMatch.length === 2)
-        filename = filenameMatch[1];
+    const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+    if (filenameMatch && filenameMatch.length === 2) {
+        filename = filenameMatch[1].replace(/['"]/g, '');
+    }
   }
   
   link.setAttribute('download', filename);
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.URL.revokeObjectURL(url);
+  setTimeout(() => window.URL.revokeObjectURL(url), 100);
 };
 
 export const exportCommercialProposalWord = async (clientData: any): Promise<void> => {
@@ -383,21 +387,25 @@ export const exportCommercialProposalWord = async (clientData: any): Promise<voi
     responseType: 'blob',
   });
   
-  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const blob = new Blob([response.data], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+  const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   
   const contentDisposition = response.headers['content-disposition'];
   let filename = 'Commercial_Proposal.docx';
   if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
-    if (filenameMatch && filenameMatch.length === 2)
-        filename = filenameMatch[1];
+    const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+    if (filenameMatch && filenameMatch.length === 2) {
+        filename = filenameMatch[1].replace(/['"]/g, '');
+    }
   }
   
   link.setAttribute('download', filename);
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.URL.revokeObjectURL(url);
+  setTimeout(() => window.URL.revokeObjectURL(url), 100);
 };
