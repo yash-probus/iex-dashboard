@@ -98,6 +98,7 @@ export interface FppaCharges {
   state: string;
   discom?: string;
   month: number;
+  billingMonth?: number;
   fppaChargePercent: number;
   updatedAt?: string;
 }

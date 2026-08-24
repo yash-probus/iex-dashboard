@@ -85,10 +85,8 @@ export default function ResourcePageLayout({
           }
         }
         
-        const success = await onUpload(records);
-        if (success !== false) {
-          setIsEntryDialogOpen(false);
-        }
+        await onUpload(records);
+        setIsEntryDialogOpen(false);
       } catch (err) {}
       setIsSubmitting(false);
     }

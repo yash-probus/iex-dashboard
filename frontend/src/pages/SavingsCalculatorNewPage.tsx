@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Button, TextField, IconButton, Alert, alpha, OutlinedInput, Card,
   Grid, Paper, Tooltip, Table, TableBody, TableCell, TableHead, TableRow,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem, FormControlLabel, RadioGroup, Radio, FormControl, FormLabel, Select, InputAdornment, Divider, Accordion, AccordionSummary, AccordionDetails
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, MenuItem, FormControlLabel, RadioGroup, Radio, FormControl, FormLabel, Select, InputAdornment, Divider, Accordion, AccordionSummary, AccordionDetails, CircularProgress
 } from '@mui/material';
 import {
   Calculate as CalculateIcon,
@@ -966,7 +966,7 @@ export default function SavingsCalculatorNewPage() {
       setHistoryData(data);
     } catch (error) {
       console.error(error);
-      setSnackbar({ open: true, message: 'Failed to fetch version history', severity: 'error' });
+      setError('Failed to fetch version history');
       setHistoryDialogOpen(false);
     } finally {
       setHistoryLoading(false);
