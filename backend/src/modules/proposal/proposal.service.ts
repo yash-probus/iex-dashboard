@@ -33,22 +33,20 @@ function formatRupee(val: any): string {
 export class ProposalService {
   public async generateProposal(clientData: any, type: 'technical' | 'commercial' | 'default' = 'default'): Promise<Buffer> {
     if (type === 'commercial') {
-      const state = String(clientData.state || '').trim().toUpperCase();
-      const discom = String(clientData.discom_name || clientData.discom || '').trim().toUpperCase();
-      const voltage = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '').trim().toUpperCase();
-      const is33KV = voltage.includes('33') && (voltage.includes('KV') || voltage.includes('K V'));
-
-      let templatePath = fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx')
-        ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx'
-        : path.join(__dirname, '../../../assets/templates/commercial_proposal_template.docx');
-
-      if (is33KV && fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_33KV.docx')) {
-        templatePath = '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_33KV.docx';
-      }
+      const templatePath = fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_33KV.docx')
+        ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_33KV.docx'
+        : (fs.existsSync('/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx') 
+            ? '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx'
+            : path.join(__dirname, '../../../assets/templates/commercial_proposal_template.docx'));
 
       if (!fs.existsSync(templatePath)) {
         throw new Error(`Template file not found at ${templatePath}`);
       }
+
+      // Dynamic Defaults Logic
+      const state = String(clientData.state || '').trim().toUpperCase();
+      const discom = String(clientData.discom_name || clientData.discom || '').trim().toUpperCase();
+      const voltage = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '').trim().toUpperCase();
       
       let defaultSupply = 450000;
       let defaultService = 350000;

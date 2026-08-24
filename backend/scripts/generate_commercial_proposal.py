@@ -35,9 +35,28 @@ def generate_proposal(data_json):
     
     # 1. Update Title Paragraph P2
     client_name = data.get('client_name') or data.get('industry_name') or 'CLIENT'
+    connectivity_str = str(data.get('connectivity') or data.get('voltage_level') or '11 kV')
+    
+    def replace_in_text(text):
+        if not text: return text
+        if 'XXXXXXXXXXXXX' in text:
+            text = text.replace('XXXXXXXXXXXXX', client_name.upper())
+        if '33KV' in text:
+            text = text.replace('33KV', connectivity_str.upper())
+        if '33 KV' in text:
+            text = text.replace('33 KV', connectivity_str.upper())
+        if '33kV' in text:
+            text = text.replace('33kV', connectivity_str)
+        return text
+
     for p in doc.paragraphs:
-        if 'XXXXXXXXXXXXX' in p.text:
-            p.text = p.text.replace('XXXXXXXXXXXXX', client_name.upper())
+        p.text = replace_in_text(p.text)
+        
+    for t in doc.tables:
+        for r in t.rows:
+            for c in r.cells:
+                for p in c.paragraphs:
+                    p.text = replace_in_text(p.text)
 
     # Helper function to set cell text with centered alignment and bold formatting
     def set_cell_value(cell, text, bold=False):
@@ -61,117 +80,56 @@ def generate_proposal(data_json):
             set_cell_value(r1[2], str(data.get('discom_name') or data.get('discom') or 'DISCOM'), bold=True)
             set_cell_value(r1[3], str(data.get('feeder_type') or 'Dedicated Feeder'), bold=True)
 
-    # Check if this is the 33KV template
-    is_33kv = '33KV' in template_path.upper()
+    # 3. Update Table 2 (Fixed One-Time Cost)
+    if len(doc.tables) > 2:
+        t2 = doc.tables[2]
+        c_supply = float(data.get('abt_supply_cost', 450000))
+        c_service = float(data.get('abt_service_cost', 350000))
+        c_liaison = float(data.get('utility_liaisoning_cost', 300000))
+        c_bg = float(data.get('bank_guarantee_cost', 150000))
+        c_total = c_supply + c_service + c_liaison
+        
+        if len(t2.rows) > 2: 
+            supply_cell = t2.rows[2].cells[1]
+            indoor_count = data.get('indoor_ctpt_count')
+            if indoor_count:
+                for p in supply_cell.paragraphs:
+                    p.text = p.text.replace('1 Nos.', indoor_count)
+            if data.get('remove_outdoor_supply'):
+                for p in supply_cell.paragraphs:
+                    if 'Outdoor CT/PT' in p.text:
+                        p.text = ''
+            set_cell_value(t2.rows[2].cells[-1], format_rupee(c_supply))
+        
+        if len(t2.rows) > 3: set_cell_value(t2.rows[3].cells[-1], format_rupee(c_service))
+        if len(t2.rows) > 4: set_cell_value(t2.rows[4].cells[-1], format_rupee(c_liaison))
+        if len(t2.rows) > 5: set_cell_value(t2.rows[5].cells[-1], format_rupee(c_liaison))
+        if len(t2.rows) > 6: set_cell_value(t2.rows[6].cells[-1], format_rupee(c_total), bold=True)
+        if len(t2.rows) > 8: set_cell_value(t2.rows[8].cells[-1], format_rupee(c_bg))
 
-    if is_33kv:
-        # 33KV Template has all charges in Table 2
-        if len(doc.tables) > 2:
-            t2 = doc.tables[2]
-            c_supply = float(data.get('abt_supply_cost', 450000))
-            c_service = float(data.get('abt_service_cost', 350000))
-            c_liaison = float(data.get('utility_liaisoning_cost', 300000))
-            c_bg = float(data.get('bank_guarantee_cost', 150000))
-            
-            # 1.1 Supply
-            if len(t2.rows) > 3:
-                supply_cell = t2.rows[3].cells[1]
-                indoor_count = data.get('indoor_ctpt_count')
-                if indoor_count:
-                    for p in supply_cell.paragraphs:
-                        p.text = p.text.replace('1 Nos.', indoor_count)
-                if data.get('remove_outdoor_supply'):
-                    for p in supply_cell.paragraphs:
-                        if 'Outdoor CT/PT' in p.text:
-                            p.text = ''
-                set_cell_value(t2.rows[3].cells[-1], format_rupee(c_supply))
-            
-            # 1.2 Service
-            if len(t2.rows) > 4: set_cell_value(t2.rows[4].cells[-1], format_rupee(c_service))
-            # 1.3 Liaison
-            if len(t2.rows) > 5: set_cell_value(t2.rows[5].cells[-1], format_rupee(c_liaison))
-            # 2.1 SLDC Security
-            if len(t2.rows) > 9: set_cell_value(t2.rows[9].cells[-1], format_rupee(c_bg))
-            
-            # 3.1 IEX Annual
-            if len(t2.rows) > 13: set_cell_value(t2.rows[13].cells[-1], format_rupee(data.get('iex_annual_fee', 100000)))
-            # 3.2 UPSLDC Monthly
-            if len(t2.rows) > 14: set_cell_value(t2.rows[14].cells[-1], format_rupee(data.get('sldc_monthly_noc', 7000)))
-            # 3.3 ST-11
-            if len(t2.rows) > 15: set_cell_value(t2.rows[15].cells[-1], format_rupee(data.get('st11_settlement', 20000)))
-            
-            # 4.1 Probus Trading
-            tm = str(data.get('trading_margin', '2p/kWh'))
-            pf = str(data.get('platform_fee', '2p/kWh'))
-            vs = str(data.get('value_share', '15%'))
-            if not vs.endswith('%'): vs += '%'
-            smart = float(data.get('smart_metering_infra', 125000))
-            
-            if len(t2.rows) > 18: set_cell_value(t2.rows[18].cells[-1], tm)
-            if len(t2.rows) > 19: set_cell_value(t2.rows[19].cells[-1], pf)
-            if len(t2.rows) > 20: set_cell_value(t2.rows[20].cells[-1], vs)
-            if len(t2.rows) > 21: set_cell_value(t2.rows[21].cells[-1], format_rupee(smart))
+    # 4. Update Table 3 (Fixed Recurring Charges)
+    if len(doc.tables) > 3:
+        t3 = doc.tables[3]
+        if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(data.get('iex_annual_fee', 100000)))
+        if len(t3.rows) > 2: set_cell_value(t3.rows[2].cells[-1], format_rupee(data.get('sldc_monthly_noc', 7000)))
+        if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[-1], format_rupee(data.get('st11_settlement', 20000)))
 
-        # Terms and conditions is Table 3 in 33KV template
-        if len(doc.tables) > 3:
-            t3 = doc.tables[3]
-            smart_payment_term = str(data.get('smart_metering_infra_payment_term', '100% Advance against PO/PI'))
-            for row in t3.rows:
-                if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[0].text:
-                    set_cell_value(row.cells[1], smart_payment_term)
-                    break
-    else:
-        # V2 Template logic
-        # 3. Update Table 2 (Fixed One-Time Cost)
-        if len(doc.tables) > 2:
-            t2 = doc.tables[2]
-            c_supply = float(data.get('abt_supply_cost', 450000))
-            c_service = float(data.get('abt_service_cost', 350000))
-            c_liaison = float(data.get('utility_liaisoning_cost', 300000))
-            c_bg = float(data.get('bank_guarantee_cost', 150000))
-            c_total = c_supply + c_service + c_liaison
-            
-            if len(t2.rows) > 2: 
-                supply_cell = t2.rows[2].cells[1]
-                indoor_count = data.get('indoor_ctpt_count')
-                if indoor_count:
-                    for p in supply_cell.paragraphs:
-                        p.text = p.text.replace('1 Nos.', indoor_count)
-                if data.get('remove_outdoor_supply'):
-                    for p in supply_cell.paragraphs:
-                        if 'Outdoor CT/PT' in p.text:
-                            p.text = ''
-                set_cell_value(t2.rows[2].cells[-1], format_rupee(c_supply))
-            
-            if len(t2.rows) > 3: set_cell_value(t2.rows[3].cells[-1], format_rupee(c_service))
-            if len(t2.rows) > 4: set_cell_value(t2.rows[4].cells[-1], format_rupee(c_liaison))
-            if len(t2.rows) > 5: set_cell_value(t2.rows[5].cells[-1], format_rupee(c_liaison))
-            if len(t2.rows) > 6: set_cell_value(t2.rows[6].cells[-1], format_rupee(c_total), bold=True)
-            if len(t2.rows) > 8: set_cell_value(t2.rows[8].cells[-1], format_rupee(c_bg))
+    # 5. Update Table 4 (Probus Fees)
+    if len(doc.tables) > 4:
+        t4 = doc.tables[4]
+        tm = str(data.get('trading_margin', '2p/kWh'))
+        pf = str(data.get('platform_fee', '2p/kWh'))
+        vs = str(data.get('value_share', '15%'))
+        if not vs.endswith('%'): vs += '%'
+        smart = float(data.get('smart_metering_infra', 125000))
+        
+        if len(t4.rows) > 1: set_cell_value(t4.rows[1].cells[-1], tm)
+        if len(t4.rows) > 2: set_cell_value(t4.rows[2].cells[-1], pf)
+        if len(t4.rows) > 3: set_cell_value(t4.rows[3].cells[-1], vs)
+        if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[-1], format_rupee(smart))
 
-        # 4. Update Table 3 (Fixed Recurring Charges)
-        if len(doc.tables) > 3:
-            t3 = doc.tables[3]
-            if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(data.get('iex_annual_fee', 100000)))
-            if len(t3.rows) > 2: set_cell_value(t3.rows[2].cells[-1], format_rupee(data.get('sldc_monthly_noc', 7000)))
-            if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[-1], format_rupee(data.get('st11_settlement', 20000)))
-
-        # 5. Update Table 4 (Probus Fees)
-        if len(doc.tables) > 4:
-            t4 = doc.tables[4]
-            tm = str(data.get('trading_margin', '2p/kWh'))
-            pf = str(data.get('platform_fee', '2p/kWh'))
-            vs = str(data.get('value_share', '15%'))
-            if not vs.endswith('%'): vs += '%'
-            smart = float(data.get('smart_metering_infra', 125000))
-            
-            if len(t4.rows) > 1: set_cell_value(t4.rows[1].cells[-1], tm)
-            if len(t4.rows) > 2: set_cell_value(t4.rows[2].cells[-1], pf)
-            if len(t4.rows) > 3: set_cell_value(t4.rows[3].cells[-1], vs)
-            if len(t4.rows) > 4: set_cell_value(t4.rows[4].cells[-1], format_rupee(smart))
-
-    # 6. Update Terms & Conditions table (Table 5 in V2, handled above for 33KV)
-    if not is_33kv and len(doc.tables) > 5:
+    # 6. Update Table 5 (Terms & Conditions)
+    if len(doc.tables) > 5:
         t5 = doc.tables[5]
         smart_payment_term = str(data.get('smart_metering_infra_payment_term', '100% Advance against PO/PI'))
         
