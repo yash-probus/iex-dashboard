@@ -45,7 +45,8 @@ import {
   SavingsCalculatorNewEntry,
   MarketDecisionResult,
   exportSavingsExcelNew,
-  exportDemandShiftExcelNew
+  exportDemandShiftExcelNew,
+  fetchEntryHistoryNew
 } from '../api/savingsCalculatorNew.api';
 import html2canvas from 'html2canvas';
 import { exportToExcel } from '../utils/export';
@@ -99,12 +100,25 @@ export default function SavingsCalculatorNewAnalysisPage() {
       
       let versions: number[] = calcVersions;
       if (calcVersions.length === 0) {
-        const history = (baseEntryData as any).history || [];
-        versions = history.map((h: any) => h.version).sort((a: any, b: any) => b - a);
-        setCalcVersions(versions);
-        if (versions.length > 0 && selectedCalcVersion === '') {
-          setSelectedCalcVersion(versions[0]);
-          return; // Let the useEffect re-trigger with the new version
+        try {
+          const history = await fetchEntryHistoryNew(id);
+          versions = history.map((h: any) => h.version).sort((a: any, b: any) => b - a);
+          if (versions.length === 0) {
+            versions = [1];
+          }
+          setCalcVersions(versions);
+          if (versions.length > 0 && selectedCalcVersion === '') {
+            setSelectedCalcVersion(versions[0]);
+            return; // Let the useEffect re-trigger with the new version
+          }
+        } catch (err) {
+          console.error('Failed to fetch history', err);
+          versions = [1];
+          setCalcVersions(versions);
+          if (selectedCalcVersion === '') {
+            setSelectedCalcVersion(versions[0]);
+            return;
+          }
         }
       }
 
