@@ -124,7 +124,7 @@ export const calculateSavingsNew = async (id: string, month?: string, version?: 
 export const calculateMarketDecisionNew = async (id: string, month?: string, version?: number): Promise<MarketDecisionResult> => {
   let url = `/savings-calculator-new/entries/${id}/market-decision`;
   const params: string[] = [];
-  if (month) params.push(`month=${month}`);
+  if (month) params.push(`monthStr=${month}`);
   if (version) params.push(`version=${version}`);
   if (params.length > 0) url += `?${params.join('&')}`;
 

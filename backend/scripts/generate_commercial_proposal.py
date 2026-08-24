@@ -50,13 +50,17 @@ def generate_proposal(data_json):
         return text
 
     for p in doc.paragraphs:
-        p.text = replace_in_text(p.text)
+        for run in p.runs:
+            if run.text:
+                run.text = replace_in_text(run.text)
         
     for t in doc.tables:
         for r in t.rows:
             for c in r.cells:
                 for p in c.paragraphs:
-                    p.text = replace_in_text(p.text)
+                    for run in p.runs:
+                        if run.text:
+                            run.text = replace_in_text(run.text)
 
     # Helper function to set cell text with centered alignment and bold formatting
     def set_cell_value(cell, text, bold=False):
@@ -66,6 +70,14 @@ def generate_proposal(data_json):
         run = p.add_run(str(text))
         if bold:
             run.bold = True
+            
+        # Restore the yellow highlight from the template's theme
+        from docx.oxml.ns import qn
+        from docx.oxml import OxmlElement
+        rPr = run._element.get_or_add_rPr()
+        highlight = OxmlElement('w:highlight')
+        highlight.set(qn('w:val'), 'yellow')
+        rPr.append(highlight)
 
     # 2. Update Table 0 (Facility Parameters: Sanctioned Load, Connectivity, DISCOM Name, Feeder Type)
     if len(doc.tables) > 0:
@@ -142,22 +154,6 @@ def generate_proposal(data_json):
     if os.path.dirname(output_path):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
     doc.save(output_path)
-
-    # Strip all yellow highlights from document.xml so output is clean
-    import zipfile
-    import re
-    try:
-        with zipfile.ZipFile(output_path, 'r') as zin:
-            files = {name: zin.read(name) for name in zin.namelist()}
-        if 'word/document.xml' in files:
-            xml_str = files['word/document.xml'].decode('utf-8')
-            clean_xml = re.sub(r'<w:highlight [^/>]*/>', '', xml_str)
-            files['word/document.xml'] = clean_xml.encode('utf-8')
-            with zipfile.ZipFile(output_path, 'w') as zout:
-                for name, content in files.items():
-                    zout.writestr(name, content)
-    except Exception as e:
-        print(f"Warning: Could not strip highlights: {e}")
 
     print(f"Successfully generated commercial proposal at {output_path}")
 
