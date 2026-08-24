@@ -280,7 +280,7 @@ export class SavingsCalculatorExportService {
     } else {
       const fppaCharges = Math.round((result as any).fppaSurcharge || 0);
       const baseDemandCharges = Math.round(result.demandCharge || 0);
-      const baseEnergyCharges = Math.round((result as any).pureEnergyCost || result.totalBaselineCost || 0);
+      const baseEnergyCharges = Math.round((result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0);
 
       const energyRow = sheet.addRow(['Energy Charges', baseEnergyCharges]);
       rowMapping['energyChargesRow'] = energyRow.number;
