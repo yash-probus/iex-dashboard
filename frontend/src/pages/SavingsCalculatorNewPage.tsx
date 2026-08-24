@@ -295,31 +295,6 @@ function getSlotIntervals(startTime: string, endTime: string): Array<[number, nu
   return [[s, 1440], [0, e]]; // Cross-midnight
 }
 
-function doSlotsOverlap(slotA: { startTime: string; endTime: string }, slotB: { startTime: string; endTime: string }): boolean {
-  const intA = getSlotIntervals(slotA.startTime, slotA.endTime);
-  const intB = getSlotIntervals(slotB.startTime, slotB.endTime);
-  for (const [s1, e1] of intA) {
-    for (const [s2, e2] of intB) {
-      if (Math.max(s1, s2) < Math.min(e1, e2)) return true;
-    }
-  }
-  return false;
-}
-
-function getOverlappingSlotMap(slots: CustomTodSlot[]): Map<number, number[]> {
-  const map = new Map<number, number[]>();
-  for (let i = 0; i < slots.length; i++) {
-    for (let j = i + 1; j < slots.length; j++) {
-      if (doSlotsOverlap(slots[i], slots[j])) {
-        if (!map.has(i)) map.set(i, []);
-        if (!map.has(j)) map.set(j, []);
-        map.get(i)!.push(j);
-        map.get(j)!.push(i);
-      }
-    }
-  }
-  return map;
-}
 
 interface CoverageInfo {
   coveredMinutes: number;
@@ -847,73 +822,15 @@ export default function SavingsCalculatorNewPage() {
     if (!todConsumptions[newMonthInput]) {
       const [y, m] = newMonthInput.split('-');
       const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0).getDate();
-      const targetMonthNum = parseInt(m, 10);
-
-      let parsedCategory = consumerCategory;
-      let parsedSubCategory = '';
-      if (consumerCategory === "HV-1 A") { parsedCategory = "HV-1"; parsedSubCategory = "Commercial, Private Inst"; }
-      else if (consumerCategory === "HV-1 B") { parsedCategory = "HV-1"; parsedSubCategory = "Public Inst., Societies"; }
-      else if (consumerCategory === "LMV-11 (Multistoried Buildings)") { parsedCategory = "LMV-11"; parsedSubCategory = "Multistoried Buildings"; }
-      else if (consumerCategory === "LMV-11 (Public Charging)") { parsedCategory = "LMV-11"; parsedSubCategory = "Public Charging"; }
-      else if (consumerCategory.includes(' | ')) {
-        const parts = consumerCategory.split(' | ');
-        parsedCategory = parts[0];
-        parsedSubCategory = parts[1];
-      }
-
-      let parsedVoltageLevel = voltageLevel;
-      if (parsedVoltageLevel && parsedVoltageLevel.includes(' - ')) {
-        parsedVoltageLevel = parsedVoltageLevel.split(' - ')[0];
-      }
-
-      const matchingRows = apiTariffs.filter((row: any) => {
-        const matchState = !stateCode ||
-          row.state?.toLowerCase() === stateCode.trim().toLowerCase() ||
-          (stateCode === 'UP' && row.state?.toLowerCase() === 'uttar pradesh');
-        const matchCategory = !consumerCategory || (row.consumerCategory === parsedCategory && (!parsedSubCategory || (row.subCategory && row.subCategory.includes(parsedSubCategory))));
-        const matchVoltage = !voltageLevel || row.supplyVoltageCategory === parsedVoltageLevel;
-        const matchMonth = (row.month % 100) === targetMonthNum;
-        return matchState && matchCategory && matchVoltage && matchMonth;
-      });
-
-      const slotMap = new Map<string, any>();
-      matchingRows.forEach((row: any) => {
-         const start = row.todStartTime || '00:00';
-         const end = row.todEndTime || '23:59';
-         const price = row.energyRate ? Number(row.energyRate) : 0;
-         const key = `${start}-${end}`;
-         if (!slotMap.has(key)) {
-             slotMap.set(key, { start, end, price });
-         }
-      });
-
-      let generatedSlots: any[] = [];
-      if (slotMap.size > 0) {
-        let index = 1;
-        slotMap.forEach((val) => {
-           generatedSlots.push({
-             id: `tod-${index}`,
-             name: `Slot ${index}`,
-             startTime: val.start,
-             endTime: val.end,
-             consumptionKwh: 0,
-             effectivePrice: val.price
-           });
-           index++;
-        });
-      } else {
-         generatedSlots = [
-            { id: `tod-1`, name: 'Slot 1', startTime: '00:00', endTime: '23:59', consumptionKwh: 0, effectivePrice: 0 }
-         ];
-      }
-
       setTodConsumptions(prev => ({
         ...prev,
         [newMonthInput]: {
           startDate: `${newMonthInput}-01`,
           endDate: `${newMonthInput}-${String(lastDay).padStart(2, '0')}`,
           peakDemandKw: Number(sanctionedLoadKw) || 1000,
-          slots: generatedSlots
+          slots: [
+            { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
+          ]
         }
       }));
       setActiveMonth(newMonthInput);
@@ -942,23 +859,6 @@ export default function SavingsCalculatorNewPage() {
     if (!clientName || !industryName || !address) {
       setError('Please fill in required fields (Client Name, Industry, Address).');
       return;
-    }
-
-    // Overlap validation check across all months
-    for (const [ym, monthData] of Object.entries(todConsumptions)) {
-      if (!ym.startsWith('_') && ym.includes('-')) {
-        const slots = (monthData.slots || []) as CustomTodSlot[];
-        const overlapMap = getOverlappingSlotMap(slots);
-        if (overlapMap.size > 0) {
-          const firstOverlapIdx = Array.from(overlapMap.keys())[0];
-          const overlappedIndices = overlapMap.get(firstOverlapIdx) || [];
-          const slotName = slots[firstOverlapIdx]?.name || `Slot ${firstOverlapIdx + 1}`;
-          const overlappedSlotNames = overlappedIndices.map(i => slots[i]?.name || `Slot ${i + 1}`).join(', ');
-          setError(`Cannot save entry: Custom TOD slots in month ${ym} have overlapping time ranges (${slotName} overlaps with ${overlappedSlotNames}). Please adjust start/end times so each TOD slot has a distinct time window.`);
-          setActiveMonth(ym);
-          return;
-        }
-      }
     }
 
     try {
@@ -1636,32 +1536,6 @@ export default function SavingsCalculatorNewPage() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Overlap & 24-Hour Coverage Alert Banners */}
-          {(() => {
-            const slots = ((todConsumptions[activeMonth] || {}).slots || []) as CustomTodSlot[];
-            const overlapMap = getOverlappingSlotMap(slots);
-            const coverage = get24HourCoverageInfo(slots);
-
-            return (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {overlapMap.size > 0 && (
-                  <Alert severity="error" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
-                    TOD Time Slots overlap! Please adjust start and end times so slots do not overlap.
-                  </Alert>
-                )}
-                {!coverage.isComplete24Hours ? (
-                  <Alert severity="warning" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
-                    24-Hour TOD Coverage Incomplete: {coverage.unallocatedHoursStr} unallocated out of 24 hours (Remaining time gap: {coverage.gapSummary}).
-                  </Alert>
-                ) : (
-                  <Alert severity="success" sx={{ borderRadius: 2, '& .MuiAlert-message': { fontWeight: 600 } }}>
-                    Full 24-Hour TOD Coverage Configured (24h / 24h).
-                  </Alert>
-                )}
-              </Box>
-            );
-          })()}
-
           {/* Monthly Accordions */}
           {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym, index) => {
             const monthData = todConsumptions[ym] || { startDate: `${ym}-01`, endDate: `${ym}-30`, peakDemandKw: 1000, slots: [] };
@@ -1763,16 +1637,14 @@ export default function SavingsCalculatorNewPage() {
                     <TableBody>
                       {(() => {
                         const slots = (monthData.slots || []) as CustomTodSlot[];
-                        const overlapMap = getOverlappingSlotMap(slots);
                         const currentPf = powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0 ? Number(powerFactor) : 0.99;
 
                         return slots.map((slot, idx) => {
-                          const isOverlapping = overlapMap.has(idx);
                           const kwhVal = Number(slot.consumptionKwh) || 0;
                           const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
 
                           return (
-                            <TableRow key={slot.id || idx} sx={{ bgcolor: isOverlapping ? '#FEF2F2' : 'inherit' }}>
+                            <TableRow key={slot.id || idx} sx={{ bgcolor: 'inherit' }}>
                               <TableCell>
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                   <TextField
@@ -1784,16 +1656,12 @@ export default function SavingsCalculatorNewPage() {
                                     }}
                                     placeholder={`Slot ${idx + 1}`}
                                   />
-                                  {isOverlapping && (
-                                    <Chip label="Overlap" size="small" color="error" sx={{ ml: 1, fontSize: 10, height: 20, fontWeight: 700 }} />
-                                  )}
                                 </Box>
                               </TableCell>
                               <TableCell align="center">
                                 <TextField
                                   size="small"
                                   type="time"
-                                  error={isOverlapping}
                                   value={slot.startTime || '00:00'}
                                   onChange={(e) => {
                                     setActiveMonth(ym);
@@ -1807,7 +1675,6 @@ export default function SavingsCalculatorNewPage() {
                                 <TextField
                                   size="small"
                                   type="time"
-                                  error={isOverlapping}
                                   value={slot.endTime || '24:00'}
                                   onChange={(e) => {
                                     setActiveMonth(ym);
