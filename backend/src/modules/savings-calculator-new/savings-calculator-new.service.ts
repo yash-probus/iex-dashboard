@@ -980,10 +980,11 @@ export class SavingsCalculatorNewService {
     const oldOaSurcharges = aggregatedTotals.cssCharge + aggregatedTotals.rpoCharge + aggregatedTotals.pocCharge + aggregatedTotals.stuCharge + aggregatedTotals.dcCharge + aggregatedTotals.iexFee;
     
     // Full Open Access + Remaining DISCOM cost including FPPA, ED, Demand Charge, fees and overheads
-    const baseOtherCosts = totalLandedExchangeCost + oldOaSurcharges + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
+    // Note: Most OA Surcharges (except RPO) and Trader Margin are ALREADY inside totalLandedExchangeCost
+    const baseOtherCosts = totalLandedExchangeCost + aggregatedTotals.rpoCharge + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + consultancyFeeVal + probusPlatformFeeVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees;
 
     // netSavings in the old calc is the savings BEFORE prolt margin and some platform fees, but AFTER trader margin
-    const netSavings = fullBaselineDiscomCost - (totalLandedExchangeCost + oldOaSurcharges + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + traderMarginCost + meteringChargesVal + dailyFixedOverhead + bidApplicationFees);
+    const netSavings = fullBaselineDiscomCost - (totalLandedExchangeCost + aggregatedTotals.rpoCharge + totalDiscomAfterProlt + fppaAfterOAVal + calculatedDemandCharge + electricityDutyAfterOAVal + meteringChargesVal + dailyFixedOverhead + bidApplicationFees);
     const grossSavings = Math.max(0, netSavings);
 
     const proltMarginInput = Number((entry as any).proltMargin || 0);
