@@ -21,6 +21,7 @@ const AVAILABLE_MODULES = [
   { id: 'resource-center', label: 'Resource Center' },
   { id: 'market-operations', label: 'Market Operations' },
   { id: 'savings-calculator', label: 'Savings Calculator' },
+  { id: 'custom-saving-calc', label: 'Custom Savings Calculator' },
   { id: 'savings-calculator-new', label: 'Savings Calculator (New)' },
   { id: 'forecast', label: 'Forecast Analytics' },
   { id: 'api-logs', label: 'API Logs' },
