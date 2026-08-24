@@ -146,8 +146,8 @@ export class SavingsCalculatorExportService {
     
     // Add Billing Dates info row
     const monthData = entry.todConsumptions?.[monthStr || ''];
-    const startDate = monthData?.['Start Date'] || '-';
-    const endDate = monthData?.['End Date'] || '-';
+    const startDate = monthData?.startDate || monthData?.['Start Date'] || '-';
+    const endDate = monthData?.endDate || monthData?.['End Date'] || '-';
     
     const formatToDDMM = (dStr: string) => {
       if (!dStr || dStr === '-') return '-';
@@ -481,7 +481,7 @@ export class SavingsCalculatorExportService {
     sheet.addRow([]);
     const grossSavingsVal = result.grossSavings ?? Math.max(0, (result.fullBaselineDiscomCost || totalBaselineWithMisc) - totalGrossBill);
     
-    sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0))]);
+    const discomBeforeRow = sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0))]);
     const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
     sheet.addRow(['DISCOM Bill After PROLT', Math.round(discomAfterProltWithMisc)]);
     
@@ -523,6 +523,24 @@ export class SavingsCalculatorExportService {
     
     // Auto-fit column A
     sheet.getColumn(1).width = 40;
+
+    // Apply borders to the 5 tables
+    const applyBordersRange = (start: number, end: number, cols: number) => {
+      for (let i = start; i <= end; i++) {
+        const r = sheet.getRow(i);
+        if (r.getCell(1).value !== null && r.getCell(1).value !== undefined && r.getCell(1).value !== '') {
+          for (let j = 1; j <= cols; j++) {
+            r.getCell(j).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          }
+        }
+      }
+    };
+
+    applyBordersRange(breakdownHeaderRow.number, todTotalRow.number, 7);
+    applyBordersRange(baseHeaderRow.number, baseTotalRow.number, 2);
+    applyBordersRange(afterHeaderRow.number, afterTotalRow.number, 2);
+    applyBordersRange(chargesHeaderRow.number, totalGrossRow.number, 5);
+    applyBordersRange(discomBeforeRow.number, finalSavingsRow.number, 2);
 
     return rowMapping;
   }
@@ -601,8 +619,8 @@ export class SavingsCalculatorExportService {
     const billingPeriodRowData = ['Billing Period'];
     allResults.forEach(r => {
       const monthData = entry.todConsumptions?.[r.monthStr];
-      const start = monthData?.['Start Date'] || '-';
-      const end = monthData?.['End Date'] || '-';
+      const start = monthData?.startDate || monthData?.['Start Date'] || '-';
+      const end = monthData?.endDate || monthData?.['End Date'] || '-';
       
       const formatToDDMM = (dStr: string) => {
         if (!dStr || dStr === '-') return '-';
