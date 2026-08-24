@@ -106,9 +106,9 @@ export default function CommercialProposalModal({
       setSldcMonthlyNoc('7000');
       setSt11Settlement('20000');
 
-      const tm = initialData?.traderMargin !== undefined ? `${initialData.traderMargin * 100}p/kWh` : '2p/kWh';
-      const pf = initialData?.probusPlatformFee !== undefined ? `${initialData.probusPlatformFee * 100}p/kWh` : '2p/kWh';
-      const vs = initialData?.proltMargin !== undefined ? `${initialData.proltMargin}%` : '15%';
+      const tm = initialData?.traderMargin ? `${initialData.traderMargin * 100}p/kWh` : '2p/kWh';
+      const pf = initialData?.probusPlatformFee ? `${initialData.probusPlatformFee * 100}p/kWh` : '2p/kWh';
+      const vs = initialData?.proltMargin ? `${initialData.proltMargin}%` : '15%';
 
       setTradingMargin(tm);
       setPlatformFee(pf);
@@ -150,6 +150,7 @@ export default function CommercialProposalModal({
     setAbtSupplyCost(String(defaultSupply));
     setAbtServiceCost(String(defaultService));
     setUtilityLiaisoningCost(String(defaultLiaison));
+    setSmartMeteringInfra(String(defaultSmart));
   }, [discomName, connectivity, feederType, open]);
 
   const totalAbtSetup = (Number(abtSupplyCost) || 0) + (Number(abtServiceCost) || 0) + (Number(utilityLiaisoningCost) || 0);
