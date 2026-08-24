@@ -21,8 +21,8 @@ export default function CanvasCaptcha({ code }: CanvasCaptchaProps) {
     // Clear background
     ctx.clearRect(0, 0, width, height);
     
-    // Draw dark background
-    ctx.fillStyle = '#0f172a'; // Dark slate
+    // Draw light background
+    ctx.fillStyle = '#ffffff'; // White
     ctx.fillRect(0, 0, width, height);
 
     // Draw some random dots (noise)
@@ -35,7 +35,7 @@ export default function CanvasCaptcha({ code }: CanvasCaptchaProps) {
         0,
         Math.PI * 2
       );
-      ctx.fillStyle = `rgba(34, 211, 238, ${Math.random() * 0.5})`; // Cyan dots
+      ctx.fillStyle = `rgba(13, 71, 161, ${Math.random() * 0.5})`; // Dark blue dots
       ctx.fill();
     }
 
@@ -44,7 +44,7 @@ export default function CanvasCaptcha({ code }: CanvasCaptchaProps) {
       ctx.beginPath();
       ctx.moveTo(Math.random() * width, Math.random() * height);
       ctx.lineTo(Math.random() * width, Math.random() * height);
-      ctx.strokeStyle = `rgba(34, 211, 238, ${Math.random() * 0.5})`;
+      ctx.strokeStyle = `rgba(13, 71, 161, ${Math.random() * 0.5})`; // Dark blue lines
       ctx.lineWidth = 1 + Math.random() * 2;
       ctx.stroke();
     }
@@ -53,7 +53,7 @@ export default function CanvasCaptcha({ code }: CanvasCaptchaProps) {
     ctx.font = 'bold 24px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#22d3ee'; // Cyan text
+    ctx.fillStyle = '#0d47a1'; // Dark blue text
 
     // Add some random rotation/transformation for each character
     const charWidth = width / (code.length + 1);
@@ -82,8 +82,8 @@ export default function CanvasCaptcha({ code }: CanvasCaptchaProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
-        border: '1px solid rgba(255,255,255,0.05)',
+        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)',
+        border: '1px solid rgba(0,0,0,0.1)',
         height: 40
       }}
     >

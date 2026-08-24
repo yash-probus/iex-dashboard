@@ -239,12 +239,12 @@ export default function LoginPage() {
                     size="small"
                     sx={{ 
                       '& .MuiOutlinedInput-root': {
-                        bgcolor: '#1e293b',
-                        color: 'white',
+                        bgcolor: '#ffffff',
+                        color: '#333333',
                         borderRadius: 1.5,
-                        '& fieldset': { border: '1px solid rgba(255,255,255,0.05)' }
+                        '& fieldset': { border: '1px solid rgba(0,0,0,0.1)' }
                       },
-                      '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.2)' }
+                      '& .MuiInputBase-input::placeholder': { color: 'rgba(0,0,0,0.4)' }
                     }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -253,14 +253,15 @@ export default function LoginPage() {
                       onClick={generateNewCaptcha} 
                       disabled={loading}
                       sx={{ 
-                        bgcolor: 'rgba(255,255,255,0.1)', 
+                        bgcolor: '#ffffff', 
                         borderRadius: 2,
                         width: 40,
                         height: 40,
-                        '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        '&:hover': { bgcolor: '#f4f6f8' }
                       }}
                     >
-                      <RefreshIcon sx={{ color: '#22d3ee' }} />
+                      <RefreshIcon sx={{ color: '#0d47a1' }} />
                     </IconButton>
                   </Box>
                 </Box>
