@@ -716,6 +716,11 @@ export class CustomSavingCalcService {
         monthsInPlay.push(effectiveYyyymmMonth);
       }
 
+      // Query IEX Fees for SLDC/NLDC scheduling fees
+      const iexFees = await prisma.iexFees.findFirst({ where: { month: yyyymmMonth } });
+      const nldcSchedulingFees = Number(iexFees?.nldcSchedulingFees || 20);
+      const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 1500);
+
       let tariffs: any[] = [];
 
       // Query combined DAM, GDAM, and RTM records for the selected month using FULL OUTER JOIN
@@ -806,19 +811,7 @@ export class CustomSavingCalcService {
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
 
-        // Source 100% from Open Access if available, regardless of whether it's cheaper than DISCOM
-        const availableMarkets = [];
-        if (sanctionedLoad >= 1000) {
-          if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
-          if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
-        }
-        if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
-
-        if (availableMarkets.length > 0) {
-          availableMarkets.sort((a, b) => a.price - b.price);
-          comparedLowestPrice = availableMarkets[0].price;
-          selectedSource = availableMarkets[0].source;
-        }
+        let is1MWOrMore = (sanctionedLoad >= 1000);
 
         return {
           date: dateStr,
@@ -831,6 +824,7 @@ export class CustomSavingCalcService {
           discomLandingPrice,
           comparedLowestPrice,
           selectedSource,
+          is1MWOrMore,
           maxEnergyPerSlot: 0,
           optimizedCost: 0,
           baselineCost: 0,
@@ -839,6 +833,90 @@ export class CustomSavingCalcService {
           wheelingLoss
         };
       });
+
+      // --- DAILY SLDC OPTIMIZATION ---
+      const defaultMaxEnergyPerSlot = sanctionedLoad * 0.25;
+
+      const slotsByDate = new Map<string, typeof slotsData>();
+      slotsData.forEach(slot => {
+        if (!slotsByDate.has(slot.date)) slotsByDate.set(slot.date, []);
+        slotsByDate.get(slot.date)!.push(slot);
+      });
+
+      slotsByDate.forEach((dateSlots, date) => {
+        const sampleSlot = dateSlots[0];
+        const is1MWOrMore = sampleSlot.is1MWOrMore;
+        const availableMarkets = is1MWOrMore ? ['DAM', 'RTM', 'GDAM'] : ['GDAM'];
+        
+        const calculateTotalCost = (markets: string[]) => {
+          let energyCost = 0;
+          let sldcCost = markets.length * sldcSchedulingFees;
+          
+          dateSlots.forEach(slot => {
+            const maxEnergy = defaultMaxEnergyPerSlot;
+            let bestCost = slot.discomLandingPrice * maxEnergy;
+            
+            markets.forEach(market => {
+              let landingPrice = 0;
+              if (market === 'DAM') landingPrice = slot.damLandingPrice;
+              if (market === 'RTM') landingPrice = slot.rtmLandingPrice;
+              if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
+              
+              if (landingPrice > 0 && landingPrice * maxEnergy < bestCost) {
+                bestCost = landingPrice * maxEnergy;
+              }
+            });
+            energyCost += bestCost;
+          });
+          
+          return energyCost + sldcCost;
+        };
+
+        let combinations: string[][] = [];
+        if (is1MWOrMore) {
+          combinations = [['DAM'], ['RTM'], ['GDAM'], ['DAM', 'RTM'], ['DAM', 'GDAM'], ['RTM', 'GDAM'], ['DAM', 'RTM', 'GDAM']];
+        } else {
+          combinations = [['GDAM']];
+        }
+
+        let bestCombination: string[] = [];
+        let lowestTotalCost = Infinity;
+
+        let discomOnlyCost = 0;
+        dateSlots.forEach(slot => {
+          discomOnlyCost += slot.discomLandingPrice * defaultMaxEnergyPerSlot;
+        });
+        lowestTotalCost = discomOnlyCost;
+
+        combinations.forEach(combination => {
+          const totalCost = calculateTotalCost(combination);
+          if (totalCost < lowestTotalCost) {
+            lowestTotalCost = totalCost;
+            bestCombination = combination;
+          }
+        });
+
+        dateSlots.forEach(slot => {
+          let bestCost = slot.discomLandingPrice;
+          let bestMarket = 'DISCOM';
+          
+          bestCombination.forEach(market => {
+             let landingPrice = 0;
+             if (market === 'DAM') landingPrice = slot.damLandingPrice;
+             if (market === 'RTM') landingPrice = slot.rtmLandingPrice;
+             if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
+             
+             if (landingPrice > 0 && landingPrice < bestCost) {
+               bestCost = landingPrice;
+               bestMarket = market;
+             }
+          });
+          
+          slot.selectedSource = bestMarket;
+          slot.comparedLowestPrice = bestCost;
+        });
+      });
+      // --- END DAILY SLDC OPTIMIZATION ---
 
       const todCounts: Record<string, number> = {};
       slotsData.forEach(item => {
@@ -1169,8 +1247,8 @@ export class CustomSavingCalcService {
     const RPO_FLAT_RATE = 0.25;
     const NLDC_APPLICATION_FEE_PER_BID = 5;
 
-    const nldcSchedulingFees = Number(iexFees?.nldcSchedulingFees || 0);
-    const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 0);
+    const nldcSchedulingFees = Number(iexFees?.nldcSchedulingFees || 20);
+    const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 1500);
 
     if (!ctuCharges) {
       throw new Error(`CTU Charges not found for month ${month}`);
@@ -1416,15 +1494,20 @@ export class CustomSavingCalcService {
       };
 
       // Evaluate different market combinations
-      const combinations = [
-        ['DAM'],
-        ['RTM'],
-        ['GDAM'],
-        ['DAM', 'RTM'],
-        ['DAM', 'GDAM'],
-        ['RTM', 'GDAM'],
-        ['DAM', 'RTM', 'GDAM']
-      ];
+      let combinations: string[][] = [];
+      if (sanctionedLoad >= 1000) {
+        combinations = [
+          ['DAM'],
+          ['RTM'],
+          ['GDAM'],
+          ['DAM', 'RTM'],
+          ['DAM', 'GDAM'],
+          ['RTM', 'GDAM'],
+          ['DAM', 'RTM', 'GDAM']
+        ];
+      } else {
+        combinations = [['GDAM']];
+      }
 
       let bestCombination = ['DAM'];
       let lowestTotalCost = Infinity;

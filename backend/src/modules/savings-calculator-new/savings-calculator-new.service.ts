@@ -496,6 +496,11 @@ export class SavingsCalculatorNewService {
       const ctuCharges = !isNaN(yyyymmMonth) ? await prisma.ctuCharges.findFirst({ where: { month: yyyymmMonth } }) : null;
       const ctuCharge = ctuCharges?.ctu_charges_rs_per_kwh ? Number(ctuCharges.ctu_charges_rs_per_kwh) : 0;
 
+      // Query IEX Fees for SLDC/NLDC scheduling fees
+      const iexFees = await prisma.iexFees.findFirst({ where: { month: yyyymmMonth } });
+      const nldcSchedulingFees = Number(iexFees?.nldcSchedulingFees || 20);
+      const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 1500);
+
       // Query FPPA Charges backend table
       const fppaDataList = !isNaN(yyyymmMonth) ? await prisma.fppaCharges.findMany({
         where: {
@@ -591,28 +596,10 @@ export class SavingsCalculatorNewService {
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
-
+        
+        let is1MWOrMore = false;
         if (matchedCustomSlot) {
-          const availableMarkets = [];
-          const totalMonthUnits = customSlots.reduce((sum, cs) => sum + (cs.consumptionKwh || 0), 0);
-          const avgLoadKw = totalMonthUnits / (lastDay * 24);
-          const is1MWOrMore = (sanctionedLoad >= 1000);
-
-          if (is1MWOrMore) {
-            // Sanctioned Load >= 1000 kW (1 MW) or High Consumption: can buy from DAM, RTM, and GDAM
-            if (damLandingPrice > 0) availableMarkets.push({ source: 'DAM', price: damLandingPrice });
-            if (rtmLandingPrice > 0) availableMarkets.push({ source: 'RTM', price: rtmLandingPrice });
-            if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
-          } else {
-            // Sanctioned Load < 1000 kW: can ONLY buy from GDAM (or DISCOM)
-            if (gdamLandingPrice > 0) availableMarkets.push({ source: 'GDAM', price: gdamLandingPrice });
-          }
-
-          if (availableMarkets.length > 0) {
-            availableMarkets.sort((a, b) => a.price - b.price);
-            comparedLowestPrice = availableMarkets[0].price;
-            selectedSource = availableMarkets[0].source;
-          }
+          is1MWOrMore = (sanctionedLoad >= 1000);
         }
 
         return {
@@ -628,6 +615,7 @@ export class SavingsCalculatorNewService {
           discomLandingPrice,
           comparedLowestPrice,
           selectedSource,
+          is1MWOrMore,
           maxEnergyPerSlot: 0,
           discomEnergy: 0,
           marketEnergy: 0,
@@ -639,8 +627,93 @@ export class SavingsCalculatorNewService {
         };
       });
 
-      // Calculate Discom baseline cost and allocate energy across TOD windows (Formula: sanctionedLoad * 0.25)
+      // --- DAILY SLDC OPTIMIZATION ---
       const defaultMaxEnergyPerSlot = sanctionedLoad * 0.25;
+
+      const slotsByDate = new Map<string, typeof monthlySlots>();
+      monthlySlots.forEach(slot => {
+        if (!slotsByDate.has(slot.date)) slotsByDate.set(slot.date, []);
+        slotsByDate.get(slot.date)!.push(slot);
+      });
+
+      slotsByDate.forEach((dateSlots, date) => {
+        const sampleSlot = dateSlots[0];
+        if (!sampleSlot.customSlotId) return;
+
+        const is1MWOrMore = sampleSlot.is1MWOrMore;
+        const availableMarkets = is1MWOrMore ? ['DAM', 'RTM', 'GDAM'] : ['GDAM'];
+        
+        const calculateTotalCost = (markets: string[]) => {
+          let energyCost = 0;
+          let sldcCost = markets.length * sldcSchedulingFees;
+          
+          dateSlots.forEach(slot => {
+            const maxEnergy = defaultMaxEnergyPerSlot;
+            let bestCost = slot.discomLandingPrice * maxEnergy;
+            
+            markets.forEach(market => {
+              let landingPrice = 0;
+              if (market === 'DAM') landingPrice = slot.damLandingPrice;
+              if (market === 'RTM') landingPrice = slot.rtmLandingPrice;
+              if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
+              
+              if (landingPrice > 0 && landingPrice * maxEnergy < bestCost) {
+                bestCost = landingPrice * maxEnergy;
+              }
+            });
+            energyCost += bestCost;
+          });
+          
+          return energyCost + sldcCost;
+        };
+
+        let combinations: string[][] = [];
+        if (is1MWOrMore) {
+          combinations = [['DAM'], ['RTM'], ['GDAM'], ['DAM', 'RTM'], ['DAM', 'GDAM'], ['RTM', 'GDAM'], ['DAM', 'RTM', 'GDAM']];
+        } else {
+          combinations = [['GDAM']];
+        }
+
+        let bestCombination: string[] = [];
+        let lowestTotalCost = Infinity;
+
+        let discomOnlyCost = 0;
+        dateSlots.forEach(slot => {
+          discomOnlyCost += slot.discomLandingPrice * defaultMaxEnergyPerSlot;
+        });
+        lowestTotalCost = discomOnlyCost;
+
+        combinations.forEach(combination => {
+          const totalCost = calculateTotalCost(combination);
+          if (totalCost < lowestTotalCost) {
+            lowestTotalCost = totalCost;
+            bestCombination = combination;
+          }
+        });
+
+        dateSlots.forEach(slot => {
+          let bestCost = slot.discomLandingPrice;
+          let bestMarket = 'DISCOM';
+          
+          bestCombination.forEach(market => {
+             let landingPrice = 0;
+             if (market === 'DAM') landingPrice = slot.damLandingPrice;
+             if (market === 'RTM') landingPrice = slot.rtmLandingPrice;
+             if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
+             
+             if (landingPrice > 0 && landingPrice < bestCost) {
+               bestCost = landingPrice;
+               bestMarket = market;
+             }
+          });
+          
+          slot.selectedSource = bestMarket;
+          slot.comparedLowestPrice = bestCost;
+        });
+      });
+      // --- END DAILY SLDC OPTIMIZATION ---
+
+      // Calculate Discom baseline cost and allocate energy across TOD windows (Formula: sanctionedLoad * 0.25)
 
       for (const customSlot of customSlots) {
         const slotEnergyTotal = customSlot.consumptionKwh;
@@ -798,13 +871,14 @@ export class SavingsCalculatorNewService {
       slotsData.push(...monthlySlots);
     }
 
-    // Query IEX Fees from Resource Center for SLDC/NLDC scheduling fees
+    // SLDC and NLDC cost calculated from total traded days using the first month's fees as default for the whole payload if multi-month
+    // Note: We've now fetched iexFees inside the loop for the optimization, but for accumulated final totals, we'll re-fetch for the first month to set baseline fees for the accumulated tradedDays.
     const latestMonthToProcess = monthsToProcess[0]?.[0] || '';
     const [yS, mS] = latestMonthToProcess.split('-');
     const yyyymmVal = (parseInt(yS, 10) || 2026) * 100 + (parseInt(mS, 10) || 5);
-    const iexFees = await prisma.iexFees.findFirst({ where: { month: yyyymmVal } });
-    const nldcSchedulingFees = Number(iexFees?.nldcSchedulingFees || 20);
-    const sldcSchedulingFees = Number(iexFees?.sldcSchedulingFees || 1500);
+    const iexFeesAccum = await prisma.iexFees.findFirst({ where: { month: yyyymmVal } });
+    const nldcSchedulingFeesAccum = Number(iexFeesAccum?.nldcSchedulingFees || 20);
+    const sldcSchedulingFeesAccum = Number(iexFeesAccum?.sldcSchedulingFees || 1500);
 
     const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
     slotsData.forEach(s => {
@@ -821,8 +895,8 @@ export class SavingsCalculatorNewService {
     const allTradedDates = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]);
     const totalDaysTraded = allTradedDates.size;
 
-    const nldcSchedulingCost = nldcSchedulingFees * totalDaysTraded;
-    const sldcSchedulingCost = sldcSchedulingFees * (totalDamDays + totalGdamDays + totalRtmDays);
+    const nldcSchedulingCost = nldcSchedulingFeesAccum * totalDaysTraded;
+    const sldcSchedulingCost = sldcSchedulingFeesAccum * (totalDamDays + totalGdamDays + totalRtmDays);
     const dailyFixedOverhead = nldcSchedulingCost + sldcSchedulingCost;
     const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * 5;
 
