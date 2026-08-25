@@ -510,7 +510,10 @@ export class SavingsCalculatorExportService {
     totalEstRow.font = { bold: true };
     totalEstRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
-    const totalGrossBill = result.totalOptimizedCost || ((result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees);
+    const baselineCostForGross = result.fullBaselineDiscomCost || totalBaselineWithMisc;
+    const grossSavingsVal = result.grossSavings ?? Math.max(0, baselineCostForGross - ((result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees));
+    const totalGrossBill = baselineCostForGross - grossSavingsVal;
+    
     const totalGrossRow = sheet.addRow(['Total Bill (OA + DISCOM After PROLT)', Math.round(totalGrossBill)]);
     totalGrossRow.font = { bold: true };
     totalGrossRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -518,7 +521,6 @@ export class SavingsCalculatorExportService {
     rowMapping['totalBillOADiscomAfterProltRow'] = totalGrossRow.number;
     
     sheet.addRow([]);
-    const grossSavingsVal = result.grossSavings ?? Math.max(0, (result.fullBaselineDiscomCost || totalBaselineWithMisc) - totalGrossBill);
     
     const discomBeforeRow = sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0))]);
     const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
