@@ -34,8 +34,6 @@ const BiddingStrategyPage = lazy(() => import('../pages/market-operations/Biddin
 const SavingsCalculatorPage = lazy(() => import('../pages/SavingsCalculatorPage'));
 const SavingsCalculatorViewPage = lazy(() => import('../pages/SavingsCalculatorViewPage'));
 const SavingsCalculatorAnalysisPage = lazy(() => import('../pages/SavingsCalculatorAnalysisPage'));
-const CustomSavingCalcPage = lazy(() => import('../pages/CustomSavingCalcPage'));
-const CustomSavingCalcAnalysisPage = lazy(() => import('../pages/CustomSavingCalcAnalysisPage'));
 const SavingsCalculatorNewPage = lazy(() => import('../pages/SavingsCalculatorNewPage'));
 const SavingsCalculatorNewAnalysisPage = lazy(() => import('../pages/SavingsCalculatorNewAnalysisPage'));
 const ForecastPage = lazy(() => import('../pages/ForecastPage'));
@@ -51,86 +49,86 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="customer-lead" element={<CustomerLeadPage />} />
-          <Route path="savings-calculator" element={<SavingsCalculatorPage />} />
-          <Route path="savings-calculator/view/:id" element={<SavingsCalculatorViewPage />} />
-          <Route path="savings-calculator/analysis/:id" element={<SavingsCalculatorAnalysisPage />} />
-          <Route path="custom-saving-calc" element={<CustomSavingCalcPage />} />
-          <Route path="custom-saving-calc/:id/analysis" element={<CustomSavingCalcAnalysisPage />} />
-          <Route path="savings-calculator-new" element={<SavingsCalculatorNewPage />} />
-          <Route path="savings-calculator-new/:id/analysis" element={<SavingsCalculatorNewAnalysisPage />} />
-          
-          {/* Module Layout wrapping all module sub-pages */}
-          <Route element={<ModuleLayout />}>
-            {/* Database Sub-pages */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<DashboardLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="customer-lead" element={<CustomerLeadPage />} />
+            <Route path="savings-calculator" element={<SavingsCalculatorPage />} />
+            <Route path="savings-calculator/view/:id" element={<SavingsCalculatorViewPage />} />
+            <Route path="savings-calculator/analysis/:id" element={<SavingsCalculatorAnalysisPage />} />
+            <Route path="custom-saving-calc" element={<CustomSavingCalcPage />} />
+            <Route path="custom-saving-calc/:id/analysis" element={<CustomSavingCalcAnalysisPage />} />
+            <Route path="savings-calculator-new" element={<SavingsCalculatorNewPage />} />
+            <Route path="savings-calculator-new/:id/analysis" element={<SavingsCalculatorNewAnalysisPage />} />
+
+            {/* Module Layout wrapping all module sub-pages */}
+            <Route element={<ModuleLayout />}>
+              {/* Database Sub-pages */}
+              <Route element={<ProtectedRoute requireAdmin />}>
+                <Route path="database/all-india-demand" element={<DatabasePage />} />
+                <Route path="database/generation-data" element={<DatabasePage />} />
+                <Route path="database/state-wise-demand" element={<DatabasePage />} />
+                <Route path="database/city-state-data" element={<DatabasePage />} />
+                <Route path="database/weather" element={<Navigate to="/database/weather/forecast" replace />} />
+                <Route path="database/weather/forecast" element={<DatabasePage />} />
+                <Route path="database/weather/historical" element={<DatabasePage />} />
+                <Route path="database/holiday-calendar" element={<DatabasePage />} />
+                <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
+              </Route>
+
+              {/* Market Sub-pages */}
+              <Route path="dam" element={<DAMPage />} />
+              <Route path="gdam" element={<GDAMPage />} />
+              <Route path="rtm" element={<RTMPage />} />
+              <Route path="rec" element={<RECPage />} />
+              <Route path="market-operations" element={<Navigate to="/market-operations/trend" replace />} />
+              <Route path="market-operations/trend" element={<MarketOperationsPage />} />
+              <Route path="market-operations/mcp-analyst" element={<McpAnalystPage />} />
+              <Route path="market-operations/bidding-strategy" element={<BiddingStrategyPage />} />
+              <Route path="markets" element={<Navigate to="/dam" replace />} />
+
+              {/* Forecast Sub-pages */}
+              <Route path="forecast/price/dam" element={<ForecastPage />} />
+              <Route path="forecast/price/rtm" element={<ForecastPage />} />
+              <Route path="forecast/price/gdam" element={<ForecastPage />} />
+              <Route path="forecast/demand/consumer" element={<ForecastPage />} />
+              <Route path="forecast/demand/all-india" element={<ForecastPage />} />
+              <Route path="forecast/generation/npp" element={<ForecastPage />} />
+              <Route path="forecast/generation/npf" element={<Navigate to="/forecast/generation/npp" replace />} />
+              <Route path="forecast" element={<Navigate to="/forecast/price/dam" replace />} />
+
+              {/* Resource Center Sub-pages */}
+              <Route path="resource-center/region-state" element={<RegionStatePage />} />
+              <Route path="resource-center/discom-list" element={<DiscomListPage />} />
+              <Route path="resource-center/ists-charges" element={<IstsChargesPage />} />
+              <Route path="resource-center/iex-fees" element={<IexFeesPage />} />
+
+              <Route path="resource-center/ctu-charges" element={<CtuChargesPage />} />
+              <Route path="resource-center/state-charges" element={<StateChargesPage />} />
+              <Route path="resource-center/state-tariff" element={<StateTariffPage />} />
+              <Route path="resource-center/fppa-charges" element={<FppaChargesPage />} />
+              <Route path="resource-center" element={<Navigate to="/resource-center/region-state" replace />} />
+            </Route>
+
+            {/* Admin routes are now restricted to admins only */}
             <Route element={<ProtectedRoute requireAdmin />}>
-              <Route path="database/all-india-demand" element={<DatabasePage />} />
-              <Route path="database/generation-data" element={<DatabasePage />} />
-              <Route path="database/state-wise-demand" element={<DatabasePage />} />
-              <Route path="database/city-state-data" element={<DatabasePage />} />
-              <Route path="database/weather" element={<Navigate to="/database/weather/forecast" replace />} />
-              <Route path="database/weather/forecast" element={<DatabasePage />} />
-              <Route path="database/weather/historical" element={<DatabasePage />} />
-              <Route path="database/holiday-calendar" element={<DatabasePage />} />
-              <Route path="database" element={<Navigate to="/database/all-india-demand" replace />} />
+              <Route path="admin">
+                <Route index element={<AdminPage />} />
+                <Route path="market-data" element={<MarketDataAdminPage />} />
+                <Route path="resource-center" element={<ResourceCenterAdminPage />} />
+                <Route path="resource-center/:resourceType" element={<AdminResourcePage />} />
+                <Route path="api-logs" element={<ApiLogsAdminPage />} />
+              </Route>
             </Route>
 
-            {/* Market Sub-pages */}
-            <Route path="dam" element={<DAMPage />} />
-            <Route path="gdam" element={<GDAMPage />} />
-            <Route path="rtm" element={<RTMPage />} />
-            <Route path="rec" element={<RECPage />} />
-            <Route path="market-operations" element={<Navigate to="/market-operations/trend" replace />} />
-            <Route path="market-operations/trend" element={<MarketOperationsPage />} />
-            <Route path="market-operations/mcp-analyst" element={<McpAnalystPage />} />
-            <Route path="market-operations/bidding-strategy" element={<BiddingStrategyPage />} />
-            <Route path="markets" element={<Navigate to="/dam" replace />} />
-            
-            {/* Forecast Sub-pages */}
-            <Route path="forecast/price/dam" element={<ForecastPage />} />
-            <Route path="forecast/price/rtm" element={<ForecastPage />} />
-            <Route path="forecast/price/gdam" element={<ForecastPage />} />
-            <Route path="forecast/demand/consumer" element={<ForecastPage />} />
-            <Route path="forecast/demand/all-india" element={<ForecastPage />} />
-            <Route path="forecast/generation/npp" element={<ForecastPage />} />
-            <Route path="forecast/generation/npf" element={<Navigate to="/forecast/generation/npp" replace />} />
-            <Route path="forecast" element={<Navigate to="/forecast/price/dam" replace />} />
-            
-            {/* Resource Center Sub-pages */}
-            <Route path="resource-center/region-state" element={<RegionStatePage />} />
-            <Route path="resource-center/discom-list" element={<DiscomListPage />} />
-            <Route path="resource-center/ists-charges" element={<IstsChargesPage />} />
-            <Route path="resource-center/iex-fees" element={<IexFeesPage />} />
-
-            <Route path="resource-center/ctu-charges" element={<CtuChargesPage />} />
-            <Route path="resource-center/state-charges" element={<StateChargesPage />} />
-            <Route path="resource-center/state-tariff" element={<StateTariffPage />} />
-            <Route path="resource-center/fppa-charges" element={<FppaChargesPage />} />
-            <Route path="resource-center" element={<Navigate to="/resource-center/region-state" replace />} />
-          </Route>
-          
-          {/* Admin routes are now restricted to admins only */}
-          <Route element={<ProtectedRoute requireAdmin />}>
-            <Route path="admin">
-              <Route index element={<AdminPage />} />
-              <Route path="market-data" element={<MarketDataAdminPage />} />
-              <Route path="resource-center" element={<ResourceCenterAdminPage />} />
-              <Route path="resource-center/:resourceType" element={<AdminResourcePage />} />
-              <Route path="api-logs" element={<ApiLogsAdminPage />} />
+            <Route element={<ProtectedRoute requireSuperAdmin />}>
+              <Route path="admin/users" element={<UserManagementPage />} />
             </Route>
-          </Route>
-          
-          <Route element={<ProtectedRoute requireSuperAdmin />}>
-            <Route path="admin/users" element={<UserManagementPage />} />
           </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
     </Suspense>
   );
 }
