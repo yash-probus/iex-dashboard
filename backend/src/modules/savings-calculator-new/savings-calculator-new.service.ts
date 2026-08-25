@@ -927,7 +927,8 @@ export class SavingsCalculatorNewService {
     const proltMarginVal = Number(entry.proltMargin) || 0;
     const traderMarginVal = Number(entry.traderMargin) || 0;
     const consultancyFeeVal = Number(entry.consultancyFee) || 0;
-    const probusPlatformFeeVal = Number(entry.probusPlatformFee) || 0;
+    const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
+    const probusPlatformFeeVal = Math.round(totalMarketEnergyKwh * platformFeeRate);
     const meteringChargesVal = Number(entry.meteringCharges) || 0;
 
     const traderMarginCost = totalMarketEnergyKwh * traderMarginVal * 1.18;
