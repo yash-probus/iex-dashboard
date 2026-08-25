@@ -54,14 +54,6 @@ const MODULES = [
     color: '#8B5CF6'
   },
   {
-    key: 'custom-saving-calc',
-    title: 'Custom Savings Calculator',
-    description: 'Calculate Open Access savings with custom TOD start/end timings and direct effective Discom prices.',
-    path: '/custom-saving-calc',
-    icon: <CalculateIcon sx={{ fontSize: 24 }} />,
-    color: '#EC4899'
-  },
-  {
     key: 'savings-calculator-new',
     title: 'Savings Calculator (New)',
     description: 'Calculate Open Access savings with state utility tariffs (New layout).',
