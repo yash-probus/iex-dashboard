@@ -544,6 +544,11 @@ export class SavingsCalculatorExportService {
     const consultancyRow = sheet.addRow(['Consultancy Fee', consultancyFeeVal]);
     rowMapping['consultancyFeeRow'] = consultancyRow.number;
 
+    const savingsAfterFixedFees = Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal));
+    const savingsAfterFixedFeesRow = sheet.addRow(['Saving after Fixed Fees', Math.round(savingsAfterFixedFees)]);
+    savingsAfterFixedFeesRow.font = { bold: true };
+    savingsAfterFixedFeesRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
+
     const platformRow = sheet.addRow(['Platform Fee', probusPlatformFee]);
     rowMapping['platformFeeRow'] = platformRow.number;
 
