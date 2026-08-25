@@ -316,6 +316,7 @@ model StateTariff {
   supplyVoltageCategory String   @map("supply_voltage_category") @db.VarChar(100)
   supplyVoltage         String   @map("supply_voltage") @db.VarChar(50)
   month                 Int
+  consumptionMonth      Int?     @map("consumption_month")
   todStartTime          String   @map("tod_start_time") @db.VarChar(20)
   todEndTime            String   @map("tod_end_time") @db.VarChar(20)
   baseEnergyRate        Decimal  @map("base_energy_rate") @db.Decimal(12, 6)

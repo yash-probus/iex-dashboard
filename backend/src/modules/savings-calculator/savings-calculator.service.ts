@@ -724,12 +724,19 @@ export class SavingsCalculatorService {
           where: fallbackWhere,
           orderBy: { month: 'desc' }
         });
-        const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
+        const sameMonthTariff = allTariffs.find(t => 
+          t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+        );
         const latestTariff = sameMonthTariff || allTariffs[0];
 
         if (latestTariff) {
-          whereClause.month = latestTariff.month;
-          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
+          if (latestTariff.consumptionMonth) {
+            whereClause.consumptionMonth = latestTariff.consumptionMonth;
+            tariffs = allTariffs.filter(t => t.consumptionMonth === latestTariff.consumptionMonth);
+          } else {
+            whereClause.month = latestTariff.month;
+            tariffs = allTariffs.filter(t => t.month === latestTariff.month);
+          }
         }
       }
 
@@ -1290,12 +1297,19 @@ export class SavingsCalculatorService {
         where: fallbackWhere,
         orderBy: { month: 'desc' }
       });
-      const sameMonthTariff = allTariffs.find(t => (t.month % 100) === month);
+      const sameMonthTariff = allTariffs.find(t => 
+        t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+      );
       const latestTariff = sameMonthTariff || allTariffs[0];
 
       if (latestTariff) {
-        whereClauseTariff.month = latestTariff.month;
-        tariffs = allTariffs.filter(t => t.month === latestTariff.month);
+        if (latestTariff.consumptionMonth) {
+          whereClauseTariff.consumptionMonth = latestTariff.consumptionMonth;
+          tariffs = allTariffs.filter(t => t.consumptionMonth === latestTariff.consumptionMonth);
+        } else {
+          whereClauseTariff.month = latestTariff.month;
+          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
+        }
       }
     }
 
