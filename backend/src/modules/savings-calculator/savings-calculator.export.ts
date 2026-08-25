@@ -395,50 +395,20 @@ export class SavingsCalculatorExportService {
 
     sheet.addRow([]);
     
-    // Add charges header with rate/kWh information
-    const chargesHeader = ['Open Access Charge Type', 'Total Amount (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
-    const chargesHeaderRow = sheet.addRow(chargesHeader);
-    chargesHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    chargesHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
-    
-    const t = oaDetailed.totals;
+    // Add Losses header (Informational)
+    const lossesHeader = ['Physical Transmission Losses (Informational)', 'Cost Eq. (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
+    const lossesHeaderRow = sheet.addRow(lossesHeader);
+    lossesHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    lossesHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF808080' } });
+
     const totalMarketEnergy = result.totalMarketEnergyKwh;
-    
-    // Calculate and add each charge with rate information
-    const addChargeRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
-      const r = sheet.addRow([
-        name,
-        Math.round(amount),
-        ratePerKwh > 0 ? Number(ratePerKwh.toFixed(4)) : '-',
-        basisKwh > 0 ? Math.round(basisKwh) : '-',
-        percentage > 0 ? Number(percentage.toFixed(2)) : '-'
-      ]);
-      if (name === 'Trader Margin') {
-        rowMapping['traderMarginChargeRow'] = r.number;
-      }
-    };
-    
     const totalMarketEnergyCost = todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
     const avgMarketPrice = totalMarketEnergy > 0 ? totalMarketEnergyCost / totalMarketEnergy : 0;
 
-    // Energy Charges (Market)
-    addChargeRow('Energy Charges (Market)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
-
-    // Cross Subsidy (rate varies by state, use actual rate from calculation)
-    // Note: Cross subsidy is applied to consumer bus units (after losses), not market energy
-    const cssRate = (t as any).cssRate || 0;
-    const cssBasis = totalMarketEnergy; // Showing market energy for reference
-    addChargeRow('Cross Subsidy', t.cssCharge, cssRate, cssBasis);
-    
-    // RPPO (flat rate of ₹0.25/kWh)
-    addChargeRow('RPPO', t.rpoCharge, 0.25, t.rpoCharge / 0.25);
-    
     // Losses (Percentages)
     const istsLoss = slotsData.length > 0 ? (slotsData[0] as any).istsLoss || 0 : 0;
     const stuLoss = slotsData.length > 0 ? (slotsData[0] as any).stuLoss || 0 : 0;
     const wheelingLoss = slotsData.length > 0 ? (slotsData[0] as any).wheelingLoss || 0 : 0;
-    
-
     
     const istsBasis = totalMarketEnergy;
     const istsLostUnits = istsBasis * (istsLoss / 100);
@@ -452,9 +422,52 @@ export class SavingsCalculatorExportService {
     const wheelingLostUnits = wheelingBasis * (wheelingLoss / 100);
     const wheelingLossAmount = wheelingLostUnits * avgMarketPrice;
 
-    addChargeRow('ISTS Loss', istsLossAmount, avgMarketPrice, istsBasis, istsLoss);
-    addChargeRow('STU Loss', stuLossAmount, avgMarketPrice, stuBasis, stuLoss);
-    addChargeRow('Wheeling Loss', wheelingLossAmount, avgMarketPrice, wheelingBasis, wheelingLoss);
+    const addInformationalRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
+      sheet.addRow([
+        name,
+        Math.round(amount),
+        ratePerKwh > 0 ? Number(ratePerKwh.toFixed(4)) : '-',
+        basisKwh > 0 ? Math.round(basisKwh) : '-',
+        percentage > 0 ? Number(percentage.toFixed(2)) : '-'
+      ]);
+    };
+
+    addInformationalRow('ISTS Loss', istsLossAmount, avgMarketPrice, istsBasis, istsLoss);
+    addInformationalRow('STU Loss', stuLossAmount, avgMarketPrice, stuBasis, stuLoss);
+    addInformationalRow('Wheeling Loss', wheelingLossAmount, avgMarketPrice, wheelingBasis, wheelingLoss);
+
+    sheet.addRow([]);
+
+    // Add charges header with rate/kWh information
+    const chargesHeader = ['Open Access Charge Type', 'Total Amount (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
+    const chargesHeaderRow = sheet.addRow(chargesHeader);
+    chargesHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    chargesHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
+    
+    const t = oaDetailed.totals;
+    
+    // Calculate and add each charge with rate information
+    const addChargeRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
+      const r = sheet.addRow([
+        name,
+        Math.round(amount),
+        ratePerKwh > 0 ? Number(ratePerKwh.toFixed(4)) : '-',
+        basisKwh > 0 ? Math.round(basisKwh) : '-',
+        percentage > 0 ? Number(percentage.toFixed(2)) : '-'
+      ]);
+    };
+    
+    // Energy Charges (Market)
+    addChargeRow('Energy Charges (Market)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
+
+    // Cross Subsidy (rate varies by state, use actual rate from calculation)
+    // Note: Cross subsidy is applied to consumer bus units (after losses), not market energy
+    const cssRate = (t as any).cssRate || 0;
+    const cssBasis = totalMarketEnergy; // Showing market energy for reference
+    addChargeRow('Cross Subsidy', t.cssCharge, cssRate, cssBasis);
+    
+    // RPPO (flat rate of ₹0.25/kWh)
+    addChargeRow('RPPO', t.rpoCharge, 0.25, t.rpoCharge / 0.25);
 
     // POC charges (CTU charges)
     const pocRate = totalMarketEnergy > 0 ? t.pocCharge / totalMarketEnergy : 0;
@@ -470,11 +483,6 @@ export class SavingsCalculatorExportService {
     
     // IEX fee (fixed at ₹0.02/kWh)
     addChargeRow('IEX fee', t.iexFee, 0.02, totalMarketEnergy, 0.02);
-    
-    // Trader Margin (varies, calculate rate)
-    const traderMargin = (t as any).traderMargin || 0;
-    const traderRate = totalMarketEnergy > 0 ? traderMargin / totalMarketEnergy : 0;
-    addChargeRow('Trader Margin', traderMargin, traderRate, totalMarketEnergy);
     
     // SLDC Operating charges (per market per day)
     // Calculate SLDC breakdown by market
@@ -578,7 +586,7 @@ export class SavingsCalculatorExportService {
     // Auto-fit column A
     sheet.getColumn(1).width = 40;
 
-    // Apply borders to the 5 tables
+    // Apply borders to the 6 tables
     const applyBordersRange = (start: number, end: number, cols: number) => {
       for (let i = start; i <= end; i++) {
         const r = sheet.getRow(i);
@@ -593,6 +601,7 @@ export class SavingsCalculatorExportService {
     applyBordersRange(breakdownHeaderRow.number, todTotalRow.number, 7);
     applyBordersRange(baseHeaderRow.number, baseTotalRow.number, 2);
     applyBordersRange(afterHeaderRow.number, afterTotalRow.number, 2);
+    applyBordersRange(lossesHeaderRow.number, lossesHeaderRow.number + 3, 5);
     applyBordersRange(chargesHeaderRow.number, totalGrossRow.number, 5);
     applyBordersRange(discomBeforeRow.number, finalSavingsRow.number, 2);
 
