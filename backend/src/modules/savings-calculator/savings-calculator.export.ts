@@ -527,6 +527,7 @@ export class SavingsCalculatorExportService {
     const grossSavingsRow = sheet.addRow(['Gross Savings', Math.round(grossSavingsVal)]);
     grossSavingsRow.font = { bold: true };
     grossSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
+    rowMapping['grossSavingsRow'] = grossSavingsRow.number;
     
     const nocFee = (result as any).oaDetailed?.totals?.nocFee !== undefined ? (result as any).oaDetailed.totals.nocFee : (entry.nocFee !== undefined && entry.nocFee !== null ? Number(entry.nocFee) : 0);
     const regFee = (result as any).oaDetailed?.totals?.regFee !== undefined ? (result as any).oaDetailed.totals.regFee : (entry.iexRegFee !== undefined && entry.iexRegFee !== null ? Number(entry.iexRegFee) : 0);
@@ -797,8 +798,8 @@ export class SavingsCalculatorExportService {
 
     const totalSavingRowData: any[] = ['Total Saving'];
     allResults.forEach((r, idx) => {
-      const colChar = getColLetter(idx + 2);
-      const formula = `MAX(0,${colChar}${discomCostRowNumber}-${colChar}${totalPowerCostOARowNumber})`;
+      const mMapping = monthRowMap[r.monthStr];
+      const formula = `'${mMapping.sheetName}'!B${mMapping.grossSavingsRow}`;
       totalSavingRowData.push({ formula });
     });
     const totalSavingRow = sheet.addRow(totalSavingRowData);
