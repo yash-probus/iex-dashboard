@@ -392,6 +392,8 @@ export class SavingsCalculatorService {
             aggregatedTotals.proltMarginCost += t.proltMarginCost;
             aggregatedTotals.consultancyFee += (t as any).consultancyFee || 0;
             aggregatedTotals.probusPlatformFee += (t as any).probusPlatformFee || 0;
+            (aggregatedTotals as any).nocFee = 7000;
+            (aggregatedTotals as any).regFee = 8333;
 
             aggregatedDailyOverhead += res.oaDetailed.dailyFixedOverhead;
             aggregatedNldc += res.oaDetailed.nldcSchedulingCost;
@@ -2172,6 +2174,8 @@ export class SavingsCalculatorService {
           proltMarginCost: totalProltMarginCost,
           consultancyFee: consultancyFeeVal,
           probusPlatformFee,
+          nocFee,
+          regFee
         }
       }
     };
