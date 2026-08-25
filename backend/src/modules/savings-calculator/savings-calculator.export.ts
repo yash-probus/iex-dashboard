@@ -498,9 +498,15 @@ export class SavingsCalculatorExportService {
     
     const baselineCostForGross = result.fullBaselineDiscomCost || totalBaselineWithMisc;
     const grossSavingsVal = result.grossSavings ?? Math.max(0, baselineCostForGross - ((result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees));
-    const totalGrossBill = baselineCostForGross - grossSavingsVal;
     
-    const totalGrossRow = sheet.addRow(['Total Bill (OA + DISCOM After PROLT)', Math.round(totalGrossBill)]);
+    // Calculate exact visual values for Discom to prevent any rounding arithmetic mismatch
+    const visibleDiscomBefore = Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0));
+    const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
+    const visibleDiscomAfter = Math.round(discomAfterProltWithMisc);
+    
+    const visibleTotalGrossBill = visibleTotalOa + visibleDiscomAfter;
+    
+    const totalGrossRow = sheet.addRow(['Total Bill (OA + DISCOM After PROLT)', visibleTotalGrossBill]);
     totalGrossRow.font = { bold: true };
     totalGrossRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
@@ -551,11 +557,13 @@ export class SavingsCalculatorExportService {
     }
 
     
-    const discomBeforeRow = sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0))]);
-    const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
-    sheet.addRow(['DISCOM Bill After PROLT', Math.round(discomAfterProltWithMisc)]);
+    const discomBeforeRow = sheet.addRow(['DISCOM Bill Before PROLT', visibleDiscomBefore]);
+    sheet.addRow(['DISCOM Bill After PROLT', visibleDiscomAfter]);
     
-    const grossSavingsRow = sheet.addRow(['Gross Savings', Math.round(grossSavingsVal)]);
+    // Instead of using Math.round(grossSavingsVal) which might be off by 1 or 2 due to rounding individual parts,
+    // we use the exact visual difference to ensure the math always looks perfect on the sheet.
+    const visibleGrossSavings = visibleDiscomBefore - visibleTotalGrossBill;
+    const grossSavingsRow = sheet.addRow(['Gross Savings', visibleGrossSavings]);
     grossSavingsRow.font = { bold: true };
     grossSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     rowMapping['grossSavingsRow'] = grossSavingsRow.number;
