@@ -119,8 +119,8 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
             Scroller: React.forwardRef<HTMLDivElement, any>((props, ref) => (
               <MuiTableContainer {...props} ref={ref} sx={{ ...props.sx, flex: 1 }} />
             )),
-            Table: (props) => <Table {...props} stickyHeader size="small" sx={{ minWidth: 'max-content' }} />,
-            TableHead: TableHead,
+            Table: React.forwardRef<HTMLTableElement, any>((props, ref) => <Table {...props} ref={ref} stickyHeader size="small" sx={{ minWidth: 'max-content' }} />) as any,
+            TableHead: React.forwardRef<HTMLTableSectionElement, any>((props, ref) => <TableHead {...props} ref={ref} />) as any,
             TableRow: ({ item: _item, ...props }) => (
               <TableRow 
                 {...props} 
@@ -130,7 +130,7 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
             ),
             TableBody: React.forwardRef<HTMLTableSectionElement, any>((props, ref) => (
               <TableBody {...props} ref={ref} />
-            )),
+            )) as any,
             EmptyPlaceholder: () => (
               <Box sx={{ p: 4, textAlign: 'center' }}>
                 {emptyStateMessage || (
