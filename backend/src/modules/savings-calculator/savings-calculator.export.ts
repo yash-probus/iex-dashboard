@@ -395,48 +395,9 @@ export class SavingsCalculatorExportService {
 
     sheet.addRow([]);
     
-    // Add Losses header (Informational)
-    const lossesHeader = ['Physical Transmission Losses (Informational)', 'Cost Eq. (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
-    const lossesHeaderRow = sheet.addRow(lossesHeader);
-    lossesHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    lossesHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF808080' } });
-
     const totalMarketEnergy = result.totalMarketEnergyKwh;
     const totalMarketEnergyCost = todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
     const avgMarketPrice = totalMarketEnergy > 0 ? totalMarketEnergyCost / totalMarketEnergy : 0;
-
-    // Losses (Percentages)
-    const istsLoss = slotsData.length > 0 ? (slotsData[0] as any).istsLoss || 0 : 0;
-    const stuLoss = slotsData.length > 0 ? (slotsData[0] as any).stuLoss || 0 : 0;
-    const wheelingLoss = slotsData.length > 0 ? (slotsData[0] as any).wheelingLoss || 0 : 0;
-    
-    const istsBasis = totalMarketEnergy;
-    const istsLostUnits = istsBasis * (istsLoss / 100);
-    const istsLossAmount = istsLostUnits * avgMarketPrice;
-    
-    const stuBasis = istsBasis - istsLostUnits;
-    const stuLostUnits = stuBasis * (stuLoss / 100);
-    const stuLossAmount = stuLostUnits * avgMarketPrice;
-    
-    const wheelingBasis = stuBasis - stuLostUnits;
-    const wheelingLostUnits = wheelingBasis * (wheelingLoss / 100);
-    const wheelingLossAmount = wheelingLostUnits * avgMarketPrice;
-
-    const addInformationalRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
-      sheet.addRow([
-        name,
-        Math.round(amount),
-        ratePerKwh > 0 ? Number(ratePerKwh.toFixed(4)) : '-',
-        basisKwh > 0 ? Math.round(basisKwh) : '-',
-        percentage > 0 ? Number(percentage.toFixed(2)) : '-'
-      ]);
-    };
-
-    addInformationalRow('ISTS Loss', istsLossAmount, avgMarketPrice, istsBasis, istsLoss);
-    addInformationalRow('STU Loss', stuLossAmount, avgMarketPrice, stuBasis, stuLoss);
-    addInformationalRow('Wheeling Loss', wheelingLossAmount, avgMarketPrice, wheelingBasis, wheelingLoss);
-
-    sheet.addRow([]);
 
     // Add charges header with rate/kWh information
     const chargesHeader = ['Open Access Charge Type', 'Total Amount (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
@@ -458,7 +419,7 @@ export class SavingsCalculatorExportService {
     };
     
     // Energy Charges (Market)
-    addChargeRow('Energy Charges (Market)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
+    addChargeRow('Energy Charges (Market) (inc losses)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
 
     // Cross Subsidy (rate varies by state, use actual rate from calculation)
     // Note: Cross subsidy is applied to consumer bus units (after losses), not market energy
@@ -508,7 +469,6 @@ export class SavingsCalculatorExportService {
     sheet.addRow(['SLDC Operating charges - DAM', Math.round(damSldcCost), '-', `${tradedDays.DAM.size} days`, '-']);
     sheet.addRow(['SLDC Operating charges - GDAM', Math.round(gdamSldcCost), '-', `${tradedDays.GDAM.size} days`, '-']);
     sheet.addRow(['SLDC Operating charges - RTM', Math.round(rtmSldcCost), '-', `${tradedDays.RTM.size} days`, '-']);
-    sheet.addRow(['SLDC Operating charges - Total', Math.round(sldcCost), '-', `${tradedDays.DAM.size + tradedDays.GDAM.size + tradedDays.RTM.size} markets`, '-']);
     
     // NLDC Scheduling charges (fixed per unique day)
     const nldcCost = (oaDetailed as any).nldcSchedulingCost || 0;
@@ -525,7 +485,9 @@ export class SavingsCalculatorExportService {
                            Math.round(t.stuCharge) + 
                            Math.round(t.dcCharge) + 
                            Math.round(t.iexFee) + 
-                           Math.round(sldcCost) + 
+                           Math.round(damSldcCost) + 
+                           Math.round(gdamSldcCost) + 
+                           Math.round(rtmSldcCost) + 
                            Math.round(nldcCost) + 
                            Math.round(oaDetailed.bidApplicationFees);
 
@@ -545,6 +507,49 @@ export class SavingsCalculatorExportService {
     rowMapping['totalBillOADiscomAfterProltRow'] = totalGrossRow.number;
     
     sheet.addRow([]);
+    
+    // Add Losses header (Informational)
+    let lossesHeaderRow: any;
+    if (result.totalMarketEnergyKwh > 0) {
+      const lossesHeader = ['Physical Transmission Losses (Informational)', 'Cost Eq. (₹)', 'Rate per kWh (₹)', 'Basis (kWh)', 'Percentage (%)'];
+      lossesHeaderRow = sheet.addRow(lossesHeader);
+      lossesHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      lossesHeaderRow.eachCell((c: any) => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF808080' } });
+
+      const istsLoss = slotsData.length > 0 ? (slotsData[0] as any).istsLoss || 0 : 0;
+      const stuLoss = slotsData.length > 0 ? (slotsData[0] as any).stuLoss || 0 : 0;
+      const wheelingLoss = slotsData.length > 0 ? (slotsData[0] as any).wheelingLoss || 0 : 0;
+      
+      const istsBasis = totalMarketEnergy;
+      const istsLostUnits = istsBasis * (istsLoss / 100);
+      const istsLossAmount = istsLostUnits * avgMarketPrice;
+      
+      const stuBasis = istsBasis - istsLostUnits;
+      const stuLostUnits = stuBasis * (stuLoss / 100);
+      const stuLossAmount = stuLostUnits * avgMarketPrice;
+      
+      const wheelingBasis = stuBasis - stuLostUnits;
+      const wheelingLostUnits = wheelingBasis * (wheelingLoss / 100);
+      const wheelingLossAmount = wheelingLostUnits * avgMarketPrice;
+
+      const addInformationalRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
+        sheet.addRow([
+          name,
+          Math.round(amount),
+          ratePerKwh > 0 ? Number(ratePerKwh.toFixed(4)) : '-',
+          basisKwh > 0 ? Math.round(basisKwh) : '-',
+          percentage > 0 ? Number(percentage.toFixed(2)) : '-'
+        ]);
+      };
+
+      addInformationalRow('ISTS Loss', istsLossAmount, avgMarketPrice, istsBasis, istsLoss);
+      addInformationalRow('STU Loss', stuLossAmount, avgMarketPrice, stuBasis, stuLoss);
+      addInformationalRow('Wheeling Loss', wheelingLossAmount, avgMarketPrice, wheelingBasis, wheelingLoss);
+      sheet.addRow([]);
+    } else {
+      lossesHeaderRow = { number: sheet.rowCount + 1 };
+    }
+
     
     const discomBeforeRow = sheet.addRow(['DISCOM Bill Before PROLT', Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0))]);
     const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
