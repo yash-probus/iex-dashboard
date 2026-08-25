@@ -497,9 +497,9 @@ export class SavingsCalculatorExportService {
     
     const nocFee = (result as any).oaDetailed?.totals?.nocFee !== undefined ? (result as any).oaDetailed.totals.nocFee : (entry.nocFee !== undefined && entry.nocFee !== null ? Number(entry.nocFee) : 0);
     const regFee = (result as any).oaDetailed?.totals?.regFee !== undefined ? (result as any).oaDetailed.totals.regFee : (entry.iexRegFee !== undefined && entry.iexRegFee !== null ? Number(entry.iexRegFee) : 0);
-    const consultancyFeeVal = (result as any).aggregatedTotals?.consultancyFee || (entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 0);
+    const consultancyFeeVal = (result as any).oaDetailed?.totals?.consultancyFee !== undefined ? (result as any).oaDetailed.totals.consultancyFee : ((result as any).aggregatedTotals?.consultancyFee || (entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 0));
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
-    const probusPlatformFee = (result as any).aggregatedTotals?.probusPlatformFee || Math.round(result.totalMarketEnergyKwh * platformFeeRate);
+    const probusPlatformFee = (result as any).oaDetailed?.totals?.probusPlatformFee !== undefined ? (result as any).oaDetailed.totals.probusPlatformFee : ((result as any).aggregatedTotals?.probusPlatformFee || Math.round(result.totalMarketEnergyKwh * platformFeeRate));
     const proltMarginVal = (result as any).oaDetailed?.totals?.proltMarginCost || (result as any).aggregatedTotals?.proltMarginCost || (result as any).proltMarginCost || 0;
     const nocRow = sheet.addRow(['Monthly NOC Fee', nocFee]);
     rowMapping['nocFeeRow'] = nocRow.number;
