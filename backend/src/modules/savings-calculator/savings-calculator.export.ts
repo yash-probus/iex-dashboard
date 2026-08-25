@@ -518,8 +518,19 @@ export class SavingsCalculatorExportService {
     // NLDC application charges (fixed per bid)
     sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees), '-', '-', '-']);
     
+    const visibleTotalOa = Math.round(totalMarketEnergyCost) + 
+                           Math.round(t.cssCharge) + 
+                           Math.round(t.rpoCharge) + 
+                           Math.round(t.pocCharge) + 
+                           Math.round(t.stuCharge) + 
+                           Math.round(t.dcCharge) + 
+                           Math.round(t.iexFee) + 
+                           Math.round(sldcCost) + 
+                           Math.round(nldcCost) + 
+                           Math.round(oaDetailed.bidApplicationFees);
+
     sheet.addRow([]);
-    const totalEstRow = sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', Math.round(totalOaBRounded + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees)]);
+    const totalEstRow = sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', visibleTotalOa]);
     totalEstRow.font = { bold: true };
     totalEstRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
@@ -572,6 +583,7 @@ export class SavingsCalculatorExportService {
     
     const traderMarginVal = (result as any).oaDetailed?.totals?.traderMargin || (result as any).aggregatedTotals?.traderMargin || (result as any).traderMarginCost || 0;
     const traderMarginSumRow = sheet.addRow(['Trader Margin', Math.round(traderMarginVal)]);
+    rowMapping['traderMarginChargeRow'] = traderMarginSumRow.number;
     
     const finalSavings = result.totalSavings ?? Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal + traderMarginVal));
     const finalSavingsRow = sheet.addRow(['Final Client Savings (Saving for your business)', Math.round(finalSavings)]);
