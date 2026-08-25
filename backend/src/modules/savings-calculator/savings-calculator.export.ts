@@ -550,6 +550,9 @@ export class SavingsCalculatorExportService {
     const valueShareRow = sheet.addRow(['Value-Share for Energy Platform', Math.round(proltMarginVal)]);
     rowMapping['valueShareRow'] = valueShareRow.number;
     
+    const traderMarginVal = (result as any).oaDetailed?.totals?.traderMargin || (result as any).aggregatedTotals?.traderMargin || (result as any).traderMarginCost || 0;
+    const traderMarginSumRow = sheet.addRow(['Trader Margin', Math.round(traderMarginVal)]);
+    
     const finalSavings = result.totalSavings ?? Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal));
     const finalSavingsRow = sheet.addRow(['Final Client Savings (Saving for your business)', Math.round(finalSavings)]);
     finalSavingsRow.font = { bold: true };
