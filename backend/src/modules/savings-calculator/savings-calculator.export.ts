@@ -315,7 +315,7 @@ export class SavingsCalculatorExportService {
         correctFppa = combinedEnergyAndDemand - baseCombined;
         correctBaseEnergy = (result as any).baselineEnergyCharges / (1 + (fppaPercent / 100));
     }
-    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + (result.demandCharge || 0) + (result.electricityDuty || 0) + arrear + lpsc;
+    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + (isNpcl ? demandCharges : (result.demandCharge || 0)) + (result.electricityDuty || 0) + arrear + lpsc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -386,7 +386,7 @@ export class SavingsCalculatorExportService {
         correctEnergyAfterOA = (result as any).discomEnergyChargesAfterOA / (1 + (fppaPercent / 100));
     }
     
-    const totalDiscomAfterOAWithMisc = (correctEnergyAfterOA + correctFppaAfterOA + demandCharges + electricityDutyAfterOA + misc) + arrear + lpsc;
+    const totalDiscomAfterOAWithMisc = (correctEnergyAfterOA + correctFppaAfterOA + (isNpcl ? demandCharges : (result.demandCharge || 0)) + electricityDutyAfterOA + misc) + arrear + lpsc;
     const afterTotalRow = sheet.addRow(['Total DISCOM Bill After Open Access', Math.round(totalDiscomAfterOAWithMisc)]);
     afterTotalRow.font = { bold: true };
     afterTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -418,6 +418,12 @@ export class SavingsCalculatorExportService {
       }
     };
     
+    const totalMarketEnergyCost = todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
+    const avgMarketPrice = totalMarketEnergy > 0 ? totalMarketEnergyCost / totalMarketEnergy : 0;
+
+    // Energy Charges (Market)
+    addChargeRow('Energy Charges (Market)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
+
     // Cross Subsidy (rate varies by state, use actual rate from calculation)
     // Note: Cross subsidy is applied to consumer bus units (after losses), not market energy
     const cssRate = (t as any).cssRate || 0;
@@ -432,8 +438,7 @@ export class SavingsCalculatorExportService {
     const stuLoss = slotsData.length > 0 ? (slotsData[0] as any).stuLoss || 0 : 0;
     const wheelingLoss = slotsData.length > 0 ? (slotsData[0] as any).wheelingLoss || 0 : 0;
     
-    const totalMarketEnergyCost = todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
-    const avgMarketPrice = totalMarketEnergy > 0 ? totalMarketEnergyCost / totalMarketEnergy : 0;
+
     
     const istsBasis = totalMarketEnergy;
     const istsLostUnits = istsBasis * (istsLoss / 100);
