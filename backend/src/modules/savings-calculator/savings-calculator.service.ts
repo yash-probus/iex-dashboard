@@ -706,7 +706,10 @@ export class SavingsCalculatorService {
         discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         consumerCategory: parsedCategory,
         supplyVoltageCategory: parsedSupplyVoltageCategory,
-        month: { in: monthsInPlay }
+        OR: [
+          { consumptionMonth: { in: monthsInPlay } },
+          { month: { in: monthsInPlay }, consumptionMonth: null }
+        ]
       };
       if (parsedSubCategory) {
         whereClause.subCategory = { contains: parsedSubCategory };
@@ -1283,7 +1286,10 @@ export class SavingsCalculatorService {
       discom: entry.discom === 'NPCL' ? 'NPCL' : null,
       consumerCategory: parsedCategory,
       supplyVoltageCategory: parsedSupplyVoltageCategory,
-      month: { in: monthsInPlay }
+      OR: [
+        { consumptionMonth: { in: monthsInPlay } },
+        { month: { in: monthsInPlay }, consumptionMonth: null }
+      ]
     };
     if (parsedSubCategory) {
       whereClauseTariff.subCategory = { contains: parsedSubCategory };

@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 async function main() {
-  const tariffs = await prisma.stateTariff.findMany({ where: { state: 'Uttar Pradesh', consumerCategory: 'HV-2' } });
-  const jan2026 = tariffs.filter(t => t.consumptionMonth === 202601);
-  console.log(jan2026.slice(0, 3));
+  const tariffs = await prisma.stateTariff.findMany({ where: { month: 202602 } });
+  console.log("DB count for 202602:", tariffs.length);
 }
 main().catch(e => console.error(e)).finally(() => prisma.$disconnect());
