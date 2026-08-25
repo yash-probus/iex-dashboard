@@ -2081,7 +2081,7 @@ export class SavingsCalculatorService {
       globalTraderMarginGst += traderMarginGstTotal;
 
       const marketEnergyCost = exactMarketEnergyCost;
-      const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + traderMarginTotal + traderMarginGstTotal + marketEnergyCost;
+      const slabOaBill = cssCharge + rpoCharge + pocCharge + stuChargeVal + dcCharge + iexFeesTotal + marketEnergyCost;
 
       totalLandedExchangeCost += slabOaBill + proltDiscomBillTotal;
 
@@ -2123,7 +2123,7 @@ export class SavingsCalculatorService {
     const grossSavings = Math.max(0, netSavings);
     const totalProltMarginCost = Math.round(grossSavings * (proltMarginInput / 100));
 
-    const totalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - totalProltMarginCost;
+    const totalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - totalProltMarginCost - globalTraderMargin - globalTraderMarginGst;
 
     // Ensure savings are never negative - if they would be, set to 0
     const finalSavings = Math.max(0, totalSavings);

@@ -604,8 +604,6 @@ export class SavingsCalculatorNewService {
           0.1 + // Other Charges
           0.02 + // Exchange Fees
           0.0036 + // GST on Exchange Fees
-          traderMarginVal + // Trader Margin
-          marginGst + // GST on Trading Margin
           cssRate + // Cross Subsidy
           addChargeRate; // Additional Surcharge
 
@@ -994,7 +992,7 @@ export class SavingsCalculatorNewService {
 
     totalOptimizedCost = baseOtherCosts + proltMarginCost;
     
-    const totalSavings = Math.max(0, netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFeeVal - totalProltMarginCost);
+    const totalSavings = Math.max(0, netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFeeVal - totalProltMarginCost - traderMarginCost);
 
     const breakdown = todSummaries.map(t => ({
       slabName: t.slotName || t.slabName,
