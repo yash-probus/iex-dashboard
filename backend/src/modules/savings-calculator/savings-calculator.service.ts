@@ -2145,6 +2145,7 @@ export class SavingsCalculatorService {
       demandAndFixedChargesApplied: totalDemandAndFixedChargesApplied,
       electricityDutyAfterOA: totalElectricityDutyAfterOA,
       totalSavings: finalSavings,
+      grossSavings,
       demandCharge,
       electricityDuty: totalElectricityDuty,
       arrearAmount: monthArrear,
