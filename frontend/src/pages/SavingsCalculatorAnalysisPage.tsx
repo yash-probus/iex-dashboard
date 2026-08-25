@@ -201,23 +201,23 @@ export default function SavingsCalculatorAnalysisPage() {
     if (!calcEntry) return;
     try {
       setCalculating(true);
-      const months = ['all', ...Object.keys(calcEntry.todConsumptions || {}).sort()];
-      
       const newCache: Record<string, any> = { ...cachedResults };
       
-      for (const m of months) {
+      const m = selectedSimMonth || 'all';
+      if (!newCache[m]) {
         const savingsRes = await calculateSavings(calcEntry.id, m, selectedCalcVersion || undefined);
         const marketRes = await calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined);
         const insightsRes = await fetchDemandShiftInsights(calcEntry.id, m, selectedCalcVersion || undefined);
         
-        if (!newCache[m]) newCache[m] = { calc: null, market: null, insights: null };
-        newCache[m].calc = savingsRes;
-        newCache[m].market = marketRes;
-        newCache[m].insights = insightsRes;
+        newCache[m] = {
+          calc: savingsRes,
+          market: marketRes,
+          insights: insightsRes
+        };
       }
       
       setCachedResults(newCache);
-      setCalcTab(0);
+      if (m === 'all') setCalcTab(0);
     } catch (err: any) {
       console.error('Calculation failed:', err);
       setSnackbar({
@@ -229,6 +229,12 @@ export default function SavingsCalculatorAnalysisPage() {
       setCalculating(false);
     }
   };
+
+  useEffect(() => {
+    if (calcEntry && selectedSimMonth) {
+      executeCalculation();
+    }
+  }, [selectedSimMonth, selectedCalcVersion]);
 
 const executeGraphSimulation = async () => {
     if (!calcEntry) return;

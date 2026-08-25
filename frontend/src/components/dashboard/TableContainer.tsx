@@ -4,6 +4,7 @@ import {
   Table, TableBody, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, TableSortLabel, alpha 
 } from '@mui/material';
 import { FileDownload as DownloadIcon } from '@mui/icons-material';
+import { TableVirtuoso } from 'react-virtuoso';
 
 export interface ColumnDefinition {
   field: string;
@@ -110,10 +111,35 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
         </Box>
       )}
 
-      {/* Render all rows directly. High performance container. */}
-      <MuiTableContainer sx={{ backgroundColor: 'background.paper', maxHeight: 'calc(100vh - 300px)' }}>
-        <Table stickyHeader size="small" sx={{ minWidth: 'max-content' }}>
-          <TableHead>
+      {/* Virtualized Table for high performance */}
+      <Box sx={{ backgroundColor: 'background.paper', height: 'calc(100vh - 300px)', display: 'flex', flexDirection: 'column' }}>
+        <TableVirtuoso
+          data={sortedData}
+          components={{
+            Scroller: React.forwardRef<HTMLDivElement, any>((props, ref) => (
+              <MuiTableContainer {...props} ref={ref} sx={{ ...props.sx, flex: 1 }} />
+            )),
+            Table: (props) => <Table {...props} stickyHeader size="small" sx={{ minWidth: 'max-content' }} />,
+            TableHead: TableHead,
+            TableRow: ({ item: _item, ...props }) => (
+              <TableRow 
+                {...props} 
+                hover 
+                sx={{ '&:nth-of-type(odd)': { backgroundColor: 'rgba(0, 0, 0, 0.01)' } }} 
+              />
+            ),
+            TableBody: React.forwardRef<HTMLTableSectionElement, any>((props, ref) => (
+              <TableBody {...props} ref={ref} />
+            )),
+            EmptyPlaceholder: () => (
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                {emptyStateMessage || (
+                  <Typography variant="body2" color="text.secondary">No records found for this date range.</Typography>
+                )}
+              </Box>
+            )
+          }}
+          fixedHeaderContent={() => (
             <TableRow>
               {columnsWithOffsets.map(col => (
                 <TableCell 
@@ -167,68 +193,41 @@ export default function TableContainer({ title, data, columns, onExport, emptySt
                 </TableCell>
               ))}
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              [...Array(6)].map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
-                  <TableCell colSpan={columns.length} sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <Skeleton variant="rectangular" height={32} sx={{ borderRadius: 1 }} />
+          )}
+          itemContent={(index, row) => (
+            <>
+              {columnsWithOffsets.map(col => {
+                const value = row[col.field];
+                const displayValue = col.valueFormatter ? col.valueFormatter(value) : value;
+                return (
+                  <TableCell 
+                    key={col.field}
+                    align={col.align || "center"}
+                    sx={{ 
+                      fontSize: '12px',
+                      color: 'text.primary',
+                      borderBottom: '1px solid',
+                      borderRight: col.sticky ? '1px solid' : 'none',
+                      borderLeft: col.stickyRight ? '1px solid' : 'none',
+                      borderColor: 'divider',
+                      whiteSpace: 'nowrap',
+                      position: (col.sticky || col.stickyRight) ? 'sticky' : 'static',
+                      left: col.sticky ? col.leftOffset : 'auto',
+                      right: col.stickyRight ? col.rightOffset : 'auto',
+                      backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FAFAFA', 
+                      zIndex: (col.sticky || col.stickyRight) ? 20 : 'auto',
+                    }}
+                  >
+                    {col.renderCell 
+                      ? col.renderCell(row) 
+                      : (displayValue !== undefined && displayValue !== null ? displayValue : '-')}
                   </TableCell>
-                </TableRow>
-              ))
-            ) : sortedData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} align="center" sx={{ height: 'auto', borderBottom: 'none' }}>
-                  {emptyStateMessage || (
-                    <Typography variant="body2" color="text.secondary">No records found for this date range.</Typography>
-                  )}
-                </TableCell>
-              </TableRow>
-            ) : (
-              sortedData.map((row, index) => (
-                <TableRow 
-                  key={index}
-                  hover
-                  sx={{ 
-                    '&:nth-of-type(odd)': { backgroundColor: 'rgba(0, 0, 0, 0.01)' } 
-                  }}
-                >
-                  {columnsWithOffsets.map(col => {
-                    const value = row[col.field];
-                    const displayValue = col.valueFormatter ? col.valueFormatter(value) : value;
-                    return (
-                      <TableCell 
-                        key={col.field}
-                        align={col.align || "center"}
-                        sx={{ 
-                          fontSize: '12px',
-                          color: 'text.primary',
-                          borderBottom: '1px solid',
-                          borderRight: col.sticky ? '1px solid' : 'none',
-                          borderLeft: col.stickyRight ? '1px solid' : 'none',
-                          borderColor: 'divider',
-                          whiteSpace: 'nowrap',
-                          position: (col.sticky || col.stickyRight) ? 'sticky' : 'static',
-                          left: col.sticky ? col.leftOffset : 'auto',
-                          right: col.stickyRight ? col.rightOffset : 'auto',
-                          // Explicit opaque background merging row striping to prevent sticky transparency overlap
-                          backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FAFAFA', 
-                          zIndex: (col.sticky || col.stickyRight) ? 20 : 'auto',
-                        }}
-                      >
-                        {col.renderCell 
-                          ? col.renderCell(row) 
-                          : (displayValue !== undefined && displayValue !== null ? displayValue : '-')}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </MuiTableContainer>
+                );
+              })}
+            </>
+          )}
+        />
+      </Box>
       
       {/* Footer summarizing record count without pagination */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, py: 1.5, borderTop: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>

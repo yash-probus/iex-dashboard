@@ -46,7 +46,8 @@ import {
   MarketDecisionResult,
   exportSavingsExcelCustom,
   exportDemandShiftExcelCustom,
-  fetchEntryHistoryCustom
+  fetchEntryHistoryCustom,
+  fetchClientOverviewCustom
 } from '../api/customSavingCalc.api';
 import html2canvas from 'html2canvas';
 import { exportToExcel } from '../utils/export';
@@ -125,41 +126,18 @@ export default function CustomSavingCalcAnalysisPage() {
       const entryData = await fetchCustomSavingCalcEntryById(id, selectedCalcVersion || undefined);
       setCalcEntry(entryData);
 
-      const resultsMap: Record<string, MarketDecisionResult> = {};
-      const resAll = await calculateMarketDecisionCustom(id, 'all', selectedCalcVersion || undefined);
-      resultsMap['all'] = resAll;
+      // Fetch overview independently, saving massive memory overhead
+      const overview = await fetchClientOverviewCustom(id);
+      setClientOverview(overview);
 
-      const months = Object.keys(entryData.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-'));
-      const monthlyOverview: any[] = [];
-
-      for (const m of months) {
-        try {
-          const resM = await calculateMarketDecisionCustom(id, m, selectedCalcVersion || undefined);
-          resultsMap[m] = resM;
-          monthlyOverview.push({
-            month: m,
-            totalEnergyKwh: resM.totalEnergyKwh,
-            totalMarketEnergyKwh: resM.totalMarketEnergyKwh,
-            totalBaselineCost: resM.totalBaselineCost,
-            totalOptimizedCost: resM.totalOptimizedCost,
-            savings: resM.totalSavings,
-            grossSavings: (resM as any).grossSavings ?? resM.oaDetailed?.totals?.grossSavings ?? Math.max(0, resM.totalBaselineCost - resM.totalLandedExchangeCost - resM.totalDiscomAfterProlt)
-          });
-        } catch (err) {
-          console.warn(`Failed to run calculation for month ${m}:`, err);
-        }
+      // Lazy load only the currently selected month
+      const resultsMap: Record<string, MarketDecisionResult> = { ...cachedResults };
+      if (!resultsMap[selectedSimMonth]) {
+        const resSelected = await calculateMarketDecisionCustom(id, selectedSimMonth, selectedCalcVersion || undefined);
+        resultsMap[selectedSimMonth] = resSelected;
       }
 
       setCachedResults(resultsMap);
-      setClientOverview({
-        clientName: entryData.clientName,
-        sanctionedLoadKw: entryData.sanctionedLoadKw,
-        totalSavings: resAll.totalSavings,
-        months: monthlyOverview,
-        aggregatedCosts: {
-          totalDiscomCost: resAll.fullBaselineDiscomCost || resAll.totalBaselineCost || 0
-        }
-      });
     } catch (err: any) {
       console.error('Failed to load analysis:', err);
       setSnackbar({ open: true, message: err.message || 'Failed to load analysis', severity: 'error' });
@@ -170,7 +148,7 @@ export default function CustomSavingCalcAnalysisPage() {
 
   useEffect(() => {
     loadData();
-  }, [id, selectedCalcVersion]);
+  }, [id, selectedCalcVersion, selectedSimMonth]);
 
   const handleExportExcel = () => {
     if (!marketDecisionResult || !marketDecisionResult.slotsData) return;
