@@ -1002,6 +1002,14 @@ export class SavingsCalculatorNewExportService {
     avgAnnualSavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     avgAnnualSavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
     for (let i = 2; i <= numMonths + 1; i++) avgAnnualSavingRow.getCell(i).numFmt = '"₹"#,##,##0';
+    const avgAnnualSavingRowNumber = avgAnnualSavingRow.number;
+
+    const fiveYearsSavingFormula = `B${avgAnnualSavingRowNumber} + B${avgAnnualSavingRowNumber}*1.1 + B${avgAnnualSavingRowNumber}*POWER(1.1,2) + B${avgAnnualSavingRowNumber}*POWER(1.1,3) + B${avgAnnualSavingRowNumber}*POWER(1.1,4)`;
+    const fiveYearsSavingRow = sheet.addRow(['5 Years Saving', { formula: fiveYearsSavingFormula }]);
+    fiveYearsSavingRow.font = { bold: true };
+    fiveYearsSavingRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    fiveYearsSavingRow.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } };
+    for (let i = 2; i <= numMonths + 1; i++) fiveYearsSavingRow.getCell(i).numFmt = '"₹"#,##,##0';
 
     // Set column width for A
     sheet.getColumn(1).width = 50;
