@@ -206,10 +206,10 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
           <React.Fragment key={month}>
             {/* PAGE 1 */}
             <Box className="pdf-page" sx={{ backgroundColor: DARK_BG, color: '#FFFFFF', p: '50px 40px 40px 40px', position: 'relative' }}>
-              <Box sx={{ position: 'absolute', top: -150, right: -150, width: '500px', height: '500px', borderRadius: '50%', backgroundColor: PRIMARY_GREEN }} />
-              <Box sx={{ position: 'absolute', top: 50, right: 70, width: '130px', height: '130px', borderRadius: '50%', backgroundColor: LIGHT_GREEN }} />
+              <Box sx={{ position: 'absolute', top: -120, right: -150, width: '500px', height: '500px', borderRadius: '50%', backgroundColor: PRIMARY_GREEN }} />
+              <Box sx={{ position: 'absolute', top: 80, right: 70, width: '130px', height: '130px', borderRadius: '50%', backgroundColor: LIGHT_GREEN }} />
               
-              <Box sx={{ position: 'absolute', top: 35, right: 30, zIndex: 10 }}>
+              <Box sx={{ position: 'absolute', top: 65, right: 30, zIndex: 10 }}>
                 <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '120px', objectFit: 'contain' }} />
               </Box>
               
