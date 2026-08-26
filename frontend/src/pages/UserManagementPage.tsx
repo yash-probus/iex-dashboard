@@ -126,276 +126,297 @@ export default function UserManagementPage() {
     }
   };
 
+
   return (
-    <div className="container mx-auto py-10 px-4 md:px-8 max-w-6xl">
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 2.5,
-        mb: 3
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-          <Box sx={{ 
-            color: '#3B8FF3', 
-            backgroundColor: '#3B8FF315',
-            p: 2,
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <GroupIcon fontSize="large" />
+    <div className="min-h-screen bg-[#EEF8F9] text-[#0B2149] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
+      {/* Top Navbar / Breadcrumb area (if we want it to look exactly like screenshot inside the container) */}
+      <div className="flex items-center gap-4 px-6 py-4 bg-white border-b border-gray-200 -mx-4 sm:-mx-6 md:-mx-8 -mt-4 sm:-mt-6 md:-mt-8 mb-8">
+        <div className="flex items-center font-bold text-xl text-red-600 italic tracking-tighter">
+          <span className="text-black">Prolt</span> <span className="text-blue-900 ml-1">Energy</span>
+        </div>
+        <div className="text-xs text-gray-500 mt-2 mr-4">By Probus</div>
+        <div className="text-sm font-medium text-gray-500 border-l border-gray-300 pl-4">
+          Home &nbsp;&gt;&nbsp; <span className="text-[#0B2149] font-bold">Admin</span>
+        </div>
+      </div>
+
+      <div className="container mx-auto max-w-6xl">
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2.5,
+          mb: 4
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Box sx={{ 
+              color: '#3B8FF3', 
+              backgroundColor: '#DDF3FC',
+              p: 2,
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 64,
+              height: 64
+            }}>
+              <GroupIcon fontSize="large" sx={{ color: '#3B8FF3' }} />
+            </Box>
+            <Box>
+              <Typography variant="h1" sx={{ color: '#0B2149', fontWeight: 700, fontSize: '24px', letterSpacing: '-0.5px', mb: 0.5 }}>
+                User Management
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#6B7280' }}>
+                Manage system access, assign administrative roles, and configure user permissions.
+              </Typography>
+            </Box>
           </Box>
-          <Box>
-            <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
-              User Management
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Manage system access, assign administrative roles, and configure user permissions.
-            </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {activeTab === 'users' && (
+              <Button 
+                variant="outline" 
+                onClick={openAddModal}
+                className="rounded-full border-blue-400 text-blue-500 hover:bg-blue-50 hover:text-blue-600 px-6 py-2 h-auto"
+              >
+                <PersonAddIcon fontSize="small" className="mr-2" />
+                Add New User
+              </Button>
+            )}
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {activeTab === 'users' && (
-            <ActionButton 
-              variant="secondary" 
-              startIcon={<PersonAddIcon fontSize="small" />} 
-              onClick={openAddModal}
-              accentColor="#3B8FF3"
-            >
-              Add New User
-            </ActionButton>
-          )}
-        </Box>
-      </Box>
+        <div className="border-b border-blue-200 mb-6 flex gap-6">
+          <button 
+            className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 ${activeTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('users')}
+          >
+            <GroupIcon fontSize="small" /> Users
+          </button>
+          <button 
+            className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 ${activeTab === 'audit' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('audit')}
+          >
+            <HistoryIcon fontSize="small" /> Audit Trail
+          </button>
+        </div>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={activeTab} onChange={(_, nv) => setActiveTab(nv)} textColor="primary" indicatorColor="primary">
-          <Tab value="users" label="Users" icon={<GroupIcon fontSize="small" />} iconPosition="start" sx={{ textTransform: 'none', fontWeight: 600 }} />
-          <Tab value="audit" label="Audit Trail" icon={<HistoryIcon fontSize="small" />} iconPosition="start" sx={{ textTransform: 'none', fontWeight: 600 }} />
-        </Tabs>
-      </Box>
-
-      {activeTab === 'users' ? (
-      <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="font-semibold">User</TableHead>
-              <TableHead className="font-semibold">Contact</TableHead>
-              <TableHead className="font-semibold">Access Level</TableHead>
-              <TableHead className="font-semibold">Joined Date</TableHead>
-              <TableHead className="text-right font-semibold">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-4">Loading...</TableCell>
+        {activeTab === 'users' ? (
+        <div className="rounded-xl bg-[#EEF8F9] border border-gray-300 shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-[#EEF8F9] hover:bg-[#EEF8F9] border-b border-gray-400">
+                <TableHead className="font-bold text-[#111827]">User</TableHead>
+                <TableHead className="font-bold text-[#111827]">Contact</TableHead>
+                <TableHead className="font-bold text-[#111827]">Access Level</TableHead>
+                <TableHead className="font-bold text-[#111827]">Joined Date</TableHead>
+                <TableHead className="text-right font-bold text-[#111827]">Actions</TableHead>
               </TableRow>
-            ) : users.filter(user => user.role !== 'SUPER_ADMIN').length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-4">No users found</TableCell>
-              </TableRow>
-            ) : (
-              users.filter(user => user.role !== 'SUPER_ADMIN').map(user => (
-                <TableRow key={user.id} className="group transition-colors hover:bg-muted/30">
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
-                        {user.username.slice(0, 2)}
-                      </div>
-                      {user.username}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="h-3 w-3" />
-                      {user.email}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={user.role === 'SUPER_ADMIN' ? 'destructive' : user.role === 'ADMIN' ? 'default' : 'secondary'}
-                      className="font-medium shadow-none"
-                    >
-                      {user.role.replace('_', ' ')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(user.createdAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="outline" size="sm" className="h-8 px-2" onClick={() => openEditModal(user)}>
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-8 px-2 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/20 hover:border-destructive" onClick={() => handleDelete(user.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </TableCell>
+            </TableHeader>
+            <TableBody className="bg-[#EEF8F9]">
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">Loading...</TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      ) : (
-      <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="font-semibold">Timestamp</TableHead>
-              <TableHead className="font-semibold">Action By</TableHead>
-              <TableHead className="font-semibold">Action</TableHead>
-              <TableHead className="font-semibold">Target User</TableHead>
-              <TableHead className="font-semibold">Details</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loadingAudit ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-4">Loading audit logs...</TableCell>
-              </TableRow>
-            ) : auditLogs.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-4">No audit logs found</TableCell>
-              </TableRow>
-            ) : (
-              auditLogs.map(log => (
-                <TableRow key={log.id} className="group transition-colors hover:bg-muted/30">
-                  <TableCell className="text-muted-foreground whitespace-nowrap">
-                    {new Date(log.timestamp).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {log.performedBy}
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={log.action === 'DELETE' ? 'destructive' : log.action === 'CREATE' ? 'default' : 'secondary'}
-                      className="font-medium shadow-none"
-                    >
-                      {log.action}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {log.targetUser}
-                  </TableCell>
-                  <TableCell>
-                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap max-w-xs break-words">
-                      {JSON.stringify(log.changes, null, 2)}
-                    </pre>
-                  </TableCell>
+              ) : users.filter(user => user.role !== 'SUPER_ADMIN').length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">No users found</TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      )}
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" value={username} onChange={e => setUsername(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={(v: 'SUPER_ADMIN'|'ADMIN'|'CLIENT') => setRole(v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(editingUser?.role === 'SUPER_ADMIN') && (
-                    <SelectItem value="SUPER_ADMIN">SUPER_ADMIN</SelectItem>
-                  )}
-                  <SelectItem value="ADMIN">ADMIN</SelectItem>
-                  <SelectItem value="CLIENT">CLIENT</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {role !== 'SUPER_ADMIN' && (
-              <div className="space-y-3">
-                <Label>Allowed Services (Modules)</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-md p-4 bg-muted/20 max-h-[300px] overflow-y-auto">
-                  {AVAILABLE_MODULES.map((mod) => {
-                    let currentAccess = 'none';
-                    if (!hiddenModules.includes(mod.id)) {
-                      if (readOnlyModules.includes(mod.id)) {
-                        currentAccess = 'view';
-                      } else if (readOnlyModules.includes(`${mod.id}-nodelete`)) {
-                        currentAccess = 'edit_no_delete';
-                      } else {
-                        currentAccess = 'edit';
-                      }
-                    }
-                    
-                    return (
-                      <div key={mod.id} className="flex flex-col space-y-1.5 p-2 rounded border bg-background">
-                        <Label className="font-medium text-sm">{mod.label}</Label>
-                        <Select
-                          value={currentAccess}
-                          onValueChange={(val: 'none' | 'view' | 'edit' | 'edit_no_delete') => {
-                            let newHidden = [...hiddenModules];
-                            let newReadOnly = [...readOnlyModules];
-                            
-                            // Remove from both lists first
-                            newHidden = newHidden.filter(id => id !== mod.id);
-                            newReadOnly = newReadOnly.filter(id => id !== mod.id && id !== `${mod.id}-nodelete`);
-                            
-                            if (val === 'none') {
-                              newHidden.push(mod.id);
-                            } else if (val === 'view') {
-                              newReadOnly.push(mod.id);
-                            } else if (val === 'edit_no_delete') {
-                              newReadOnly.push(`${mod.id}-nodelete`);
-                            }
-                            
-                            setHiddenModules(newHidden);
-                            setReadOnlyModules(newReadOnly);
-                          }}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No Access</SelectItem>
-                            <SelectItem value="view">View Only</SelectItem>
-                            {mod.id === 'savings-calculator' && (
-                              <SelectItem value="edit_no_delete">View, Edit & No Delete</SelectItem>
-                            )}
-                            <SelectItem value="edit">View & Edit</SelectItem>
-                          </SelectContent>
-                        </Select>
+              ) : (
+                users.filter(user => user.role !== 'SUPER_ADMIN').map(user => (
+                  <TableRow key={user.id} className="group transition-colors hover:bg-gray-50 border-b border-gray-400">
+                    <TableCell className="font-medium text-[#111827]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-gray-200 flex items-center justify-center text-[#111827] font-bold text-xs uppercase">
+                          {user.username.slice(0, 2)}
+                        </div>
+                        {user.username}
                       </div>
-                    );
-                  })}
-                </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-[#4B5563]">
+                        <Mail className="h-4 w-4 text-gray-500" />
+                        {user.email}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs font-semibold text-[#4B5563] uppercase">
+                        {user.role.replace('_', ' ')}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-[#4B5563] text-sm">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        {new Date(user.createdAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right p-2">
+                      <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-1.5 text-gray-600 hover:text-blue-500 rounded-l border border-gray-400 hover:border-blue-500 bg-white" onClick={() => openEditModal(user)}>
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button className="p-1.5 text-gray-600 hover:text-red-500 rounded-r border border-gray-400 border-l-0 hover:border-red-500 hover:border-l bg-white" onClick={() => handleDelete(user.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        ) : (
+        <div className="rounded-xl bg-[#EEF8F9] border border-gray-300 shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-[#EEF8F9] hover:bg-[#EEF8F9] border-b border-gray-400">
+                <TableHead className="font-bold text-[#111827]">Timestamp</TableHead>
+                <TableHead className="font-bold text-[#111827]">Action By</TableHead>
+                <TableHead className="font-bold text-[#111827]">Action</TableHead>
+                <TableHead className="font-bold text-[#111827]">Target User</TableHead>
+                <TableHead className="font-bold text-[#111827]">Details</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="bg-[#EEF8F9]">
+              {loadingAudit ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">Loading audit logs...</TableCell>
+                </TableRow>
+              ) : auditLogs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">No audit logs found</TableCell>
+                </TableRow>
+              ) : (
+                auditLogs.map(log => (
+                  <TableRow key={log.id} className="group transition-colors hover:bg-gray-50 border-b border-gray-400">
+                    <TableCell className="text-[#4B5563] whitespace-nowrap">
+                      {new Date(log.timestamp).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="font-medium text-[#111827]">
+                      {log.performedBy}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={log.action === 'DELETE' ? 'destructive' : log.action === 'CREATE' ? 'default' : 'secondary'}
+                        className="font-medium shadow-none"
+                      >
+                        {log.action}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-medium text-[#111827]">
+                      {log.targetUser}
+                    </TableCell>
+                    <TableCell>
+                      <pre className="text-xs text-[#4B5563] whitespace-pre-wrap max-w-xs break-words">
+                        {JSON.stringify(log.changes, null, 2)}
+                      </pre>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        )}
+
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" value={username} onChange={e => setUsername(e.target.value)} />
               </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select value={role} onValueChange={(v: 'SUPER_ADMIN'|'ADMIN'|'CLIENT') => setRole(v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(editingUser?.role === 'SUPER_ADMIN') && (
+                      <SelectItem value="SUPER_ADMIN">SUPER_ADMIN</SelectItem>
+                    )}
+                    <SelectItem value="ADMIN">ADMIN</SelectItem>
+                    <SelectItem value="CLIENT">CLIENT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {role !== 'SUPER_ADMIN' && (
+                <div className="space-y-3">
+                  <Label>Allowed Services (Modules)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-md p-4 bg-muted/20 max-h-[300px] overflow-y-auto">
+                    {AVAILABLE_MODULES.map((mod) => {
+                      let currentAccess = 'none';
+                      if (!hiddenModules.includes(mod.id)) {
+                        if (readOnlyModules.includes(mod.id)) {
+                          currentAccess = 'view';
+                        } else if (readOnlyModules.includes(`${mod.id}-nodelete`)) {
+                          currentAccess = 'edit_no_delete';
+                        } else {
+                          currentAccess = 'edit';
+                        }
+                      }
+                      
+                      return (
+                        <div key={mod.id} className="flex flex-col space-y-1.5 p-2 rounded border bg-background">
+                          <Label className="font-medium text-sm">{mod.label}</Label>
+                          <Select
+                            value={currentAccess}
+                            onValueChange={(val: 'none' | 'view' | 'edit' | 'edit_no_delete') => {
+                              let newHidden = [...hiddenModules];
+                              let newReadOnly = [...readOnlyModules];
+                              
+                              newHidden = newHidden.filter(id => id !== mod.id);
+                              newReadOnly = newReadOnly.filter(id => id !== mod.id && id !== `${mod.id}-nodelete`);
+                              
+                              if (val === 'none') {
+                                newHidden.push(mod.id);
+                              } else if (val === 'view') {
+                                newReadOnly.push(mod.id);
+                              } else if (val === 'edit_no_delete') {
+                                newReadOnly.push(`${mod.id}-nodelete`);
+                              }
+                              
+                              setHiddenModules(newHidden);
+                              setReadOnlyModules(newReadOnly);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No Access</SelectItem>
+                              <SelectItem value="view">View Only</SelectItem>
+                              {mod.id === 'savings-calculator' && (
+                                <SelectItem value="edit_no_delete">View, Edit & No Delete</SelectItem>
+                              )}
+                              <SelectItem value="edit">View & Edit</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Cancel</Button>
+              <Button onClick={handleSubmit} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
+
 }
