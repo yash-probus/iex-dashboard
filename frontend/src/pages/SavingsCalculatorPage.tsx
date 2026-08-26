@@ -518,7 +518,17 @@ export default function SavingsCalculatorPage() {
     });
     // If no slabs found, always include a FLAT slab
     if (slabsSet.size === 0) slabsSet.add('FLAT');
-    return Array.from(slabsSet).sort();
+    return Array.from(slabsSet).sort((a, b) => {
+      if (a === 'FLAT') return -1;
+      if (b === 'FLAT') return 1;
+      const getStartHour = (slab: string) => {
+        const startStr = slab.split('-')[0];
+        if (!startStr || !startStr.includes(':')) return 0;
+        const hour = parseInt(startStr.split(':')[0], 10);
+        return isNaN(hour) ? 0 : (hour < 5 ? hour + 24 : hour);
+      };
+      return getStartHour(a) - getStartHour(b);
+    });
   }, [tariffData, stateCode, consumerCategory, voltageLevel, discom, todConsumptions]);
 
   const availableSupplyVoltageValues = React.useMemo(() => {
