@@ -62,7 +62,63 @@ export const ProposalDashboardExport: React.FC<ProposalDashboardExportProps> = (
 
   return (
     <div className="dashboard-container" style={{ width: '1200px', backgroundColor: '#f8fafc', margin: '0 auto', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-        
+        {/* Cover Banner */}
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          height: '400px',
+          backgroundColor: '#0C1826',
+          overflow: 'hidden',
+          borderRadius: '16px 16px 0 0',
+          marginBottom: '24px'
+        }}>
+          {/* Green Circle */}
+          <div style={{
+            position: 'absolute',
+            width: '1200px',
+            height: '1200px',
+            borderRadius: '50%',
+            backgroundColor: '#22C55E',
+            top: '-400px',
+            right: '-300px',
+          }}></div>
+          
+          {/* Yellow Circle */}
+          <div style={{
+            position: 'absolute',
+            width: '260px',
+            height: '260px',
+            borderRadius: '50%',
+            backgroundColor: '#BEF264',
+            top: '60px',
+            right: '400px',
+          }}></div>
+          
+          {/* Logo container */}
+          <div style={{
+            position: 'absolute',
+            top: '120px',
+            left: '200px',
+            zIndex: 10
+          }}>
+            <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '140px', objectFit: 'contain' }} />
+          </div>
+
+          {/* Report text */}
+          <div style={{
+            position: 'absolute',
+            bottom: '30px',
+            left: '40px',
+            color: 'white',
+            fontSize: '64px',
+            fontWeight: 'bold',
+            zIndex: 10,
+            letterSpacing: '1px'
+          }}>
+            Report
+          </div>
+        </div>
+
         {/* Banner */}
         <div className="savings-banner">
             <div className="headline">
