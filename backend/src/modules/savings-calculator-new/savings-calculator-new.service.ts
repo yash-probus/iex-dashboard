@@ -992,7 +992,7 @@ export class SavingsCalculatorNewService {
 
     totalOptimizedCost = baseOtherCosts + proltMarginCost;
     
-    const totalSavings = Math.max(0, netSavings - probusPlatformFeeVal - totalProltMarginCost - traderMarginCost);
+    const totalSavings = Math.max(0, netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFeeVal - totalProltMarginCost - traderMarginCost);
 
     const breakdown = todSummaries.map(t => ({
       slabName: t.slotName || t.slabName,

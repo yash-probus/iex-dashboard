@@ -939,10 +939,10 @@ export class SavingsCalculatorExportService {
     for (let i = 2; i <= numMonths + 1; i++) valueShareRow.getCell(i).numFmt = '"₹"#,##,##0';
     const valueShareRowNumber = valueShareRow.number;
 
-    const totalAmountRowData: any[] = ['Total Amount'];
+    const totalAmountRowData: any[] = ['Total Margin Amount'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
-      const formula = `SUM(${colChar}${nocFeeRowNumber}:${colChar}${consultancyRowNumber})+${colChar}${traderMarginRowNumber}+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
+      const formula = `${colChar}${traderMarginRowNumber}+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
       totalAmountRowData.push({ formula });
     });
     const totalAmountRow = sheet.addRow(totalAmountRowData);
