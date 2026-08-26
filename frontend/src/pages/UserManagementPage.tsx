@@ -127,10 +127,11 @@ export default function UserManagementPage() {
   };
 
 
+
   return (
-    <div className="min-h-screen bg-[#EEF8F9] text-[#0B2149] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
-      {/* Top Navbar / Breadcrumb area (if we want it to look exactly like screenshot inside the container) */}
-      <div className="flex items-center gap-4 px-6 py-4 bg-white border-b border-gray-200 -mx-4 sm:-mx-6 md:-mx-8 -mt-4 sm:-mt-6 md:-mt-8 mb-8">
+    <div className="min-h-screen bg-[#E6F0F9] text-[#0B2149] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
+      {/* Top Navbar / Breadcrumb area */}
+      <div className="flex items-center gap-4 px-6 py-4 mb-4">
         <div className="flex items-center font-bold text-xl text-red-600 italic tracking-tighter">
           <span className="text-black">Prolt</span> <span className="text-blue-900 ml-1">Energy</span>
         </div>
@@ -140,186 +141,210 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      <div className="container mx-auto max-w-6xl">
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 2.5,
-          mb: 4
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Box sx={{ 
-              color: '#3B8FF3', 
-              backgroundColor: '#DDF3FC',
-              p: 2,
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 64,
-              height: 64
-            }}>
-              <GroupIcon fontSize="large" sx={{ color: '#3B8FF3' }} />
-            </Box>
-            <Box>
-              <Typography variant="h1" sx={{ color: '#0B2149', fontWeight: 700, fontSize: '24px', letterSpacing: '-0.5px', mb: 0.5 }}>
+      <div className="container mx-auto max-w-6xl space-y-4">
+        {/* Title Box */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-[#EAF3FF] text-[#4379EE] p-3 rounded-xl flex items-center justify-center w-14 h-14">
+              <GroupIcon fontSize="medium" />
+            </div>
+            <div>
+              <Typography variant="h1" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '20px', letterSpacing: '-0.5px', mb: 0.5 }}>
                 User Management
               </Typography>
-              <Typography variant="body1" sx={{ color: '#6B7280' }}>
+              <Typography variant="body2" sx={{ color: '#64748B' }}>
                 Manage system access, assign administrative roles, and configure user permissions.
               </Typography>
-            </Box>
-          </Box>
+            </div>
+          </div>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <div>
             {activeTab === 'users' && (
-              <Button 
-                variant="outline" 
+              <button 
                 onClick={openAddModal}
-                className="rounded-full border-blue-400 text-blue-500 hover:bg-blue-50 hover:text-blue-600 px-6 py-2 h-auto"
+                className="bg-[#4379EE] hover:bg-[#3261cf] text-white rounded-full px-5 py-2.5 text-sm font-medium flex items-center transition-colors"
               >
-                <PersonAddIcon fontSize="small" className="mr-2" />
-                Add New User
-              </Button>
+                <span className="mr-2 text-lg leading-none">+</span> Add New User
+              </button>
             )}
-          </Box>
-        </Box>
-
-        <div className="border-b border-blue-200 mb-6 flex gap-6">
-          <button 
-            className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 ${activeTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('users')}
-          >
-            <GroupIcon fontSize="small" /> Users
-          </button>
-          <button 
-            className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 ${activeTab === 'audit' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('audit')}
-          >
-            <HistoryIcon fontSize="small" /> Audit Trail
-          </button>
+          </div>
         </div>
 
-        {activeTab === 'users' ? (
-        <div className="rounded-xl bg-[#EEF8F9] border border-gray-300 shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-[#EEF8F9] hover:bg-[#EEF8F9] border-b border-gray-400">
-                <TableHead className="font-bold text-[#111827]">User</TableHead>
-                <TableHead className="font-bold text-[#111827]">Contact</TableHead>
-                <TableHead className="font-bold text-[#111827]">Access Level</TableHead>
-                <TableHead className="font-bold text-[#111827]">Joined Date</TableHead>
-                <TableHead className="text-right font-bold text-[#111827]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="bg-[#EEF8F9]">
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">Loading...</TableCell>
-                </TableRow>
-              ) : users.filter(user => user.role !== 'SUPER_ADMIN').length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">No users found</TableCell>
-                </TableRow>
-              ) : (
-                users.filter(user => user.role !== 'SUPER_ADMIN').map(user => (
-                  <TableRow key={user.id} className="group transition-colors hover:bg-gray-50 border-b border-gray-400">
-                    <TableCell className="font-medium text-[#111827]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-gray-200 flex items-center justify-center text-[#111827] font-bold text-xs uppercase">
-                          {user.username.slice(0, 2)}
-                        </div>
-                        {user.username}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-[#4B5563]">
-                        <Mail className="h-4 w-4 text-gray-500" />
-                        {user.email}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs font-semibold text-[#4B5563] uppercase">
-                        {user.role.replace('_', ' ')}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-[#4B5563] text-sm">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        {new Date(user.createdAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right p-2">
-                      <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-1.5 text-gray-600 hover:text-blue-500 rounded-l border border-gray-400 hover:border-blue-500 bg-white" onClick={() => openEditModal(user)}>
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button className="p-1.5 text-gray-600 hover:text-red-500 rounded-r border border-gray-400 border-l-0 hover:border-red-500 hover:border-l bg-white" onClick={() => handleDelete(user.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </TableCell>
+        {/* Main Content Box */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+          {/* Header row (Tabs + Filters) */}
+          <div className="border-b border-gray-200 px-4 pt-4 flex items-center justify-between flex-wrap gap-4">
+            <div className="flex gap-6">
+              <button 
+                className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 ${activeTab === 'users' ? 'border-[#4379EE] text-[#4379EE]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('users')}
+              >
+                <GroupIcon fontSize="small" /> Users
+              </button>
+              <button 
+                className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 ${activeTab === 'audit' ? 'border-[#4379EE] text-[#4379EE]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('audit')}
+              >
+                <HistoryIcon fontSize="small" /> Audit Trail
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 pb-3">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Search" 
+                  className="pl-3 pr-8 py-1.5 border border-gray-300 rounded-md text-sm outline-none focus:border-[#4379EE] w-48"
+                />
+                <svg className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </div>
+              <select className="border border-gray-300 rounded-md text-sm outline-none focus:border-[#4379EE] px-3 py-1.5 bg-white text-gray-600 appearance-none pr-8 relative cursor-pointer" style={{backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .7rem top 50%', backgroundSize: '.65rem auto'}}>
+                <option value="">Filter by Role</option>
+                <option value="ADMIN">Admin</option>
+                <option value="CLIENT">Client</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Table Area */}
+          <div className="flex-1 overflow-auto">
+            {activeTab === 'users' ? (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#F8FAFC] border-b border-gray-200">
+                    <TableHead className="w-12 text-center"><Checkbox className="rounded-sm border-gray-300 text-[#4379EE]" /></TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">User</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">Contact</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">Access Level</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">Joined Date</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3 text-right pr-6">Actions</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        ) : (
-        <div className="rounded-xl bg-[#EEF8F9] border border-gray-300 shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-[#EEF8F9] hover:bg-[#EEF8F9] border-b border-gray-400">
-                <TableHead className="font-bold text-[#111827]">Timestamp</TableHead>
-                <TableHead className="font-bold text-[#111827]">Action By</TableHead>
-                <TableHead className="font-bold text-[#111827]">Action</TableHead>
-                <TableHead className="font-bold text-[#111827]">Target User</TableHead>
-                <TableHead className="font-bold text-[#111827]">Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="bg-[#EEF8F9]">
-              {loadingAudit ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">Loading audit logs...</TableCell>
-                </TableRow>
-              ) : auditLogs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">No audit logs found</TableCell>
-                </TableRow>
-              ) : (
-                auditLogs.map(log => (
-                  <TableRow key={log.id} className="group transition-colors hover:bg-gray-50 border-b border-gray-400">
-                    <TableCell className="text-[#4B5563] whitespace-nowrap">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="font-medium text-[#111827]">
-                      {log.performedBy}
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={log.action === 'DELETE' ? 'destructive' : log.action === 'CREATE' ? 'default' : 'secondary'}
-                        className="font-medium shadow-none"
-                      >
-                        {log.action}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium text-[#111827]">
-                      {log.targetUser}
-                    </TableCell>
-                    <TableCell>
-                      <pre className="text-xs text-[#4B5563] whitespace-pre-wrap max-w-xs break-words">
-                        {JSON.stringify(log.changes, null, 2)}
-                      </pre>
-                    </TableCell>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">Loading...</TableCell>
+                    </TableRow>
+                  ) : users.filter(user => user.role !== 'SUPER_ADMIN').length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">No users found</TableCell>
+                    </TableRow>
+                  ) : (
+                    users.filter(user => user.role !== 'SUPER_ADMIN').map((user, idx) => {
+                      const colors = ['bg-[#C4B5FD] text-[#4C1D95]', 'bg-[#F9A8D4] text-[#831843]', 'bg-[#86EFAC] text-[#14532D]', 'bg-[#93C5FD] text-[#1E3A8A]', 'bg-[#FCD34D] text-[#78350F]'];
+                      const colorClass = colors[idx % colors.length];
+                      
+                      return (
+                      <TableRow key={user.id} className="hover:bg-gray-50 border-b border-gray-100">
+                        <TableCell className="w-12 text-center"><Checkbox className="rounded-sm border-gray-300 text-[#4379EE]" /></TableCell>
+                        <TableCell className="font-medium text-gray-800">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs uppercase ${colorClass}`}>
+                              {user.username.slice(0, 2)}
+                            </div>
+                            {user.username}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-gray-600 text-sm">
+                            <Mail className="h-3.5 w-3.5 text-gray-400" />
+                            {user.email}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`text-[11px] font-bold px-3 py-1 rounded-full uppercase ${user.role === 'ADMIN' ? 'bg-[#4ADE80] text-white' : 'bg-[#4379EE] text-white'}`}>
+                            {user.role}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-gray-600 text-sm">
+                            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                            {new Date(user.createdAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                          <div className="flex justify-end gap-3 text-gray-500">
+                            <button className="hover:text-blue-600 transition-colors" onClick={() => openEditModal(user)}>
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button className="hover:text-red-600 transition-colors" onClick={() => handleDelete(user.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                            <button className="hover:text-green-600 transition-colors">
+                              <UserCog className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )})
+                  )}
+                </TableBody>
+              </Table>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#F8FAFC] border-b border-gray-200">
+                    <TableHead className="font-semibold text-gray-700 py-3 pl-6">Timestamp</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">Action By</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">Action</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">Target User</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-3">Details</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {loadingAudit ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">Loading audit logs...</TableCell>
+                    </TableRow>
+                  ) : auditLogs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">No audit logs found</TableCell>
+                    </TableRow>
+                  ) : (
+                    auditLogs.map(log => (
+                      <TableRow key={log.id} className="hover:bg-gray-50 border-b border-gray-100">
+                        <TableCell className="text-gray-600 text-sm pl-6 whitespace-nowrap">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="font-medium text-gray-800 text-sm">
+                          {log.performedBy}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded uppercase ${log.action === 'DELETE' ? 'bg-red-100 text-red-700' : log.action === 'CREATE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {log.action}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-medium text-gray-800 text-sm">
+                          {log.targetUser}
+                        </TableCell>
+                        <TableCell>
+                          <pre className="text-[11px] text-gray-500 whitespace-pre-wrap max-w-xs break-words">
+                            {JSON.stringify(log.changes, null, 2)}
+                          </pre>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          {/* Pagination Footer */}
+          {activeTab === 'users' && (
+            <div className="border-t border-gray-200 px-6 py-3 flex items-center justify-end gap-4 text-sm text-gray-600">
+              <div>
+                Showing {users.filter(u => u.role !== 'SUPER_ADMIN').length} of {users.filter(u => u.role !== 'SUPER_ADMIN').length} users
+              </div>
+              <div className="flex items-center gap-1">
+                <button className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded text-gray-400 bg-white" disabled>|<span className="sr-only">First</span></button>
+                <button className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded text-gray-400 bg-white" disabled>&lt;</button>
+                <button className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded text-gray-400 bg-white" disabled>&gt;</button>
+                <button className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded text-gray-400 bg-white" disabled>&gt;|</button>
+              </div>
+            </div>
+          )}
         </div>
-        )}
 
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent>
