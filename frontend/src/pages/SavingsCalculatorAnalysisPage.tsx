@@ -86,10 +86,8 @@ export default function SavingsCalculatorAnalysisPage() {
   const [calcVersions, setCalcVersions] = useState<number[]>([]);
   const [selectedCalcVersion, setSelectedCalcVersion] = useState<number | ''>('');
   const [calcTab, setCalcTab] = useState(0);
-  const [graphDialogOpen, setGraphDialogOpen] = useState(false);
   const [demandShiftGraphOpen, setDemandShiftGraphOpen] = useState(false);
   const [commercialModalOpen, setCommercialModalOpen] = useState(false);
-  const [dynamicGraphDialogOpen, setDynamicGraphDialogOpen] = useState(false);
   const [dynamicDemandShiftGraphOpen, setDynamicDemandShiftGraphOpen] = useState(false);
   const [marketDecisionOpen, setMarketDecisionOpen] = useState(false);
   const [marketDecisionEntry, setMarketDecisionEntry] = useState<SavingsCalculatorEntry | null>(null);
@@ -235,31 +233,6 @@ export default function SavingsCalculatorAnalysisPage() {
       executeCalculation();
     }
   }, [selectedSimMonth, selectedCalcVersion]);
-
-const executeGraphSimulation = async () => {
-    if (!calcEntry) return;
-    try {
-      setCalculating(true);
-      const res = await calculateMarketDecision(calcEntry.id, selectedSimMonth || undefined, selectedCalcVersion || undefined);
-      setCachedResults(prev => ({
-        ...prev,
-        [selectedSimMonth]: {
-          ...prev[selectedSimMonth],
-          market: res
-        }
-      }));
-      setGraphDialogOpen(true);
-    } catch (err: any) {
-      console.error('Graph Simulation failed:', err);
-      setSnackbar({
-        open: true,
-        message: err.message || 'Graph calculation failed.',
-        severity: 'error'
-      });
-    } finally {
-      setCalculating(false);
-    }
-  }
 
 const executeInsights = async () => {
     if (!calcEntry) return;
@@ -450,54 +423,7 @@ const exportInsightsToExcel = async () => {
               {calculating ? 'Analyzing...' : 'View'}
             </Button>
 
-            {selectedSimMonth !== 'all' && (
-              <>
-                <Button
-                  variant="contained"
-                  startIcon={<BarChartIcon />}
-                  onClick={executeGraphSimulation}
-                  disabled={calculating || !selectedSimMonth}
-                  sx={{ 
-                    textTransform: 'none', 
-                    borderRadius: 2, 
-                    bgcolor: '#F59E0B',
-                    '&:hover': {
-                      bgcolor: '#D97706'
-                    }
-                  }}
-                >
-                  {calculating ? 'Analyzing...' : 'Slot-wise Heatmap'}
-                </Button>
 
-                <Button
-                  variant="contained"
-                  startIcon={<BarChartIcon />}
-                  onClick={() => {
-                    if (!marketDecisionResult) {
-                      executeGraphSimulation();
-                      // A bit hacky, but they want it to behave the same
-                      setTimeout(() => {
-                        setGraphDialogOpen(false);
-                        setDynamicGraphDialogOpen(true);
-                      }, 1000);
-                    } else {
-                      setDynamicGraphDialogOpen(true);
-                    }
-                  }}
-                  disabled={calculating || !selectedSimMonth}
-                  sx={{ 
-                    textTransform: 'none', 
-                    borderRadius: 2, 
-                    bgcolor: '#8B5CF6',
-                    '&:hover': {
-                      bgcolor: '#7C3AED'
-                    }
-                  }}
-                >
-                  Dynamic Heatmap
-                </Button>
-              </>
-            )}
 
 
             {Object.keys(cachedResults).length > 0 && (
@@ -740,6 +666,23 @@ const exportInsightsToExcel = async () => {
 
               <Box id="dashboard-screenshot-target" sx={{ mt: 3, bgcolor: '#F8FAFC', p: 2, borderRadius: 2 }}>
                 <Dashboard calcResult={calcResult} calcEntry={calcEntry} clientName={calcEntry?.clientName || clientOverview?.clientName} clientOverview={clientOverview} marketDecisionResult={marketDecisionResult} demandShiftInsights={demandShiftInsights} selectedMonth={selectedSimMonth} />
+                
+                {selectedSimMonth !== 'all' && marketDecisionResult && (
+                  <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: '#1E293B' }}>
+                        Slot-wise Market Simulation
+                      </Typography>
+                      <SlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
+                    </Box>
+                    <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: '#1E293B' }}>
+                        Dynamic Slot-wise Market Simulation
+                      </Typography>
+                      <DynamicSlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
+                    </Box>
+                  </Box>
+                )}
               </Box>
 
               <div id="proposal-export-target" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '1200px' }}>
@@ -786,45 +729,6 @@ const exportInsightsToExcel = async () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-      <Dialog
-        open={graphDialogOpen}
-        onClose={() => setGraphDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
-      >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
-          Slot-wise Market Simulation
-          <IconButton onClick={() => setGraphDialogOpen(false)} size="small">
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {marketDecisionResult && (
-            <SlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={dynamicGraphDialogOpen}
-        onClose={() => setDynamicGraphDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
-      >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
-          Dynamic Slot-wise Market Simulation
-          <IconButton onClick={() => setDynamicGraphDialogOpen(false)} size="small">
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {marketDecisionResult && (
-            <DynamicSlotWiseMarketHeatmap slotsData={marketDecisionResult.slotsData} />
-          )}
-        </DialogContent>
-      </Dialog>
 
 </Box>
 <Dialog
