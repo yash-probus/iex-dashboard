@@ -209,7 +209,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ position: 'absolute', top: -50, right: -50, width: '400px', height: '400px', borderRadius: '50%', backgroundColor: PRIMARY_GREEN }} />
               <Box sx={{ position: 'absolute', top: 50, right: 100, width: '100px', height: '100px', borderRadius: '50%', backgroundColor: LIGHT_GREEN }} />
               
-              <Box sx={{ position: 'absolute', top: 50, left: 40, zIndex: 10 }}>
+              <Box sx={{ position: 'absolute', top: 60, right: 60, zIndex: 10 }}>
                 <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '70px', objectFit: 'contain' }} />
               </Box>
               
