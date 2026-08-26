@@ -578,7 +578,35 @@ const exportInsightsToExcel = async () => {
               <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
-                onClick={() => {
+                onClick={async () => {
+                  if (!calcEntry) return;
+
+                  const monthsToFetch = ['all', ...Object.keys(calcEntry.todConsumptions || {})];
+                  const newCache = { ...cachedResults };
+                  let fetchedAny = false;
+
+                  setCalculating(true);
+                  try {
+                    for (const m of monthsToFetch) {
+                      if (!newCache[m]) {
+                        const marketRes = await calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined);
+                        newCache[m] = {
+                          calc: null,
+                          market: marketRes,
+                          insights: null
+                        };
+                        fetchedAny = true;
+                      }
+                    }
+                    if (fetchedAny) {
+                      setCachedResults(newCache);
+                    }
+                  } catch (err) {
+                    console.error('Failed to fetch all months for PDF', err);
+                  } finally {
+                    setCalculating(false);
+                  }
+
                   const originalTitle = document.title;
                   if (calcEntry?.clientName) {
                     document.title = `${calcEntry.clientName}_Energy_Savings_Report`;
@@ -588,7 +616,7 @@ const exportInsightsToExcel = async () => {
                   setTimeout(() => {
                     window.print();
                     document.title = originalTitle;
-                  }, 500);
+                  }, 1500); // Wait for all months to render
                 }}
                 sx={{ 
                   textTransform: 'none', 
