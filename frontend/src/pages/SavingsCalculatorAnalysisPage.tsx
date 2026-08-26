@@ -5,7 +5,7 @@ import { FormControlLabel, Switch,
   Box, Typography, Button, alpha, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, IconButton, Alert, Snackbar,
   Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment, OutlinedInput
+  CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, InputAdornment, OutlinedInput, Chip
 } from '@mui/material';
 import { 
   Calculate as CalculateIcon, 
@@ -562,13 +562,13 @@ const exportInsightsToExcel = async () => {
                   borderRadius: 2.5, 
                   fontWeight: 600, 
                   borderColor: 'divider',
-                  backgroundColor: '#FFFFFF',
-                  color: 'text.primary',
+                  backgroundColor: '#D97706',
+                  color: 'white',
                   px: 2.5,
                   py: 1,
                   whiteSpace: 'nowrap',
                   '&:hover': {
-                    backgroundColor: '#F8FAFC',
+                    backgroundColor: '#B45309',
                     borderColor: 'divider'
                   }
                 }}
@@ -623,18 +623,21 @@ const exportInsightsToExcel = async () => {
                   borderRadius: 2.5, 
                   fontWeight: 600, 
                   borderColor: 'divider',
-                  backgroundColor: '#FFFFFF',
-                  color: 'text.primary',
+                  backgroundColor: '#0F172A',
+                  color: 'white',
                   px: 2.5,
                   py: 1,
                   whiteSpace: 'nowrap',
                   '&:hover': {
-                    backgroundColor: '#F8FAFC',
+                    backgroundColor: '#1E293B',
                     borderColor: 'divider'
                   }
                 }}
               >
-                Export PDF Report
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>Technical Proposal</span>
+                  <Chip label="NEW" size="small" color="error" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 'bold' }} />
+                </Box>
               </Button>
               <Button 
                 variant="outlined" 
