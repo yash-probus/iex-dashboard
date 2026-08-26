@@ -144,7 +144,7 @@ export const fetchEntryHistoryNew = async (id: string): Promise<any[]> => {
 
 export const exportSavingsExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
   const queryParams: string[] = [`_t=${Date.now()}`];
-  if (targetMonth && targetMonth !== 'all') {
+  if (targetMonth) {
     queryParams.push(`month=${targetMonth}`);
   }
   if (version) {
@@ -167,7 +167,7 @@ export const exportSavingsExcelNew = async (id: string, targetMonth?: string, ve
 
 export const exportDemandShiftExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
   const queryParams: string[] = [`_t=${Date.now()}`];
-  if (targetMonth && targetMonth !== 'all') {
+  if (targetMonth) {
     queryParams.push(`month=${targetMonth}`);
   }
   if (version) {
