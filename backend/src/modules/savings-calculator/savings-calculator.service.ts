@@ -2143,7 +2143,7 @@ export class SavingsCalculatorService {
     const grossSavings = Math.max(0, netSavings);
     const totalProltMarginCost = Math.round(grossSavings * (proltMarginInput / 100));
 
-    const totalSavings = netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFee - totalProltMarginCost - globalTraderMargin - globalTraderMarginGst;
+    const totalSavings = netSavings - probusPlatformFee - totalProltMarginCost - globalTraderMargin - globalTraderMarginGst;
 
     // Ensure savings are never negative - if they would be, set to 0
     const finalSavings = Math.max(0, totalSavings);
