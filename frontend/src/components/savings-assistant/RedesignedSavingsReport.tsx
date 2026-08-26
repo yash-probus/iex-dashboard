@@ -206,11 +206,11 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
           <React.Fragment key={month}>
             {/* PAGE 1 */}
             <Box className="pdf-page" sx={{ backgroundColor: DARK_BG, color: '#FFFFFF', p: '50px 40px 40px 40px', position: 'relative' }}>
-              <Box sx={{ position: 'absolute', top: -50, right: -50, width: '400px', height: '400px', borderRadius: '50%', backgroundColor: PRIMARY_GREEN }} />
-              <Box sx={{ position: 'absolute', top: 50, right: 100, width: '100px', height: '100px', borderRadius: '50%', backgroundColor: LIGHT_GREEN }} />
+              <Box sx={{ position: 'absolute', top: -150, right: -150, width: '500px', height: '500px', borderRadius: '50%', backgroundColor: PRIMARY_GREEN }} />
+              <Box sx={{ position: 'absolute', top: 50, right: 70, width: '130px', height: '130px', borderRadius: '50%', backgroundColor: LIGHT_GREEN }} />
               
-              <Box sx={{ position: 'absolute', top: 60, right: 60, zIndex: 10 }}>
-                <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '70px', objectFit: 'contain' }} />
+              <Box sx={{ position: 'absolute', top: 35, right: 30, zIndex: 10 }}>
+                <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '120px', objectFit: 'contain' }} />
               </Box>
               
               <Box sx={{ position: 'relative', zIndex: 1, mt: 8 }}>
