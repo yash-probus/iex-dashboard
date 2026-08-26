@@ -431,6 +431,12 @@ export class SavingsCalculatorNewService {
     let totalMarketEnergyKwh = 0;
     let totalLandedExchangeCost = 0;
     let totalDiscomAfterProlt = 0;
+    let totalElectricityDuty = 0;
+    let totalElectricityDutyAfterOA = 0;
+
+    const applyElectricityDuty = entry.applyElectricityDuty !== undefined ? entry.applyElectricityDuty : true;
+    const electricityDutyPercent = Number((todConsumptions as any)?._meta?.electricityDutyPercent) || 5.0;
+
 
     const aggregatedTotals = {
       cssCharge: 0, cssRate: 0, rpoCharge: 0, pocCharge: 0, stuCharge: 0,
@@ -461,11 +467,18 @@ export class SavingsCalculatorNewService {
     let monthlyDbFppaSum = 0;
     let monthlyDbFppaCount = 0;
 
+    const parseHour = (timeStr: string): number => {
+      if (!timeStr) return 0;
+      const [h, m] = timeStr.split(':').map(Number);
+      return h + (m || 0) / 60;
+    };
+
     for (const [yearMonth, monthData] of monthsToProcess) {
       const customSlots = this.parseCustomTodSlots(monthData);
       const [yearStr, monthStr] = yearMonth.split('-');
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
+      const calendarMonth = year * 100 + month;
 
       if (isNaN(year) || isNaN(month)) {
         continue;
@@ -525,6 +538,44 @@ export class SavingsCalculatorNewService {
       // Total per-kWh OA Surcharges (CSS, STU, Wheeling, CTU, Additional Charges)
       const totalOaSurcharges = cssRate + addChargeRate + stuCharge + wheelingCharge + ctuCharge;
 
+      // Fetch matching StateTariff slabs from DB for TOD Penalties
+      let parsedSupplyVoltageCategory = entry.voltageLevel || '11 kV';
+      if (parsedSupplyVoltageCategory.includes(' - ')) {
+        parsedSupplyVoltageCategory = parsedSupplyVoltageCategory.split(' - ')[0];
+      }
+      
+      const whereClauseTariff: any = {
+        state: { in: stateFormats },
+        discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+        consumerCategory: parsedCategory,
+        supplyVoltageCategory: parsedSupplyVoltageCategory,
+        OR: [
+          { consumptionMonth: { in: [yyyymmMonth, calendarMonth] } },
+          { month: { in: [yyyymmMonth, calendarMonth] }, consumptionMonth: null }
+        ]
+      };
+      if (parsedSubCategory) {
+        whereClauseTariff.subCategory = { contains: parsedSubCategory };
+      }
+
+      let tariffsForMonth = await prisma.stateTariff.findMany({ where: whereClauseTariff });
+      
+      if (tariffsForMonth.length === 0) {
+        const fallbackWhere: any = { state: { in: stateFormats }, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+        if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
+        const allTariffs = await prisma.stateTariff.findMany({
+          where: fallbackWhere,
+          orderBy: { month: 'desc' }
+        });
+        const sameMonthTariff = allTariffs.find(t => 
+          t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+        );
+        const latestTariff = sameMonthTariff || allTariffs[0];
+        if (latestTariff) {
+          tariffsForMonth = allTariffs.filter(t => t.month === latestTariff.month);
+        }
+      }
+
       // Query market MCP for the month
       const query = `
         SELECT
@@ -582,8 +633,33 @@ export class SavingsCalculatorNewService {
         // Find which custom TOD slot covers this 15-minute timeblock
         const matchedCustomSlot = customSlots.find(cs => this.isTimeInWindow(timeStr, cs.startTime, cs.endTime));
 
-        // Exact Discom price given by user
-        const baseDiscomPrice = (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) ? Number(matchedCustomSlot.effectivePrice) : 8.5;
+        // Exact Base Price given by user
+        const baseEnergyRate = (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) ? Number(matchedCustomSlot.effectivePrice) : 8.5;
+        
+        // Find matching TOD tariff from backend
+        let todChargePercent = 0;
+        if (tariffsForMonth && tariffsForMonth.length > 0) {
+          const currentHour = hour + minute / 60;
+          let matchedTariff = tariffsForMonth.find(t => {
+            if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') return false;
+            const start = parseHour(t.todStartTime);
+            const end = parseHour(t.todEndTime);
+            if (end < start) {
+              return currentHour >= start || currentHour < end;
+            }
+            return currentHour >= start && currentHour < end;
+          });
+          if (!matchedTariff) {
+            matchedTariff = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+          }
+          if (matchedTariff) {
+            todChargePercent = Number(matchedTariff.todChargePercent || 0);
+          }
+        }
+
+        const todPenaltyRebate = baseEnergyRate * (todChargePercent / 100);
+        const baseDiscomPrice = baseEnergyRate + todPenaltyRebate;
+
         const fppaMultiplier = 1 + (dbFppaPercent / 100);
         const discomLandingPrice = baseDiscomPrice * fppaMultiplier;
         
@@ -634,10 +710,15 @@ export class SavingsCalculatorNewService {
           gdamLandingPrice,
           discomLandingPrice,
           baseDiscomPrice,
+          todPenaltyRebate,
+          todChargePercent,
+          baseEnergyRate,
           comparedLowestPrice,
           selectedSource,
           is1MWOrMore,
           maxEnergyPerSlot: 0,
+          consumptionKwh: 0,
+          todGroupKwh: 0,
           discomEnergy: 0,
           marketEnergy: 0,
           optimizedCost: 0,
@@ -778,6 +859,7 @@ export class SavingsCalculatorNewService {
           sb.marketCost = 0;
           sb.discomCost = 0;
           sb.baselineCost = requiredEnergyPerSlot * slotDiscomPrice;
+          sb.consumptionKwh = requiredEnergyPerSlot;
         });
 
         // Sort by cheapest price for greedy buying
@@ -889,6 +971,31 @@ export class SavingsCalculatorNewService {
         aggregatedTotals.dcCharge += slotMarketEnergyKwh * wheelingCharge;
         aggregatedTotals.iexFee += slotMarketEnergyKwh * 0.02;
       }
+
+      // Calculate ED for the month
+      let monthElectricityDuty = 0;
+      let monthElectricityDutyAfterOA = 0;
+
+      if (applyElectricityDuty) {
+        const edRate = electricityDutyPercent / 100;
+        
+        let monthDiscomBill = 0;
+        let monthDiscomAfterOABill = 0;
+        
+        monthlySlots.forEach(s => {
+          monthDiscomBill += s.consumptionKwh * s.discomLandingPrice;
+          monthDiscomAfterOABill += s.discomEnergy * s.discomLandingPrice;
+        });
+        
+        monthElectricityDuty = monthDiscomBill * edRate;
+        monthElectricityDutyAfterOA = monthDiscomAfterOABill * edRate;
+      }
+
+      totalElectricityDuty += monthElectricityDuty;
+      totalElectricityDutyAfterOA += monthElectricityDutyAfterOA;
+      totalBaselineCost += monthElectricityDuty;
+      totalDiscomAfterProlt += monthElectricityDutyAfterOA;
+      totalLandedExchangeCost += monthElectricityDutyAfterOA;
 
       slotsData.push(...monthlySlots);
     }
