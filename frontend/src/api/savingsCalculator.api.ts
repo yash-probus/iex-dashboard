@@ -361,27 +361,46 @@ export const exportProposalWord = async (clientData: any): Promise<void> => {
 };
 
 export const exportTechnicalProposalWord = async (clientData: any): Promise<void> => {
-  const response = await apiClient.post('/proposals/generate-technical', clientData, {
-    responseType: 'blob',
-  });
-  
-  const blob = new Blob([response.data], {
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  
-  const contentDisposition = response.headers['content-disposition'];
-  let filename = 'Technical_Proposal.docx';
-  if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
-    if (filenameMatch && filenameMatch.length === 2) {
-        filename = filenameMatch[1].replace(/['"]/g, '');
+  try {
+    const response = await apiClient.post('/proposals/generate-technical', clientData, {
+      responseType: 'blob',
+    });
+    
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = 'Technical_Proposal.docx';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+      if (filenameMatch && filenameMatch.length === 2) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+      }
     }
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    }, 10000);
+  } catch (error: any) {
+    if (error.response && error.response.data && error.response.data instanceof Blob) {
+      const text = await error.response.data.text();
+      try {
+        const json = JSON.parse(text);
+        throw new Error(json.error || 'Failed to generate technical proposal');
+      } catch (e) {
+        throw new Error('Failed to generate technical proposal');
+      }
+    }
+    throw error;
   }
-  
-  downloadBlob(blob, filename);
 };
 
 export const exportCommercialProposalWord = async (clientData: any): Promise<void> => {

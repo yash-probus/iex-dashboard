@@ -103,6 +103,7 @@ export class ProposalService {
         }
       } catch (pythonErr: any) {
         console.warn('Python script execution failed, falling back to Node PizZip:', pythonErr.stderr || pythonErr.message);
+        throw new Error(`Python script execution failed: ${pythonErr.stderr || pythonErr.message}`);
       }
 
       // Fallback: Pure Node.js PizZip template replacement
@@ -253,7 +254,7 @@ export class ProposalService {
         }
       } catch (pythonErr: any) {
         console.error('Python script execution failed for technical proposal:', pythonErr.stderr || pythonErr.message);
-        throw new Error('Failed to generate technical proposal');
+        throw new Error(`Python script execution failed: ${pythonErr.stderr || pythonErr.message}`);
       }
     }
 
