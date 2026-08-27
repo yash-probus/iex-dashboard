@@ -506,43 +506,27 @@ const exportInsightsToExcel = async () => {
                 startIcon={<DownloadIcon />} 
                 onClick={async () => {
                   if (!calcEntry) return;
-
-                  const monthsToFetch = ['all', ...Object.keys(calcEntry.todConsumptions || {})];
-                  const newCache = { ...cachedResults };
-                  let fetchedAny = false;
-
+                  
+                  const calcResult = cachedResults['all']?.calc;
+                  
+                  const clientData = {
+                    client_name: calcEntry.clientName,
+                    industry_name: calcEntry.industryName,
+                    monthlyData: calcResult?.sortedMonthlyList || [],
+                    monthlySavings: calcResult?.summary?.totalSavings || 0,
+                    savings_in_words: numberToIndianWords(Math.round(calcResult?.summary?.totalSavings || 0))
+                  };
+                  
                   setCalculating(true);
                   try {
-                    for (const m of monthsToFetch) {
-                      if (!newCache[m]) {
-                        const marketRes = await calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined);
-                        newCache[m] = {
-                          calc: null,
-                          market: marketRes,
-                          insights: null
-                        };
-                        fetchedAny = true;
-                      }
-                    }
-                    if (fetchedAny) {
-                      setCachedResults(newCache);
-                    }
-                  } catch (err) {
-                    console.error('Failed to fetch all months for PDF', err);
+                    await exportTechnicalProposalWord(clientData);
+                    setSnackbar({ open: true, message: 'Technical proposal downloaded successfully!', severity: 'success' });
+                  } catch (err: any) {
+                    console.error('Failed to export Technical Proposal', err);
+                    setSnackbar({ open: true, message: err.message || 'Technical proposal export failed', severity: 'error' });
                   } finally {
                     setCalculating(false);
                   }
-
-                  const originalTitle = document.title;
-                  if (calcEntry?.clientName) {
-                    document.title = `${calcEntry.clientName}_Energy_Savings_Report`;
-                  }
-                  setIsPrintingRedesigned(true);
-                  document.body.classList.add('printing-report');
-                  setTimeout(() => {
-                    window.print();
-                    document.title = originalTitle;
-                  }, 1500); // Wait for all months to render
                 }}
                 sx={{ 
                   textTransform: 'none', 

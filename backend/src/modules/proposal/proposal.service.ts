@@ -206,11 +206,46 @@ export class ProposalService {
       return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
     }
 
-    let templateFilename = 'proposal_template.docx';
     if (type === 'technical') {
-      templateFilename = 'technical_proposal_template.docx';
+      const templatePath = path.join(__dirname, '../../../assets/templates/TECHNICAL PROPOSAL_11KV.docx');
+      if (!fs.existsSync(templatePath)) {
+          throw new Error(`Template file not found at ${templatePath}`);
+      }
+
+      // Generate chart
+      if (clientData.monthlyData && clientData.monthlyData.length > 0) {
+        try {
+          const buf = await ChartGeneratorService.generateSavingsChart(
+              clientData.monthlyData,
+              clientData.monthlySavings || '0',
+              clientData.savings_in_words || 'Twenty Five'
+          );
+          clientData.monthly_savings_chart = buf.toString('base64');
+        } catch (error) {
+          console.error("Failed to generate monthly_savings_chart:", error);
+        }
+      }
+
+      // Execute Python script
+      try {
+        const scriptPath = path.join(__dirname, '../../../scripts/generate_technical_proposal.py');
+        const tmpDir = os.tmpdir();
+        const tmpOutputPath = path.join(tmpDir, `technical_proposal_${Date.now()}.docx`);
+        const payload = { ...clientData, template_path: templatePath, output_path: tmpOutputPath };
+        execFileSync('python3', [scriptPath, JSON.stringify(payload)], { encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 });
+        
+        if (fs.existsSync(tmpOutputPath)) {
+          const buf = fs.readFileSync(tmpOutputPath);
+          try { fs.unlinkSync(tmpOutputPath); } catch (e) {}
+          return buf;
+        }
+      } catch (pythonErr: any) {
+        console.error('Python script execution failed for technical proposal:', pythonErr.stderr || pythonErr.message);
+        throw new Error('Failed to generate technical proposal');
+      }
     }
 
+    let templateFilename = 'proposal_template.docx';
     const templatePath = path.join(__dirname, '../../../assets/templates/', templateFilename);
     
     if (!fs.existsSync(templatePath)) {
