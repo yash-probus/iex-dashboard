@@ -58,6 +58,7 @@ import {
   exportCommercialProposalWord
 } from '../api/savingsCalculator.api';
 import CommercialProposalModal from '../components/common/CommercialProposalModal';
+import { numberToIndianWords } from '../utils/numberToIndianWords';
 
 export default function SavingsCalculatorNewAnalysisPage() {
   const { id } = useParams<{ id: string }>();
@@ -433,6 +434,58 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   <span>Technical Proposal</span>
                   <Chip label="NEW" size="small" color="error" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 'bold' }} />
                 </Box>
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={async () => {
+                  if (!id || !clientOverview || !calcEntry) return;
+
+                  const clientData = {
+                    client_name: calcEntry.clientName,
+                    industry_name: calcEntry.industryName,
+                    monthlyData: clientOverview.months.map((m: any) => ({
+                      month: m.month,
+                      discom_only: {
+                        volume: m.totalEnergyKwh || 0,
+                        total_amount: m.totalBaselineCost || 0,
+                        per_unit_effective: ((m.totalBaselineCost || 0) / (m.totalEnergyKwh || 1)).toFixed(2)
+                      },
+                      oa_mix: {
+                        total_amount: m.totalOptimizedCost || 0,
+                        per_unit_effective: ((m.totalOptimizedCost || 0) / (m.totalEnergyKwh || 1)).toFixed(2)
+                      },
+                      savings: m.savings || 0,
+                      savings_per_unit: ((m.savings || 0) / (m.totalEnergyKwh || 1)).toFixed(2)
+                    })),
+                    monthlySavings: clientOverview.totalSavings || 0,
+                    savings_in_words: numberToIndianWords(Math.round(clientOverview.totalSavings || 0))
+                  };
+
+                  setCalculating(true);
+                  try {
+                    await exportTechnicalProposalWord(clientData);
+                    setSnackbar({ open: true, message: 'Technical proposal downloaded successfully!', severity: 'success' });
+                  } catch (err: any) {
+                    console.error('Failed to export Technical Proposal', err);
+                    setSnackbar({ open: true, message: err.message || 'Technical proposal export failed', severity: 'error' });
+                  } finally {
+                    setCalculating(false);
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#0F172A',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#1E293B', borderColor: 'divider' }
+                }}
+              >
+                Technical Proposal (Word)
               </Button>
 
 

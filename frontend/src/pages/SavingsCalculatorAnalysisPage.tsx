@@ -506,6 +506,70 @@ const exportInsightsToExcel = async () => {
                 startIcon={<DownloadIcon />} 
                 onClick={async () => {
                   if (!calcEntry) return;
+
+                  const monthsToFetch = ['all', ...Object.keys(calcEntry.todConsumptions || {})];
+                  const newCache = { ...cachedResults };
+                  let fetchedAny = false;
+
+                  setCalculating(true);
+                  try {
+                    for (const m of monthsToFetch) {
+                      if (!newCache[m]) {
+                        const marketRes = await calculateMarketDecision(calcEntry.id, m, selectedCalcVersion || undefined);
+                        newCache[m] = {
+                          calc: null,
+                          market: marketRes,
+                          insights: null
+                        };
+                        fetchedAny = true;
+                      }
+                    }
+                    if (fetchedAny) {
+                      setCachedResults(newCache);
+                    }
+                  } catch (err) {
+                    console.error('Failed to fetch all months for PDF', err);
+                  } finally {
+                    setCalculating(false);
+                  }
+
+                  const originalTitle = document.title;
+                  if (calcEntry?.clientName) {
+                    document.title = `${calcEntry.clientName}_Energy_Savings_Report`;
+                  }
+                  setIsPrintingRedesigned(true);
+                  document.body.classList.add('printing-report');
+                  setTimeout(() => {
+                    window.print();
+                    document.title = originalTitle;
+                  }, 1500); // Wait for all months to render
+                }}
+                sx={{ 
+                  textTransform: 'none', 
+                  borderRadius: 2.5, 
+                  fontWeight: 600, 
+                  borderColor: 'divider',
+                  backgroundColor: '#0F172A',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    backgroundColor: '#1E293B',
+                    borderColor: 'divider'
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>Technical Proposal</span>
+                  <Chip label="NEW" size="small" color="error" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 'bold' }} />
+                </Box>
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<DownloadIcon />} 
+                onClick={async () => {
+                  if (!calcEntry) return;
                   
                   const calcResult = cachedResults['all']?.calc;
                   
@@ -544,10 +608,7 @@ const exportInsightsToExcel = async () => {
                   }
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <span>Technical Proposal</span>
-                  <Chip label="NEW" size="small" color="error" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 'bold' }} />
-                </Box>
+                Technical Proposal (Word)
               </Button>
               <Button 
                 variant="outlined" 
