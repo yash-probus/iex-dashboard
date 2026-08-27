@@ -513,8 +513,8 @@ const exportInsightsToExcel = async () => {
                     client_name: calcEntry.clientName,
                     industry_name: calcEntry.industryName,
                     monthlyData: calcResult?.sortedMonthlyList || [],
-                    monthlySavings: calcResult?.summary?.totalSavings || 0,
-                    savings_in_words: numberToIndianWords(Math.round(calcResult?.summary?.totalSavings || 0))
+                    monthlySavings: calcResult?.totalSavings || 0,
+                    savings_in_words: numberToIndianWords(Math.round(calcResult?.totalSavings || 0))
                   };
                   
                   setCalculating(true);
