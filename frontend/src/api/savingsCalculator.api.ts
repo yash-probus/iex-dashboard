@@ -396,7 +396,7 @@ export const exportTechnicalProposalWord = async (clientData: any): Promise<void
         const json = JSON.parse(text);
         throw new Error(json.error || 'Failed to generate technical proposal');
       } catch (e) {
-        throw new Error('Failed to generate technical proposal');
+        throw new Error(`Server returned 500 but not JSON: ${text.substring(0, 200)}`);
       }
     }
     throw error;
