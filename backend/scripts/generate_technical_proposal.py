@@ -37,7 +37,12 @@ def duplicate_row(row):
     return docx.table._Row(new_tr, row._parent)
 
 def generate_proposal(data_json):
-    data = json.loads(data_json)
+    if data_json.endswith('.json') and os.path.isfile(data_json):
+        with open(data_json, 'r') as f:
+            data = json.load(f)
+    else:
+        data = json.loads(data_json)
+    
     template_path = data.get('template_path', '/Users/yashgupta/IEX-Dashboard/TECHNICAL PROPOSAL_11KV.docx')
     output_path = data.get('output_path', '/Users/yashgupta/IEX-Dashboard/generated_technical_proposal.docx')
     

@@ -88,8 +88,14 @@ export class ProposalService {
         const tmpDir = os.tmpdir();
         const tmpOutputPath = path.join(tmpDir, `commercial_proposal_${Date.now()}.docx`);
         const payload = { ...clientData, template_path: templatePath, output_path: tmpOutputPath };
-        execFileSync('python3', [scriptPath, JSON.stringify(payload)], { encoding: 'utf-8' });
         
+        const tmpInputPath = path.join(tmpDir, `commercial_payload_${Date.now()}.json`);
+        fs.writeFileSync(tmpInputPath, JSON.stringify(payload), 'utf8');
+
+        execFileSync('python3', [scriptPath, tmpInputPath], { encoding: 'utf-8' });
+        
+        try { fs.unlinkSync(tmpInputPath); } catch (e) {}
+
         if (fs.existsSync(tmpOutputPath)) {
           const buf = fs.readFileSync(tmpOutputPath);
           try { fs.unlinkSync(tmpOutputPath); } catch (e) {}
@@ -232,8 +238,14 @@ export class ProposalService {
         const tmpDir = os.tmpdir();
         const tmpOutputPath = path.join(tmpDir, `technical_proposal_${Date.now()}.docx`);
         const payload = { ...clientData, template_path: templatePath, output_path: tmpOutputPath };
-        execFileSync('python3', [scriptPath, JSON.stringify(payload)], { encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 });
         
+        const tmpInputPath = path.join(tmpDir, `technical_payload_${Date.now()}.json`);
+        fs.writeFileSync(tmpInputPath, JSON.stringify(payload), 'utf8');
+
+        execFileSync('python3', [scriptPath, tmpInputPath], { encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 });
+        
+        try { fs.unlinkSync(tmpInputPath); } catch (e) {}
+
         if (fs.existsSync(tmpOutputPath)) {
           const buf = fs.readFileSync(tmpOutputPath);
           try { fs.unlinkSync(tmpOutputPath); } catch (e) {}

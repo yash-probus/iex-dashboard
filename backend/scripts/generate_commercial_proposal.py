@@ -28,9 +28,14 @@ def safe_float(val, default=0.0):
         return default
 
 def generate_proposal(data_json):
-    data = json.loads(data_json)
-    template_path = data.get('template_path', '/Users/yashgupta/IEX-Dashboard/COMMERCIAL PROPOSAL_V2.docx')
-    output_path = data.get('output_path', '/Users/yashgupta/IEX-Dashboard/generated_commercial_proposal.docx')
+    if data_json.endswith('.json') and os.path.isfile(data_json):
+        with open(data_json, 'r') as f:
+            data = json.load(f)
+    else:
+        data = json.loads(data_json)
+    
+    template_path = data.get('template_path', '/Users/yashgupta/IEX-Dashboard/commercial_proposal_template.docx')
+    output_path = data.get('output_path', '/Users/yashgupta/IEX-Dashboard/generated_proposal.docx')
     
     doc = docx.Document(template_path)
     
