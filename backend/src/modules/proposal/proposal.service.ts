@@ -247,9 +247,20 @@ export class ProposalService {
         const tmpInputPath = path.join(tmpDir, `technical_payload_${Date.now()}.json`);
         fs.writeFileSync(tmpInputPath, JSON.stringify(payload), 'utf8');
 
-        const pythonExecutable = fs.existsSync(path.join(__dirname, '../../../venv/bin/python'))
-          ? path.join(__dirname, '../../../venv/bin/python')
-          : 'python3';
+        const venvPaths = [
+          '/Users/yashgupta/IEX-Dashboard/backend/venv/bin/python',
+          path.join(process.cwd(), 'venv/bin/python'),
+          path.join(__dirname, '../../../venv/bin/python'),
+          path.join(__dirname, '../../../../venv/bin/python')
+        ];
+        
+        let pythonExecutable = 'python3';
+        for (const p of venvPaths) {
+          if (fs.existsSync(p)) {
+            pythonExecutable = p;
+            break;
+          }
+        }
 
         execFileSync(pythonExecutable, [scriptPath, tmpInputPath], { encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 });
         
@@ -262,7 +273,7 @@ export class ProposalService {
         }
       } catch (pythonErr: any) {
         console.error('Python script execution failed for technical proposal:', pythonErr.stderr || pythonErr.message);
-        // Do not throw here so the fallback Node logic can execute
+        throw new Error(`Technical proposal generation failed: ${pythonErr.stderr || pythonErr.message}`);
       }
     }
 

@@ -11,6 +11,19 @@ import base64
 import copy
 import calendar
 
+def safe_float(val):
+    if val is None:
+        return 0.0
+    if isinstance(val, (int, float)):
+        return float(val)
+    try:
+        cleaned = str(val).replace('₹', '').replace(',', '').replace('Rs.', '').replace('Rs', '').replace('%', '').replace('/', '').strip()
+        if not cleaned:
+            return 0.0
+        return float(cleaned)
+    except Exception:
+        return 0.0
+
 def format_rupee(amount, decimals=0):
     try:
         if amount is None or str(amount).strip() == '':
@@ -75,8 +88,8 @@ def generate_proposal(data_json):
     discom_name = data.get('discom_name') or 'PUVVNL'
     feeder_type = data.get('feeder_type') or 'Dedicated'
     
-    avg_monthly_savings = data.get('average_monthly_savings', 211034)
-    avg_annual_savings = data.get('average_annual_savings', 2532409)
+    avg_monthly_savings = safe_float(data.get('average_monthly_savings', 211034))
+    avg_annual_savings = safe_float(data.get('average_annual_savings', 2532409))
 
     # 1. Process Monthly Data for Dynamic Replacement Metrics
     monthly_data = data.get('monthlyData', [])
@@ -86,21 +99,21 @@ def generate_proposal(data_json):
     savings_list = []
     savings_per_units = []
     
-    strongest_saving = 0
+    strongest_saving = 0.0
     strongest_month_label = "May 2026"
     
     for item in monthly_data:
-        savings = float(item.get('savings', 0))
+        savings = safe_float(item.get('savings', 0))
         savings_list.append(savings)
         if savings > 0:
             positive_months += 1
             
-        total_energy = float(item.get('total_energy_kwh') or item.get('discom_only', {}).get('volume', 1))
-        market_energy = float(item.get('total_market_energy_kwh') or 0)
+        total_energy = safe_float(item.get('total_energy_kwh') or item.get('discom_only', {}).get('volume', 1))
+        market_energy = safe_float(item.get('total_market_energy_kwh') or 0)
         oa_share = (market_energy / total_energy * 100) if total_energy > 0 else 0
         oa_shares.append(oa_share)
         
-        savings_pu = float(item.get('savings_per_unit', 0))
+        savings_pu = safe_float(item.get('savings_per_unit', 0))
         savings_per_units.append(savings_pu)
         
         if savings > strongest_saving:
@@ -253,41 +266,41 @@ def generate_proposal(data_json):
                         except Exception:
                             pass
 
-                actual_units = item.get('discom_only', {}).get('volume', 0)
+                actual_units = safe_float(item.get('discom_only', {}).get('volume', 0))
                 
                 # Calculate Cleared OA %
-                total_energy = float(item.get('total_energy_kwh') or actual_units or 1)
-                market_energy = float(item.get('total_market_energy_kwh') or 0)
+                total_energy = safe_float(item.get('total_energy_kwh') or actual_units or 1)
+                market_energy = safe_float(item.get('total_market_energy_kwh') or 0)
                 cleared_oa_pct = (market_energy / total_energy * 100) if total_energy > 0 else 0
                 cleared_oa = f"{round(cleared_oa_pct)}%"
                 
                 discom_total = format_rupee(item.get('discom_only', {}).get('total_amount', 0), decimals=0)
-                discom_pu = item.get('discom_only', {}).get('per_unit_effective', 0)
+                discom_pu = safe_float(item.get('discom_only', {}).get('per_unit_effective', 0))
                 mix_total = format_rupee(item.get('oa_mix', {}).get('total_amount', 0), decimals=0)
-                mix_pu = item.get('oa_mix', {}).get('per_unit_effective', 0)
+                mix_pu = safe_float(item.get('oa_mix', {}).get('per_unit_effective', 0))
                 savings = format_rupee(item.get('savings', 0), decimals=0)
-                savings_pu = item.get('savings_per_unit', 0)
+                savings_pu = safe_float(item.get('savings_per_unit', 0))
                 
                 if len(cells) > 0:
                     cells[0].text = str(month_label)
                 if len(cells) > 1:
                     cells[1].text = str(billing_period)
                 if len(cells) > 2:
-                    cells[2].text = f"{int(float(actual_units)):,}" if actual_units else "0"
+                    cells[2].text = f"{int(actual_units):,}" if actual_units else "0"
                 if len(cells) > 3:
                     cells[3].text = str(cleared_oa)
                 if len(cells) > 4:
                     cells[4].text = str(discom_total)
                 if len(cells) > 5:
-                    cells[5].text = f"₹ {float(discom_pu):.2f}" if discom_pu else "₹ 0.00"
+                    cells[5].text = f"₹ {discom_pu:.2f}" if discom_pu else "₹ 0.00"
                 if len(cells) > 6:
                     cells[6].text = str(mix_total)
                 if len(cells) > 7:
-                    cells[7].text = f"₹ {float(mix_pu):.2f}" if mix_pu else "₹ 0.00"
+                    cells[7].text = f"₹ {mix_pu:.2f}" if mix_pu else "₹ 0.00"
                 if len(cells) > 8:
                     cells[8].text = str(savings)
                 if len(cells) > 9:
-                    cells[9].text = f"₹ {float(savings_pu):.2f}" if savings_pu else "₹ 0.00"
+                    cells[9].text = f"₹ {savings_pu:.2f}" if savings_pu else "₹ 0.00"
                     
                 # Re-apply yellow highlight for savings cells if needed
                 for cell_idx in [0, 2, 3, 4, 6, 8, 9]:
