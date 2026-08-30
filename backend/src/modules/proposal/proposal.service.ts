@@ -103,7 +103,7 @@ export class ProposalService {
         }
       } catch (pythonErr: any) {
         console.warn('Python script execution failed, falling back to Node PizZip:', pythonErr.stderr || pythonErr.message);
-        throw new Error(`Python script execution failed: ${pythonErr.stderr || pythonErr.message}`);
+        // Do not throw here so the fallback Node logic can execute
       }
 
       // Fallback: Pure Node.js PizZip template replacement
@@ -254,11 +254,11 @@ export class ProposalService {
         }
       } catch (pythonErr: any) {
         console.error('Python script execution failed for technical proposal:', pythonErr.stderr || pythonErr.message);
-        throw new Error(`Python script execution failed: ${pythonErr.stderr || pythonErr.message}`);
+        // Do not throw here so the fallback Node logic can execute
       }
     }
 
-    let templateFilename = 'proposal_template.docx';
+    let templateFilename = type === 'technical' ? 'TECHNICAL PROPOSAL_11KV.docx' : 'commercial_proposal_template.docx';
     const templatePath = path.join(__dirname, '../../../assets/templates/', templateFilename);
     
     if (!fs.existsSync(templatePath)) {
