@@ -228,7 +228,7 @@ export class ProposalService {
         try {
           const buf = await ChartGeneratorService.generateSavingsChart(
               clientData.monthlyData,
-              clientData.monthlySavings || '0',
+              clientData.average_monthly_savings ? formatRupee(clientData.average_monthly_savings) : '0',
               clientData.savings_in_words || 'Twenty Five'
           );
           clientData.monthly_savings_chart = buf.toString('base64');
@@ -281,7 +281,7 @@ export class ProposalService {
       try {
         const buf = await ChartGeneratorService.generateSavingsChart(
             clientData.monthlyData,
-            clientData.monthlySavings || '0',
+            clientData.average_monthly_savings ? formatRupee(clientData.average_monthly_savings) : '0',
             clientData.savings_in_words || 'Twenty Five'
         );
         clientData.monthly_savings_chart = buf.toString('base64');

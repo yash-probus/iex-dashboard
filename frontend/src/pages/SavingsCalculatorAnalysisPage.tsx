@@ -569,11 +569,8 @@ const exportInsightsToExcel = async () => {
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
                 onClick={async () => {
-                  if (!calcEntry) return;
+                  if (!calcEntry || !clientOverview) return;
                   
-                  const calcResult = cachedResults['all']?.calc;
-                  
-                  const monthsList = calcResult?.sortedMonthlyList || [];
                   const clientData = {
                     client_name: calcEntry.clientName,
                     industry_name: calcEntry.industryName,
@@ -581,11 +578,26 @@ const exportInsightsToExcel = async () => {
                     connectivity: calcEntry.voltageLevel,
                     discom_name: calcEntry.discom,
                     feeder_type: (calcEntry as any).feederType || 'Dedicated',
-                    average_monthly_savings: monthsList.length > 0 ? (calcResult?.totalSavings || 0) / monthsList.length : 0,
-                    average_annual_savings: monthsList.length > 0 ? ((calcResult?.totalSavings || 0) / monthsList.length) * 12 : 0,
-                    monthlyData: monthsList,
-                    monthlySavings: calcResult?.totalSavings || 0,
-                    savings_in_words: numberToIndianWords(Math.round(calcResult?.totalSavings || 0))
+                    average_monthly_savings: clientOverview.months.length > 0 ? (clientOverview.totalSavings || 0) / clientOverview.months.length : 0,
+                    average_annual_savings: clientOverview.months.length > 0 ? ((clientOverview.totalSavings || 0) / clientOverview.months.length) * 12 : 0,
+                    monthlyData: clientOverview.months.map((m: any) => ({
+                      month: m.month,
+                      total_energy_kwh: m.totalEnergyKwh || 0,
+                      total_market_energy_kwh: m.totalMarketEnergyKwh || 0,
+                      discom_only: {
+                        volume: m.totalEnergyKwh || 0,
+                        total_amount: m.totalBaselineCost || 0,
+                        per_unit_effective: ((m.totalBaselineCost || 0) / (m.totalEnergyKwh || 1)).toFixed(2)
+                      },
+                      oa_mix: {
+                        total_amount: m.totalOptimizedCost || 0,
+                        per_unit_effective: ((m.totalOptimizedCost || 0) / (m.totalEnergyKwh || 1)).toFixed(2)
+                      },
+                      savings: m.savings || 0,
+                      savings_per_unit: ((m.savings || 0) / (m.totalEnergyKwh || 1)).toFixed(2)
+                    })),
+                    monthlySavings: clientOverview.totalSavings || 0,
+                    savings_in_words: numberToIndianWords(Math.round(clientOverview.totalSavings || 0))
                   };
                   
                   setCalculating(true);

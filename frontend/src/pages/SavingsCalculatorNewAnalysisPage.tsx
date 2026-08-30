@@ -477,6 +477,8 @@ export default function SavingsCalculatorNewAnalysisPage() {
                     average_annual_savings: clientOverview.months.length > 0 ? ((clientOverview.totalSavings || 0) / clientOverview.months.length) * 12 : 0,
                     monthlyData: clientOverview.months.map((m: any) => ({
                       month: m.month,
+                      total_energy_kwh: m.totalEnergyKwh || 0,
+                      total_market_energy_kwh: m.totalMarketEnergyKwh || 0,
                       discom_only: {
                         volume: m.totalEnergyKwh || 0,
                         total_amount: m.totalBaselineCost || 0,

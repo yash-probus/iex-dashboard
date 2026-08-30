@@ -10,15 +10,31 @@ export class ChartGeneratorService {
         page.on('console', msg => console.log('PUPPETEER PAGE LOG:', msg.text()));
         page.on('pageerror', (err: any) => console.log('PUPPETEER PAGE ERROR:', err.message || err));
         
-        await page.setViewport({ width: 800, height: 480 });
+        await page.setViewport({ width: 850, height: 480 });
 
-        const labels = monthlyData.map(m => m.month_name);
+        const labels = monthlyData.map(m => {
+            if (m.month_name) return m.month_name;
+            if (m.month) {
+                const parts = m.month.split('-');
+                if (parts.length === 2) {
+                    const year = parts[0];
+                    const monthNum = parseInt(parts[1], 10);
+                    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    return `${months[monthNum - 1]}'${year.substring(2)}`;
+                }
+                return m.month;
+            }
+            return '';
+        });
+
         const data = monthlyData.map(m => {
-            const rawStr = m.saving.toString().replace(/[^0-9]/g, '');
+            const val = m.saving !== undefined ? m.saving : (m.savings !== undefined ? m.savings : 0);
+            const rawStr = val.toString().replace(/[^0-9]/g, '');
             return parseInt(rawStr, 10) || 0;
         });
 
-        const backgroundColor = data.map((_, i) => i === data.length - 1 ? '#4BB543' : '#3B5BBD');
+        const maxVal = Math.max(...data);
+        const backgroundColor = data.map(v => v === maxVal ? '#15B771' : '#3B82F6');
 
         const html = `
         <!DOCTYPE html>
@@ -81,7 +97,7 @@ export class ChartGeneratorService {
                 }
                 .highlight {
                     background-color: #FFFF00;
-                    color: white;
+                    color: black;
                     padding: 2px 6px;
                 }
             </style>
@@ -94,9 +110,9 @@ export class ChartGeneratorService {
                 </div>
                 
                 <div class="avg-bubble">
-                    Average Monthly Savings ₹${avgMonthlySavings}
+                    Average Monthly Savings ${avgMonthlySavings}
                 </div>
-
+ 
                 <div class="chart-container">
                     <canvas id="myChart"></canvas>
                 </div>
@@ -105,22 +121,59 @@ export class ChartGeneratorService {
             <div class="footer-bar">
                 You are losing around <span class="highlight">${savingsInWords}</span> annually by not switching to Prolt immediately.
             </div>
-
+ 
             <script>
                 Chart.register(ChartDataLabels);
                 const ctx = document.getElementById('myChart').getContext('2d');
+                
+                const dataVals = ${JSON.stringify(data)};
+                const avgSavingsNum = dataVals.reduce((a, b) => a + b, 0) / dataVals.length;
+                
+                const avgLinePlugin = {
+                    id: 'avgLine',
+                    afterDraw: function(chart) {
+                        const yAxis = chart.scales.y;
+                        if (!yAxis) return;
+                        const yVal = yAxis.getPixelForValue(avgSavingsNum);
+                        const ctx = chart.ctx;
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.setLineDash([5, 5]);
+                        ctx.moveTo(chart.chartArea.left, yVal);
+                        ctx.lineTo(chart.chartArea.right, yVal);
+                        ctx.strokeStyle = '#FF3B30';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                        ctx.restore();
+                        
+                        ctx.save();
+                        ctx.font = 'bold 12px sans-serif';
+                        ctx.fillStyle = '#FF3B30';
+                        ctx.textAlign = 'left';
+                        const labelText = 'Avg. ₹' + (avgSavingsNum / 100000).toFixed(2) + ' lakhs';
+                        ctx.fillText(labelText, chart.chartArea.right + 10, yVal + 4);
+                        ctx.restore();
+                    }
+                };
+
                 new Chart(ctx, {
                     type: 'bar',
+                    plugins: [avgLinePlugin],
                     data: {
                         labels: ${JSON.stringify(labels)},
                         datasets: [{
-                            data: ${JSON.stringify(data)},
+                            data: dataVals,
                             backgroundColor: ${JSON.stringify(backgroundColor)},
                             borderRadius: 8,
                             barPercentage: 0.6
                         }]
                     },
                     options: {
+                        layout: {
+                            padding: {
+                                right: 120
+                            }
+                        },
                         responsive: true,
                         maintainAspectRatio: false,
                         animation: false,
@@ -142,7 +195,7 @@ export class ChartGeneratorService {
                             y: {
                                 display: false,
                                 beginAtZero: true,
-                                suggestedMax: Math.max(...${JSON.stringify(data)}) * 1.2
+                                suggestedMax: Math.max(...dataVals) * 1.3
                             },
                             x: {
                                 grid: {
@@ -162,7 +215,7 @@ export class ChartGeneratorService {
         </body>
         </html>
         `;
-
+ 
         try {
             await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
             const screenshot = await page.screenshot({ type: 'png' });
