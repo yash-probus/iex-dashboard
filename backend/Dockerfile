@@ -28,8 +28,11 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install openssl and chromium dependencies
-RUN apk add --no-cache openssl chromium nss freetype harfbuzz ca-certificates ttf-freefont
+# Install openssl, chromium, and Python dependencies
+RUN apk add --no-cache openssl chromium nss freetype harfbuzz ca-certificates ttf-freefont python3 py3-pip
+
+# Install python-docx
+RUN pip3 install --break-system-packages python-docx
 
 # Copy package configurations and prisma files
 COPY package*.json ./
@@ -43,6 +46,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/assets ./assets
+COPY --from=builder /app/scripts ./scripts
 
 # Expose backend port
 EXPOSE 5000
