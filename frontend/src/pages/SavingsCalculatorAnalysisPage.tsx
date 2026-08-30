@@ -573,10 +573,17 @@ const exportInsightsToExcel = async () => {
                   
                   const calcResult = cachedResults['all']?.calc;
                   
+                  const monthsList = calcResult?.sortedMonthlyList || [];
                   const clientData = {
                     client_name: calcEntry.clientName,
                     industry_name: calcEntry.industryName,
-                    monthlyData: calcResult?.sortedMonthlyList || [],
+                    sanctioned_load: calcEntry.sanctionedLoadKw,
+                    connectivity: calcEntry.voltageLevel,
+                    discom_name: calcEntry.discom,
+                    feeder_type: (calcEntry as any).feederType || 'Dedicated',
+                    average_monthly_savings: monthsList.length > 0 ? (calcResult?.totalSavings || 0) / monthsList.length : 0,
+                    average_annual_savings: monthsList.length > 0 ? ((calcResult?.totalSavings || 0) / monthsList.length) * 12 : 0,
+                    monthlyData: monthsList,
                     monthlySavings: calcResult?.totalSavings || 0,
                     savings_in_words: numberToIndianWords(Math.round(calcResult?.totalSavings || 0))
                   };

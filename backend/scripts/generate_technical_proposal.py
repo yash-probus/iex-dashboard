@@ -22,12 +22,11 @@ def format_rupee(amount):
     except (ValueError, TypeError):
         return str(amount)
 
-def replace_in_text(text, client_name):
+def replace_in_text(text, replacements):
     if not text: return text
-    if 'Client XYZ' in text:
-        text = text.replace('Client XYZ', client_name.upper())
-    if 'CLIENT XYZ' in text:
-        text = text.replace('CLIENT XYZ', client_name.upper())
+    for old_val, new_val in replacements.items():
+        if old_val in text:
+            text = text.replace(old_val, str(new_val))
     return text
 
 def duplicate_row(row):
@@ -49,11 +48,32 @@ def generate_proposal(data_json):
     doc = docx.Document(template_path)
     client_name = data.get('client_name') or data.get('industry_name') or 'CLIENT XYZ'
     
+    sanctioned_load = f"{data.get('sanctioned_load', '1000')} KVA" if data.get('sanctioned_load') else "1000 KVA"
+    connectivity = f"{data.get('connectivity', '11')} KV" if data.get('connectivity') else "11 KV"
+    discom_name = data.get('discom_name') or 'PUVVNL'
+    feeder_type = data.get('feeder_type') or 'Dedicated'
+    
+    avg_monthly_savings = data.get('average_monthly_savings', 211034)
+    avg_annual_savings = data.get('average_annual_savings', 2532409)
+
+    replacements = {
+        'XXXXXXXXXXXXXX': client_name.upper(),
+        'Client XYZ': client_name.upper(),
+        'CLIENT XYZ': client_name.upper(),
+        'Chaurishi Ayurveda LLP': client_name,
+        '1000 KVA': sanctioned_load,
+        '11 KV': connectivity,
+        'PUVVNL': discom_name,
+        'Dedicated': feeder_type,
+        '₹2,11,034': format_rupee(avg_monthly_savings),
+        '₹25,32,409': format_rupee(avg_annual_savings)
+    }
+    
     # 1. Update text paragraphs
     for p in doc.paragraphs:
         for run in p.runs:
             if run.text:
-                run.text = replace_in_text(run.text, client_name)
+                run.text = replace_in_text(run.text, replacements)
                 
     # 2. Update tables (except the savings table which we'll handle separately)
     savings_table_index = -1
@@ -70,7 +90,7 @@ def generate_proposal(data_json):
                     for p in c.paragraphs:
                         for run in p.runs:
                             if run.text:
-                                run.text = replace_in_text(run.text, client_name)
+                                run.text = replace_in_text(run.text, replacements)
     
     # 3. Handle savings table
     if savings_table_index != -1 and 'monthlyData' in data:

@@ -1,0 +1,22 @@
+{
+  "client_name": "Test",
+  "industry_name": "Test",
+  "sanctioned_load": "1000 kW",
+  "connectivity": "33 kV",
+  "discom_name": "NPCL",
+  "feeder_type": "Dedicated Feeder",
+  "abt_supply_cost": 450000,
+  "abt_service_cost": 350000,
+  "utility_liaisoning_cost": 300000,
+  "bank_guarantee_cost": 150000,
+  "iex_annual_fee": 100000,
+  "sldc_monthly_noc": 7000,
+  "st11_settlement": 20000,
+  "trading_margin": "2p/kWh",
+  "platform_fee": "2p/kWh",
+  "value_share": "15%",
+  "smart_metering_infra": 125000,
+  "smart_metering_infra_payment_term": "100% Advance against PO/PI",
+  "template_path": "/Users/yashgupta/IEX-Dashboard/backend/assets/templates/COMMERCIAL PROPOSAL_33KV.docx",
+  "output_path": "/tmp/test_full.docx"
+}

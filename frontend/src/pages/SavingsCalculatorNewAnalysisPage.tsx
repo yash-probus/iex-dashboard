@@ -406,7 +406,32 @@ export default function SavingsCalculatorNewAnalysisPage() {
               <Button
                 variant="outlined"
                 startIcon={<DownloadIcon />}
-                onClick={() => {
+                onClick={async () => {
+                  if (!calcEntry || !id) return;
+                  
+                  // Ensure ALL months are loaded for the PDF to include pages for every month
+                  setCalculating(true);
+                  try {
+                    const monthsToFetch = ['all', ...Object.keys(calcEntry.todConsumptions || {})];
+                    const newCache = { ...cachedResults };
+                    let fetchedAny = false;
+
+                    for (const m of monthsToFetch) {
+                      if (!newCache[m]) {
+                        const marketRes = await calculateMarketDecisionNew(id, m, selectedCalcVersion || undefined);
+                        newCache[m] = marketRes;
+                        fetchedAny = true;
+                      }
+                    }
+                    if (fetchedAny) {
+                      setCachedResults(newCache);
+                    }
+                  } catch (err) {
+                    console.error('Failed to fetch all months for PDF', err);
+                  } finally {
+                    setCalculating(false);
+                  }
+
                   const originalTitle = document.title;
                   if (calcEntry?.clientName) {
                     document.title = `${calcEntry.clientName}_Custom_TOD_Savings_Report`;
@@ -416,7 +441,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   setTimeout(() => {
                     window.print();
                     document.title = originalTitle;
-                  }, 500);
+                  }, 1500); // Wait for all months to render
                 }}
                 sx={{
                   textTransform: 'none',
@@ -444,6 +469,12 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   const clientData = {
                     client_name: calcEntry.clientName,
                     industry_name: calcEntry.industryName,
+                    sanctioned_load: calcEntry.sanctionedLoadKw,
+                    connectivity: calcEntry.voltageLevel,
+                    discom_name: calcEntry.discom,
+                    feeder_type: (calcEntry as any).feederType || 'Dedicated',
+                    average_monthly_savings: clientOverview.months.length > 0 ? (clientOverview.totalSavings || 0) / clientOverview.months.length : 0,
+                    average_annual_savings: clientOverview.months.length > 0 ? ((clientOverview.totalSavings || 0) / clientOverview.months.length) * 12 : 0,
                     monthlyData: clientOverview.months.map((m: any) => ({
                       month: m.month,
                       discom_only: {

@@ -92,7 +92,11 @@ export class ProposalService {
         const tmpInputPath = path.join(tmpDir, `commercial_payload_${Date.now()}.json`);
         fs.writeFileSync(tmpInputPath, JSON.stringify(payload), 'utf8');
 
-        execFileSync('python3', [scriptPath, tmpInputPath], { encoding: 'utf-8' });
+        const pythonExecutable = fs.existsSync(path.join(__dirname, '../../../venv/bin/python'))
+          ? path.join(__dirname, '../../../venv/bin/python')
+          : 'python3';
+
+        execFileSync(pythonExecutable, [scriptPath, tmpInputPath], { encoding: 'utf-8' });
         
         try { fs.unlinkSync(tmpInputPath); } catch (e) {}
 
@@ -243,7 +247,11 @@ export class ProposalService {
         const tmpInputPath = path.join(tmpDir, `technical_payload_${Date.now()}.json`);
         fs.writeFileSync(tmpInputPath, JSON.stringify(payload), 'utf8');
 
-        execFileSync('python3', [scriptPath, tmpInputPath], { encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 });
+        const pythonExecutable = fs.existsSync(path.join(__dirname, '../../../venv/bin/python'))
+          ? path.join(__dirname, '../../../venv/bin/python')
+          : 'python3';
+
+        execFileSync(pythonExecutable, [scriptPath, tmpInputPath], { encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 });
         
         try { fs.unlinkSync(tmpInputPath); } catch (e) {}
 
