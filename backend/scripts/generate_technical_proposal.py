@@ -209,7 +209,8 @@ def generate_proposal(data_json):
         'Six Months': total_months_words,
         'Six months': total_months_words,
         'six-month': f"{total_months}-month",
-        'six month': f"{total_months} month"
+        'six month': f"{total_months} month",
+        'Prolt Savings Calculator': 'Savings Calculator'
     }
     
     # 2. Update text paragraphs
