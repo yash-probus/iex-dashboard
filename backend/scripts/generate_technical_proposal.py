@@ -90,8 +90,19 @@ def generate_proposal(data_json):
     doc = docx.Document(template_path)
     client_name = data.get('client_name') or data.get('industry_name') or 'CLIENT XYZ'
     
-    sanctioned_load = f"{data.get('sanctioned_load', '1000')} KVA" if data.get('sanctioned_load') else "1000 KVA"
-    connectivity = f"{data.get('connectivity', '11')} KV" if data.get('connectivity') else "11 KV"
+    # Sanitize load to avoid double KVA
+    load_val = str(data.get('sanctioned_load') or '1000').strip()
+    if not load_val.upper().endswith('KVA'):
+        sanctioned_load = f"{load_val} KVA"
+    else:
+        sanctioned_load = load_val.upper()
+
+    # Sanitize connectivity to avoid double KV
+    conn_val = str(data.get('connectivity') or '11').strip()
+    if not conn_val.upper().endswith('KV'):
+        connectivity = f"{conn_val} KV"
+    else:
+        connectivity = conn_val.upper()
     discom_name = data.get('discom_name') or 'PUVVNL'
     feeder_type = data.get('feeder_type') or 'Dedicated'
     
@@ -309,16 +320,10 @@ def generate_proposal(data_json):
                 if len(cells) > 9:
                     cells[9].text = f"₹ {savings_pu:.2f}" if savings_pu else "₹ 0.00"
                     
-                # Re-apply yellow highlight for savings cells if needed
-                for cell_idx in [0, 2, 3, 4, 6, 8, 9]:
-                    if len(cells) > cell_idx:
-                        p = cells[cell_idx].paragraphs[0] if cells[cell_idx].paragraphs else cells[cell_idx].add_paragraph()
-                        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                        for run in p.runs:
-                            rPr = run._element.get_or_add_rPr()
-                            highlight = OxmlElement('w:highlight')
-                            highlight.set(qn('w:val'), 'yellow')
-                            rPr.append(highlight)
+                # Center-align text in savings cells
+                for cell_idx in range(len(cells)):
+                    p = cells[cell_idx].paragraphs[0] if cells[cell_idx].paragraphs else cells[cell_idx].add_paragraph()
+                    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                             
             # 4.4 Delete the original template row itself
             t._element.remove(template_row._tr)
@@ -415,6 +420,18 @@ def generate_proposal(data_json):
                                 break
         except Exception as e:
             print(f"Error replacing dashboard screenshot: {e}")
+
+    # Clear all remaining yellow highlights in the document (from both paragraphs and tables)
+    for p in doc.paragraphs:
+        for run in p.runs:
+            run.font.highlight_color = None
+            
+    for t in doc.tables:
+        for r in t.rows:
+            for c in r.cells:
+                for p in c.paragraphs:
+                    for run in p.runs:
+                        run.font.highlight_color = None
 
     if os.path.dirname(output_path):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
