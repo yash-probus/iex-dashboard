@@ -390,18 +390,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-      <DashboardHero 
-        clientName={clientName || 'Energy Dashboard'}
-        industryName={calcEntry?.industryName || clientOverview?.industryName}
-        location={calcEntry?.address || 'Location Unavailable'}
-        connectivity={calcEntry?.voltageLevel || 'Connectivity Unavailable'}
-        overallPeriod={periodText}
-        detailedCycle={detailedCycle}
-      />
+      <Box id="dashboard-hero-kpis-screenshot-target" sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', bgcolor: '#f8fafc', p: 1.5, borderRadius: 2 }}>
+        <DashboardHero 
+          clientName={clientName || 'Energy Dashboard'}
+          industryName={calcEntry?.industryName || clientOverview?.industryName}
+          location={calcEntry?.address || 'Location Unavailable'}
+          connectivity={calcEntry?.voltageLevel || 'Connectivity Unavailable'}
+          overallPeriod={periodText}
+          detailedCycle={detailedCycle}
+        />
 
-      {/* Dynamic KPIs (Overall or Monthly depending on state) */}
-      <Box sx={{ mt: 2 }}>
-        <DashboardKPIs kpis={kpis} />
+        {/* Dynamic KPIs (Overall or Monthly depending on state) */}
+        <Box sx={{ mt: 2 }}>
+          <DashboardKPIs kpis={kpis} />
+        </Box>
       </Box>
 
       {/* Energy Summary (Overall or Monthly) */}

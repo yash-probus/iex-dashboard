@@ -205,15 +205,59 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
         return (
           <React.Fragment key={month}>
             {/* PAGE 1 */}
-            <Box className="pdf-page" sx={{ backgroundColor: DARK_BG, color: '#FFFFFF', p: '50px 40px 40px 40px', position: 'relative' }}>
-              <Box sx={{ position: 'absolute', top: -120, right: -150, width: '500px', height: '500px', borderRadius: '50%', backgroundColor: PRIMARY_GREEN }} />
-              <Box sx={{ position: 'absolute', top: 80, right: 70, width: '130px', height: '130px', borderRadius: '50%', backgroundColor: LIGHT_GREEN }} />
+            <Box className="pdf-page" sx={{ 
+              backgroundColor: DARK_BG, 
+              color: '#FFFFFF', 
+              p: '50px 40px 40px 40px', 
+              position: 'relative',
+              overflow: 'hidden', // Ensures circular accents bleed off cleanly on screen
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              {/* Background circular accents (z-index: 0) */}
+              <Box sx={{ 
+                position: 'absolute', 
+                top: -120, 
+                right: -150, 
+                width: '500px', 
+                height: '500px', 
+                borderRadius: '50%', 
+                backgroundColor: PRIMARY_GREEN,
+                zIndex: 0 
+              }} />
+              <Box sx={{ 
+                position: 'absolute', 
+                top: 80, 
+                right: 70, 
+                width: '130px', 
+                height: '130px', 
+                borderRadius: '50%', 
+                backgroundColor: LIGHT_GREEN,
+                zIndex: 0
+              }} />
               
-              <Box sx={{ position: 'absolute', top: 65, right: 30, zIndex: 10 }}>
-                <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '120px', objectFit: 'contain' }} />
+              {/* Company Logo branding component (z-index: 10) */}
+              <Box sx={{ 
+                position: 'absolute', 
+                top: 65, 
+                right: 40, 
+                zIndex: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <img 
+                  src="/assets/logo.png" 
+                  alt="Prolt Energy By Probus" 
+                  style={{ 
+                    height: '100px', 
+                    width: 'auto',
+                    objectFit: 'contain'
+                  }} 
+                />
               </Box>
               
-              <Box sx={{ position: 'relative', zIndex: 1, mt: 8 }}>
+              <Box sx={{ position: 'relative', zIndex: 10, mt: 8 }}>
                 <Box sx={{ backgroundColor: 'rgba(255,255,255,0.1)', display: 'inline-block', px: 2, py: 0.5, borderRadius: '16px', mb: 5 }}>
                   <Typography sx={{ color: LIGHT_GREEN, fontWeight: 700, fontSize: '12px', letterSpacing: 1, textTransform: 'uppercase' }}>
                     {summaryLabel}
@@ -227,7 +271,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                 </Typography>
               </Box>
 
-              <Box sx={{ mt: 8, border: '1px solid #1E3A47', borderRadius: '24px', p: 4, display: 'flex', position: 'relative', zIndex: 1 }}>
+              <Box sx={{ mt: 8, border: '1px solid #1E3A47', borderRadius: '24px', p: 4, display: 'flex', position: 'relative', zIndex: 10 }}>
                 <Box sx={{ flex: 1, borderRight: '1px solid #1E3A47', pr: 4 }}>
                   <Typography sx={{ color: LIGHT_GREEN, fontWeight: 700, fontSize: '13px', letterSpacing: 1, textTransform: 'uppercase', mb: 1.5 }}>Your Confirmed Savings</Typography>
                   <Typography sx={{ fontSize: '52px', fontWeight: 800, lineHeight: 1 }}>
@@ -244,7 +288,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                 </Box>
               </Box>
 
-              <Box sx={{ mt: 'auto', mb: 4, position: 'relative', zIndex: 1 }}>
+              <Box sx={{ mt: 'auto', mb: 4, position: 'relative', zIndex: 10 }}>
                 <Typography sx={{ color: '#94A3B8', fontSize: '13px', fontWeight: 700, mb: 0.5 }}>Prepared for</Typography>
                 <Typography sx={{ fontSize: '24px', fontWeight: 800, mb: 0.5 }}>{clientName}</Typography>
                 {calcEntry.industryName && (
