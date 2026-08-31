@@ -1,10 +1,10 @@
 # --- Build Stage ---
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
 # Install openssl (required for Prisma to run migrations in builder)
-RUN apk add --no-cache openssl
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy configuration files
 COPY package*.json tsconfig.json ./
@@ -23,19 +23,27 @@ COPY *.csv ./
 RUN npx prisma generate
 RUN npm run build
 
+
 # --- Production Stage ---
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
 # Install openssl, chromium, and Python dependencies
-RUN apk add --no-cache openssl chromium nss freetype harfbuzz ca-certificates ttf-freefont \
-    python3 py3-pip py3-numpy py3-pandas py3-scipy py3-scikit-learn openmp
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    chromium \
+    python3 \
+    python3-pip \
+    python3-numpy \
+    python3-pandas \
+    python3-scipy \
+    python3-sklearn \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install build dependencies, build lightgbm/sqlalchemy/dotenv, then clean up build dependencies
-RUN apk add --no-cache --virtual .build-deps gcc g++ make cmake openmp-dev python3-dev musl-dev openblas-dev && \
-    pip3 install --break-system-packages lightgbm SQLAlchemy psycopg2-binary python-dotenv python-docx && \
-    apk del .build-deps
+# Install python-docx and lightgbm (pre-compiled binary wheels)
+RUN pip3 install --break-system-packages lightgbm python-docx SQLAlchemy psycopg2-binary python-dotenv
 
 # Copy package configurations and prisma files
 COPY package*.json ./
@@ -57,7 +65,7 @@ EXPOSE 5000
 ENV PORT=5000
 ENV NODE_ENV=production
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Start command
 CMD ["node", "dist/server.js"]
