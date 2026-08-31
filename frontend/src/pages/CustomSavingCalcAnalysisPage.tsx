@@ -443,20 +443,38 @@ export default function CustomSavingCalcAnalysisPage() {
                   if (!calcEntry || !clientOverview) return;
                   setCalculating(true);
                   try {
-                    let dashboard_screenshot = '';
-                    const targetEl = document.getElementById('dashboard-hero-kpis-screenshot-target') || document.getElementById('dashboard-screenshot-target');
-                    if (targetEl) {
+                    let dashboard_hero_kpis_screenshot = '';
+                    let dashboard_charts_screenshot = '';
+
+                    const heroKpisEl = document.getElementById('dashboard-hero-kpis-screenshot-target');
+                    if (heroKpisEl) {
                       try {
-                        const canvas = await html2canvas(targetEl, {
+                        const canvas = await html2canvas(heroKpisEl, {
                           scale: 2,
                           useCORS: true,
                           allowTaint: true,
                           backgroundColor: '#F8FAFC'
                         });
                         const imgData = canvas.toDataURL('image/png');
-                        dashboard_screenshot = imgData.replace(/^data:image\/png;base64,/, '');
+                        dashboard_hero_kpis_screenshot = imgData.replace(/^data:image\/png;base64,/, '');
                       } catch (screenshotErr) {
-                        console.error('Failed to capture dashboard screenshot:', screenshotErr);
+                        console.error('Failed to capture dashboard hero/kpis screenshot:', screenshotErr);
+                      }
+                    }
+
+                    const chartsEl = document.getElementById('dashboard-screenshot-target');
+                    if (chartsEl) {
+                      try {
+                        const canvas = await html2canvas(chartsEl, {
+                          scale: 2,
+                          useCORS: true,
+                          allowTaint: true,
+                          backgroundColor: '#F8FAFC'
+                        });
+                        const imgData = canvas.toDataURL('image/png');
+                        dashboard_charts_screenshot = imgData.replace(/^data:image\/png;base64,/, '');
+                      } catch (screenshotErr) {
+                        console.error('Failed to capture dashboard charts screenshot:', screenshotErr);
                       }
                     }
 
@@ -487,7 +505,9 @@ export default function CustomSavingCalcAnalysisPage() {
                       })),
                       monthlySavings: clientOverview.totalSavings || 0,
                       savings_in_words: numberToIndianWords(Math.round(clientOverview.totalSavings || 0)),
-                      dashboard_screenshot: dashboard_screenshot
+                      dashboard_hero_kpis_screenshot,
+                      dashboard_charts_screenshot,
+                      dashboard_screenshot: dashboard_hero_kpis_screenshot
                     };
 
                     await exportTechnicalProposalWord(clientData);
