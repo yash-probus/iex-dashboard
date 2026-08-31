@@ -37,6 +37,7 @@ const SavingsCalculatorAnalysisPage = lazy(() => import('../pages/SavingsCalcula
 const SavingsCalculatorNewPage = lazy(() => import('../pages/SavingsCalculatorNewPage'));
 const SavingsCalculatorNewAnalysisPage = lazy(() => import('../pages/SavingsCalculatorNewAnalysisPage'));
 const ForecastPage = lazy(() => import('../pages/ForecastPage'));
+const MarketRecommendationPage = lazy(() => import('../pages/MarketRecommendationPage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -90,6 +91,7 @@ export default function AppRoutes() {
               <Route path="forecast/price/dam" element={<ForecastPage />} />
               <Route path="forecast/price/rtm" element={<ForecastPage />} />
               <Route path="forecast/price/gdam" element={<ForecastPage />} />
+              <Route path="forecast/market-recommendation" element={<MarketRecommendationPage />} />
               <Route path="forecast/demand/consumer" element={<ForecastPage />} />
               <Route path="forecast/demand/all-india" element={<ForecastPage />} />
               <Route path="forecast/generation/npp" element={<ForecastPage />} />

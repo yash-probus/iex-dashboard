@@ -296,7 +296,39 @@ export class CronService {
       }
     });
 
+    // Run every day at 12:05 AM for Market Selection Recommendation Forecast
+    cron.schedule('5 0 * * *', async () => {
+      console.log('[Cron] Running daily Market Selection Forecast at 12:05 AM');
+      try {
+        const { ForecastService } = await import('../modules/forecast/forecast.service');
+        const today = new Date();
+        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() + 7);
+        
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+        
+        const tomorrowStr = formatter.format(tomorrow);
+        const endDateStr = formatter.format(endDate);
+        
+        console.log(`[Cron] Fetching market selection forecast from ${tomorrowStr} to ${endDateStr}`);
+        await ForecastService.getMarketSelectionForecast(tomorrowStr, endDateStr);
+        console.log('[Cron] Market selection forecast updated successfully');
+      } catch (error) {
+        console.error('[Cron] Error in daily market selection forecast update:', error);
+      }
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
     console.log('[CronService] Cron jobs initialized successfully.');
   }
-
 }

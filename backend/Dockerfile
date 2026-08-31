@@ -29,10 +29,13 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Install openssl, chromium, and Python dependencies
-RUN apk add --no-cache openssl chromium nss freetype harfbuzz ca-certificates ttf-freefont python3 py3-pip
+RUN apk add --no-cache openssl chromium nss freetype harfbuzz ca-certificates ttf-freefont \
+    python3 py3-pip py3-numpy py3-pandas py3-scipy py3-scikit-learn libomp
 
-# Install python-docx
-RUN pip3 install --break-system-packages python-docx
+# Install build dependencies, build lightgbm/sqlalchemy/dotenv, then clean up build dependencies
+RUN apk add --no-cache --virtual .build-deps gcc g++ make cmake libomp-dev python3-dev musl-dev openblas-dev && \
+    pip3 install --break-system-packages lightgbm SQLAlchemy psycopg2-binary python-dotenv python-docx && \
+    apk del .build-deps
 
 # Copy package configurations and prisma files
 COPY package*.json ./

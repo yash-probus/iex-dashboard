@@ -1480,4 +1480,87 @@ export class ForecastService {
 
     return records;
   }
+
+  /**
+   * Fetch Market Selection Recommendation Forecast
+   */
+  public static async getMarketSelectionForecast(startDateStr: string, endDateStr: string) {
+    const dates = this.getDatesInRange(startDateStr, endDateStr);
+    
+    // 1. Query Prisma database for cached forecasts
+    let cachedRows = await prisma.marketForecasting.findMany({
+      where: { date: { in: dates } },
+      orderBy: { date: 'asc' }
+    });
+
+    const cachedDates = new Set(cachedRows.map(r => r.date));
+    const missingDates = dates.filter(d => !cachedDates.has(d));
+
+    // 2. If any requested dates are missing from the cache, trigger Python calculation
+    if (missingDates.length > 0) {
+      console.log(`[ForecastService] Missing cached records for dates: ${missingDates.join(', ')}. Running python prediction...`);
+      try {
+        const path = require('path');
+        const fs = require('fs');
+        const { execFileSync } = require('child_process');
+        
+        const scriptPath = path.join(__dirname, '../../../scripts/predict_market_selection.py');
+        const pythonExecutable = fs.existsSync(path.join(__dirname, '../../../venv/bin/python'))
+          ? path.join(__dirname, '../../../venv/bin/python')
+          : 'python3';
+
+        const sortedMissing = [...missingDates].sort();
+        const minMissing = sortedMissing[0];
+        const maxMissing = sortedMissing[sortedMissing.length - 1];
+
+        console.log(`[ForecastService] Executing Python: ${pythonExecutable} ${scriptPath} ${minMissing} ${maxMissing}`);
+        const stdout = execFileSync(pythonExecutable, [scriptPath, minMissing, maxMissing], { 
+          encoding: 'utf-8',
+          maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+        });
+        
+        const output = JSON.parse(stdout);
+        if (output.error) {
+          throw new Error(output.error);
+        }
+
+        if (output.results) {
+          const transactions = [];
+          for (const dayResult of output.results) {
+            const dateVal = dayResult.date;
+            const slotsVal = dayResult.slots; // Array of TOD slots
+
+            transactions.push(
+              prisma.marketForecasting.upsert({
+                where: { date: dateVal },
+                update: { slots: slotsVal },
+                create: { date: dateVal, slots: slotsVal }
+              })
+            );
+          }
+          await prisma.$transaction(transactions);
+          console.log(`[ForecastService] Successfully cached ${transactions.length} daily forecasts in DB.`);
+          
+          // Re-fetch from cache
+          cachedRows = await prisma.marketForecasting.findMany({
+            where: { date: { in: dates } },
+            orderBy: { date: 'asc' }
+          });
+        }
+      } catch (pythonErr: any) {
+        console.error('[ForecastService] Python prediction failed:', pythonErr.message);
+        if (cachedRows.length === 0) {
+          throw new Error(`Failed to calculate market selection forecast: ${pythonErr.message}`);
+        }
+      }
+    }
+
+    // 3. Map database rows to the JSON format expected by the frontend
+    const results = cachedRows.map(row => ({
+      date: row.date,
+      slots: typeof row.slots === 'string' ? JSON.parse(row.slots) : row.slots
+    }));
+
+    return { results };
+  }
 }

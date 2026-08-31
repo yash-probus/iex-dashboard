@@ -1,0 +1,231 @@
+:root {
+    --bg-color: #0f172a; /* Slate 900 for modern dark theme vibe, or fallback to workspace theme */
+    --accent-dam: #3b82f6;   /* Blue */
+    --accent-rtm: #ef4444;   /* Red */
+    --accent-gdam: #10b981;  /* Green */
+    
+    --blob-1: rgba(254, 226, 226, 0.15);
+    --blob-2: rgba(219, 234, 254, 0.15);
+    --blob-3: rgba(254, 240, 138, 0.1);
+}
+
+/* Background Mesh Gradients */
+.mrf-background-mesh {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.mrf-mesh-blob {
+    position: absolute;
+    filter: blur(100px);
+    opacity: 0.5;
+    border-radius: 50%;
+    animation: mrf-float 25s infinite ease-in-out alternate;
+}
+
+.mrf-blob-1 {
+    top: -10%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: var(--blob-1);
+    animation-delay: 0s;
+}
+
+.mrf-blob-2 {
+    bottom: -10%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: var(--blob-2);
+    animation-delay: -5s;
+}
+
+.mrf-blob-3 {
+    top: 40%;
+    left: 35%;
+    width: 450px;
+    height: 450px;
+    background: var(--blob-3);
+    animation-delay: -10s;
+}
+
+@keyframes mrf-float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(60px, 40px) scale(1.15); }
+}
+
+/* Card glassmorphism */
+.mrf-glass-card {
+    background: rgba(30, 41, 59, 0.4) !important; /* Tailwind slate-800 with opacity */
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* Date range wrapper */
+.mrf-picker-container {
+    background: rgba(30, 41, 59, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Table Style */
+.mrf-matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 12px;
+}
+
+.mrf-matrix-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-align: center;
+    padding-bottom: 8px;
+}
+
+.mrf-row-header {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #f1f5f9;
+    text-align: right;
+    padding-right: 12px;
+    width: 100px;
+}
+
+.mrf-matrix-cell {
+    background: rgba(30, 41, 59, 0.5) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 14px;
+    padding: 12px;
+    min-width: 150px;
+    width: 18%;
+    vertical-align: top;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mrf-matrix-cell:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Recommended highlighting */
+.mrf-matrix-cell.recommended-dam {
+    border: 2px solid var(--accent-dam) !important;
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.15);
+}
+.mrf-matrix-cell.recommended-rtm {
+    border: 2px solid var(--accent-rtm) !important;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);
+}
+.mrf-matrix-cell.recommended-gdam {
+    border: 2px solid var(--accent-gdam) !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.mrf-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.mrf-badge-dam {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+.mrf-badge-rtm {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+.mrf-badge-gdam {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.mrf-savings-conf {
+    font-size: 0.72rem;
+    color: #34d399;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+/* Mini history table */
+.mrf-mini-history {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+    margin-bottom: 8px;
+}
+
+.mrf-mini-history td {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.mrf-mini-history td:first-child {
+    color: #94a3b8;
+    text-align: left;
+}
+
+.mrf-mini-history td:last-child {
+    text-align: right;
+    font-weight: 600;
+}
+
+.mrf-mean-row {
+    font-size: 0.75rem;
+    color: #64748b;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-top: 6px;
+    margin-top: 6px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.mrf-mean-val {
+    color: #f8fafc;
+    font-weight: 600;
+}
+
+/* History price cell colors */
+.mrf-price-low {
+    color: #34d399 !important; /* Green for lowest price */
+    font-weight: 700;
+}
+
+.mrf-price-high {
+    color: #f87171 !important; /* Red for highest price */
+}
+
+.mrf-price-med {
+    color: #fb923c !important; /* Orange/Yellow for middle price */
+}
+
+.mrf-price-na {
+    color: #475569 !important; /* Gray for N/A */
+}

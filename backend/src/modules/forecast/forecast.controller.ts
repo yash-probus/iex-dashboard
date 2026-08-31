@@ -103,4 +103,30 @@ export class ForecastController {
       });
     }
   }
+
+  public static async getMarketSelectionForecast(req: Request, res: Response) {
+    try {
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Both startDate and endDate are required parameters.'
+        });
+      }
+
+      const result = await ForecastService.getMarketSelectionForecast(startDate, endDate);
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      console.error('[ForecastController] Error in getMarketSelectionForecast:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to fetch market selection forecast.'
+      });
+    }
+  }
 }

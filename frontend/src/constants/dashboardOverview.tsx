@@ -190,6 +190,14 @@ export const FORECAST_ITEMS: OverviewItemConfig[] = [
     ]
   },
   {
+    key: 'market-recommendation',
+    title: 'Market Recommendation',
+    description: 'Best market recommendations across DAM, RTM, and GDAM to maximize savings.',
+    path: '/forecast/market-recommendation',
+    icon: <PriceCheckIcon fontSize="medium" />,
+    color: '#10B981',
+  },
+  {
     key: 'demand-forecast',
     title: 'Demand Forecast',
     description: 'Forecasted load curves for consumers and national grids.',
