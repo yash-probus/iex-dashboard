@@ -465,7 +465,6 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 startIcon={<DownloadIcon />}
                 onClick={async () => {
                   if (!id || !clientOverview || !calcEntry) return;
-                  setCalculating(true);
                   try {
                     let dashboard_hero_kpis_screenshot = '';
                     let dashboard_charts_screenshot = '';
@@ -502,6 +501,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                       }
                     }
 
+                    setCalculating(true);
                     const clientData = {
                       client_name: calcEntry.clientName,
                       industry_name: calcEntry.industryName,

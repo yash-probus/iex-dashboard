@@ -441,7 +441,6 @@ export default function CustomSavingCalcAnalysisPage() {
                 startIcon={<DownloadIcon />}
                 onClick={async () => {
                   if (!calcEntry || !clientOverview) return;
-                  setCalculating(true);
                   try {
                     let dashboard_hero_kpis_screenshot = '';
                     let dashboard_charts_screenshot = '';
@@ -478,6 +477,7 @@ export default function CustomSavingCalcAnalysisPage() {
                       }
                     }
 
+                    setCalculating(true);
                     const clientData = {
                       client_name: calcEntry.clientName,
                       industry_name: calcEntry.industryName,

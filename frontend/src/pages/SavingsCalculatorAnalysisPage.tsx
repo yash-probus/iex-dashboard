@@ -570,7 +570,6 @@ const exportInsightsToExcel = async () => {
                 startIcon={<DownloadIcon />} 
                 onClick={async () => {
                   if (!calcEntry || !clientOverview) return;
-                  setCalculating(true);
                   try {
                     let dashboard_hero_kpis_screenshot = '';
                     let dashboard_charts_screenshot = '';
@@ -607,6 +606,7 @@ const exportInsightsToExcel = async () => {
                       }
                     }
 
+                    setCalculating(true);
                     const clientData = {
                       client_name: calcEntry.clientName,
                       industry_name: calcEntry.industryName,
