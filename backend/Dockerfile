@@ -20,6 +20,7 @@ RUN npm ci
 COPY src ./src
 COPY scripts ./scripts
 COPY assets ./assets
+COPY market_selection_forecast ./market_selection_forecast
 COPY *.csv ./
 
 # Generate Prisma Client and build the TypeScript application
@@ -64,6 +65,7 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/assets ./assets
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/market_selection_forecast ./market_selection_forecast
 
 # Expose backend port
 EXPOSE 5000

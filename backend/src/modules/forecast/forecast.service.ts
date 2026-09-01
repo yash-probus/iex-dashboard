@@ -1562,10 +1562,21 @@ export class ForecastService {
         const fs = require('fs');
         const { execFileSync } = require('child_process');
         
-        const scriptPath = path.join(__dirname, '../../../scripts/predict_market_selection.py');
-        const pythonExecutable = fs.existsSync(path.join(__dirname, '../../../venv/bin/python'))
-          ? path.join(__dirname, '../../../venv/bin/python')
-          : 'python3';
+        const candidateScripts = [
+          path.join(__dirname, '../../../scripts/predict_market_selection.py'),
+          path.join(__dirname, '../../scripts/predict_market_selection.py'),
+          path.join(process.cwd(), 'scripts/predict_market_selection.py'),
+          path.join(process.cwd(), 'backend/scripts/predict_market_selection.py'),
+        ];
+        const scriptPath = candidateScripts.find((p: string) => fs.existsSync(p)) || candidateScripts[0];
+
+        const candidatePython = [
+          path.join(__dirname, '../../../venv/bin/python'),
+          path.join(process.cwd(), 'venv/bin/python'),
+          path.join(process.cwd(), 'backend/venv/bin/python'),
+        ];
+        const foundPython = candidatePython.find((p: string) => fs.existsSync(p));
+        const pythonExecutable = foundPython || 'python3';
 
         const sortedMissing = [...missingDates].sort();
         const minMissing = sortedMissing[0];
