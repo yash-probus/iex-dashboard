@@ -1617,9 +1617,10 @@ export class ForecastService {
           });
         }
       } catch (pythonErr: any) {
-        console.error('[ForecastService] Python prediction failed:', pythonErr.message);
+        const detail = (pythonErr.stderr ? pythonErr.stderr.toString() : '') || (pythonErr.stdout ? pythonErr.stdout.toString() : '') || pythonErr.message;
+        console.error('[ForecastService] Python prediction failed:', detail);
         if (cachedRows.length === 0) {
-          throw new Error(`Failed to calculate market selection forecast: ${pythonErr.message}`);
+          throw new Error(`Failed to calculate market selection forecast: ${detail}`);
         }
       }
     }
