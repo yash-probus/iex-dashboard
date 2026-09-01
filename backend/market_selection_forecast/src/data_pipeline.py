@@ -141,6 +141,7 @@ def aggregate_and_engineer_features(df_merged: pd.DataFrame) -> pd.DataFrame:
     return final_df
 
 def get_db_engine(read_only=False):
+    from urllib.parse import urlparse, urlunparse
     # Search for .env
     for env_path in [
         os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '.env')),
@@ -153,10 +154,9 @@ def get_db_engine(read_only=False):
 
     db_url = os.getenv('DATABASE_URL') or os.getenv('PROD_DATABASE_URL')
     if db_url:
-        if db_url.startswith('postgresql://'):
-            connection_string = db_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
-        else:
-            connection_string = db_url
+        parsed = urlparse(db_url)
+        # Strip query parameters (like ?schema=public) that cause psycopg2 invalid option errors
+        connection_string = urlunparse(('postgresql+psycopg2', parsed.netloc, parsed.path, '', '', ''))
     else:
         host = os.getenv('PROD_PGHOST') or os.getenv('PGHOST') or 'localhost'
         port = os.getenv('PROD_PGPORT') or os.getenv('PGPORT') or '5432'

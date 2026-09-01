@@ -27,11 +27,13 @@ git pull origin main
 
 echo "-> Rebuilding backend..."
 cd backend
-docker compose up --build -d
+docker compose build --no-cache iex-backend
+docker compose up -d iex-backend
 
 echo "-> Rebuilding frontend..."
 cd ../frontend
-docker compose up --build -d
+docker compose build --no-cache iex-frontend
+docker compose up -d iex-frontend
 
 echo "========================================="
 echo " $ENV deployment complete!"
