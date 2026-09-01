@@ -209,8 +209,7 @@ def generate_proposal(data_json):
         'Six Months': total_months_words,
         'Six months': total_months_words,
         'six-month': f"{total_months}-month",
-        'six month': f"{total_months} month",
-        'Prolt Savings Calculator': 'Savings Calculator'
+        'six month': f"{total_months} month"
     }
     
     # 2. Update text paragraphs
@@ -417,53 +416,6 @@ def generate_proposal(data_json):
                                 break
         except Exception as e:
             print(f"Error replacing hero/kpis screenshot: {e}")
-
-    # 5.2 Handle Dashboard Charts/Insights Screenshot replacement (image17.png under 'Prolt Savings Calculator')
-    charts_b64 = data.get('dashboard_charts_screenshot')
-    if charts_b64:
-        try:
-            image_data = base64.b64decode(charts_b64)
-            calculator_idx = -1
-            for idx, p in enumerate(doc.paragraphs):
-                if 'Prolt Savings Calculator' in p.text or 'Savings Calculator' in p.text:
-                    calculator_idx = idx
-                    break
-            
-            if calculator_idx != -1:
-                for idx in range(calculator_idx, len(doc.paragraphs)):
-                    p = doc.paragraphs[idx]
-                    if 'w:drawing' in p._element.xml:
-                        import re
-                        rIds = re.findall(r'r:embed=\"([^\"]+)\"', p._element.xml)
-                        if rIds:
-                            rId = rIds[0]
-                            if rId in doc.part.related_parts:
-                                part = doc.part.related_parts[rId]
-                                part._blob = image_data
-                                print(f"Successfully replaced dashboard charts/insights image part {part.partname} at paragraph {idx}")
-                                
-                                # Resize image to maintain aspect ratio
-                                dims = get_png_dimensions(image_data)
-                                if dims:
-                                    new_w_px, new_h_px = dims
-                                    aspect_ratio = new_h_px / new_w_px
-                                    target_width_inches = 6.5
-                                    target_height_inches = target_width_inches * aspect_ratio
-                                    width_emu = int(target_width_inches * 914400)
-                                    height_emu = int(target_height_inches * 914400)
-                                    
-                                    for run in p.runs:
-                                        drawing = run._element.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}drawing')
-                                        if drawing is not None:
-                                            for elem in drawing.iter():
-                                                if elem.get('cx') is not None:
-                                                    elem.set('cx', str(width_emu))
-                                                if elem.get('cy') is not None:
-                                                    elem.set('cy', str(height_emu))
-                                            print(f"Resized charts/insights image to {target_width_inches}x{target_height_inches:.2f} inches")
-                                break
-        except Exception as e:
-            print(f"Error replacing charts/insights screenshot: {e}")
 
     # Clear all remaining yellow highlights in the document (from both paragraphs and tables)
     for p in doc.paragraphs:
