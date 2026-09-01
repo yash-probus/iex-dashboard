@@ -358,14 +358,30 @@ export class ForecastService {
 
         // Fetch forecast
         if (isGdam) {
+          const dateFormats: string[] = [];
+          for (const dStr of dates) {
+            dateFormats.push(dStr);
+            const parts = dStr.split('-');
+            if (parts.length === 3) {
+              dateFormats.push(`${parts[2]}-${parts[1]}-${parts[0]}`); // DD-MM-YYYY
+            }
+          }
+
           const forecastRows = await prisma.forecastGdam.findMany({
-            where: { date: { gte: startDateStr, lte: endDateStr } },
+            where: { date: { in: dateFormats } },
             orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
           });
           
           const forecastMap = new Map();
           for (const r of forecastRows) {
-            forecastMap.set(`${r.date}_${r.intervalNumber}`, r);
+            let normDate = r.date;
+            if (r.date && r.date.includes('-')) {
+              const parts = r.date.split('-');
+              if (parts[0].length === 2 && parts[2].length === 4) {
+                normDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              }
+            }
+            forecastMap.set(`${normDate}_${r.intervalNumber}`, r);
           }
           
           const dates = this.getDatesInRange(startDateStr, endDateStr);
@@ -1053,7 +1069,18 @@ export class ForecastService {
           })
         ]);
         const allDates = new Set<string>();
-        forecastRows.forEach(r => allDates.add(r.date));
+        forecastRows.forEach(r => {
+          if (r.date) {
+            let dStr = r.date;
+            if (dStr.includes('-')) {
+              const parts = dStr.split('-');
+              if (parts[0].length === 2 && parts[2].length === 4) {
+                dStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              }
+            }
+            allDates.add(dStr);
+          }
+        });
         actualRows.forEach(r => {
           if (r.deliveryDate) {
             const dStr = r.deliveryDate instanceof Date 
