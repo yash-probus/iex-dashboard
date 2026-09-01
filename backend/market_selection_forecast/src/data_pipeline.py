@@ -140,6 +140,8 @@ def aggregate_and_engineer_features(df_merged: pd.DataFrame) -> pd.DataFrame:
     
     return final_df
 
+from sqlalchemy import create_engine, text
+
 def get_db_engine(read_only=False):
     from urllib.parse import urlparse, urlunparse
     # Search for .env
@@ -165,8 +167,7 @@ def get_db_engine(read_only=False):
         password = os.getenv('PROD_PGPASSWORD') or os.getenv('PGPASSWORD') or ''
         connection_string = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
 
-    connect_args = {'options': '-c default_transaction_read_only=on'} if read_only else {}
-    return create_engine(connection_string, connect_args=connect_args)
+    return create_engine(connection_string)
 
 def fetch_market_data(days=395, target_date=None) -> pd.DataFrame:
     """
@@ -193,18 +194,12 @@ def fetch_market_data(days=395, target_date=None) -> pd.DataFrame:
         FROM public."DamRecord"
         WHERE {date_parse_expr} >= '{start_date}' AND {date_parse_expr} <= '{end_date}'
     """
-    df_dam = pd.read_sql(query_dam, engine)
-    df_dam.drop_duplicates(subset=['date', 'time_block'], keep='last', inplace=True)
-    
     # Fetch RTM
     query_rtm = f"""
         SELECT {date_parse_expr} as date, "intervalTime" as time_block, mcp as rtm_price
         FROM public."RtmRecord"
         WHERE {date_parse_expr} >= '{start_date}' AND {date_parse_expr} <= '{end_date}'
     """
-    df_rtm = pd.read_sql(query_rtm, engine)
-    df_rtm.drop_duplicates(subset=['date', 'time_block'], keep='last', inplace=True)
-    
     # Fetch GDAM from both tables (GdamRecord handles < 2026-07-13, GdamNewRecord handles >= 2026-07-13)
     query_gdam = f"""
         SELECT {date_parse_expr} as date, "intervalTime" as time_block, mcp as gdam_price
@@ -215,7 +210,14 @@ def fetch_market_data(days=395, target_date=None) -> pd.DataFrame:
         FROM public."GdamNewRecord"
         WHERE {date_parse_expr} >= '{start_date}' AND {date_parse_expr} <= '{end_date}'
     """
-    df_gdam = pd.read_sql(query_gdam, engine)
+
+    with engine.connect() as conn:
+        df_dam = pd.read_sql(text(query_dam), conn)
+        df_rtm = pd.read_sql(text(query_rtm), conn)
+        df_gdam = pd.read_sql(text(query_gdam), conn)
+
+    df_dam.drop_duplicates(subset=['date', 'time_block'], keep='last', inplace=True)
+    df_rtm.drop_duplicates(subset=['date', 'time_block'], keep='last', inplace=True)
     df_gdam.drop_duplicates(subset=['date', 'time_block'], keep='last', inplace=True)
     
     # Merge them together using pandas (Outer Join)
