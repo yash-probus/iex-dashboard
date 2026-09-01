@@ -23,6 +23,7 @@ const AVAILABLE_MODULES = [
   { id: 'savings-calculator', label: 'Savings Calculator' },
   { id: 'savings-calculator-new', label: 'Savings Calculator (New)' },
   { id: 'forecast', label: 'Forecast Analytics' },
+  { id: 'market-recommendation', label: 'Market Recommendation' },
   { id: 'api-logs', label: 'API Logs' },
   { id: 'user-management', label: 'User Management' },
   { id: 'customer-lead', label: 'Customer Lead' },

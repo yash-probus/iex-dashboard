@@ -8,6 +8,7 @@ import {
   Timeline as TimelineIcon,
   Group as GroupIcon,
   OpenInNew as OpenInNewIcon,
+  PriceCheck as PriceCheckIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -68,6 +69,14 @@ const MODULES = [
     path: '/forecast',
     icon: <TimelineIcon sx={{ fontSize: 24 }} />,
     color: '#8B5CF6'
+  },
+  {
+    key: 'market-recommendation',
+    title: 'Market Recommendation',
+    description: 'Best market recommendations across DAM, RTM, and GDAM to maximize procurement savings.',
+    path: '/forecast/market-recommendation',
+    icon: <PriceCheckIcon sx={{ fontSize: 24 }} />,
+    color: '#10B981'
   },
   {
     key: 'api-logs',
