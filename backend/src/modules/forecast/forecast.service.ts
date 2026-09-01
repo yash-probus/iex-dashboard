@@ -305,16 +305,48 @@ export class ForecastService {
         const isGdam = market.toUpperCase() === 'GDAM';
         
         // Fetch actuals for mapping
-        const actualRows: any[] = await prisma.$queryRawUnsafe(
-          `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
-           FROM "${isGdam ? 'GdamRecord' : 'RtmRecord'}" dr 
-           JOIN "Dataset" d ON dr."datasetId" = d.id 
-           WHERE d.market = $1::"MarketType" AND d.status = 'ACTIVE'
-           AND d."deliveryDate" >= $2::date AND d."deliveryDate" <= $3::date;`,
-          isGdam ? 'GDAM' : 'RTM',
-          startDateStr,
-          endDateStr
-        );
+        let actualRows: any[] = [];
+        if (isGdam) {
+          try {
+            actualRows = await prisma.$queryRawUnsafe(
+              `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+               FROM "GdamNewRecord" dr 
+               JOIN "Dataset" d ON dr."datasetId" = d.id 
+               WHERE d.market = 'GDAM' AND d.status = 'ACTIVE'
+               AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
+              startDateStr,
+              endDateStr
+            );
+          } catch (eGdamNew) {
+            console.error('[ForecastService] Error querying GdamNewRecord:', eGdamNew);
+          }
+
+          if (!actualRows || actualRows.length === 0) {
+            try {
+              actualRows = await prisma.$queryRawUnsafe(
+                `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+                 FROM "GdamRecord" dr 
+                 JOIN "Dataset" d ON dr."datasetId" = d.id 
+                 WHERE d.market = 'GDAM' AND d.status = 'ACTIVE'
+                 AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
+                startDateStr,
+                endDateStr
+              );
+            } catch (eGdamOld) {
+              console.error('[ForecastService] Error querying GdamRecord:', eGdamOld);
+            }
+          }
+        } else {
+          actualRows = await prisma.$queryRawUnsafe(
+            `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
+             FROM "RtmRecord" dr 
+             JOIN "Dataset" d ON dr."datasetId" = d.id 
+             WHERE d.market = 'RTM' AND d.status = 'ACTIVE'
+             AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
+            startDateStr,
+            endDateStr
+          );
+        }
 
         for (const act of actualRows) {
           const dateStr = act.date instanceof Date 

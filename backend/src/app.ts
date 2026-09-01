@@ -74,6 +74,7 @@ app.use('/api/savings-calculator', savingsCalculatorRoutes);
 
 app.use('/api/savings-calculator-new', savingsCalculatorNewRoutes);
 app.use('/api/forecast', forecastRoutes);
+app.use('/forecast', forecastRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/proposals', proposalRoutes);
 
