@@ -228,6 +228,7 @@ export class ForecastService {
 
     const intervals: ForecastIntervalData[] = [];
     const actualMap = new Map<string, number>();
+    const dates = this.getDatesInRange(startDateStr, endDateStr);
 
     if (market.toUpperCase() === 'DAM') {
       try {
@@ -356,8 +357,6 @@ export class ForecastService {
           actualMap.set(key, parseFloat((Number(act.mcp) / 1000.0).toFixed(2)));
         }
 
-        const dates = this.getDatesInRange(startDateStr, endDateStr);
-
         // Fetch forecast
         if (isGdam) {
           const dateFormats: string[] = [];
@@ -446,7 +445,6 @@ export class ForecastService {
             nowcastMap.set(`${r.date}_${r.intervalNumber}`, r);
           }
 
-          const dates = this.getDatesInRange(startDateStr, endDateStr);
           const rawFormatted = [];
           
           for (const dStr of dates) {
