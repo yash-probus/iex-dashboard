@@ -865,18 +865,10 @@ export class SavingsCalculatorNewService {
         
         // Initialize requirements
         slotBlocks.forEach(sb => {
-          const istsL = sb.istsLoss || 0;
-          const stuL = sb.stuLoss || 0;
-          const whL = sb.wheelingLoss || 0;
-          const deliveryFactor = (1 - (istsL / 100)) * (1 - (stuL / 100)) * (1 - (whL / 100));
-          const safeFactor = deliveryFactor > 0 ? deliveryFactor : 1;
-
-          (sb as any).deliveryFactor = safeFactor;
           sb.requiredEnergy = requiredEnergyPerSlot;
           sb.bankedEnergy = 0;
           sb.purchasedEnergy = 0;
           sb.marketEnergy = 0;
-          (sb as any).consumerMarketEnergy = 0;
           sb.discomEnergy = 0;
           sb.marketCost = 0;
           sb.discomCost = 0;
@@ -888,65 +880,66 @@ export class SavingsCalculatorNewService {
         const cheapToExpensive = [...slotBlocks].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
 
         for (const buyerSlot of cheapToExpensive) {
-           let availableCapacityRegional = defaultMaxEnergyPerSlot - buyerSlot.purchasedEnergy;
-           if (availableCapacityRegional <= 0) continue;
+           let availableCapacity = defaultMaxEnergyPerSlot - buyerSlot.purchasedEnergy;
+           if (availableCapacity <= 0) continue;
 
            const buyerIndex = slotBlocks.indexOf(buyerSlot);
 
            // Forward Banking
            for (let i = buyerIndex; i < slotBlocks.length; i++) {
               const targetSlot = slotBlocks[i];
-              const unmetConsumer = targetSlot.requiredEnergy - targetSlot.bankedEnergy - targetSlot.purchasedEnergy;
+              const unmetRequirement = targetSlot.requiredEnergy - targetSlot.bankedEnergy - targetSlot.purchasedEnergy;
               
-              if (unmetConsumer > 0) {
-                  const targetFactor = (targetSlot as any).deliveryFactor || 1;
-                  const neededRegional = unmetConsumer / targetFactor;
-                  const amountToBuyRegional = Math.min(availableCapacityRegional, neededRegional);
-                  const amountDeliveredConsumer = amountToBuyRegional * targetFactor;
-
-                  if (amountDeliveredConsumer > 0) {
-                      buyerSlot.purchasedEnergy += amountToBuyRegional;
-                      availableCapacityRegional -= amountToBuyRegional;
+              if (unmetRequirement > 0) {
+                  const amountToBuy = Math.min(availableCapacity, unmetRequirement);
+                  if (amountToBuy > 0) {
+                      buyerSlot.purchasedEnergy += amountToBuy;
+                      availableCapacity -= amountToBuy;
                       
                       if (i === buyerIndex) {
-                         targetSlot.purchasedEnergy += amountDeliveredConsumer;
+                         targetSlot.purchasedEnergy += amountToBuy;
                       } else {
-                         targetSlot.bankedEnergy += amountDeliveredConsumer;
+                         targetSlot.bankedEnergy += amountToBuy;
                       }
                       
-                      const cost = amountDeliveredConsumer * buyerSlot.comparedLowestPrice;
+                      const cost = amountToBuy * buyerSlot.comparedLowestPrice;
                       
                       if (buyerSlot.selectedSource !== 'DISCOM' && buyerSlot.comparedLowestPrice > 0) {
-                          targetSlot.marketEnergy += amountToBuyRegional;
-                          (targetSlot as any).consumerMarketEnergy += amountDeliveredConsumer;
+                          targetSlot.marketEnergy += amountToBuy;
                           targetSlot.marketCost += cost;
                       } else {
-                          targetSlot.discomEnergy += amountDeliveredConsumer;
+                          targetSlot.discomEnergy += amountToBuy;
                           targetSlot.discomCost += cost;
                       }
                   }
               }
-              if (availableCapacityRegional <= 0) break;
+              if (availableCapacity <= 0) break;
            }
         }
 
         // Unfulfilled Fallback & Aggregation
         let slotConsumptionKwh = 0;
         let slotMarketEnergyKwh = 0;
-        let slotConsumerMarketEnergyKwh = 0;
         let slotDiscomEnergyKwh = 0;
         let slotBaselineCost = 0;
         let slotMarketCost = 0;
         let slotDiscomCost = 0;
 
         slotBlocks.forEach(sb => {
-           const unmet = Math.max(0, sb.requiredEnergy - ((sb as any).consumerMarketEnergy || 0) - sb.discomEnergy);
+           const unmet = sb.requiredEnergy - sb.bankedEnergy - sb.purchasedEnergy;
            if (unmet > 0) {
-              sb.discomEnergy += unmet;
-              sb.discomCost += unmet * slotDiscomPrice;
+              sb.purchasedEnergy += unmet;
+              const cost = unmet * sb.comparedLowestPrice;
+              if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
+                 sb.marketEnergy += unmet;
+                 sb.marketCost += cost;
+              } else {
+                 sb.discomEnergy += unmet;
+                 sb.discomCost += cost;
+              }
            }
            
-           sb.maxEnergyPerSlot = sb.marketEnergy > 0 ? sb.marketEnergy : sb.requiredEnergy; // Regional Bus quantity for block matrix
+           sb.maxEnergyPerSlot = sb.requiredEnergy; // For compatibility with older reporting functions
            sb.optimizedCost = sb.marketCost + sb.discomCost;
            
            totalBaselineCost += sb.baselineCost;
@@ -957,14 +950,11 @@ export class SavingsCalculatorNewService {
 
            slotConsumptionKwh += sb.requiredEnergy;
            slotMarketEnergyKwh += sb.marketEnergy;
-           slotConsumerMarketEnergyKwh += (sb as any).consumerMarketEnergy || 0;
            slotDiscomEnergyKwh += sb.discomEnergy;
            slotBaselineCost += sb.baselineCost;
            slotMarketCost += sb.marketCost;
            slotDiscomCost += sb.discomCost;
         });
-
-        const slotDeliveredConsumerUnits = Math.min(slotConsumptionKwh, slotConsumerMarketEnergyKwh);
 
         todSummaries.push({
           month: yearMonth,
@@ -979,7 +969,7 @@ export class SavingsCalculatorNewService {
           discomBill: slotBaselineCost,
           marketEnergyKwh: slotMarketEnergyKwh,
           oaUnits: slotMarketEnergyKwh,
-          consumerBusUnits: slotDeliveredConsumerUnits,
+          consumerBusUnits: slotMarketEnergyKwh,
           discomUnits: slotConsumptionKwh,
           marketCostBase: slotMarketCost,
           oaBill: slotMarketCost,
