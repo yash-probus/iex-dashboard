@@ -879,6 +879,13 @@ export class SavingsCalculatorNewService {
         // Sort by cheapest price for greedy buying
         const cheapToExpensive = [...slotBlocks].sort((a, b) => a.comparedLowestPrice - b.comparedLowestPrice);
 
+        const sampleSlotNew = slotBlocks[0] as any;
+        const istsLossRateNew = (sampleSlotNew?.istsLoss || 0) / 100;
+        const stuLossRateNew = (stuLoss || 0) / 100;
+        const wheelingLossRateNew = (wheelingLoss || 0) / 100;
+        const lossMultiplierNew = (1 - istsLossRateNew) * (1 - stuLossRateNew) * (1 - wheelingLossRateNew);
+        const safeLossMultiplierNew = lossMultiplierNew > 0.5 ? lossMultiplierNew : 1;
+
         for (const buyerSlot of cheapToExpensive) {
            let availableCapacity = defaultMaxEnergyPerSlot - buyerSlot.purchasedEnergy;
            if (availableCapacity <= 0) continue;
@@ -891,15 +898,23 @@ export class SavingsCalculatorNewService {
               const unmetRequirement = targetSlot.requiredEnergy - targetSlot.bankedEnergy - targetSlot.purchasedEnergy;
               
               if (unmetRequirement > 0) {
-                  const amountToBuy = Math.min(availableCapacity, unmetRequirement);
+                  const grossedUpRequirement = buyerSlot.selectedSource !== 'DISCOM' 
+                    ? unmetRequirement / safeLossMultiplierNew 
+                    : unmetRequirement;
+
+                  const amountToBuy = Math.min(availableCapacity, grossedUpRequirement);
                   if (amountToBuy > 0) {
                       buyerSlot.purchasedEnergy += amountToBuy;
                       availableCapacity -= amountToBuy;
                       
+                      const deliveredEnergy = buyerSlot.selectedSource !== 'DISCOM' 
+                        ? amountToBuy * safeLossMultiplierNew 
+                        : amountToBuy;
+
                       if (i === buyerIndex) {
-                         targetSlot.purchasedEnergy += amountToBuy;
+                         targetSlot.purchasedEnergy += deliveredEnergy;
                       } else {
-                         targetSlot.bankedEnergy += amountToBuy;
+                         targetSlot.bankedEnergy += deliveredEnergy;
                       }
                       
                       const cost = amountToBuy * buyerSlot.comparedLowestPrice;
