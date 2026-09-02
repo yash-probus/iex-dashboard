@@ -963,8 +963,6 @@ export class SavingsCalculatorNewService {
         const stuLossMultiplier = (1 - (stuLoss / 100));
         const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
         const consumerBusUnits = slotMarketEnergyKwh * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
-        const discomUnitsAfterOA = Math.max(0, slotConsumptionKwh - consumerBusUnits);
-        const proltDiscomBill = discomUnitsAfterOA * slotDiscomPrice;
 
         todSummaries.push({
           month: yearMonth,
