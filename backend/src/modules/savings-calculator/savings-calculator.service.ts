@@ -2082,7 +2082,8 @@ export class SavingsCalculatorService {
       const slabTotalDiscomBill = discountedSlabBill + slabED;
       totalBaselineCost += slabTotalDiscomBill;
 
-      const proltEnergyBill = discomEnergy * slabDiscomRate;
+      const discomEnergyAfterOA = Math.max(0, slabConsumption - consumerBusUnits);
+      const proltEnergyBill = discomEnergyAfterOA * slabDiscomRate;
       totalDiscomEnergyChargesAfterOA += proltEnergyBill;
       const discountedProltBill = proltEnergyBill + demandChargeWithFppa;
       const slabEDAfterOA = applyED ? discountedProltBill * edRate : 0;

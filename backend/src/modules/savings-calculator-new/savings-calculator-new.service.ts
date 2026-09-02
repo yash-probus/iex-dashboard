@@ -956,6 +956,16 @@ export class SavingsCalculatorNewService {
            slotDiscomCost += sb.discomCost;
         });
 
+        const avgIstsLoss = slotBlocks.length > 0
+          ? slotBlocks.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / slotBlocks.length
+          : 0;
+        const istsLossMultiplier = (1 - (avgIstsLoss / 100));
+        const stuLossMultiplier = (1 - (stuLoss / 100));
+        const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
+        const consumerBusUnits = slotMarketEnergyKwh * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
+        const discomUnitsAfterOA = Math.max(0, slotConsumptionKwh - consumerBusUnits);
+        const proltDiscomBill = discomUnitsAfterOA * slotDiscomPrice;
+
         todSummaries.push({
           month: yearMonth,
           slotName: slotName,
@@ -969,17 +979,17 @@ export class SavingsCalculatorNewService {
           discomBill: slotBaselineCost,
           marketEnergyKwh: slotMarketEnergyKwh,
           oaUnits: slotMarketEnergyKwh,
-          consumerBusUnits: slotMarketEnergyKwh,
+          consumerBusUnits,
           discomUnits: slotConsumptionKwh,
           marketCostBase: slotMarketCost,
           oaBill: slotMarketCost,
-          proltDiscomBill: slotDiscomCost,
-          savings: Math.max(0, slotBaselineCost - (slotMarketCost + slotDiscomCost))
+          proltDiscomBill,
+          savings: Math.max(0, slotBaselineCost - (slotMarketCost + proltDiscomBill))
         });
 
         aggregatedTotals.cssRate = cssRate;
-        aggregatedTotals.cssCharge += slotMarketEnergyKwh * cssRate;
-        aggregatedTotals.rpoCharge += slotMarketEnergyKwh * 0.25;
+        aggregatedTotals.cssCharge += consumerBusUnits * cssRate;
+        aggregatedTotals.rpoCharge += consumerBusUnits * 0.25;
         aggregatedTotals.pocCharge += slotMarketEnergyKwh * ctuCharge;
         aggregatedTotals.stuCharge += slotMarketEnergyKwh * stuCharge;
         aggregatedTotals.dcCharge += slotMarketEnergyKwh * wheelingCharge;
@@ -1121,7 +1131,7 @@ export class SavingsCalculatorNewService {
       oaUnits: t.marketEnergyKwh,
       discomBill: t.baselineCost,
       proltDiscomBill: t.proltDiscomBill,
-      consumerBusUnits: t.marketEnergyKwh,
+      consumerBusUnits: t.consumerBusUnits ?? t.marketEnergyKwh,
       oaBill: t.marketCostBase
     }));
 
