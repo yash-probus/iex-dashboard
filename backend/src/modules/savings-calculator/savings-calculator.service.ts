@@ -1886,19 +1886,12 @@ export class SavingsCalculatorService {
         if (slabConsumption <= 0) return;
 
         const numSlots = slotsInGroup.length;
-        const requiredConsumerEnergyPerSlot = slabConsumption / numSlots;
+        const requiredEnergyPerSlot = slabConsumption / numSlots;
         const maxPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
-
-        // Compute transmission loss factor for this TOD group to gross-up Regional Bus purchase requirements
-        const avgIsts = slotsInGroup.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / (slotsInGroup.length || 1);
-        const lossDeliveryFactor = (1 - (avgIsts / 100)) * (1 - (stuLoss / 100)) * (1 - (wheelingLoss / 100));
-        const safeDeliveryFactor = lossDeliveryFactor > 0 ? lossDeliveryFactor : 1;
-        const requiredRegionalEnergyPerSlot = requiredConsumerEnergyPerSlot / safeDeliveryFactor;
 
         slotsInGroup.forEach((s, idx) => {
           (s as any)._idx = idx;
-          (s as any).unfulfilledRegionalEnergy = requiredRegionalEnergyPerSlot;
-          (s as any).unfulfilledConsumerEnergy = requiredConsumerEnergyPerSlot;
+          (s as any).unfulfilledEnergy = requiredEnergyPerSlot;
           (s as any).marketEnergy = 0;
           (s as any).consumedMarketEnergy = 0;
           (s as any).exactMarketEnergyCost = 0;
@@ -1921,17 +1914,15 @@ export class SavingsCalculatorService {
 
           for (let i = (buyingSlot as any)._idx; i < numSlots; i++) {
             const targetSlot = slotsInGroup[i];
-            if ((targetSlot as any).unfulfilledRegionalEnergy > 0) {
-              const allocationRegional = Math.min(availableToBuy, (targetSlot as any).unfulfilledRegionalEnergy);
+            if ((targetSlot as any).unfulfilledEnergy > 0) {
+              const allocation = Math.min(availableToBuy, (targetSlot as any).unfulfilledEnergy);
 
-              (targetSlot as any).unfulfilledRegionalEnergy -= allocationRegional;
-              const allocationConsumer = allocationRegional * safeDeliveryFactor;
-              (targetSlot as any).unfulfilledConsumerEnergy = Math.max(0, (targetSlot as any).unfulfilledConsumerEnergy - allocationConsumer);
-              (targetSlot as any).consumedMarketEnergy += allocationRegional;
-              (targetSlot as any).exactMarketEnergyCost += allocationRegional * (buyingSlot as any)._tempBasePrice;
+              (targetSlot as any).unfulfilledEnergy -= allocation;
+              (targetSlot as any).consumedMarketEnergy += allocation;
+              (targetSlot as any).exactMarketEnergyCost += allocation * (buyingSlot as any)._tempBasePrice;
 
-              boughtInThisSlot += allocationRegional;
-              availableToBuy -= allocationRegional;
+              boughtInThisSlot += allocation;
+              availableToBuy -= allocation;
 
               if (availableToBuy <= 0) break;
             }
@@ -1941,7 +1932,7 @@ export class SavingsCalculatorService {
         });
 
         slotsInGroup.forEach(targetSlot => {
-          (targetSlot as any).discomEnergy = (targetSlot as any).unfulfilledConsumerEnergy || 0;
+          (targetSlot as any).discomEnergy = (targetSlot as any).unfulfilledEnergy || 0;
         });
       }
     });
@@ -2056,7 +2047,7 @@ export class SavingsCalculatorService {
       const stuLossMultiplier = (1 - (stuLoss / 100));
       const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
 
-      const consumerBusUnits = Math.min(slabConsumption, finalMarketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier);
+      const consumerBusUnits = finalMarketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
 
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
       const safeGroupKey = String(groupKey || '').trim() || 'UNMAPPED';
