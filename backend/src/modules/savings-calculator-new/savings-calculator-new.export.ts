@@ -199,7 +199,7 @@ export class SavingsCalculatorNewExportService {
       const discomB = Math.round(b.discomBill);
       const oaU = Math.round(b.oaUnits);
       const consumerU = Math.round(b.consumerBusUnits);
-      const oaB = Math.round(b.oaBill);
+      const oaB = Math.round(b.oaEnergyCharges ?? b.marketEnergyCost ?? b.marketCostBase ?? b.oaBill);
       const netB = Math.round(b.proltDiscomBill);
 
       sheet.addRow([
