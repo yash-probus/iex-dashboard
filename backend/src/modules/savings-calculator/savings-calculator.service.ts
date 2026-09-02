@@ -1889,14 +1889,6 @@ export class SavingsCalculatorService {
         const requiredEnergyPerSlot = slabConsumption / numSlots;
         const maxPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
 
-        // Calculate delivery loss multiplier for this group
-        const sampleSlot = slotsInGroup[0] as any;
-        const istsLossRate = (sampleSlot?.istsLoss || 0) / 100;
-        const stuLossRate = (stuLoss || 0) / 100;
-        const wheelingLossRate = (wheelingLoss || 0) / 100;
-        const groupLossMult = (1 - istsLossRate) * (1 - stuLossRate) * (1 - wheelingLossRate);
-        const safeLossMultiplier = groupLossMult > 0.5 ? groupLossMult : 1;
-
         slotsInGroup.forEach((s, idx) => {
           (s as any)._idx = idx;
           (s as any).unfulfilledEnergy = requiredEnergyPerSlot;
@@ -1923,16 +1915,10 @@ export class SavingsCalculatorService {
           for (let i = (buyingSlot as any)._idx; i < numSlots; i++) {
             const targetSlot = slotsInGroup[i];
             if ((targetSlot as any).unfulfilledEnergy > 0) {
-              const neededAtConsumerBus = (targetSlot as any).unfulfilledEnergy;
-              const grossedUpNeeded = neededAtConsumerBus / safeLossMultiplier;
-              const allocation = Math.min(availableToBuy, grossedUpNeeded);
+              const allocation = Math.min(availableToBuy, (targetSlot as any).unfulfilledEnergy);
 
-              if (allocation <= 0) continue;
-
-              const deliveredAtConsumerBus = allocation * safeLossMultiplier;
-
-              (targetSlot as any).unfulfilledEnergy = Math.max(0, (targetSlot as any).unfulfilledEnergy - deliveredAtConsumerBus);
-              (targetSlot as any).consumedMarketEnergy += deliveredAtConsumerBus;
+              (targetSlot as any).unfulfilledEnergy -= allocation;
+              (targetSlot as any).consumedMarketEnergy += allocation;
               (targetSlot as any).exactMarketEnergyCost += allocation * (buyingSlot as any)._tempBasePrice;
 
               boughtInThisSlot += allocation;
