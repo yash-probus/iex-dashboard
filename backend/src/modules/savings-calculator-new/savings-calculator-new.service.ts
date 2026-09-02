@@ -983,8 +983,8 @@ export class SavingsCalculatorNewService {
           discomUnits: slotConsumptionKwh,
           marketCostBase: slotMarketCost,
           oaBill: slotMarketCost,
-          proltDiscomBill,
-          savings: Math.max(0, slotBaselineCost - (slotMarketCost + proltDiscomBill))
+          proltDiscomBill: slotDiscomCost,
+          savings: Math.max(0, slotBaselineCost - (slotMarketCost + slotDiscomCost))
         });
 
         aggregatedTotals.cssRate = cssRate;
