@@ -149,7 +149,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           color: 'green' 
         },
         { 
-          label: 'Average Annual Saving', 
+          label: 'Average annual savings', 
           value: formatIndianCurrency(annualizedSavings), 
           sub: 'Annualized savings (Monthly × 12)', 
           color: 'green' 
