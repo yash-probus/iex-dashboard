@@ -128,15 +128,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const meteringCharges = Number(calcEntry?.meteringCharges || 0);
       const paybackMonths = avgMonthlySavings > 0 ? meteringCharges / avgMonthlySavings : 0;
       annualizedSavings = avgMonthlySavings * 12;
-      potentialSavingsFiveYear = annualizedSavings * 5;
+      // 5 Years Saving calculation exactly matching the Excel Export formula:
+      // avgAnnualSaving + avgAnnualSaving*1.1 + avgAnnualSaving*POWER(1.1,2) + avgAnnualSaving*POWER(1.1,3) + avgAnnualSaving*POWER(1.1,4)
+      potentialSavingsFiveYear = annualizedSavings * (1 + 1.1 + Math.pow(1.1, 2) + Math.pow(1.1, 3) + Math.pow(1.1, 4));
+
+      const monthCountText = `${monthCount} ${monthCount === 1 ? 'month' : 'months'}`;
 
       // Dynamic KPIs with clear annotations
       kpis = [
-        { label: isOverall ? 'Aggregate client saving' : 'Client saving', value: formatIndianCurrency(totalSavings), sub: 'Average Annual Savings', color: 'green' },
-        { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: 'Average client savings per month', color: 'green' },
-        { label: isOverall ? 'Aggregate gross saving' : 'Gross saving', value: formatIndianCurrency(totalGrossSavings), sub: 'Before platform and service charges' },
+        { 
+          label: isOverall ? `Aggregate client saving (${monthCountText})` : 'Client saving (1 month)', 
+          value: formatIndianCurrency(totalSavings), 
+          sub: isOverall ? `Cumulative savings across ${monthCountText}` : `Net savings for ${activeMonth}`, 
+          color: 'green' 
+        },
+        { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: isOverall ? `Average client savings per month (${monthCountText})` : 'Average client savings per month', color: 'green' },
         { label: 'Metering charge payback', value: `${(Number(paybackMonths) || 0).toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
-        { label: 'Potential 5-year savings', value: formatIndianCurrency(potentialSavingsFiveYear), sub: 'Annual savings × 5 years', color: 'green' },
+        { label: '5 Years Saving', value: formatIndianCurrency(potentialSavingsFiveYear), sub: 'Annual savings with 10% YoY escalation', color: 'green' },
         { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${(Number(oaCoverage) || 0).toFixed(1)}%`, sub: 'Average Monthly Energy Bought from OA', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: isOverall ? 'Annualized electricity consumption (12 months)' : 'Billed electricity consumption' },
         { label: 'Blended Cost - OA', value: `₹${(Number(blendedCost) || 0).toFixed(2)}/kWh`, sub: 'Average blended rate per kWh' },
