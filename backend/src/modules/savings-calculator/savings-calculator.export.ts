@@ -559,6 +559,7 @@ export class SavingsCalculatorExportService {
 
     
     const discomBeforeRow = sheet.addRow(['DISCOM Bill Before PROLT', visibleDiscomBefore]);
+    sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', visibleTotalOa]);
     sheet.addRow(['DISCOM Bill After PROLT', visibleDiscomAfter]);
     
     // Instead of using Math.round(grossSavingsVal) which might be off by 1 or 2 due to rounding individual parts,
