@@ -142,9 +142,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
           sub: isOverall ? `Cumulative savings across ${monthCountText}` : `Net savings for ${activeMonth}`, 
           color: 'green' 
         },
-        { label: 'Average monthly savings', value: formatIndianCurrency(avgMonthlySavings), sub: isOverall ? `Average client savings per month (${monthCountText})` : 'Average client savings per month', color: 'green' },
+        { 
+          label: 'Average monthly savings', 
+          value: formatIndianCurrency(avgMonthlySavings), 
+          sub: isOverall ? `Average client savings per month (${monthCountText})` : 'Average client savings per month', 
+          color: 'green' 
+        },
+        { 
+          label: 'Average Annual Saving', 
+          value: formatIndianCurrency(annualizedSavings), 
+          sub: 'Annualized savings (Monthly × 12)', 
+          color: 'green' 
+        },
+        { 
+          label: '5 Years Saving', 
+          value: formatIndianCurrency(potentialSavingsFiveYear), 
+          sub: 'Annual savings with 10% YoY escalation', 
+          color: 'green' 
+        },
         { label: 'Metering charge payback', value: `${(Number(paybackMonths) || 0).toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
-        { label: '5 Years Saving', value: formatIndianCurrency(potentialSavingsFiveYear), sub: 'Annual savings with 10% YoY escalation', color: 'green' },
         { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${(Number(oaCoverage) || 0).toFixed(1)}%`, sub: 'Average Monthly Energy Bought from OA', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: isOverall ? 'Annualized electricity consumption (12 months)' : 'Billed electricity consumption' },
         { label: 'Blended Cost - OA', value: `₹${(Number(blendedCost) || 0).toFixed(2)}/kWh`, sub: 'Average blended rate per kWh' },
