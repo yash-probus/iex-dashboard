@@ -15,13 +15,13 @@ git pull origin main
 
 echo "➡️ Rebuilding Frontend Container..."
 cd frontend
-docker compose build --no-cache iex-frontend
+docker compose build iex-frontend
 docker compose up -d iex-frontend
 cd ..
 
 echo "➡️ Rebuilding Backend Container..."
 cd backend
-docker compose build --no-cache iex-backend
+docker compose build iex-backend
 docker compose up -d iex-backend
 
 echo "➡️ Clearing Redis Cache..."

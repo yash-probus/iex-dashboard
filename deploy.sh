@@ -27,12 +27,12 @@ git pull origin main
 
 echo "-> Rebuilding backend..."
 cd backend
-docker compose build --no-cache iex-backend
+docker compose build iex-backend
 docker compose up -d iex-backend
 
 echo "-> Rebuilding frontend..."
 cd ../frontend
-docker compose build --no-cache iex-frontend
+docker compose build iex-frontend
 docker compose up -d iex-frontend
 
 echo "========================================="
