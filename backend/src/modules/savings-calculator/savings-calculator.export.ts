@@ -55,7 +55,7 @@ export class SavingsCalculatorExportService {
       const dateObj = new Date(d);
       const dayStr = `${dateObj.getDate()}-${MONTHS_SHORT[dateObj.getMonth()]}`;
       headerRow1.push(dayStr, '', '');
-      headerRow2.push('Qty (MWh)', 'Rate (Rs/kWh)', 'Market');
+      headerRow2.push('Qty (MW)', 'Rate (Rs/kWh)', 'Market');
     });
 
     const hr1 = sheet.addRow(headerRow1);
@@ -109,7 +109,8 @@ export class SavingsCalculatorExportService {
           else if (marketSource === 'GDAM') mcp = slot.gdamLandingPrice ?? slot.gdamMcp ?? slot.comparedLowestPrice ?? 0;
           
           const energyKwh = slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0;
-          row.push(Number((energyKwh / 1000).toFixed(4)));
+          const powerMw = energyKwh > 0 ? (energyKwh / 250) : 0;
+          row.push(Number(powerMw.toFixed(1)));
           row.push(Number(mcp.toFixed(2)));
           row.push(marketSource || '-');
         } else {

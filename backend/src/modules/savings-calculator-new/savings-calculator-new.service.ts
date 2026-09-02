@@ -1,6 +1,20 @@
 import prisma from '../../config/prisma';
 import { getCache, setCache, invalidateCache } from '../../config/redis';
 
+export function getFlooredMaxEnergyPerSlot(sanctionedLoadKw: any): number {
+  const load = (sanctionedLoadKw && typeof sanctionedLoadKw.toNumber === 'function') 
+    ? sanctionedLoadKw.toNumber() 
+    : (Number(sanctionedLoadKw) || 0);
+  if (load <= 0) return 0;
+  // Convert 90% sanctioned load to Megawatts (MW)
+  const rawMw = (load * 0.9) / 1000;
+  // Market buying precision is restricted to 1 decimal place in MW (e.g. 1.35 MW -> 1.3 MW)
+  const flooredMw = Math.floor(rawMw * 10 + 1e-9) / 10;
+  const effectiveMw = flooredMw > 0 ? flooredMw : rawMw;
+  // Maximum energy per 15-minute slot (in kWh) = MW * 1000 kW/MW * 0.25 hours
+  return effectiveMw * 1000 * 0.25;
+}
+
 export interface CustomTodSlot {
   id?: string;
   name?: string;
@@ -350,7 +364,7 @@ export class SavingsCalculatorNewService {
       clientId: entry.id,
       clientName: entry.clientName,
       sanctionedLoad: Number(entry.sanctionedLoadKw) || 0,
-      maxEnergyPerSlot: (Number(entry.sanctionedLoadKw) || 0) * 0.9 * 0.25,
+      maxEnergyPerSlot: getFlooredMaxEnergyPerSlot(entry.sanctionedLoadKw),
       totalEnergyKwh,
       totalMarketEnergyKwh: decision.totalMarketEnergyKwh,
       totalBaselineCost,
@@ -393,7 +407,7 @@ export class SavingsCalculatorNewService {
       clientId: entry.id,
       clientName: entry.clientName,
       sanctionedLoad: Number(entry.sanctionedLoadKw) || 0,
-      maxEnergyPerSlot: (Number(entry.sanctionedLoadKw) || 0) * 0.9 * 0.25,
+      maxEnergyPerSlot: getFlooredMaxEnergyPerSlot(entry.sanctionedLoadKw),
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalBaselineCost,
@@ -736,7 +750,7 @@ export class SavingsCalculatorNewService {
       });
 
       // --- DAILY SLDC OPTIMIZATION ---
-      const defaultMaxEnergyPerSlot = sanctionedLoad * 0.25;
+      const defaultMaxEnergyPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
       
       // Pre-calculate expected energy per slot based on actual consumption for accurate SLDC optimization
       monthlySlots.forEach(s => s.expectedEnergy = 0);
@@ -1218,7 +1232,7 @@ export class SavingsCalculatorNewService {
     const slotsData = marketResult.slotsData;
 
     const sanctionedLoadKw = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
-    const maxEnergyPerSlot = sanctionedLoadKw * 0.25;
+    const maxEnergyPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoadKw);
 
     let originalTotalCost = 0;
 

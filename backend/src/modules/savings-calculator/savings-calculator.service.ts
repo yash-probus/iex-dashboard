@@ -1,6 +1,20 @@
 import prisma from '../../config/prisma';
 import { getCache, setCache, invalidateCache } from '../../config/redis';
 
+export function getFlooredMaxEnergyPerSlot(sanctionedLoadKw: any): number {
+  const load = (sanctionedLoadKw && typeof sanctionedLoadKw.toNumber === 'function') 
+    ? sanctionedLoadKw.toNumber() 
+    : (Number(sanctionedLoadKw) || 0);
+  if (load <= 0) return 0;
+  // Convert 90% sanctioned load to Megawatts (MW)
+  const rawMw = (load * 0.9) / 1000;
+  // Market buying precision is restricted to 1 decimal place in MW (e.g. 1.35 MW -> 1.3 MW)
+  const flooredMw = Math.floor(rawMw * 10 + 1e-9) / 10;
+  const effectiveMw = flooredMw > 0 ? flooredMw : rawMw;
+  // Maximum energy per 15-minute slot (in kWh) = MW * 1000 kW/MW * 0.25 hours
+  return effectiveMw * 1000 * 0.25;
+}
+
 export class SavingsCalculatorService {
   static async getAll() {
     return prisma.savingsCalculatorEntry.findMany({
@@ -469,7 +483,7 @@ export class SavingsCalculatorService {
       clientId: entry.id,
       clientName: entry.clientName,
       sanctionedLoad: Number(entry.sanctionedLoadKw) || 0,
-      maxEnergyPerSlot: (Number(entry.sanctionedLoadKw) || 0) * 0.9 * 0.25,
+      maxEnergyPerSlot: getFlooredMaxEnergyPerSlot(entry.sanctionedLoadKw),
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalBaselineCost,
@@ -513,8 +527,8 @@ export class SavingsCalculatorService {
     const category = entry.consumerCategory || 'Industrial';
     const rawVoltage = entry.voltageLevel || '11 kV';
 
-    // 15-minute slot energy limit in kWh = load (kW) * 0.25 hours
-    const maxEnergyPerSlot = sanctionedLoad * 0.25;
+    // 15-minute slot energy limit in kWh = load (kW) * 0.25 hours (restricted to 1 decimal place in MW)
+    const maxEnergyPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
 
     const todConsumptions = entry.todConsumptions as Record<string, Record<string, number | string>> | null;
     if (!todConsumptions || Object.keys(todConsumptions).length === 0) {
@@ -1124,7 +1138,7 @@ export class SavingsCalculatorService {
 
     const traderMargin = Number(entry.traderMargin || 0);
     const sanctionedLoad = Number(entry.sanctionedLoadKw) || 0;
-    const maxEnergyPerSlot = (sanctionedLoad * 0.9 * 0.25);
+    const maxEnergyPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
 
     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
@@ -1873,7 +1887,7 @@ export class SavingsCalculatorService {
 
         const numSlots = slotsInGroup.length;
         const requiredEnergyPerSlot = slabConsumption / numSlots;
-        const maxPerSlot = 0.25 * sanctionedLoad;
+        const maxPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
 
         slotsInGroup.forEach((s, idx) => {
           (s as any)._idx = idx;
@@ -2246,7 +2260,7 @@ export class SavingsCalculatorService {
       clientId: id,
       clientName: entry.clientName,
       sanctionedLoadKw: entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100,
-      maxEnergyPerSlot: (entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100) * 0.25,
+      maxEnergyPerSlot: getFlooredMaxEnergyPerSlot(entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100),
       originalTotalCost,
       newTotalCost,
       savingsAchieved,
@@ -2276,7 +2290,7 @@ export class SavingsCalculatorService {
     const slotsData = marketResult.slotsData;
 
     const sanctionedLoadKw = entry.sanctionedLoadKw ? Number(entry.sanctionedLoadKw) : 100;
-    const maxEnergyPerSlot = sanctionedLoadKw * 0.25;
+    const maxEnergyPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoadKw);
 
     let originalTotalCost = 0;
 
