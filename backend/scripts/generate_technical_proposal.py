@@ -165,6 +165,11 @@ def generate_proposal(data_json):
     max_saving = max(savings_list) if savings_list else 0
     min_pu = min(savings_per_units) if savings_per_units else 0
     max_pu = max(savings_per_units) if savings_per_units else 0
+    
+    total_market_all = sum(safe_float(item.get('total_market_energy_kwh') or 0) for item in monthly_data)
+    total_energy_all = sum(safe_float(item.get('total_energy_kwh') or item.get('discom_only', {}).get('volume', 1)) for item in monthly_data)
+    avg_oa_share = (total_market_all / total_energy_all * 100) if total_energy_all > 0 else 0
+    avg_oa_str = f"Approximately {round(avg_oa_share)}%"
 
     # Format numbers into visual proposal metrics
     positive_months_ratio = f"{positive_months} / {total_months}" if total_months > 0 else "0 / 0"
@@ -191,6 +196,8 @@ def generate_proposal(data_json):
 
     # Expand replacements dictionary to handle curly apostrophes and specific character lengths
     replacements = {
+        'Approximately 95%': avg_oa_str,
+        '95%': f"{round(avg_oa_share)}%",
         '150 days': payback_str,
         'XXXXXXXXXXXXXX': client_name.upper(),
         'XXXXXXXXXXXXX': client_name.upper(),
