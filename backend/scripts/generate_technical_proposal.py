@@ -179,8 +179,19 @@ def generate_proposal(data_json):
     }
     total_months_words = num_to_words.get(total_months, f"{total_months} Months")
 
+    # Calculate Metering Charge Payback
+    total_cost = safe_float(data.get('smart_metering_infra_cost', 0))
+    monthly_probus_savings = round(safe_float(data.get('monthly_probus_savings_amount', 0)))
+    payback_str = "150 days"
+    if monthly_probus_savings > 0 and total_cost > 0:
+        months_val = total_cost / monthly_probus_savings
+        full_months = int(months_val)
+        days = round((months_val - full_months) * 30)
+        payback_str = f"{full_months} months and {days} days"
+
     # Expand replacements dictionary to handle curly apostrophes and specific character lengths
     replacements = {
+        '150 days': payback_str,
         'XXXXXXXXXXXXXX': client_name.upper(),
         'XXXXXXXXXXXXX': client_name.upper(),
         'XXXXXXXXXXXX': client_name.upper(),
