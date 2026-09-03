@@ -1925,7 +1925,9 @@ export class SavingsCalculatorService {
             if ((targetSlot as any).unfulfilledEnergy > 0) {
               const neededAtConsumerBus = (targetSlot as any).unfulfilledEnergy;
               const grossedUpNeeded = neededAtConsumerBus / safeLossMultiplier;
-              const allocation = Math.min(availableToBuy, grossedUpNeeded);
+              const rawAllocation = Math.min(availableToBuy, grossedUpNeeded);
+              const allocationMw = Math.floor((rawAllocation / 250) * 10 + 1e-9) / 10;
+              const allocation = allocationMw > 0 ? allocationMw * 250 : rawAllocation;
 
               if (allocation <= 0) continue;
 
@@ -2044,27 +2046,18 @@ export class SavingsCalculatorService {
       let finalMarketEnergy = 0;
       let exactMarketEnergyCost = 0;
       let discomEnergy = 0;
+      let consumerBusUnits = 0;
 
       slotsInGroup.forEach(s => {
         finalMarketEnergy += (s as any).marketEnergy || 0;
         exactMarketEnergyCost += (s as any).exactMarketEnergyCost || 0;
-        discomEnergy += (s as any).discomEnergy || 0;
+        discomEnergy += ((s as any).discomEnergy || 0);
+        consumerBusUnits += ((s as any).consumedMarketEnergy || 0);
       });
-
-      const marketSlots = slotsInGroup.filter(s => ((s as any).marketEnergy || 0) > 0);
-
-      const avgIstsLoss = marketSlots.length > 0
-        ? marketSlots.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / marketSlots.length
-        : 0;
-
-      const istsLossMultiplier = (1 - (avgIstsLoss / 100));
-      const stuLossMultiplier = (1 - (stuLoss / 100));
-      const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
-
-      const consumerBusUnits = finalMarketEnergy * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
 
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
       const safeGroupKey = String(groupKey || '').trim() || 'UNMAPPED';
+      const marketSlots = slotsInGroup.filter(s => ((s as any).marketEnergy || 0) > 0);
 
 
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;

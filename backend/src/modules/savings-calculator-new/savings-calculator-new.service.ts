@@ -868,9 +868,11 @@ export class SavingsCalculatorNewService {
           sb.requiredEnergy = requiredEnergyPerSlot;
           sb.bankedEnergy = 0;
           sb.purchasedEnergy = 0;
+          (sb as any).injectedCapacity = 0;
+          (sb as any).marketDeliveredEnergy = 0;
           sb.marketEnergy = 0;
-          sb.discomEnergy = 0;
           sb.marketCost = 0;
+          sb.discomEnergy = 0;
           sb.discomCost = 0;
           sb.baselineCost = requiredEnergyPerSlot * slotDiscomPrice;
           sb.consumptionKwh = requiredEnergyPerSlot;
@@ -887,7 +889,7 @@ export class SavingsCalculatorNewService {
         const safeLossMultiplierNew = lossMultiplierNew > 0.5 ? lossMultiplierNew : 1;
 
         for (const buyerSlot of cheapToExpensive) {
-           let availableCapacity = defaultMaxEnergyPerSlot - buyerSlot.purchasedEnergy;
+           let availableCapacity = defaultMaxEnergyPerSlot - (buyerSlot as any).injectedCapacity;
            if (availableCapacity <= 0) continue;
 
            const buyerIndex = slotBlocks.indexOf(buyerSlot);
@@ -898,17 +900,27 @@ export class SavingsCalculatorNewService {
               const unmetRequirement = targetSlot.requiredEnergy - targetSlot.bankedEnergy - targetSlot.purchasedEnergy;
               
               if (unmetRequirement > 0) {
+                  // Use exact target slot loss rates
+                  const istsLossRate = (targetSlot.istsLoss || 0) / 100;
+                  const stuLossRate = (stuLoss || 0) / 100;
+                  const wheelingLossRate = (wheelingLoss || 0) / 100;
+                  const lossMult = (1 - istsLossRate) * (1 - stuLossRate) * (1 - wheelingLossRate);
+                  const safeLossMultiplier = lossMult > 0.5 ? lossMult : 1;
+
                   const grossedUpRequirement = buyerSlot.selectedSource !== 'DISCOM' 
-                    ? unmetRequirement / safeLossMultiplierNew 
+                    ? unmetRequirement / safeLossMultiplier 
                     : unmetRequirement;
 
-                  const amountToBuy = Math.min(availableCapacity, grossedUpRequirement);
+                  const rawAmountToBuy = Math.min(availableCapacity, grossedUpRequirement);
+                  const amountToBuyMw = buyerSlot.selectedSource !== 'DISCOM' ? Math.floor((rawAmountToBuy / 250) * 10 + 1e-9) / 10 : rawAmountToBuy / 250;
+                  const amountToBuy = amountToBuyMw > 0 ? amountToBuyMw * 250 : rawAmountToBuy;
+
                   if (amountToBuy > 0) {
-                      buyerSlot.purchasedEnergy += amountToBuy;
+                      (buyerSlot as any).injectedCapacity += amountToBuy;
                       availableCapacity -= amountToBuy;
                       
                       const deliveredEnergy = buyerSlot.selectedSource !== 'DISCOM' 
-                        ? amountToBuy * safeLossMultiplierNew 
+                        ? amountToBuy * safeLossMultiplier 
                         : amountToBuy;
 
                       if (i === buyerIndex) {
@@ -921,6 +933,7 @@ export class SavingsCalculatorNewService {
                       
                       if (buyerSlot.selectedSource !== 'DISCOM' && buyerSlot.comparedLowestPrice > 0) {
                           targetSlot.marketEnergy += amountToBuy;
+                          (targetSlot as any).marketDeliveredEnergy += deliveredEnergy;
                           targetSlot.marketCost += cost;
                       } else {
                           targetSlot.discomEnergy += amountToBuy;
@@ -939,19 +952,15 @@ export class SavingsCalculatorNewService {
         let slotBaselineCost = 0;
         let slotMarketCost = 0;
         let slotDiscomCost = 0;
+        let slotMarketDeliveredEnergyKwh = 0;
 
         slotBlocks.forEach(sb => {
            const unmet = sb.requiredEnergy - sb.bankedEnergy - sb.purchasedEnergy;
            if (unmet > 0) {
               sb.purchasedEnergy += unmet;
-              const cost = unmet * sb.comparedLowestPrice;
-              if (sb.selectedSource !== 'DISCOM' && sb.comparedLowestPrice > 0) {
-                 sb.marketEnergy += unmet;
-                 sb.marketCost += cost;
-              } else {
-                 sb.discomEnergy += unmet;
-                 sb.discomCost += cost;
-              }
+              // Fallback is always DISCOM
+              sb.discomEnergy += unmet;
+              sb.discomCost += unmet * slotDiscomPrice;
            }
            
            sb.maxEnergyPerSlot = sb.requiredEnergy; // For compatibility with older reporting functions
@@ -965,19 +974,14 @@ export class SavingsCalculatorNewService {
 
            slotConsumptionKwh += sb.requiredEnergy;
            slotMarketEnergyKwh += sb.marketEnergy;
+           slotMarketDeliveredEnergyKwh += (sb as any).marketDeliveredEnergy;
            slotDiscomEnergyKwh += sb.discomEnergy;
            slotBaselineCost += sb.baselineCost;
            slotMarketCost += sb.marketCost;
            slotDiscomCost += sb.discomCost;
         });
 
-        const avgIstsLoss = slotBlocks.length > 0
-          ? slotBlocks.reduce((sum, s: any) => sum + (s.istsLoss || 0), 0) / slotBlocks.length
-          : 0;
-        const istsLossMultiplier = (1 - (avgIstsLoss / 100));
-        const stuLossMultiplier = (1 - (stuLoss / 100));
-        const wheelingLossMultiplier = (1 - (wheelingLoss / 100));
-        const consumerBusUnits = slotMarketEnergyKwh * istsLossMultiplier * stuLossMultiplier * wheelingLossMultiplier;
+        const consumerBusUnits = slotMarketDeliveredEnergyKwh;
 
         todSummaries.push({
           month: yearMonth,
