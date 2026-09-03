@@ -5,7 +5,7 @@ import docx
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
-from docx.shared import Inches
+from docx.shared import Inches, Pt
 import io
 import base64
 import copy
@@ -338,10 +338,13 @@ def generate_proposal(data_json):
                 if len(cells) > 9:
                     cells[9].text = f"₹ {savings_pu:.2f}" if savings_pu else "₹ 0.00"
                     
-                # Center-align text in savings cells
+                # Center-align text and style in savings cells
                 for cell_idx in range(len(cells)):
                     p = cells[cell_idx].paragraphs[0] if cells[cell_idx].paragraphs else cells[cell_idx].add_paragraph()
                     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    for run in p.runs:
+                        run.font.name = 'Aptos'
+                        run.font.size = Pt(9)
                             
             # 4.4 Delete the original template row itself
             t._element.remove(template_row._tr)
