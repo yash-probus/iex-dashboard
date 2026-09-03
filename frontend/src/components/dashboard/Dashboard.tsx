@@ -94,12 +94,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       let totalSavings = 0;
       let totalGrossSavings = 0;
       let totalBaselineCost = 0;
+      let totalConsumerBusEnergy = 0;
 
       const monthsToProcess = isOverall ? validMonths : validMonths.filter(m => m.month === activeMonth);
 
       monthsToProcess.forEach(m => {
         totalConsumption += m.totalEnergyKwh || 0;
         totalMarketEnergy += m.totalMarketEnergyKwh || 0;
+        totalConsumerBusEnergy += (m as any).totalConsumerBusEnergyKwh ?? m.totalMarketEnergyKwh ?? 0;
         totalSavings += m.savings || 0;
         const mGross = m.grossSavings ?? (m.totalBaselineCost ? Math.max(0, m.totalBaselineCost - (m.totalOptimizedCost || 0)) : m.savings || 0);
         totalGrossSavings += mGross;
@@ -119,7 +121,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         totalBaselineCost = marketDecisionResult.fullBaselineDiscomCost || marketDecisionResult.totalBaselineCost || 0;
       }
 
-      const oaCoverage = totalConsumption > 0 ? (totalMarketEnergy / totalConsumption) * 100 : 0;
+      const oaCoverage = totalConsumption > 0 ? (totalConsumerBusEnergy / totalConsumption) * 100 : 0;
       const blendedCost = totalConsumption > 0 ? (totalBaselineCost - totalSavings) / totalConsumption : 0;
       const avgDiscomCost = totalConsumption > 0 ? (totalBaselineCost / totalConsumption) : 0;
       const netSavingRate = totalConsumption > 0 ? (totalSavings / totalConsumption) : 0;
@@ -171,7 +173,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       flowData = {
         regionalBusOA: `${formatIndianNumber(totalMarketEnergy / 1000)} MWh`,
         efficiency: 100, // assuming 100% since no explicit bus loss data
-        consumerOA: `${formatIndianNumber(totalMarketEnergy / 1000)} MWh`
+        consumerOA: `${formatIndianNumber(totalConsumerBusEnergy / 1000)} MWh`
       };
 
       // Matrix is always all months

@@ -343,6 +343,7 @@ export class SavingsCalculatorNewService {
     let totalOptimizedCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    let totalConsumerBusEnergyKwh = 0;
 
     for (const [yearMonth, monthData] of monthsToProcess) {
       const slots = this.parseCustomTodSlots(monthData);
@@ -367,6 +368,7 @@ export class SavingsCalculatorNewService {
       maxEnergyPerSlot: getFlooredMaxEnergyPerSlot(entry.sanctionedLoadKw),
       totalEnergyKwh,
       totalMarketEnergyKwh: decision.totalMarketEnergyKwh,
+      totalConsumerBusEnergyKwh: decision.totalConsumerBusEnergyKwh,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,
@@ -387,6 +389,7 @@ export class SavingsCalculatorNewService {
     let totalBaselineCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    let totalConsumerBusEnergyKwh = 0;
 
     for (const month of months) {
       try {
@@ -397,6 +400,7 @@ export class SavingsCalculatorNewService {
           totalBaselineCost += res.totalBaselineCost;
           totalEnergyKwh += res.totalEnergyKwh;
           totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+          totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
         }
       } catch (e) {
         console.error('Error calculating month in savings-calculator-new', month, e);
@@ -410,6 +414,7 @@ export class SavingsCalculatorNewService {
       maxEnergyPerSlot: getFlooredMaxEnergyPerSlot(entry.sanctionedLoadKw),
       totalEnergyKwh,
       totalMarketEnergyKwh,
+      totalConsumerBusEnergyKwh,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,
@@ -443,6 +448,7 @@ export class SavingsCalculatorNewService {
     let totalOptimizedCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    let totalConsumerBusEnergyKwh = 0;
     let totalLandedExchangeCost = 0;
     let totalDiscomAfterProlt = 0;
     let totalElectricityDuty = 0;
@@ -969,6 +975,7 @@ export class SavingsCalculatorNewService {
            totalBaselineCost += sb.baselineCost;
            totalEnergyKwh += sb.requiredEnergy;
            totalMarketEnergyKwh += sb.marketEnergy;
+           totalConsumerBusEnergyKwh += (sb as any).marketDeliveredEnergy;
            totalLandedExchangeCost += sb.marketCost;
            totalDiscomAfterProlt += sb.discomCost;
 
@@ -1159,6 +1166,7 @@ export class SavingsCalculatorNewService {
       todSummaries,
       totalEnergyKwh,
       totalMarketEnergyKwh,
+      totalConsumerBusEnergyKwh,
       pureEnergyCost: totalBaselineCost,
       totalBaselineCost: fullBaselineDiscomCost,
       fullBaselineDiscomCost,

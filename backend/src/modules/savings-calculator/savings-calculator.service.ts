@@ -365,6 +365,7 @@ export class SavingsCalculatorService {
     let demandCharge = 0;
     let electricityDuty = 0;
     let peakDemand = 0;
+    let totalConsumerBusEnergyKwh = 0;
     let demandChargeRate = 0;
 
     const aggregatedTotals = {
@@ -391,6 +392,7 @@ export class SavingsCalculatorService {
           demandCharge += res.demandCharge;
           electricityDuty += res.electricityDuty;
           peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
+          totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
           demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
 
           if (res.oaDetailed) {
@@ -427,6 +429,7 @@ export class SavingsCalculatorService {
       slotsData: [],
       totalEnergyKwh,
       totalMarketEnergyKwh,
+      totalConsumerBusEnergyKwh,
       totalBaselineCost,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
@@ -463,6 +466,7 @@ export class SavingsCalculatorService {
     let totalBaselineCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    let totalConsumerBusEnergyKwh = 0;
 
     for (const month of months) {
       try {
@@ -473,6 +477,7 @@ export class SavingsCalculatorService {
           totalBaselineCost += res.totalBaselineCost;
           totalEnergyKwh += res.totalEnergyKwh;
           totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+          totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
         }
       } catch (e) {
         console.error("Error calculating month", month, e);
@@ -486,6 +491,7 @@ export class SavingsCalculatorService {
       maxEnergyPerSlot: getFlooredMaxEnergyPerSlot(entry.sanctionedLoadKw),
       totalEnergyKwh,
       totalMarketEnergyKwh,
+      totalConsumerBusEnergyKwh,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,
@@ -540,6 +546,7 @@ export class SavingsCalculatorService {
     let totalOptimizedCost = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    let totalConsumerBusEnergyKwh = 0;
 
     let monthsToProcess = Object.entries(todConsumptions);
     if (targetMonth) {
@@ -1039,6 +1046,7 @@ export class SavingsCalculatorService {
         if (item.selectedSource !== 'DISCOM') {
           totalMarketEnergyKwh += item.maxEnergyPerSlot;
         }
+        totalConsumerBusEnergyKwh += item.maxEnergyPerSlot;
       });
 
       allSlotsData.push(...slotsData);
@@ -1070,6 +1078,7 @@ export class SavingsCalculatorService {
       maxEnergyPerSlot,
       totalEnergyKwh,
       totalMarketEnergyKwh,
+      totalConsumerBusEnergyKwh,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,
@@ -1982,6 +1991,7 @@ export class SavingsCalculatorService {
     let totalDiscomAfterProlt = 0;
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
+    let totalConsumerBusEnergyKwh = 0;
     let totalBaselineEnergyCharges = 0;
     let totalDiscomEnergyChargesAfterOA = 0;
     let totalDemandAndFixedChargesApplied = 0;
@@ -2128,6 +2138,7 @@ export class SavingsCalculatorService {
 
       totalEnergyKwh += slabConsumption;
       totalMarketEnergyKwh += finalMarketEnergy;
+      totalConsumerBusEnergyKwh += consumerBusUnits;
 
       todSummaries.push({
         slabName: safeGroupKey,
@@ -2177,6 +2188,7 @@ export class SavingsCalculatorService {
       slotsData,
       totalEnergyKwh,
       totalMarketEnergyKwh,
+      totalConsumerBusEnergyKwh,
       totalBaselineCost,
       fppaPercent,
       totalLandedExchangeCost,
