@@ -102,9 +102,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         totalConsumption += m.totalEnergyKwh || 0;
         totalMarketEnergy += m.totalMarketEnergyKwh || 0;
         totalConsumerBusEnergy += (m as any).totalConsumerBusEnergyKwh ?? m.totalMarketEnergyKwh ?? 0;
-        totalSavings += m.savings || 0;
+        totalSavings += Math.round(m.savings || 0);
         const mGross = m.grossSavings ?? (m.totalBaselineCost ? Math.max(0, m.totalBaselineCost - (m.totalOptimizedCost || 0)) : m.savings || 0);
-        totalGrossSavings += mGross;
+        totalGrossSavings += Math.round(mGross);
       });
 
       if (totalGrossSavings === 0 && marketDecisionResult) {
@@ -115,10 +115,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // Set baseline cost based on active view (Overall vs Monthly)
       if (isOverall) {
         if (clientOverview && clientOverview.aggregatedCosts) {
-          totalBaselineCost = clientOverview.aggregatedCosts.totalDiscomCost || 0;
+          totalBaselineCost = Math.round(clientOverview.aggregatedCosts.totalDiscomCost || 0);
         }
       } else if (marketDecisionResult) {
-        totalBaselineCost = marketDecisionResult.fullBaselineDiscomCost || marketDecisionResult.totalBaselineCost || 0;
+        totalBaselineCost = Math.round(marketDecisionResult.fullBaselineDiscomCost || marketDecisionResult.totalBaselineCost || 0);
       }
 
       const oaCoverage = totalConsumption > 0 ? (totalConsumerBusEnergy / totalConsumption) * 100 : 0;
@@ -179,7 +179,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // Matrix is always all months
       matrixData = validMonths.map(m => ({
         month: m.month,
-        saving: formatIndianCurrency(m.savings || 0),
+        saving: formatIndianCurrency(Math.round(m.savings || 0)),
+        grossSaving: formatIndianCurrency(Math.round(m.grossSavings || 0)),
         coverage: m.totalEnergyKwh ? Math.round(((m.totalMarketEnergyKwh || 0) / m.totalEnergyKwh) * 100) : 0
       }));
 
