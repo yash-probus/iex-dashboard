@@ -129,6 +129,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
       avgMonthlySavings = monthCount > 0 ? totalSavings / monthCount : 0;
       const meteringCharges = Number(calcEntry?.meteringCharges || 0);
       const paybackMonths = avgMonthlySavings > 0 ? meteringCharges / avgMonthlySavings : 0;
+      let paybackText = '0 months';
+      if (paybackMonths > 0) {
+        const wMonths = Math.floor(paybackMonths);
+        const days = Math.round((paybackMonths - wMonths) * 30);
+        if (days === 0) {
+          paybackText = `${wMonths} months`;
+        } else if (wMonths === 0) {
+          paybackText = `${days} days`;
+        } else {
+          paybackText = `${wMonths} months and ${days} days`;
+        }
+      }
       annualizedSavings = avgMonthlySavings * 12;
       // 5 Years Saving calculation exactly matching the Excel Export formula:
       // avgAnnualSaving + avgAnnualSaving*1.1 + avgAnnualSaving*POWER(1.1,2) + avgAnnualSaving*POWER(1.1,3) + avgAnnualSaving*POWER(1.1,4)
@@ -162,7 +174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           sub: 'Annual savings with 10% YoY escalation', 
           color: 'green' 
         },
-        { label: 'Metering charge payback', value: `${(Number(paybackMonths) || 0).toFixed(1)} months`, sub: 'Time to recover metering charges', color: 'amber' },
+        { label: 'Metering charge payback', value: paybackText, sub: 'Time to recover metering charges', color: 'amber' },
         { label: isOverall ? 'Weighted OA coverage' : 'OA coverage', value: `${(Number(oaCoverage) || 0).toFixed(1)}%`, sub: 'Average Monthly Energy Bought from OA', color: 'amber' },
         { label: 'Total consumption', value: `${formatIndianNumber(totalConsumption)} kWh`, sub: isOverall ? 'Annualized electricity consumption (12 months)' : 'Billed electricity consumption' },
         { label: 'Blended Cost - OA', value: `₹${(Number(blendedCost) || 0).toFixed(2)}/kWh`, sub: 'Average blended rate per kWh' },
