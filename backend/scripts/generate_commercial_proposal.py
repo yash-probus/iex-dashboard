@@ -43,6 +43,13 @@ def generate_proposal(data_json):
     client_name = data.get('client_name') or data.get('industry_name') or 'CLIENT'
     connectivity_str = str(data.get('connectivity') or data.get('voltage_level') or '11 kV')
     
+    def remove_highlight(run):
+        rPr = run._element.rPr
+        if rPr is not None:
+            highlights = rPr.xpath('./w:highlight')
+            for hl in highlights:
+                rPr.remove(hl)
+
     def replace_in_text(text):
         if not text: return text
         if 'XXXXXXXXXXXXX' in text:
@@ -57,6 +64,7 @@ def generate_proposal(data_json):
 
     for p in doc.paragraphs:
         for run in p.runs:
+            remove_highlight(run)
             if run.text:
                 run.text = replace_in_text(run.text)
         
@@ -65,6 +73,7 @@ def generate_proposal(data_json):
             for c in r.cells:
                 for p in c.paragraphs:
                     for run in p.runs:
+                        remove_highlight(run)
                         if run.text:
                             run.text = replace_in_text(run.text)
 
@@ -76,14 +85,6 @@ def generate_proposal(data_json):
         run = p.add_run(str(text))
         if bold:
             run.bold = True
-            
-        # Restore the yellow highlight from the template's theme
-        from docx.oxml.ns import qn
-        from docx.oxml import OxmlElement
-        rPr = run._element.get_or_add_rPr()
-        highlight = OxmlElement('w:highlight')
-        highlight.set(qn('w:val'), 'yellow')
-        rPr.append(highlight)
 
     # 2. Update Table 0 (Facility Parameters: Sanctioned Load, Connectivity, DISCOM Name, Feeder Type)
     if len(doc.tables) > 0:
