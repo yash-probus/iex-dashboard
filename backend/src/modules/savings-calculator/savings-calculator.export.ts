@@ -172,6 +172,7 @@ export class SavingsCalculatorExportService {
       'OA Units (kWh, Regional Bus)',
       'OA Units (kWh, Consumer Bus)',
       'OA Energy Charges (Rs.)',
+      'DISCOM Units after OA',
       'DISCOM Bill after OA (Rs.)'
     ];
     const breakdownHeaderRow = sheet.addRow(breakdownHeader);
@@ -181,7 +182,7 @@ export class SavingsCalculatorExportService {
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
       c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
-    for (let col = 2; col <= 7; col++) {
+    for (let col = 2; col <= 8; col++) {
       sheet.getColumn(col).width = 18;
     }
 
@@ -192,6 +193,7 @@ export class SavingsCalculatorExportService {
     let totalOaURounded = 0;
     let totalConsumerURounded = 0;
     let totalOaBRounded = 0;
+    let totalDiscomUnitsAfterOARounded = 0;
     let totalNetBRounded = 0;
 
     oaDetailed.breakdown.forEach((b: any) => {
@@ -200,6 +202,7 @@ export class SavingsCalculatorExportService {
       const oaU = Math.round(b.oaUnits);
       const consumerU = Math.round(b.consumerBusUnits);
       const oaB = Math.round(b.oaBill);
+      const discomUnitsAfterOA = Math.max(0, discomU - consumerU);
       const netB = Math.round(b.proltDiscomBill);
 
       sheet.addRow([
@@ -209,6 +212,7 @@ export class SavingsCalculatorExportService {
         oaU,
         consumerU,
         oaB,
+        discomUnitsAfterOA,
         netB
       ]);
       totalDiscomURounded += discomU;
@@ -216,6 +220,7 @@ export class SavingsCalculatorExportService {
       totalOaURounded += oaU;
       totalConsumerURounded += consumerU;
       totalOaBRounded += oaB;
+      totalDiscomUnitsAfterOARounded += discomUnitsAfterOA;
       totalNetBRounded += netB;
     });
 
@@ -228,6 +233,7 @@ export class SavingsCalculatorExportService {
       totalOaURounded, 
       totalConsumerURounded, 
       totalOaBRounded,
+      totalDiscomUnitsAfterOARounded,
       totalNetBRounded
     ]);
     todTotalRow.font = { bold: true };
