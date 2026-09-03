@@ -77,6 +77,8 @@ def generate_proposal(data_json):
                         if run.text:
                             run.text = replace_in_text(run.text)
 
+
+
     # Helper function to set cell text with centered alignment and bold formatting
     def set_cell_value(cell, text, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER):
         cell.text = ""
@@ -224,13 +226,16 @@ def generate_proposal(data_json):
             img_para = doc.paragraphs[img_idx]._element
             for drawing in img_para.iter(qn('w:drawing')):
                 wp_anchor = drawing.find(qn('wp:anchor'))
-                if wp_anchor is not None:
-                    ext = wp_anchor.find(qn('wp:extent'))
+                wp_inline = drawing.find(qn('wp:inline'))
+                
+                target = wp_anchor if wp_anchor is not None else wp_inline
+                if target is not None:
+                    ext = target.find(qn('wp:extent'))
                     if ext is not None:
                         ext.set('cx', '7562448') 
                         ext.set('cy', '10689336')
                         
-                    for xfrm in wp_anchor.xpath('.//*[local-name()="xfrm"]'):
+                    for xfrm in target.xpath('.//*[local-name()="xfrm"]'):
                         ext2 = xfrm.xpath('./*[local-name()="ext"]')
                         if ext2:
                             ext2[0].set('cx', '7562448')
