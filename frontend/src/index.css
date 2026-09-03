@@ -136,6 +136,7 @@ h1, h2, h3, h4, h5, h6 {
   }
   body {
     padding: 1.5cm !important;
+    zoom: 0.55 !important;
   }
   .no-print, .no-print * {
     display: none !important;
@@ -187,6 +188,7 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0 !important;
     margin: 0 !important;
     background-color: white !important;
+    zoom: 1 !important;
   }
   body.printing-report #root > * {
     display: none !important;
