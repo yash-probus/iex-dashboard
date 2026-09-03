@@ -26,15 +26,16 @@ export class ChartGeneratorService {
             }
             return '';
         });
-
         const data = monthlyData.map(m => {
             const val = m.saving !== undefined ? m.saving : (m.savings !== undefined ? m.savings : 0);
-            const rawStr = val.toString().replace(/[^0-9]/g, '');
-            return parseInt(rawStr, 10) || 0;
+            return typeof val === 'number' ? val : parseFloat(val) || 0;
         });
 
         const maxVal = Math.max(...data);
         const backgroundColor = data.map(v => v === maxVal ? '#15B771' : '#3B82F6');
+
+        const avgSavingsCalculated = data.reduce((a, b) => a + b, 0) / (data.length || 1);
+        const avgSavingsLacStr = '₹' + (avgSavingsCalculated / 100000).toFixed(2) + ' lac';
 
         const html = `
         <!DOCTYPE html>
@@ -110,7 +111,7 @@ export class ChartGeneratorService {
                 </div>
                 
                 <div class="avg-bubble">
-                    Average Monthly Savings ${avgMonthlySavings}
+                    Average Monthly Savings ${avgSavingsLacStr}
                 </div>
  
                 <div class="chart-container">
@@ -150,7 +151,7 @@ export class ChartGeneratorService {
                         ctx.font = 'bold 12px sans-serif';
                         ctx.fillStyle = '#FF3B30';
                         ctx.textAlign = 'left';
-                        const labelText = 'Avg. ₹' + (avgSavingsNum / 100000).toFixed(2) + ' lakhs';
+                        const labelText = 'Avg. ₹' + (avgSavingsNum / 100000).toFixed(2) + ' lac';
                         ctx.fillText(labelText, chart.chartArea.right + 10, yVal + 4);
                         ctx.restore();
                     }
@@ -184,7 +185,7 @@ export class ChartGeneratorService {
                                 anchor: 'end',
                                 align: 'top',
                                 formatter: function(value) {
-                                    return '₹' + value.toLocaleString('en-IN');
+                                    return '₹' + (value / 100000).toFixed(2) + ' lac';
                                 },
                                 font: {
                                     weight: 'bold'
