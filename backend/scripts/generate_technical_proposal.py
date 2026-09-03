@@ -304,10 +304,9 @@ def generate_proposal(data_json):
 
                 actual_units = safe_float(item.get('discom_only', {}).get('volume', 0))
                 
-                # Calculate Cleared OA %
-                total_energy = safe_float(item.get('total_energy_kwh') or actual_units or 1)
-                market_energy = safe_float(item.get('total_market_energy_kwh') or 0)
-                cleared_oa_pct = (market_energy / total_energy * 100) if total_energy > 0 else 0
+                # Calculate Cleared OA % using consumer bus units
+                consumer_bus_units = safe_float(item.get('consumer_bus_units', 0))
+                cleared_oa_pct = (consumer_bus_units / actual_units * 100) if actual_units > 0 else 0
                 cleared_oa = f"{round(cleared_oa_pct)}%"
                 
                 discom_total = format_rupee(item.get('discom_only', {}).get('total_amount', 0), decimals=0)

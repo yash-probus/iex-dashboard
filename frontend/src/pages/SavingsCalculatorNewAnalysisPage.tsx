@@ -515,6 +515,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                         month: m.month,
                         total_energy_kwh: m.totalEnergyKwh || 0,
                         total_market_energy_kwh: m.totalMarketEnergyKwh || 0,
+                        consumer_bus_units: m.oaConsumer ?? m.clearedUnitsKwh ?? m.cleared ?? (m.oaCoverage != null ? ((m.totalEnergyKwh || 0) * m.oaCoverage / 100) : ((m.totalMarketEnergyKwh || 0) * (1 - (m.busLoss ? m.busLoss / 100 : 0.1211)))),
                         discom_only: {
                           volume: m.totalEnergyKwh || 0,
                           total_amount: m.totalBaselineCost || 0,
