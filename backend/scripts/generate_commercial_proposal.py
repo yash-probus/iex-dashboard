@@ -78,13 +78,15 @@ def generate_proposal(data_json):
                             run.text = replace_in_text(run.text)
 
     # Helper function to set cell text with centered alignment and bold formatting
-    def set_cell_value(cell, text, bold=False):
+    def set_cell_value(cell, text, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER):
         cell.text = ""
         p = cell.paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.alignment = align
         run = p.add_run(str(text))
         if bold:
             run.bold = True
+        if italic:
+            run.italic = True
 
     # 2. Update Table 0 (Facility Parameters: Sanctioned Load, Connectivity, DISCOM Name, Feeder Type)
     if len(doc.tables) > 0:
@@ -182,7 +184,7 @@ def generate_proposal(data_json):
         # Searching for 'Prolt Energy Smart Metering Infra' in the second column to replace the third column
         for row in t4.rows:
             if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[1].text:
-                set_cell_value(row.cells[2], smart_payment_term)
+                set_cell_value(row.cells[2], smart_payment_term, italic=True, align=WD_ALIGN_PARAGRAPH.LEFT)
                 break
 
     if os.path.dirname(output_path):
