@@ -334,7 +334,20 @@ export default function CustomSavingCalcAnalysisPage() {
 
           {/* Export Toolbar */}
           {marketDecisionResult && (
-            <Box className="no-print" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, my: 2.5, width: '100%' }}>
+            <Box className="no-print" sx={{ 
+              display: 'flex', 
+              flexWrap: 'nowrap', 
+              overflowX: 'auto',
+              alignItems: 'center', 
+              justifyContent: { xs: 'flex-start', xl: 'flex-end' }, 
+              gap: 1, 
+              my: 2.5, 
+              width: '100%',
+              pb: 0.5,
+              '&::-webkit-scrollbar': { display: 'none' },
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none'
+            }}>
               <Button
                 variant="outlined"
                 startIcon={<DownloadIcon />}
@@ -531,7 +544,20 @@ export default function CustomSavingCalcAnalysisPage() {
                   '&:hover': { backgroundColor: '#1E293B', borderColor: 'divider' }
                 }}
               >
-                Technical Proposal (Word)
+                Technical Proposal
+                <Chip 
+                  label="NEW" 
+                  size="small" 
+                  sx={{ 
+                    ml: 1, 
+                    backgroundColor: '#d32f2f', 
+                    color: 'white', 
+                    height: '20px', 
+                    fontSize: '11px', 
+                    fontWeight: 'bold',
+                    '& .MuiChip-label': { px: 1 }
+                  }} 
+                />
               </Button>
 
 

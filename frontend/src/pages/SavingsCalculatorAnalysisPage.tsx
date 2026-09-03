@@ -664,7 +664,20 @@ const exportInsightsToExcel = async () => {
                   }
                 }}
               >
-                Technical Proposal (Word)
+                Technical Proposal
+                <Chip 
+                  label="NEW" 
+                  size="small" 
+                  sx={{ 
+                    ml: 1, 
+                    backgroundColor: '#d32f2f', 
+                    color: 'white', 
+                    height: '20px', 
+                    fontSize: '11px', 
+                    fontWeight: 'bold',
+                    '& .MuiChip-label': { px: 1 }
+                  }} 
+                />
               </Button>
               <Button 
                 variant="outlined" 
