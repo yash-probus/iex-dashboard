@@ -242,7 +242,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               <Box sx={{ 
                 position: 'absolute', 
                 top: 65, 
-                right: 40, 
+                right: 65, 
                 zIndex: 10,
                 display: 'flex',
                 alignItems: 'center',
@@ -252,7 +252,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                   src="/assets/logo.png" 
                   alt="Prolt Energy By Probus" 
                   style={{ 
-                    height: '100px', 
+                    height: '85px', 
                     width: 'auto',
                     objectFit: 'contain'
                   }} 
