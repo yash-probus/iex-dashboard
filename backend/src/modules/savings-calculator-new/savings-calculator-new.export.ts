@@ -696,7 +696,12 @@ export class SavingsCalculatorNewExportService {
         const monthRowMap: Record<string, any> = {};
         
         for (const r of allResults) {
-          const sheetName = getShortSheetName(r.monthStr, 'Savings Analysis');
+          let sheetName = getShortSheetName(r.monthStr, 'Savings Analysis');
+          let idx = 2;
+          while (workbook.getWorksheet(sheetName)) {
+            sheetName = `${getShortSheetName(r.monthStr, 'Savings Analysis')} ${idx}`;
+            idx++;
+          }
           const rowMapping = await SavingsCalculatorNewExportService.addSavingsSheet(workbook, sheetName, r.result, entry, r.monthStr);
           monthRowMap[r.monthStr] = { sheetName, ...rowMapping };
         }
@@ -1092,7 +1097,12 @@ export class SavingsCalculatorNewExportService {
         const monthRowMap: Record<string, any> = {};
         
         for (const r of allResults) {
-          const sheetName = getShortSheetName(r.monthStr, 'Demand Shift');
+          let sheetName = getShortSheetName(r.monthStr, 'Demand Shift');
+          let idx = 2;
+          while (workbook.getWorksheet(sheetName)) {
+            sheetName = `${getShortSheetName(r.monthStr, 'Demand Shift')} ${idx}`;
+            idx++;
+          }
           const rowMapping = await SavingsCalculatorNewExportService.addSavingsSheet(workbook, sheetName, r.result, entry, r.monthStr);
           monthRowMap[r.monthStr] = { sheetName, ...rowMapping };
         }
