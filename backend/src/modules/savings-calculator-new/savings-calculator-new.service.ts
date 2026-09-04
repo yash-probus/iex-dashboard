@@ -453,7 +453,7 @@ export class SavingsCalculatorNewService {
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
 
-    const months = Object.keys(todConsumptions).sort();
+    const months = Object.keys(todConsumptions).filter(k => /^\\d{4}-\\d{2}$/.test(k)).sort();
     let totalSavings = 0;
     let totalBaselineCost = 0;
     let totalEnergyKwh = 0;

@@ -683,7 +683,7 @@ export class SavingsCalculatorNewExportService {
     
     if (monthStr === 'all') {
       const entry = await SavingsCalculatorNewService.getEntryOrVersion(id, version);
-      const months = Object.keys(entry?.todConsumptions || {}).sort();
+      const months = Object.keys(entry?.todConsumptions || {}).filter(k => /^\\d{4}-\\d{2}$/.test(k)).sort();
       const allResults = [];
       
       for (const m of months) {
@@ -1084,7 +1084,7 @@ export class SavingsCalculatorNewExportService {
     
     if (monthStr === 'all') {
       const entry = await SavingsCalculatorNewService.getEntryOrVersion(id, version);
-      const months = Object.keys(entry?.todConsumptions || {}).sort();
+      const months = Object.keys(entry?.todConsumptions || {}).filter(k => /^\\d{4}-\\d{2}$/.test(k)).sort();
       const allResults = [];
       
       for (const m of months) {
