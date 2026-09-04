@@ -1539,7 +1539,8 @@ export default function SavingsCalculatorNewPage() {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 3, pb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <DialogContent sx={{ pt: 3, pb: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {/* Monthly Accordions */}
           {Object.keys(todConsumptions).filter(m => !m.startsWith('_') && m.includes('-')).sort().map((ym, index) => {
             const monthData = todConsumptions[ym] || { startDate: `${ym}-01`, endDate: `${ym}-30`, peakDemandKw: 1000, slots: [] };
@@ -1830,6 +1831,7 @@ export default function SavingsCalculatorNewPage() {
               </Button>
             </AccordionDetails>
           </Accordion>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', display: 'flex', gap: 2 }}>
           <Button
@@ -1898,7 +1900,8 @@ export default function SavingsCalculatorNewPage() {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 3, pb: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <DialogContent sx={{ pt: 3, pb: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           <TextField
             label="Trader Margin (₹/kWh)"
             type="number"
@@ -1941,6 +1944,7 @@ export default function SavingsCalculatorNewPage() {
             fullWidth
             size="small"
           />
+          </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', display: 'flex', gap: 2 }}>
           <Button
