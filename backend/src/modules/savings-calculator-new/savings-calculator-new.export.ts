@@ -545,8 +545,7 @@ export class SavingsCalculatorNewExportService {
     
     // Calculate exact visual values for Discom to prevent any rounding arithmetic mismatch
     const visibleDiscomBefore = Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0));
-    const discomAfterProltWithMisc = (result.totalDiscomAfterProlt || 0) + (result.arrearAmount || 0) + (result.currentLpsc || 0);
-    const visibleDiscomAfter = Math.round(discomAfterProltWithMisc);
+    const visibleDiscomAfter = Math.round(totalDiscomAfterOAWithMisc);
     
     const visibleTotalGrossBill = visibleTotalOa + visibleDiscomAfter;
     
