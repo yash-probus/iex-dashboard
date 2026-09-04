@@ -223,6 +223,7 @@ export class SavingsCalculatorExportService {
     const totalOaBaseCostAllSlabs = oaDetailed.breakdown.reduce((sum: number, b: any) => sum + Math.round(b.oaBill), 0);
     const overheadsToDistribute = preVisibleTotalOa - totalOaBaseCostAllSlabs;
     let runningOaBillAcc = 0;
+    const fppaPercent = result.fppaPercent || 0;
 
     oaDetailed.breakdown.forEach((b: any, index: number) => {
       const fppaMultiplier = fppaPercent > 0 && !((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined) ? (1 + (fppaPercent / 100)) : 1;
@@ -295,7 +296,7 @@ export class SavingsCalculatorExportService {
     const arrear = result.arrearAmount || 0;
     const lpsc = result.currentLpsc || 0;
     
-    const fppaPercent = result.fppaPercent || 0;
+    
 
     if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;

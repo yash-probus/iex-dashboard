@@ -99,9 +99,8 @@ export class SavingsCalculatorNewExportService {
       const row: any[] = [formatBlock(b)];
       days.forEach(day => {
         const slot = slotsData.find((s: any) => s.date === day && (s.timeblock === b || s.slot === b)) as any;
-        const energyKwh = slot ? (slot.marketEnergy ?? slot.maxEnergyPerSlot ?? 0) : 0;
-        const isMarket = slot && energyKwh > 0 && (slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM'));
-        if (isMarket) {
+        const isMarket = slot ? (slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM')) : false;
+        if (slot && isMarket) {
           // If won, show the MCP (base price) of the selected market
           const marketSource = slot.selectedSource || slot.marketSource || 'DISCOM';
           let mcp = 0;
@@ -111,8 +110,8 @@ export class SavingsCalculatorNewExportService {
           
           const energyKwh = slot.marketEnergy ?? slot.maxEnergyPerSlot ?? 0;
           const powerMw = energyKwh > 0 ? (energyKwh / 250) : 0;
-          row.push(powerMw > 0 ? Number(powerMw.toFixed(4)) : '-');
-          row.push(powerMw > 0 ? Number(mcp.toFixed(2)) : '-');
+          row.push(Number(powerMw.toFixed(1)));
+          row.push(Number(mcp.toFixed(2)));
           row.push(marketSource || '-');
         } else {
           row.push('-', '-', '-');
@@ -224,10 +223,12 @@ export class SavingsCalculatorNewExportService {
     const totalOaBaseCostAllSlabs = oaDetailed.breakdown.reduce((sum: number, b: any) => sum + Math.round(b.oaBill), 0);
     const overheadsToDistribute = preVisibleTotalOa - totalOaBaseCostAllSlabs;
     let runningOaBillAcc = 0;
+    const fppaPercent = result.fppaPercent || 0;
 
     oaDetailed.breakdown.forEach((b: any, index: number) => {
+      const fppaMultiplier = fppaPercent > 0 && !((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined) ? (1 + (fppaPercent / 100)) : 1;
       const discomU = Math.round(b.discomUnits);
-      const discomB = Math.round(b.discomBill);
+      const discomB = Math.round(b.discomBill / fppaMultiplier);
       const oaU = Math.round(b.oaUnits);
       const consumerU = Math.round(b.consumerBusUnits);
       let oaB = Math.round(b.oaBill);
@@ -241,7 +242,7 @@ export class SavingsCalculatorNewExportService {
       runningOaBillAcc += oaB;
 
       const discomUnitsAfterOA = Math.max(0, discomU - consumerU);
-      const netB = Math.round(b.proltDiscomBill);
+      const netB = Math.round(b.proltDiscomBill / fppaMultiplier);
 
       sheet.addRow([
         b.slabName,
@@ -295,7 +296,7 @@ export class SavingsCalculatorNewExportService {
     const arrear = result.arrearAmount || 0;
     const lpsc = result.currentLpsc || 0;
     
-    const fppaPercent = result.fppaPercent || 0;
+    
 
     if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;
@@ -627,7 +628,7 @@ export class SavingsCalculatorNewExportService {
     const consultancyRow = sheet.addRow(['Consultancy Fee', consultancyFeeVal]);
     rowMapping['consultancyFeeRow'] = consultancyRow.number;
 
-    const savingsAfterFixedFees = visibleGrossSavings - (nocFee + regFee + consultancyFeeVal);
+    const savingsAfterFixedFees = Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal));
     const savingsAfterFixedFeesRow = sheet.addRow(['Saving after Fixed Fees', Math.round(savingsAfterFixedFees)]);
     savingsAfterFixedFeesRow.font = { bold: true };
     savingsAfterFixedFeesRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -642,7 +643,7 @@ export class SavingsCalculatorNewExportService {
     const traderMarginSumRow = sheet.addRow(['Trader Margin', Math.round(traderMarginVal)]);
     rowMapping['traderMarginChargeRow'] = traderMarginSumRow.number;
     
-    const finalSavings = visibleGrossSavings - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal + traderMarginVal);
+    const finalSavings = result.totalSavings ?? Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal + traderMarginVal));
     const finalSavingsRow = sheet.addRow(['Final Client Savings (Saving for your business)', Math.round(finalSavings)]);
     finalSavingsRow.font = { bold: true };
     finalSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
@@ -682,7 +683,7 @@ export class SavingsCalculatorNewExportService {
     
     if (monthStr === 'all') {
       const entry = await SavingsCalculatorNewService.getEntryOrVersion(id, version);
-      const months = Object.keys(entry?.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).sort();
+      const months = Object.keys(entry?.todConsumptions || {}).sort();
       const allResults = [];
       
       for (const m of months) {
@@ -1078,7 +1079,7 @@ export class SavingsCalculatorNewExportService {
     
     if (monthStr === 'all') {
       const entry = await SavingsCalculatorNewService.getEntryOrVersion(id, version);
-      const months = Object.keys(entry?.todConsumptions || {}).filter(m => !m.startsWith('_') && m.includes('-')).sort();
+      const months = Object.keys(entry?.todConsumptions || {}).sort();
       const allResults = [];
       
       for (const m of months) {
