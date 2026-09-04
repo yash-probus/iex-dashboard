@@ -783,13 +783,17 @@ export class SavingsCalculatorNewService {
         const is1MWOrMore = sampleSlot.is1MWOrMore;
         const availableMarkets = is1MWOrMore ? ['DAM', 'RTM', 'GDAM'] : ['GDAM'];
         
+        const traderMarginWithGst = Number(entry.traderMargin || 0) * 1.18;
+        const edFactor = applyElectricityDuty ? (1 + electricityDutyPercent / 100) : 1;
+
         const calculateTotalCost = (markets: string[]) => {
           let energyCost = 0;
           let sldcCost = markets.length * sldcSchedulingFees;
           
           dateSlots.forEach(slot => {
             const maxEnergy = slot.expectedEnergy || 0;
-            let bestCost = slot.discomLandingPrice * maxEnergy;
+            const discomMarginalPrice = slot.discomLandingPrice * edFactor;
+            let bestCost = discomMarginalPrice * maxEnergy;
             
             markets.forEach(market => {
               let landingPrice = 0;
@@ -797,8 +801,11 @@ export class SavingsCalculatorNewService {
               if (market === 'RTM') landingPrice = slot.rtmLandingPrice;
               if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
               
-              if (landingPrice > 0 && landingPrice * maxEnergy < bestCost) {
-                bestCost = landingPrice * maxEnergy;
+              if (landingPrice > 0) {
+                let marketMarginalPrice = landingPrice + traderMarginWithGst;
+                if (marketMarginalPrice * maxEnergy < bestCost) {
+                  bestCost = marketMarginalPrice * maxEnergy;
+                }
               }
             });
             energyCost += bestCost;
@@ -819,7 +826,8 @@ export class SavingsCalculatorNewService {
 
         let discomOnlyCost = 0;
         dateSlots.forEach(slot => {
-          discomOnlyCost += slot.discomLandingPrice * (slot.expectedEnergy || 0);
+          const discomMarginalPrice = slot.discomLandingPrice * edFactor;
+          discomOnlyCost += discomMarginalPrice * (slot.expectedEnergy || 0);
         });
         lowestTotalCost = discomOnlyCost;
 
@@ -832,7 +840,8 @@ export class SavingsCalculatorNewService {
         });
 
         dateSlots.forEach(slot => {
-          let bestCost = slot.discomLandingPrice;
+          const discomMarginalPrice = slot.discomLandingPrice * edFactor;
+          let bestCost = discomMarginalPrice;
           let bestMarket = 'DISCOM';
           
           bestCombination.forEach(market => {
@@ -841,14 +850,17 @@ export class SavingsCalculatorNewService {
              if (market === 'RTM') landingPrice = slot.rtmLandingPrice;
              if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
              
-             if (landingPrice > 0 && landingPrice < bestCost) {
-               bestCost = landingPrice;
-               bestMarket = market;
+             if (landingPrice > 0) {
+               let marketMarginalPrice = landingPrice + traderMarginWithGst;
+               if (marketMarginalPrice < bestCost) {
+                 bestCost = marketMarginalPrice;
+                 bestMarket = market;
+               }
              }
           });
           
           slot.selectedSource = bestMarket;
-          slot.comparedLowestPrice = bestCost;
+          slot.comparedLowestPrice = bestMarket === 'DISCOM' ? slot.discomLandingPrice : (bestMarket === 'DAM' ? slot.damLandingPrice : (bestMarket === 'RTM' ? slot.rtmLandingPrice : slot.gdamLandingPrice));
         });
       });
       // --- END DAILY SLDC OPTIMIZATION ---
