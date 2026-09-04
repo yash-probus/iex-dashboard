@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, DialogTitle, DialogContent, DialogActions, 
-  Button, TextField, MenuItem, Box, Grid, Checkbox, ListItemText
+  Button, TextField, MenuItem, Box, Grid, Checkbox, ListItemText, Typography, IconButton
 } from '@mui/material';
+import { Delete as DeleteIcon, Upload as UploadIcon } from '@mui/icons-material';
 import { FormField } from '../../pages/admin/resource-center/config/resourceConfig';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface ResourceFormModalProps {
   open: boolean;
@@ -27,7 +30,7 @@ export default function ResourceFormModal({
       } else {
         const defaults: Record<string, any> = {};
         fields.forEach(f => {
-          defaults[f.name] = f.type === 'number' ? '' : f.type === 'dropdown-multi' ? [] : '';
+          defaults[f.name] = f.type === 'number' ? '' : f.type === 'dropdown-multi' || f.type === 'image-multi' ? [] : '';
         });
         setFormData(defaults);
       }
@@ -41,11 +44,45 @@ export default function ResourceFormModal({
     }));
   };
 
+  const handleImageUpload = (name: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const newImages: string[] = [];
+    let processed = 0;
+    const fileArray = Array.from(files);
+    
+    fileArray.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          newImages.push(event.target.result as string);
+        }
+        processed++;
+        if (processed === fileArray.length) {
+          setFormData(prev => ({
+            ...prev,
+            [name]: [...(prev[name] || []), ...newImages]
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemoveImage = (name: string, index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: prev[name].filter((_: any, i: number) => i !== index)
+    }));
+  };
+
   const handleSave = () => {
     // Basic validation: ensure all visible fields are filled
     const isValid = visibleFields.every(f => {
       const val = formData[f.name];
-      if (f.type === 'dropdown-multi') return Array.isArray(val) && val.length > 0;
+      if (f.type === 'dropdown-multi' || f.type === 'image-multi') return Array.isArray(val) && val.length > 0;
+      if (f.type === 'rich-text') return val !== '' && val !== undefined && val !== '<p><br></p>';
       return val !== '' && val !== undefined;
     });
     if (!isValid) {
@@ -60,8 +97,9 @@ export default function ResourceFormModal({
     onClose();
   };
 
-  // Determine modal size based on number of fields
-  const isLarge = fields.length > 6;
+  // Determine modal size based on number of fields or presence of rich-text
+  const hasRichText = fields.some(f => f.type === 'rich-text');
+  const isLarge = fields.length > 6 || hasRichText;
 
   // Filter fields: hide 'id' when creating (initialData is null)
   const visibleFields = fields.filter(f => {
@@ -85,7 +123,7 @@ export default function ResourceFormModal({
       <DialogContent>
         <Grid container spacing={3}>
           {visibleFields.map((field) => (
-            <Grid item xs={12} sm={isLarge ? 6 : 12} key={field.name}>
+            <Grid item xs={12} sm={(isLarge && field.type !== 'rich-text' && field.type !== 'image-multi') ? 6 : 12} key={field.name}>
               {field.type === 'dropdown' || field.type === 'dropdown-multi' ? (
                 <TextField
                   select
@@ -114,6 +152,52 @@ export default function ResourceFormModal({
                     </MenuItem>
                   ))}
                 </TextField>
+              ) : field.type === 'rich-text' ? (
+                <Box>
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>{field.label}</Typography>
+                  <ReactQuill 
+                    theme="snow"
+                    value={formData[field.name] || ''} 
+                    onChange={(val) => handleChange(field.name, val, field.type)}
+                    style={{ height: '200px', marginBottom: '40px' }}
+                  />
+                </Box>
+              ) : field.type === 'image-multi' ? (
+                <Box>
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>{field.label}</Typography>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<UploadIcon />}
+                    sx={{ mb: 2 }}
+                  >
+                    Upload Images
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(field.name, e)}
+                    />
+                  </Button>
+                  <Grid container spacing={2}>
+                    {(formData[field.name] || []).map((imgUrl: string, index: number) => (
+                      <Grid item key={index}>
+                        <Box sx={{ position: 'relative', width: 100, height: 100, border: '1px solid #ccc', borderRadius: 1, overflow: 'hidden' }}>
+                          <img src={imgUrl} alt={`upload-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <IconButton 
+                            size="small" 
+                            color="error" 
+                            onClick={() => handleRemoveImage(field.name, index)}
+                            sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'rgba(255,255,255,0.7)' }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
               ) : (
                 <TextField
                   fullWidth

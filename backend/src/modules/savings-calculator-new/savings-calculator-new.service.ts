@@ -703,16 +703,20 @@ export class SavingsCalculatorNewService {
           cssRate + // Cross Subsidy
           addChargeRate; // Additional Surcharge
 
-        // Additive Loss Multiplier
-        const additiveLossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
+        // True Multiplicative Loss Multiplier: 1 / [(1 - ISTS) * (1 - STU) * (1 - Wheeling)]
+        const istsL = (istsLoss / 100);
+        const stuL = (stuLoss / 100);
+        const wheelL = (wheelingLoss / 100);
+        const lossMult = (1 - istsL) * (1 - stuL) * (1 - wheelL);
+        const trueLossMultiplier = lossMult > 0 ? (1 / lossMult) : 1;
 
-        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
-        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
-        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
+        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) + commonBaseCosts) * trueLossMultiplier : 0;
+        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) + commonBaseCosts) * trueLossMultiplier : 0;
+        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) + commonBaseCosts) * trueLossMultiplier : 0;
 
-        const accurateDamLandingPrice = rawDam ? ((Number(rawDam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
-        const accurateRtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
-        const accurateGdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
+        const accurateDamLandingPrice = rawDam ? ((Number(rawDam) / 1000) * trueLossMultiplier) + commonBaseCosts : 0;
+        const accurateRtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * trueLossMultiplier) + commonBaseCosts : 0;
+        const accurateGdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * trueLossMultiplier) + commonBaseCosts : 0;
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -773,7 +777,7 @@ export class SavingsCalculatorNewService {
         const totalActiveBlocks = slotBlocks.length || 1;
         const energyPerBlock = slotEnergyTotal / totalActiveBlocks;
         slotBlocks.forEach(sb => {
-          sb.expectedEnergy = Math.min(defaultMaxEnergyPerSlot, slotEnergyTotal);
+          sb.expectedEnergy = Math.min(defaultMaxEnergyPerSlot, energyPerBlock);
         });
       }
 
