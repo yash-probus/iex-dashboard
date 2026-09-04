@@ -196,12 +196,49 @@ export class SavingsCalculatorNewExportService {
     let totalDiscomUnitsAfterOARounded = 0;
     let totalNetBRounded = 0;
 
-    oaDetailed.breakdown.forEach((b: any) => {
+    // Pre-calculate visibleTotalOa to distribute overheads across TOD slabs
+    const preT = oaDetailed.totals;
+    const preTotalMarketEnergyCost = todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
+    const preTradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
+    slotsData.forEach((s: any) => {
+      const isMarket = s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM');
+      const mkt = s.selectedSource || s.marketSource;
+      const energy = s.maxEnergyPerSlot ?? s.marketEnergy ?? 0;
+      if (isMarket && mkt && energy > 0) {
+        if (mkt === 'DAM') preTradedDays.DAM.add(s.date);
+        else if (mkt === 'GDAM') preTradedDays.GDAM.add(s.date);
+        else if (mkt === 'RTM') preTradedDays.RTM.add(s.date);
+      }
+    });
+    const damSldcCostPre = preTradedDays.DAM.size * 1500;
+    const gdamSldcCostPre = preTradedDays.GDAM.size * 1500;
+    const rtmSldcCostPre = preTradedDays.RTM.size * 1500;
+    const nldcCostPre = (oaDetailed as any).nldcSchedulingCost || 0;
+    const preVisibleTotalOa = Math.round(preTotalMarketEnergyCost) + 
+      Math.round(preT.cssCharge) + Math.round(preT.rpoCharge) + Math.round(preT.pocCharge) + 
+      Math.round(preT.stuCharge) + Math.round(preT.dcCharge) + Math.round(preT.iexFee) + 
+      Math.round(damSldcCostPre) + Math.round(gdamSldcCostPre) + Math.round(rtmSldcCostPre) + 
+      Math.round(nldcCostPre) + Math.round(oaDetailed.bidApplicationFees);
+
+    const totalOaBaseCostAllSlabs = oaDetailed.breakdown.reduce((sum: number, b: any) => sum + Math.round(b.oaBill), 0);
+    const overheadsToDistribute = preVisibleTotalOa - totalOaBaseCostAllSlabs;
+    let runningOaBillAcc = 0;
+
+    oaDetailed.breakdown.forEach((b: any, index: number) => {
       const discomU = Math.round(b.discomUnits);
       const discomB = Math.round(b.discomBill);
       const oaU = Math.round(b.oaUnits);
       const consumerU = Math.round(b.consumerBusUnits);
-      const oaB = Math.round(b.oaBill);
+      let oaB = Math.round(b.oaBill);
+      
+      if (totalOaBaseCostAllSlabs > 0) {
+        oaB += Math.round((Math.round(b.oaBill) / totalOaBaseCostAllSlabs) * overheadsToDistribute);
+      }
+      if (index === oaDetailed.breakdown.length - 1 && totalOaBaseCostAllSlabs > 0) {
+         oaB = preVisibleTotalOa - runningOaBillAcc;
+      }
+      runningOaBillAcc += oaB;
+
       const discomUnitsAfterOA = Math.max(0, discomU - consumerU);
       const netB = Math.round(b.proltDiscomBill);
 
