@@ -127,8 +127,10 @@ def generate_proposal(data_json):
             positive_months += 1
             
         total_energy = safe_float(item.get('total_energy_kwh') or item.get('discom_only', {}).get('volume', 1))
-        market_energy = safe_float(item.get('total_market_energy_kwh') or 0)
+        market_energy = safe_float(item.get('consumer_bus_units') or item.get('total_market_energy_kwh') or 0)
         oa_share = (market_energy / total_energy * 100) if total_energy > 0 else 0
+        if oa_share > 100:
+            oa_share = 100
         oa_shares.append(oa_share)
         
         savings_pu = safe_float(item.get('savings_per_unit', 0))
