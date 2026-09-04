@@ -10,9 +10,8 @@ export function getFlooredMaxEnergyPerSlot(sanctionedLoadKw: any): number {
   const rawMw = (load * 0.9) / 1000;
   // Market buying precision is restricted to 1 decimal place in MW (e.g. 1.35 MW -> 1.3 MW)
   const flooredMw = Math.floor(rawMw * 10 + 1e-9) / 10;
-  const effectiveMw = flooredMw > 0 ? flooredMw : rawMw;
   // Maximum energy per 15-minute slot (in kWh) = MW * 1000 kW/MW * 0.25 hours
-  return effectiveMw * 1000 * 0.25;
+  return flooredMw * 1000 * 0.25;
 }
 
 export class SavingsCalculatorService {
@@ -1936,7 +1935,7 @@ export class SavingsCalculatorService {
               const grossedUpNeeded = neededAtConsumerBus / safeLossMultiplier;
               const rawAllocation = Math.min(availableToBuy, grossedUpNeeded);
               const allocationMw = Math.floor((rawAllocation / 250) * 10 + 1e-9) / 10;
-              const allocation = allocationMw > 0 ? allocationMw * 250 : rawAllocation;
+              const allocation = allocationMw * 250;
 
               if (allocation <= 0) continue;
 
