@@ -519,8 +519,8 @@ export default function SavingsCalculatorNewPage() {
       endDate: '2026-04-30',
       peakDemandKw: 1000,
       slots: [
-        { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
-        { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
+        { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: '' as any, effectivePrice: '' as any },
+        { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: '' as any, effectivePrice: '' as any }
       ]
     }
   });
@@ -607,8 +607,8 @@ export default function SavingsCalculatorNewPage() {
         endDate: '2026-04-30',
         peakDemandKw: 1000,
         slots: [
-          { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
-          { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
+          { id: 'tod-1', name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: '' as any, effectivePrice: '' as any },
+          { id: 'tod-2', name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: '' as any, effectivePrice: '' as any }
         ]
       }
     });
@@ -693,8 +693,8 @@ export default function SavingsCalculatorNewPage() {
         endDate: '2026-04-30',
         peakDemandKw: 1000,
         slots: [
-          { id: 'tod-1', name: 'Peak Hours', startTime: '09:00', endTime: '12:00', consumptionKwh: 12000, effectivePrice: 9.20 },
-          { id: 'tod-2', name: 'Off-Peak Hours', startTime: '22:00', endTime: '06:00', consumptionKwh: 25000, effectivePrice: 5.80 }
+          { id: 'tod-1', name: 'Peak Hours', startTime: '09:00', endTime: '12:00', consumptionKwh: '' as any, effectivePrice: '' as any },
+          { id: 'tod-2', name: 'Off-Peak Hours', startTime: '22:00', endTime: '06:00', consumptionKwh: '' as any, effectivePrice: '' as any }
         ]
       }
     });
@@ -733,8 +733,8 @@ export default function SavingsCalculatorNewPage() {
       name: `Slot ${newSlotNumber}`,
       startTime: defaultStart,
       endTime: defaultEnd,
-      consumptionKwh: 5000,
-      effectivePrice: 7.50
+      consumptionKwh: '' as any,
+      effectivePrice: '' as any
     };
     setTodConsumptions(prev => ({
       ...prev,
@@ -829,7 +829,7 @@ export default function SavingsCalculatorNewPage() {
           endDate: `${newMonthInput}-${String(lastDay).padStart(2, '0')}`,
           peakDemandKw: Number(sanctionedLoadKw) || 1000,
           slots: [
-            { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 }
+            { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: '' as any, effectivePrice: '' as any }
           ]
         }
       }));
@@ -1813,8 +1813,8 @@ export default function SavingsCalculatorNewPage() {
                         endDate: `${key}-${String(lastDay).padStart(2, '0')}`,
                         peakDemandKw: Number(sanctionedLoadKw) || 1000,
                         slots: [
-                          { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: 10000, effectivePrice: 8.50 },
-                          { id: `tod-2`, name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: 25000, effectivePrice: 9.20 }
+                          { id: `tod-1`, name: 'Slot 1', startTime: '05:00', endTime: '08:00', consumptionKwh: '' as any, effectivePrice: '' as any },
+                          { id: `tod-2`, name: 'Slot 2', startTime: '17:00', endTime: '23:00', consumptionKwh: '' as any, effectivePrice: '' as any }
                         ]
                       }
                     }));
