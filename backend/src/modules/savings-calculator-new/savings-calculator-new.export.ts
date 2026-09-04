@@ -104,9 +104,9 @@ export class SavingsCalculatorNewExportService {
           // If won, show the MCP (base price) of the selected market
           const marketSource = slot.selectedSource || slot.marketSource || 'DISCOM';
           let mcp = 0;
-          if (marketSource === 'DAM') mcp = slot.damLandingPrice ?? slot.damMcp ?? slot.comparedLowestPrice ?? 0;
-          else if (marketSource === 'RTM') mcp = slot.rtmLandingPrice ?? slot.rtmMcp ?? slot.comparedLowestPrice ?? 0;
-          else if (marketSource === 'GDAM') mcp = slot.gdamLandingPrice ?? slot.gdamMcp ?? slot.comparedLowestPrice ?? 0;
+          if (marketSource === 'DAM') mcp = slot.rawDam ? Number(slot.rawDam) / 1000 : (slot.damMcp ? Number(slot.damMcp) / 1000 : 0);
+          else if (marketSource === 'RTM') mcp = slot.rawRtm ? Number(slot.rawRtm) / 1000 : (slot.rtmMcp ? Number(slot.rtmMcp) / 1000 : 0);
+          else if (marketSource === 'GDAM') mcp = slot.rawGdam ? Number(slot.rawGdam) / 1000 : (slot.gdamMcp ? Number(slot.gdamMcp) / 1000 : 0);
           
           const energyKwh = slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0;
           const powerMw = energyKwh > 0 ? (energyKwh / 250) : 0;
