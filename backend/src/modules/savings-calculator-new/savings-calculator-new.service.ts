@@ -1319,7 +1319,15 @@ export class SavingsCalculatorNewService {
       const headroom = Math.max(0, maxEnergyPerSlot - currentEnergy);
       originalTotalCost += (currentEnergy * costPerKwh);
 
+      const istsLossRate = (s.istsLoss || 0) / 100;
+      const stuLossRate = (s.stuLoss || 0) / 100;
+      const wheelingLossRate = (s.wheelingLoss || 0) / 100;
+      const lossMult = (1 - istsLossRate) * (1 - stuLossRate) * (1 - wheelingLossRate);
+      const safeLossMultiplier = lossMult > 0.5 ? lossMult : 1;
+
       return {
+        ...s,
+        safeLossMultiplier,
         originalIndex: index,
         costPerKwh,
         currentEnergy,
@@ -1351,27 +1359,54 @@ export class SavingsCalculatorNewService {
       if (expSlot.currentEnergy <= 0) { expensiveIdx++; continue; }
       if (cheapSlot.headroom <= 0) { cheapIdx++; continue; }
 
-      const amountToShift = Math.min(expSlot.currentEnergy, cheapSlot.headroom);
-      expSlot.currentEnergy -= amountToShift;
+      let consumerAmountToShift = 0;
+      let marketBlocksToShift = 0;
 
-      if (expSlot.currentDiscomEnergy >= amountToShift) {
-        expSlot.currentDiscomEnergy -= amountToShift;
-      } else {
-        const remainingToRemove = amountToShift - expSlot.currentDiscomEnergy;
-        expSlot.currentDiscomEnergy = 0;
-        expSlot.currentMarketEnergy -= remainingToRemove;
-      }
-
-      cheapSlot.headroom -= amountToShift;
-      cheapSlot.currentEnergy += amountToShift;
+      // IEX constraint: Market transactions MUST be in 0.1 MW (25 kWh) multiples at REGIONAL BUS
       if (cheapSlot.shouldBuyFromMarket) {
-        cheapSlot.currentMarketEnergy += amountToShift;
+          // Shifting into a market slot
+          const maxBlocksByExp = Math.floor(expSlot.currentEnergy / (25 * cheapSlot.safeLossMultiplier));
+          const maxBlocksByHeadroom = Math.floor(cheapSlot.headroom / (25 * cheapSlot.safeLossMultiplier));
+          marketBlocksToShift = Math.min(maxBlocksByExp, maxBlocksByHeadroom);
+          consumerAmountToShift = marketBlocksToShift * 25 * cheapSlot.safeLossMultiplier;
+      } else if (expSlot.currentMarketEnergy > 0) {
+          // Shifting out of a market slot
+          const maxBlocksToRemove = Math.floor(expSlot.currentMarketEnergy / 25);
+          const maxBlocksByHeadroom = Math.floor(cheapSlot.headroom / (25 * expSlot.safeLossMultiplier));
+          marketBlocksToShift = Math.min(maxBlocksToRemove, maxBlocksByHeadroom);
+          consumerAmountToShift = marketBlocksToShift * 25 * expSlot.safeLossMultiplier;
       } else {
-        cheapSlot.currentDiscomEnergy += amountToShift;
+          // DISCOM to DISCOM
+          consumerAmountToShift = Math.min(expSlot.currentEnergy, cheapSlot.headroom);
       }
 
-      shiftedEnergy += amountToShift;
-      savingsAchieved += amountToShift * (expSlot.costPerKwh - cheapSlot.costPerKwh);
+      if (consumerAmountToShift <= 0 || (marketBlocksToShift <= 0 && (cheapSlot.shouldBuyFromMarket || expSlot.currentMarketEnergy > 0))) {
+          // If we can't meet the minimum 25 kWh block, move to the next cheap slot
+          cheapIdx++;
+          continue;
+      }
+
+      expSlot.currentEnergy -= consumerAmountToShift;
+
+      if (expSlot.currentDiscomEnergy >= consumerAmountToShift) {
+        expSlot.currentDiscomEnergy -= consumerAmountToShift;
+      } else {
+        const remainingConsumerToRemove = consumerAmountToShift - expSlot.currentDiscomEnergy;
+        expSlot.currentDiscomEnergy = 0;
+        // If we are removing from market, we remove the exact blocks
+        expSlot.currentMarketEnergy -= (marketBlocksToShift * 25);
+      }
+
+      cheapSlot.headroom -= consumerAmountToShift;
+      cheapSlot.currentEnergy += consumerAmountToShift;
+      if (cheapSlot.shouldBuyFromMarket) {
+        cheapSlot.currentMarketEnergy += (marketBlocksToShift * 25);
+      } else {
+        cheapSlot.currentDiscomEnergy += consumerAmountToShift;
+      }
+
+      shiftedEnergy += consumerAmountToShift;
+      savingsAchieved += consumerAmountToShift * (expSlot.costPerKwh - cheapSlot.costPerKwh);
     }
 
     let newTotalCost = 0;
