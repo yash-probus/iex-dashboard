@@ -706,9 +706,9 @@ export class SavingsCalculatorNewService {
         // Additive Loss Multiplier
         const additiveLossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
 
-        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
-        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
-        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
+        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
+        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
+        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -725,9 +725,6 @@ export class SavingsCalculatorNewService {
           timeStr,
           todSlab: matchedTariffName,
           customSlotId: matchedCustomSlot?.id,
-          rawDam,
-          rawRtm,
-          rawGdam,
           damLandingPrice,
           rtmLandingPrice,
           gdamLandingPrice,
@@ -1161,7 +1158,7 @@ export class SavingsCalculatorNewService {
     (aggregatedTotals as any).nocFee = nocFee;
     (aggregatedTotals as any).regFee = regFee;
 
-    totalOptimizedCost = baseOtherCosts + proltMarginCost;
+    totalOptimizedCost = baseOtherCosts + proltMarginCost + traderMarginCost + nocFee + regFee;
     
     const totalSavings = Math.max(0, netSavings - nocFee - regFee - consultancyFeeVal - probusPlatformFeeVal - totalProltMarginCost - traderMarginCost);
 

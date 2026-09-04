@@ -18,7 +18,7 @@ const getDiscomOptions = (formData: any) => {
   return [{ label: 'Other', value: 'Other' }];
 };
 
-export type FieldType = 'text' | 'number' | 'dropdown' | 'dropdown-multi' | 'date';
+export type FieldType = 'text' | 'number' | 'dropdown' | 'dropdown-multi' | 'date' | 'image-multi' | 'rich-text';
 
 export interface FormField {
   name: string;
