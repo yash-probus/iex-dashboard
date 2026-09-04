@@ -115,13 +115,13 @@ export class SavingsCalculatorNewService {
   }
 
   static async getAll() {
-    return prisma.savingsCalculatorEntry.findMany({
+    return prisma.savingsCalculatorNewEntry.findMany({
       orderBy: { createdAt: 'desc' }
     });
   }
 
   static async getById(id: string) {
-    return prisma.savingsCalculatorEntry.findUnique({
+    return prisma.savingsCalculatorNewEntry.findUnique({
       where: { id }
     });
   }
@@ -129,7 +129,7 @@ export class SavingsCalculatorNewService {
 
   static async getEntryOrVersion(id: string, version?: number) {
     if (version !== undefined) {
-      const historyEntry = await prisma.savingsCalculatorEntryHistory.findFirst({
+      const historyEntry = await prisma.savingsCalculatorNewEntryHistory.findFirst({
         where: { entryId: id, version }
       });
       if (historyEntry) {
@@ -168,7 +168,7 @@ export class SavingsCalculatorNewService {
     updatedBy?: string;
   }) {
     return prisma.$transaction(async (tx) => {
-      const entry = await tx.savingsCalculatorEntry.create({
+      const entry = await tx.savingsCalculatorNewEntry.create({
         data: {
           clientName: data.clientName,
           industryName: data.industryName,
@@ -195,7 +195,7 @@ export class SavingsCalculatorNewService {
         }
       });
 
-      await tx.savingsCalculatorEntryHistory.create({
+      await tx.savingsCalculatorNewEntryHistory.create({
         data: {
           entryId: entry.id,
           version: 1,
@@ -252,7 +252,7 @@ export class SavingsCalculatorNewService {
     updatedBy?: string;
   }) {
     return prisma.$transaction(async (tx) => {
-      const entry = await tx.savingsCalculatorEntry.update({
+      const entry = await tx.savingsCalculatorNewEntry.update({
         where: { id },
         data: {
           clientName: data.clientName,
@@ -280,13 +280,13 @@ export class SavingsCalculatorNewService {
       });
 
       // Find highest version
-      const lastHistory = await tx.savingsCalculatorEntryHistory.findFirst({
+      const lastHistory = await tx.savingsCalculatorNewEntryHistory.findFirst({
         where: { entryId: id },
         orderBy: { version: 'desc' }
       });
       const nextVersion = lastHistory ? lastHistory.version + 1 : 1;
 
-      await tx.savingsCalculatorEntryHistory.create({
+      await tx.savingsCalculatorNewEntryHistory.create({
         data: {
           entryId: entry.id,
           version: nextVersion,
@@ -324,7 +324,7 @@ export class SavingsCalculatorNewService {
   }
 
   static async delete(id: string) {
-    const res = await prisma.savingsCalculatorEntry.delete({
+    const res = await prisma.savingsCalculatorNewEntry.delete({
       where: { id }
     });
     await invalidateCache(`market:${id}:*`);
@@ -334,14 +334,14 @@ export class SavingsCalculatorNewService {
   }
 
   static async getHistory(id: string) {
-    return prisma.savingsCalculatorEntryHistory.findMany({
+    return prisma.savingsCalculatorNewEntryHistory.findMany({
       where: { entryId: id },
       orderBy: { version: 'desc' }
     });
   }
 
   static async getClientOverview(id: string) {
-    const entry = await prisma.savingsCalculatorEntry.findUnique({
+    const entry = await prisma.savingsCalculatorNewEntry.findUnique({
       where: { id }
     });
 
