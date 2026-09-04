@@ -104,9 +104,9 @@ export class SavingsCalculatorNewExportService {
           // If won, show the MCP (base price) of the selected market
           const marketSource = slot.selectedSource || slot.marketSource || 'DISCOM';
           let mcp = 0;
-          if (marketSource === 'DAM') mcp = slot.rawDam ? Number(slot.rawDam) / 1000 : (slot.damMcp ? Number(slot.damMcp) / 1000 : 0);
-          else if (marketSource === 'RTM') mcp = slot.rawRtm ? Number(slot.rawRtm) / 1000 : (slot.rtmMcp ? Number(slot.rtmMcp) / 1000 : 0);
-          else if (marketSource === 'GDAM') mcp = slot.rawGdam ? Number(slot.rawGdam) / 1000 : (slot.gdamMcp ? Number(slot.gdamMcp) / 1000 : 0);
+          if (marketSource === 'DAM') mcp = slot.damLandingPrice ?? slot.damMcp ?? slot.comparedLowestPrice ?? 0;
+          else if (marketSource === 'RTM') mcp = slot.rtmLandingPrice ?? slot.rtmMcp ?? slot.comparedLowestPrice ?? 0;
+          else if (marketSource === 'GDAM') mcp = slot.gdamLandingPrice ?? slot.gdamMcp ?? slot.comparedLowestPrice ?? 0;
           
           const energyKwh = slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0;
           const powerMw = energyKwh > 0 ? (energyKwh / 250) : 0;
@@ -465,14 +465,13 @@ export class SavingsCalculatorNewExportService {
     // Energy Charges (Market)
     addChargeRow('Energy Charges (Market) (inc losses)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
 
-    // Cross Subsidy (rate varies by state, use actual rate from calculation)
-    // Note: Cross subsidy is applied to consumer bus units (after losses), not market energy
+    // Cross Subsidy (applied to consumer bus units after losses)
     const cssRate = (t as any).cssRate || 0;
-    const cssBasis = totalMarketEnergy; // Showing market energy for reference
-    addChargeRow('Cross Subsidy', t.cssCharge, cssRate, cssBasis);
+    const consumerBusBasis = result.totalConsumerBusEnergyKwh || totalConsumerURounded;
+    addChargeRow('Cross Subsidy', t.cssCharge, cssRate, consumerBusBasis);
     
-    // RPPO (flat rate of ₹0.25/kWh)
-    addChargeRow('RPPO', t.rpoCharge, 0.25, t.rpoCharge / 0.25);
+    // RPPO (flat rate of ₹0.25/kWh, also applied to consumer bus units)
+    addChargeRow('RPPO', t.rpoCharge, 0.25, consumerBusBasis);
 
     // POC charges (CTU charges)
     const pocRate = totalMarketEnergy > 0 ? t.pocCharge / totalMarketEnergy : 0;

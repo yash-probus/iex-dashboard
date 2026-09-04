@@ -466,14 +466,13 @@ export class SavingsCalculatorExportService {
     // Energy Charges (Market)
     addChargeRow('Energy Charges (Market) (inc losses)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
 
-    // Cross Subsidy (rate varies by state, use actual rate from calculation)
-    // Note: Cross subsidy is applied to consumer bus units (after losses), not market energy
+    // Cross Subsidy (applied to consumer bus units after losses)
     const cssRate = (t as any).cssRate || 0;
-    const cssBasis = totalMarketEnergy; // Showing market energy for reference
-    addChargeRow('Cross Subsidy', t.cssCharge, cssRate, cssBasis);
+    const consumerBusBasis = result.totalConsumerBusEnergyKwh || totalConsumerURounded;
+    addChargeRow('Cross Subsidy', t.cssCharge, cssRate, consumerBusBasis);
     
-    // RPPO (flat rate of ₹0.25/kWh)
-    addChargeRow('RPPO', t.rpoCharge, 0.25, t.rpoCharge / 0.25);
+    // RPPO (flat rate of ₹0.25/kWh, also applied to consumer bus units)
+    addChargeRow('RPPO', t.rpoCharge, 0.25, consumerBusBasis);
 
     // POC charges (CTU charges)
     const pocRate = totalMarketEnergy > 0 ? t.pocCharge / totalMarketEnergy : 0;
