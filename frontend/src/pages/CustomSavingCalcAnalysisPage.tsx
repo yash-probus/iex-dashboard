@@ -500,6 +500,8 @@ export default function CustomSavingCalcAnalysisPage() {
                       feeder_type: (calcEntry as any).feederType || 'Dedicated',
                       average_monthly_savings: clientOverview.months.length > 0 ? (clientOverview.totalSavings || 0) / clientOverview.months.length : 0,
                       average_annual_savings: clientOverview.months.length > 0 ? ((clientOverview.totalSavings || 0) / clientOverview.months.length) * 12 : 0,
+                      smart_metering_infra_cost: calcEntry.meteringCharges || 0,
+                      monthly_probus_savings_amount: clientOverview.months.length > 0 ? (clientOverview.totalSavings || 0) / clientOverview.months.length : 0,
                       monthlyData: clientOverview.months.map((m: any) => ({
                         month: m.month,
                         total_energy_kwh: m.totalEnergyKwh || 0,
