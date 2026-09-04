@@ -706,9 +706,13 @@ export class SavingsCalculatorNewService {
         // Additive Loss Multiplier
         const additiveLossMultiplier = 1 + (istsLoss / 100) + (stuLoss / 100) + (wheelingLoss / 100);
 
-        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
-        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
-        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
+        const damLandingPrice = rawDam ? ((Number(rawDam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
+        const rtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
+        const gdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) + commonBaseCosts) * additiveLossMultiplier : 0;
+
+        const accurateDamLandingPrice = rawDam ? ((Number(rawDam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
+        const accurateRtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
+        const accurateGdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * additiveLossMultiplier) + commonBaseCosts : 0;
 
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
@@ -725,6 +729,9 @@ export class SavingsCalculatorNewService {
           timeStr,
           todSlab: matchedTariffName,
           customSlotId: matchedCustomSlot?.id,
+          accurateDamLandingPrice,
+          accurateRtmLandingPrice,
+          accurateGdamLandingPrice,
           damLandingPrice,
           rtmLandingPrice,
           gdamLandingPrice,
@@ -947,7 +954,12 @@ export class SavingsCalculatorNewService {
                          targetSlot.bankedEnergy += deliveredEnergy;
                       }
                       
-                      const cost = amountToBuy * buyerSlot.comparedLowestPrice;
+                      let accuratePriceForCost = buyerSlot.comparedLowestPrice;
+                      if (buyerSlot.selectedSource === 'DAM') accuratePriceForCost = (buyerSlot as any).accurateDamLandingPrice;
+                      else if (buyerSlot.selectedSource === 'RTM') accuratePriceForCost = (buyerSlot as any).accurateRtmLandingPrice;
+                      else if (buyerSlot.selectedSource === 'GDAM') accuratePriceForCost = (buyerSlot as any).accurateGdamLandingPrice;
+                      
+                      const cost = amountToBuy * accuratePriceForCost;
                       
                       if (buyerSlot.selectedSource !== 'DISCOM' && buyerSlot.comparedLowestPrice > 0) {
                           targetSlot.marketEnergy += amountToBuy;
