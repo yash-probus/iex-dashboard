@@ -108,7 +108,7 @@ export class SavingsCalculatorExportService {
           else if (marketSource === 'RTM') mcp = slot.rtmLandingPrice ?? slot.rtmMcp ?? slot.comparedLowestPrice ?? 0;
           else if (marketSource === 'GDAM') mcp = slot.gdamLandingPrice ?? slot.gdamMcp ?? slot.comparedLowestPrice ?? 0;
           
-          const energyKwh = slot.maxEnergyPerSlot ?? slot.marketEnergy ?? 0;
+          const energyKwh = slot.marketEnergy ?? slot.maxEnergyPerSlot ?? 0;
           const powerMw = energyKwh > 0 ? (energyKwh / 250) : 0;
           row.push(Number(powerMw.toFixed(1)));
           row.push(Number(mcp.toFixed(2)));
@@ -134,7 +134,7 @@ export class SavingsCalculatorExportService {
     days.forEach(day => {
       let dayTotal = 0;
       slotsData.filter((s: any) => s.date === day && (s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM'))).forEach((s: any) => {
-        dayTotal += (s.maxEnergyPerSlot ?? s.marketEnergy ?? 0);
+        dayTotal += (s.marketEnergy ?? s.maxEnergyPerSlot ?? 0);
       });
       totalRow.push(Number((dayTotal / 1000).toFixed(4)), '-', '-');
     });
@@ -203,7 +203,7 @@ export class SavingsCalculatorExportService {
     slotsData.forEach((s: any) => {
       const isMarket = s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM');
       const mkt = s.selectedSource || s.marketSource;
-      const energy = s.maxEnergyPerSlot ?? s.marketEnergy ?? 0;
+      const energy = s.marketEnergy ?? s.maxEnergyPerSlot ?? 0;
       if (isMarket && mkt && energy > 0) {
         if (mkt === 'DAM') preTradedDays.DAM.add(s.date);
         else if (mkt === 'GDAM') preTradedDays.GDAM.add(s.date);
@@ -495,7 +495,7 @@ export class SavingsCalculatorExportService {
     slotsData.forEach((s: any) => {
       const isMarket = s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM');
       const mkt = s.selectedSource || s.marketSource;
-      const energy = s.maxEnergyPerSlot ?? s.marketEnergy ?? 0;
+      const energy = s.marketEnergy ?? s.maxEnergyPerSlot ?? 0;
       if (isMarket && mkt && energy > 0) {
         if (mkt === 'DAM') tradedDays.DAM.add(s.date);
         else if (mkt === 'GDAM') tradedDays.GDAM.add(s.date);
