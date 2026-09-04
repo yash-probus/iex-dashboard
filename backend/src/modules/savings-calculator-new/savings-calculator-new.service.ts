@@ -1684,8 +1684,8 @@ export class SavingsCalculatorNewService {
           if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
             return false;
           }
-          const start = parseHour(t.todStartTime);
-          const end = parseHour(t.todEndTime);
+          const start = parseHourLocal(t.todStartTime);
+          const end = parseHourLocal(t.todEndTime);
           if (start <= end) return hour >= start && hour < end;
           return hour >= start || hour < end;
         });
