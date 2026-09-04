@@ -2151,8 +2151,8 @@ export class SavingsCalculatorService {
         slabName: safeGroupKey,
         discomUnits: slabConsumption,
         oaUnits: finalMarketEnergy,
-        discomBill: slabTotalDiscomBill,
-        proltDiscomBill: proltDiscomBillTotal,
+        discomBill: slabEnergyBill,
+        proltDiscomBill: proltEnergyBill,
         consumerBusUnits,
         oaBill: slabOaBill
       });

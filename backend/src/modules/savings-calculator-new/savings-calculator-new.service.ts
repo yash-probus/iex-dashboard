@@ -1041,9 +1041,10 @@ export class SavingsCalculatorNewService {
 
       totalElectricityDuty += monthElectricityDuty;
       totalElectricityDutyAfterOA += monthElectricityDutyAfterOA;
-      totalBaselineCost += monthElectricityDuty;
-      totalDiscomAfterProlt += monthElectricityDutyAfterOA;
-      totalLandedExchangeCost += monthElectricityDutyAfterOA;
+      // Do not add ED to totalBaselineCost here, it mixes with pure energy!
+      // totalBaselineCost and totalDiscomAfterProlt should remain just the pure energy
+      
+      // We will track ED separately and add it only in fullBaselineDiscomCost
 
       slotsData.push(...monthlySlots);
     }
@@ -1168,6 +1169,7 @@ export class SavingsCalculatorNewService {
       totalMarketEnergyKwh,
       totalConsumerBusEnergyKwh,
       pureEnergyCost: totalBaselineCost,
+      discomEnergyChargesAfterOA: totalDiscomAfterProlt,
       totalBaselineCost: fullBaselineDiscomCost,
       fullBaselineDiscomCost,
       totalLandedExchangeCost,

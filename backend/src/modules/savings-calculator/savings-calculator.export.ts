@@ -225,8 +225,9 @@ export class SavingsCalculatorExportService {
     let runningOaBillAcc = 0;
 
     oaDetailed.breakdown.forEach((b: any, index: number) => {
+      const fppaMultiplier = fppaPercent > 0 && !((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined) ? (1 + (fppaPercent / 100)) : 1;
       const discomU = Math.round(b.discomUnits);
-      const discomB = Math.round(b.discomBill);
+      const discomB = Math.round(b.discomBill / fppaMultiplier);
       const oaU = Math.round(b.oaUnits);
       const consumerU = Math.round(b.consumerBusUnits);
       let oaB = Math.round(b.oaBill);
@@ -240,7 +241,7 @@ export class SavingsCalculatorExportService {
       runningOaBillAcc += oaB;
 
       const discomUnitsAfterOA = Math.max(0, discomU - consumerU);
-      const netB = Math.round(b.proltDiscomBill);
+      const netB = Math.round(b.proltDiscomBill / fppaMultiplier);
 
       sheet.addRow([
         b.slabName,
