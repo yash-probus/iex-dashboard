@@ -158,7 +158,7 @@ export default function ResourceFormModal({
                   <ReactQuill 
                     theme="snow"
                     value={formData[field.name] || ''} 
-                    onChange={(val) => handleChange(field.name, val, field.type)}
+                    onChange={(val: string) => handleChange(field.name, val, field.type)}
                     style={{ height: '200px', marginBottom: '40px' }}
                   />
                 </Box>
