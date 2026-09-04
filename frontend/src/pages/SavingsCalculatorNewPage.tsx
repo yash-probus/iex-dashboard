@@ -1061,6 +1061,7 @@ export default function SavingsCalculatorNewPage() {
           key={stepIndex}
           elevation={0}
           sx={{
+            flexShrink: 0,
             border: '1px solid #E2E8F0',
             borderRadius: '12px',
             p: 2,
@@ -1094,6 +1095,7 @@ export default function SavingsCalculatorNewPage() {
           key={stepIndex}
           elevation={0}
           sx={{
+            flexShrink: 0,
             border: '2px solid #8B5CF6',
             borderRadius: '16px',
             p: 3,
@@ -1270,7 +1272,8 @@ export default function SavingsCalculatorNewPage() {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5, bgcolor: '#F8FAFC' }}>
+        <DialogContent sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {/* Progress Bar */}
           <Box sx={{ width: '100%', height: 6, bgcolor: '#E2E8F0', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
             <Box sx={{
@@ -1506,6 +1509,7 @@ export default function SavingsCalculatorNewPage() {
             )
           })}
 
+          </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between', bgcolor: '#F8FAFC' }}>
