@@ -359,7 +359,7 @@ export class SavingsCalculatorNewService {
       };
     }
 
-    const months = Object.keys(todConsumptions).sort();
+    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
     let totalSavings = 0;
     const monthsData = [];
     const aggregatedCosts = {
@@ -453,7 +453,7 @@ export class SavingsCalculatorNewService {
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
 
-    const months = Object.keys(todConsumptions).filter(k => /^\\d{4}-\\d{2}$/.test(k)).sort();
+    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
     let totalSavings = 0;
     let totalBaselineCost = 0;
     let totalEnergyKwh = 0;
@@ -558,7 +558,7 @@ export class SavingsCalculatorNewService {
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
 
-    const months = Object.keys(todConsumptions).sort();
+    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
     let totalSavings = 0;
     let totalOptimizedCost = 0;
     let totalBaselineCost = 0;
@@ -2387,7 +2387,7 @@ export class SavingsCalculatorNewService {
     const todConsumptions = entry.todConsumptions as any;
     if (!todConsumptions) throw new Error('No consumption data found');
 
-    const months = Object.keys(todConsumptions).sort();
+    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
 
     let originalTotalCost = 0;
     let newTotalCost = 0;
