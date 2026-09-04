@@ -1118,7 +1118,7 @@ export class SavingsCalculatorNewService {
           if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
             remainingEnergy = Number(monthConsumptions[matchedKey]);
           } else {
-            const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+            const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
             const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
             let flatTotal = 0;
             if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -1267,6 +1267,24 @@ export class SavingsCalculatorNewService {
 
     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+
+    const customSlots: any[] = [];
+    if (monthConsumptions.slots && Array.isArray(monthConsumptions.slots)) {
+      monthConsumptions.slots.forEach((s: any) => {
+        customSlots.push(s);
+        const slotKey = `${s.startTime}-${s.endTime}`.toUpperCase();
+        monthConsumptions[slotKey] = Number(s.consumptionKwh);
+      });
+    }
+
+    const parseHourLocal = (val: string | null | undefined): number => {
+      if (!val) return 0;
+      let [time, modifier] = val.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (modifier && modifier.toUpperCase().startsWith('P') && h < 12) h += 12;
+      if (modifier && modifier.toUpperCase().startsWith('A') && h === 12) h = 0;
+      return h + (m || 0) / 60;
+    };
 
     const monthArrear = monthConsumptions['Arrear Amount'] !== undefined && monthConsumptions['Arrear Amount'] !== null
       ? Number(monthConsumptions['Arrear Amount'])
@@ -1539,13 +1557,7 @@ export class SavingsCalculatorNewService {
     `;
     const records: any[] = await prisma.$queryRawUnsafe(query);
 
-    const parseHour = (val: string | null | undefined): number => {
-      if (!val) return 0;
-      if (val.includes(':')) {
-        return parseInt(val.split(':')[0], 10);
-      }
-      return parseInt(val, 10);
-    };
+
 
     // monthKey and monthConsumptions are declared earlier
 
@@ -1604,10 +1616,24 @@ export class SavingsCalculatorNewService {
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
 
+      const timeStrHour = hour + (startMinutes % 60) / 60;
+      const matchedCustomSlot = customSlots.find((cs: any) => {
+        if (!cs.startTime || !cs.endTime) return false;
+        const sHour = parseHourLocal(cs.startTime);
+        const eHour = parseHourLocal(cs.endTime);
+        if (eHour < sHour) {
+          return timeStrHour >= sHour || timeStrHour < eHour;
+        }
+        return timeStrHour >= sHour && timeStrHour < eHour;
+      });
+
       const isNpcl = entry.discom === 'NPCL';
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
-      if (isNpclHv2) {
+      if (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) {
+        discomBase = Number(matchedCustomSlot.effectivePrice);
+        matchedTariffName = `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`.toUpperCase();
+      } else if (isNpclHv2) {
         const slotMonth = deliveryDate.getMonth() + 1;
         const isWinter = slotMonth >= 9 || slotMonth <= 3;
         const baseRate = 6.80;
@@ -1931,7 +1957,7 @@ export class SavingsCalculatorNewService {
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
           let flatTotal = 0;
           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -1987,7 +2013,7 @@ export class SavingsCalculatorNewService {
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
           let flatTotal = 0;
           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -2145,7 +2171,7 @@ export class SavingsCalculatorNewService {
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
           let flatTotal = 0;
           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -2273,7 +2299,6 @@ export class SavingsCalculatorNewService {
         oaBill: slabOaBill
       });
     });
-
     const nocFee = 7000;
     const regFee = 8333;
     const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
@@ -2285,6 +2310,8 @@ export class SavingsCalculatorNewService {
     totalLandedExchangeCost += monthMisc;
 
     const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
+
+
 
     // Treat proltMargin as a percentage of gross savings
     const proltMarginInput = Number(entry.proltMargin || 0);
