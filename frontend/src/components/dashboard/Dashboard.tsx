@@ -101,7 +101,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       monthsToProcess.forEach(m => {
         totalConsumption += m.totalEnergyKwh || 0;
         totalMarketEnergy += m.totalMarketEnergyKwh || 0;
-        totalConsumerBusEnergy += (m as any).totalConsumerBusEnergyKwh ?? m.totalMarketEnergyKwh ?? 0;
+        const consumption = m.totalEnergyKwh || 0;
+        const recOaConsumer = (m as any).oaConsumer ?? (m as any).clearedUnitsKwh ?? (m as any).cleared ?? ((m as any).oaCoverage != null ? (consumption * (m as any).oaCoverage / 100) : (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - ((m as any).busLoss ? (m as any).busLoss / 100 : 0.1211)) : 0));
+        totalConsumerBusEnergy += recOaConsumer;
         totalSavings += Math.round(m.savings || 0);
         const mGross = m.grossSavings ?? (m.totalBaselineCost ? Math.max(0, m.totalBaselineCost - (m.totalOptimizedCost || 0)) : m.savings || 0);
         totalGrossSavings += Math.round(mGross);
@@ -190,12 +192,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
       };
 
       // Matrix is always all months
-      matrixData = validMonths.map(m => ({
-        month: m.month,
-        saving: formatIndianCurrency(Math.round(m.savings || 0)),
-        grossSaving: formatIndianCurrency(Math.round(m.grossSavings || 0)),
-        coverage: m.totalEnergyKwh ? Math.round(((m.totalMarketEnergyKwh || 0) / m.totalEnergyKwh) * 100) : 0
-      }));
+      matrixData = validMonths.map(m => {
+        const consumption = m.totalEnergyKwh || 0;
+        const recOaConsumer = (m as any).oaConsumer ?? (m as any).clearedUnitsKwh ?? (m as any).cleared ?? ((m as any).oaCoverage != null ? (consumption * (m as any).oaCoverage / 100) : (m.totalMarketEnergyKwh ? m.totalMarketEnergyKwh * (1 - ((m as any).busLoss ? (m as any).busLoss / 100 : 0.1211)) : 0));
+        let cov = consumption > 0 ? (recOaConsumer / consumption) * 100 : 0;
+        if (cov > 100) cov = 100;
+        return {
+          month: m.month,
+          saving: formatIndianCurrency(Math.round(m.savings || 0)),
+          grossSaving: formatIndianCurrency(Math.round(m.grossSavings || 0)),
+          coverage: Math.round(cov)
+        };
+      });
 
       // Compute Detail (Data Tables) - only if not overall and we have detailed result
       if (!isOverall && marketDecisionResult && marketDecisionResult.slotsData) {
