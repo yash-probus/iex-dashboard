@@ -631,7 +631,7 @@ export class SavingsCalculatorNewExportService {
       }
     };
 
-    applyBordersRange(breakdownHeaderRow.number, todTotalRow.number, 7);
+    applyBordersRange(breakdownHeaderRow.number, todTotalRow.number, 8);
     applyBordersRange(baseHeaderRow.number, baseTotalRow.number, 2);
     applyBordersRange(afterHeaderRow.number, afterTotalRow.number, 2);
     applyBordersRange(lossesHeaderRow.number, lossesHeaderRow.number + 3, 5);
