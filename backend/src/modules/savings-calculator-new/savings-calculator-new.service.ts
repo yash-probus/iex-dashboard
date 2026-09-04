@@ -658,23 +658,25 @@ export class SavingsCalculatorNewService {
         
         // Find matching TOD tariff from backend
         let todChargePercent = 0;
-        if (tariffsForMonth && tariffsForMonth.length > 0) {
-          const currentHour = hour + minute / 60;
-          let matchedTariff = tariffsForMonth.find(t => {
-            if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') return false;
-            const start = parseHour(t.todStartTime);
-            const end = parseHour(t.todEndTime);
-            if (end < start) {
-              return currentHour >= start || currentHour < end;
+        if (!(matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0)) {
+            if (tariffsForMonth && tariffsForMonth.length > 0) {
+              const currentHour = hour + minute / 60;
+              let matchedTariff = tariffsForMonth.find(t => {
+                if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') return false;
+                const start = parseHour(t.todStartTime);
+                const end = parseHour(t.todEndTime);
+                if (end < start) {
+                  return currentHour >= start || currentHour < end;
+                }
+                return currentHour >= start && currentHour < end;
+              });
+              if (!matchedTariff) {
+                matchedTariff = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+              }
+              if (matchedTariff) {
+                todChargePercent = Number(matchedTariff.todChargePercent || 0);
+              }
             }
-            return currentHour >= start && currentHour < end;
-          });
-          if (!matchedTariff) {
-            matchedTariff = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
-          }
-          if (matchedTariff) {
-            todChargePercent = Number(matchedTariff.todChargePercent || 0);
-          }
         }
 
         const todPenaltyRebate = baseEnergyRate * (todChargePercent / 100);
@@ -813,7 +815,7 @@ export class SavingsCalculatorNewService {
               if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
               
               if (landingPrice > 0) {
-                let marketMarginalPrice = landingPrice + traderMarginWithGst;
+                let marketMarginalPrice = landingPrice + traderMarginWithGst + 0.25; // added RPPO (0.25)
                 if (marketMarginalPrice * maxEnergy < bestCost) {
                   bestCost = marketMarginalPrice * maxEnergy;
                 }
@@ -862,7 +864,7 @@ export class SavingsCalculatorNewService {
              if (market === 'GDAM') landingPrice = slot.gdamLandingPrice;
              
              if (landingPrice > 0) {
-               let marketMarginalPrice = landingPrice + traderMarginWithGst;
+               let marketMarginalPrice = landingPrice + traderMarginWithGst + 0.25; // added RPPO (0.25)
                if (marketMarginalPrice < bestCost) {
                  bestCost = marketMarginalPrice;
                  bestMarket = market;
