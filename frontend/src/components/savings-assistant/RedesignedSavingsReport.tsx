@@ -44,12 +44,14 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
         const totalSavings = marketDecisionResult.totalSavings || 0;
         const totalBaselineCost = marketDecisionResult.totalBaselineCost || 0;
         const totalEnergyKwh = marketDecisionResult.totalEnergyKwh || 0;
-        const totalMarketEnergyKwh = marketDecisionResult.totalMarketEnergyKwh || 0;
-        const totalDiscomEnergyKwh = totalEnergyKwh - totalMarketEnergyKwh;
+        const rawMarketEnergy = marketDecisionResult.oaConsumer ?? marketDecisionResult.clearedUnitsKwh ?? marketDecisionResult.cleared ?? (marketDecisionResult.oaCoverage != null ? (totalEnergyKwh * marketDecisionResult.oaCoverage / 100) : (marketDecisionResult.totalMarketEnergyKwh ? marketDecisionResult.totalMarketEnergyKwh * (1 - (marketDecisionResult.busLoss ? marketDecisionResult.busLoss / 100 : 0.1211)) : 0));
+        const totalMarketEnergyKwh = Math.min(rawMarketEnergy, totalEnergyKwh);
+        const totalDiscomEnergyKwh = Math.max(0, totalEnergyKwh - totalMarketEnergyKwh);
         
         const finalCost = totalBaselineCost - totalSavings;
         const savingsPercentage = totalBaselineCost > 0 ? (totalSavings / totalBaselineCost) * 100 : 0;
-        const oaPercentage = totalEnergyKwh > 0 ? (totalMarketEnergyKwh / totalEnergyKwh) * 100 : 0;
+        let oaPercentage = totalEnergyKwh > 0 ? (totalMarketEnergyKwh / totalEnergyKwh) * 100 : 0;
+        if (oaPercentage > 100) oaPercentage = 100;
 
         // Constants for colors based on the design
         const DARK_BG = '#0B232E';
@@ -148,8 +150,8 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
           );
         };
 
-        // Fake scheduled vs delivered logic since we only have marketEnergy (delivered)
-        const scheduledOA = totalMarketEnergyKwh * 1.15; // Assume 15% grid losses for the UI
+        // Use actual scheduled/ex-bus energy
+        const scheduledOA = marketDecisionResult.totalMarketEnergyKwh || (totalMarketEnergyKwh * 1.15);
 
         // Dynamic "next savings frontier" estimate.
         // Estimate shift potential by moving part of expensive night consumption to lower-cost daytime windows.
