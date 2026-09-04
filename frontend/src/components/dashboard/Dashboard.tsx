@@ -121,7 +121,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         totalBaselineCost = Math.round(marketDecisionResult.fullBaselineDiscomCost || marketDecisionResult.totalBaselineCost || 0);
       }
 
-      const oaCoverage = totalConsumption > 0 ? (totalConsumerBusEnergy / totalConsumption) * 100 : 0;
+      let oaCoverage = totalConsumption > 0 ? (totalConsumerBusEnergy / totalConsumption) * 100 : 0;
+      if (oaCoverage > 100) oaCoverage = 100;
       const blendedCost = totalConsumption > 0 ? (totalBaselineCost - totalSavings) / totalConsumption : 0;
       const avgDiscomCost = totalConsumption > 0 ? (totalBaselineCost / totalConsumption) : 0;
       const netSavingRate = totalConsumption > 0 ? (totalSavings / totalConsumption) : 0;

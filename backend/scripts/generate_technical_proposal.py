@@ -166,9 +166,11 @@ def generate_proposal(data_json):
     min_pu = min(savings_per_units) if savings_per_units else 0
     max_pu = max(savings_per_units) if savings_per_units else 0
     
-    total_market_all = sum(safe_float(item.get('total_market_energy_kwh') or 0) for item in monthly_data)
+    total_market_all = sum(safe_float(item.get('consumer_bus_units') or item.get('total_market_energy_kwh') or 0) for item in monthly_data)
     total_energy_all = sum(safe_float(item.get('total_energy_kwh') or item.get('discom_only', {}).get('volume', 1)) for item in monthly_data)
     avg_oa_share = (total_market_all / total_energy_all * 100) if total_energy_all > 0 else 0
+    if avg_oa_share > 100:
+        avg_oa_share = 100
     avg_oa_str = f"Approximately {round(avg_oa_share)}%"
 
     # Format numbers into visual proposal metrics
@@ -307,6 +309,8 @@ def generate_proposal(data_json):
                 # Calculate Cleared OA % using consumer bus units
                 consumer_bus_units = safe_float(item.get('consumer_bus_units', 0))
                 cleared_oa_pct = (consumer_bus_units / actual_units * 100) if actual_units > 0 else 0
+                if cleared_oa_pct > 100:
+                    cleared_oa_pct = 100
                 cleared_oa = f"{round(cleared_oa_pct)}%"
                 
                 discom_total = format_rupee(item.get('discom_only', {}).get('total_amount', 0), decimals=0)

@@ -113,7 +113,8 @@ export const OverallVisualAnalytics: React.FC<{ clientOverview: any; selectedMon
     const actualOa = Number((m.actualOa || 0).toFixed(2));
     const actualDiscom = Number(Math.max(0, (m.totalEnergyKwh || 0) - actualOa).toFixed(2));
 
-    const coverage = m.oaCoverage ?? (m.totalEnergyKwh ? (recOa / m.totalEnergyKwh) * 100 : 0);
+    let coverage = m.oaCoverage ?? (m.totalEnergyKwh ? (recOa / m.totalEnergyKwh) * 100 : 0);
+    if (coverage > 100) coverage = 100;
     const netRate = m.totalEnergyKwh ? (m.savings / m.totalEnergyKwh) : 0;
     const grossRate = m.totalEnergyKwh ? ((m.grossSavings || m.savings) / m.totalEnergyKwh) : 0;
     
