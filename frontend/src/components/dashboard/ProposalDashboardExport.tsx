@@ -97,11 +97,11 @@ export const ProposalDashboardExport: React.FC<ProposalDashboardExportProps> = (
           {/* Logo container */}
           <div style={{
             position: 'absolute',
-            top: '110px',
-            right: '390px',
+            top: '175px',
+            left: '570px',
             zIndex: 10
           }}>
-            <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '160px', objectFit: 'contain' }} />
+            <img src="/assets/logo.png" alt="Prolt Energy By Probus" style={{ height: '70px', objectFit: 'contain' }} />
           </div>
 
           {/* Report text */}
