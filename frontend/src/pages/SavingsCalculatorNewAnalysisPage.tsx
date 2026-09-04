@@ -334,7 +334,20 @@ export default function SavingsCalculatorNewAnalysisPage() {
 
           {/* Export Toolbar */}
           {marketDecisionResult && (
-            <Box className="no-print" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, my: 2.5, width: '100%' }}>
+            <Box className="no-print" sx={{ 
+              display: 'flex', 
+              flexWrap: 'nowrap', 
+              overflowX: 'auto',
+              alignItems: 'center', 
+              justifyContent: { xs: 'flex-start', xl: 'flex-end' }, 
+              gap: 1.5, 
+              my: 2.5, 
+              width: '100%',
+              pb: 0.5,
+              '&::-webkit-scrollbar': { display: 'none' },
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none'
+            }}>
               <Button
                 variant="outlined"
                 startIcon={<DownloadIcon />}
