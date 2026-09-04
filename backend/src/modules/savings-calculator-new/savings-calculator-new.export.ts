@@ -359,7 +359,7 @@ export class SavingsCalculatorNewExportService {
         correctFppa = combinedEnergyAndDemand - baseCombined;
         correctBaseEnergy = (result as any).baselineEnergyCharges / (1 + (fppaPercent / 100));
     }
-    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + (isNpcl ? demandCharges : (result.demandCharge || 0)) + (result.electricityDuty || 0) + arrear + lpsc;
+    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + (isNpcl ? demandCharges : (result.demandCharge || 0)) + (result.electricityDuty || 0) + arrear + lpsc + misc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -544,7 +544,7 @@ export class SavingsCalculatorNewExportService {
     const grossSavingsVal = result.grossSavings ?? Math.max(0, baselineCostForGross - ((result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees));
     
     // Calculate exact visual values for Discom to prevent any rounding arithmetic mismatch
-    const visibleDiscomBefore = Math.round(totalDiscomBRounded + (result.arrearAmount || 0) + (result.currentLpsc || 0) + (result.miscellaneousCharges || 0));
+    const visibleDiscomBefore = Math.round(totalBaselineWithMisc);
     const visibleDiscomAfter = Math.round(totalDiscomAfterOAWithMisc);
     
     const visibleTotalGrossBill = visibleTotalOa + visibleDiscomAfter;
