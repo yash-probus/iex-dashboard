@@ -241,7 +241,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
               {/* Company Logo branding component (z-index: 10) */}
               <Box sx={{ 
                 position: 'absolute', 
-                top: 65, 
+                top: 100, 
                 right: 65, 
                 zIndex: 10,
                 display: 'flex',
@@ -252,7 +252,7 @@ export const RedesignedSavingsReport: React.FC<{ calcEntry: any; allResults: { m
                   src="/assets/logo.png" 
                   alt="Prolt Energy By Probus" 
                   style={{ 
-                    height: '85px', 
+                    height: '90px', 
                     width: 'auto',
                     objectFit: 'contain'
                   }} 
