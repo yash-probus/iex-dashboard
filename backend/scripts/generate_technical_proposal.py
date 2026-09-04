@@ -425,7 +425,7 @@ def generate_proposal(data_json):
                                 if dims:
                                     new_w_px, new_h_px = dims
                                     aspect_ratio = new_h_px / new_w_px
-                                    target_width_inches = 6.5
+                                    target_width_inches = 7.5
                                     target_height_inches = target_width_inches * aspect_ratio
                                     width_emu = int(target_width_inches * 914400)
                                     height_emu = int(target_height_inches * 914400)
