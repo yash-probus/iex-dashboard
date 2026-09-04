@@ -720,6 +720,10 @@ export class SavingsCalculatorNewService {
         const accurateRtmLandingPrice = rawRtm ? ((Number(rawRtm) / 1000) * trueLossMultiplier) + commonBaseCosts : 0;
         const accurateGdamLandingPrice = rawGdam ? ((Number(rawGdam) / 1000) * trueLossMultiplier) + commonBaseCosts : 0;
 
+        const rawDamMarketPrice = rawDam ? (Number(rawDam) / 1000) + commonBaseCosts : 0;
+        const rawRtmMarketPrice = rawRtm ? (Number(rawRtm) / 1000) + commonBaseCosts : 0;
+        const rawGdamMarketPrice = rawGdam ? (Number(rawGdam) / 1000) + commonBaseCosts : 0;
+
         let comparedLowestPrice = discomLandingPrice;
         let selectedSource = 'DISCOM';
         
@@ -738,6 +742,9 @@ export class SavingsCalculatorNewService {
           accurateDamLandingPrice,
           accurateRtmLandingPrice,
           accurateGdamLandingPrice,
+          rawDamMarketPrice,
+          rawRtmMarketPrice,
+          rawGdamMarketPrice,
           damLandingPrice,
           rtmLandingPrice,
           gdamLandingPrice,
@@ -905,7 +912,7 @@ export class SavingsCalculatorNewService {
           sb.marketCost = 0;
           sb.discomEnergy = 0;
           sb.discomCost = 0;
-          sb.baselineCost = requiredEnergyPerSlot * slotDiscomPrice;
+          sb.baselineCost = requiredEnergyPerSlot * sb.baseDiscomPrice;
           sb.consumptionKwh = requiredEnergyPerSlot;
         });
 
@@ -961,9 +968,9 @@ export class SavingsCalculatorNewService {
                       }
                       
                       let accuratePriceForCost = buyerSlot.comparedLowestPrice;
-                      if (buyerSlot.selectedSource === 'DAM') accuratePriceForCost = (buyerSlot as any).accurateDamLandingPrice;
-                      else if (buyerSlot.selectedSource === 'RTM') accuratePriceForCost = (buyerSlot as any).accurateRtmLandingPrice;
-                      else if (buyerSlot.selectedSource === 'GDAM') accuratePriceForCost = (buyerSlot as any).accurateGdamLandingPrice;
+                      if (buyerSlot.selectedSource === 'DAM') accuratePriceForCost = (buyerSlot as any).rawDamMarketPrice;
+                      else if (buyerSlot.selectedSource === 'RTM') accuratePriceForCost = (buyerSlot as any).rawRtmMarketPrice;
+                      else if (buyerSlot.selectedSource === 'GDAM') accuratePriceForCost = (buyerSlot as any).rawGdamMarketPrice;
                       
                       const cost = amountToBuy * accuratePriceForCost;
                       
@@ -996,7 +1003,7 @@ export class SavingsCalculatorNewService {
               sb.purchasedEnergy += unmet;
               // Fallback is always DISCOM
               sb.discomEnergy += unmet;
-              sb.discomCost += unmet * slotDiscomPrice;
+              sb.discomCost += unmet * sb.baseDiscomPrice;
            }
            
            sb.maxEnergyPerSlot = sb.requiredEnergy; // For compatibility with older reporting functions

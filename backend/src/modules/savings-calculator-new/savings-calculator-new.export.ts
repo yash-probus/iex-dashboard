@@ -99,8 +99,9 @@ export class SavingsCalculatorNewExportService {
       const row: any[] = [formatBlock(b)];
       days.forEach(day => {
         const slot = slotsData.find((s: any) => s.date === day && (s.timeblock === b || s.slot === b)) as any;
-        const isMarket = slot ? (slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM')) : false;
-        if (slot && isMarket) {
+        const energyKwh = slot ? (slot.marketEnergy ?? slot.maxEnergyPerSlot ?? 0) : 0;
+        const isMarket = slot && energyKwh > 0 && (slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM'));
+        if (isMarket) {
           // If won, show the MCP (base price) of the selected market
           const marketSource = slot.selectedSource || slot.marketSource || 'DISCOM';
           let mcp = 0;
