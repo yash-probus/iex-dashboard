@@ -558,7 +558,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
               >
                 Technical Proposal
                 <Chip 
-                  label="NEW" 
+                  label="LATEST" 
                   size="small" 
                   sx={{ 
                     ml: 1, 

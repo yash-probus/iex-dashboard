@@ -547,7 +547,7 @@ export default function CustomSavingCalcAnalysisPage() {
               >
                 Technical Proposal
                 <Chip 
-                  label="NEW" 
+                  label="LATEST" 
                   size="small" 
                   sx={{ 
                     ml: 1, 
