@@ -24,6 +24,7 @@ import {
   Business as BusinessIcon,
   ArrowForward as ArrowForwardIcon,
   FileDownload as FileDownloadIcon,
+  PictureAsPdf as PictureAsPdfIcon,
   BarChart as BarChartIcon,
   History as HistoryIcon,
   InfoOutlined as InfoOutlinedIcon,
@@ -51,6 +52,8 @@ import {
 } from '../api/savingsCalculatorNew.api';
 import html2canvas from 'html2canvas';
 import { exportToExcel } from '../utils/export';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
   exportSavingsExcel,
   exportProposalWord,
@@ -151,26 +154,46 @@ export default function SavingsCalculatorNewAnalysisPage() {
     loadData();
   }, [id, selectedCalcVersion, selectedSimMonth]);
 
-  const handleExportExcel = () => {
+  const handleExportPDF = () => {
     if (!marketDecisionResult || !marketDecisionResult.slotsData) return;
-    const exportData = marketDecisionResult.slotsData.map((row) => ({
-      'Date': row.date,
-      'Timeblock': row.slot,
-      'Time': row.timeStr,
-      'Custom TOD Window': row.todSlab,
-      'DAM MCP (₹/kWh)': row.damLandingPrice ? row.damLandingPrice.toFixed(4) : '-',
-      'RTM MCP (₹/kWh)': row.rtmLandingPrice ? row.rtmLandingPrice.toFixed(4) : '-',
-      'GDAM MCP (₹/kWh)': row.gdamLandingPrice ? row.gdamLandingPrice.toFixed(4) : '-',
-      'Discom Price (₹/kWh)': row.discomLandingPrice ? row.discomLandingPrice.toFixed(4) : '-',
-      'Selected Landed Price (₹/kWh)': row.comparedLowestPrice ? row.comparedLowestPrice.toFixed(4) : '-',
-      'Selected Source': row.selectedSource,
-      'Allocated Energy (kWh)': row.maxEnergyPerSlot ? row.maxEnergyPerSlot.toFixed(2) : '0',
-      'Baseline Discom Cost (₹)': row.baselineCost ? Math.round(row.baselineCost) : 0,
-      'Optimized Cost (₹)': row.optimizedCost ? Math.round(row.optimizedCost) : 0
-    }));
-
+    
+    const doc = new jsPDF({ orientation: 'landscape' });
     const clientNameStr = calcEntry?.clientName ? calcEntry.clientName.replace(/[^a-zA-Z0-9_\-]/g, '_') : 'client';
-    exportToExcel(exportData, `${clientNameStr}_market_buy_report_${selectedSimMonth}.xlsx`, 'Market Buy Report');
+    
+    doc.setFontSize(16);
+    doc.text(`Market Buy Report - ${clientNameStr} (${selectedSimMonth})`, 14, 15);
+    
+    const head = [[
+      'Date', 'Timeblock', 'Time', 'TOD Window', 'DAM MCP', 'RTM MCP', 'GDAM MCP', 
+      'Discom Price', 'Selected Price', 'Source', 'Alloc. Energy', 'Discom Cost', 'Opt. Cost'
+    ]];
+    
+    const body = marketDecisionResult.slotsData.map((row) => [
+      row.date,
+      row.slot,
+      row.timeStr,
+      row.todSlab,
+      row.damLandingPrice ? row.damLandingPrice.toFixed(4) : '-',
+      row.rtmLandingPrice ? row.rtmLandingPrice.toFixed(4) : '-',
+      row.gdamLandingPrice ? row.gdamLandingPrice.toFixed(4) : '-',
+      row.discomLandingPrice ? row.discomLandingPrice.toFixed(4) : '-',
+      row.comparedLowestPrice ? row.comparedLowestPrice.toFixed(4) : '-',
+      row.selectedSource,
+      row.maxEnergyPerSlot ? row.maxEnergyPerSlot.toFixed(2) : '0',
+      row.baselineCost ? Math.round(row.baselineCost) : 0,
+      row.optimizedCost ? Math.round(row.optimizedCost) : 0
+    ]);
+
+    autoTable(doc, {
+      startY: 25,
+      head: head,
+      body: body,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [15, 23, 42] },
+      margin: { top: 25, left: 10, right: 10 }
+    });
+    
+    doc.save(`${clientNameStr}_market_buy_report_${selectedSimMonth}.pdf`);
   };
 
   const columns: ColumnDefinition[] = [
@@ -350,8 +373,8 @@ export default function SavingsCalculatorNewAnalysisPage() {
             }}>
               <Button
                 variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportExcel}
+                startIcon={<PictureAsPdfIcon />}
+                onClick={handleExportPDF}
                 sx={{
                   textTransform: 'none',
                   borderRadius: 2.5,
@@ -364,7 +387,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#F8FAFC', borderColor: 'divider' }
                 }}
               >
-                MARKET BUY REPORT
+                MARKET BUY REPORT (PDF)
               </Button>
               <Button
                 variant="outlined"
