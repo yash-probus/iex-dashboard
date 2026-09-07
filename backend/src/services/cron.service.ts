@@ -94,11 +94,12 @@ export class CronService {
       }
     });
 
-    // Run every day at midnight for Weather Historical
+    // Run every day at midnight for Weather Historical and Forecast Summaries
     cron.schedule('0 0 * * *', async () => {
       console.log('[Cron] Running daily midnight tasks');
       try {
         await WeatherEngine.updateDailyHistorical();
+        await WeatherEngine.updateDailyForecastSummary();
       } catch (error) {
         console.error('[Cron] Error in daily schedule:', error);
       }

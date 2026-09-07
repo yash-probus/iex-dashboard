@@ -198,109 +198,129 @@ export class WeatherEngine {
    * Runs daily.
    */
   public static async updateDailyHistorical(): Promise<void> {
-    console.log('[WeatherEngine] Updating daily historical weather data...');
+    console.log('[WeatherEngine] Updating daily historical weather data (backfilling past 14 days)...');
     try {
       const cities = await prisma.cityStateData.findMany();
       if (cities.length === 0) {
         console.warn('[WeatherEngine] No cities found. Skipping daily historical sync.');
         return;
       }
-      const API_KEY = process.env.ACCUWEATHER_API_KEY;
 
       for (const city of cities) {
-        // 1. Fetch Location Key
-        let locationKey: string;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&past_days=14&forecast_days=1&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max,precipitation_probability_max,sunrise,sunset&timezone=auto`;
+        
         try {
-          const geoUrl = `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${API_KEY}&q=${city.latitude},${city.longitude}`;
-          const geoRes = await axiosClient.get(geoUrl);
-          locationKey = geoRes.data.Key;
-          if (!locationKey) continue;
-        } catch (e: any) {
-          console.error(`[WeatherEngine] Failed to get location key for ${city.cityName} (historical)`, e.message);
-          continue;
-        }
+          const response = await axiosClient.get(url);
+          const daily = response.data?.daily;
+          if (!daily || !daily.time) continue;
 
-        // 2. Fetch 24-hour Historical
-        const histUrl = `http://dataservice.accuweather.com/currentconditions/v1/${locationKey}/historical/24?apikey=${API_KEY}&details=true`;
-        let histData: any[];
-        try {
-          const response = await axiosClient.get(histUrl);
-          histData = response.data;
-          if (!histData || histData.length === 0) continue;
+          const todayStr = new Date().toISOString().split('T')[0];
+
+          for (let i = 0; i < daily.time.length; i++) {
+            const date = daily.time[i];
+            if (date > todayStr) continue; // Only store historical/today
+
+            const maxTemp = daily.temperature_2m_max?.[i] ?? 30;
+            const minTemp = daily.temperature_2m_min?.[i] ?? 20;
+            const windSpeed = daily.wind_speed_10m_max?.[i] ?? 10;
+            const precipSum = daily.precipitation_sum?.[i] ?? 0;
+            const sunshineSec = daily.sunshine_duration?.[i] ?? 0;
+            const sunshineDuration = Number((sunshineSec / 3600).toFixed(2));
+            const relativeHumidity = daily.relative_humidity_2m_max?.[i] ?? 50;
+            const precipProb = daily.precipitation_probability_max?.[i] ?? 0;
+            
+            const rawSunrise = daily.sunrise?.[i] ?? '';
+            const rawSunset = daily.sunset?.[i] ?? '';
+            const sunrise = rawSunrise.includes('T') ? rawSunrise.split('T')[1] : rawSunrise || '05:30';
+            const sunset = rawSunset.includes('T') ? rawSunset.split('T')[1] : rawSunset || '19:00';
+
+            await prisma.weatherHistorical.upsert({
+              where: { date_cityId: { date, cityId: city.id } },
+              update: {
+                maxTemp, minTemp, windSpeed, relativeHumidity, 
+                precipitationProb: precipProb, precipitationSum: precipSum, rainSum: precipSum,
+                sunshineDuration, sunrise, sunset, isActual: true
+              },
+              create: {
+                date, cityId: city.id,
+                maxTemp, minTemp, windSpeed, relativeHumidity,
+                precipitationProb: precipProb, precipitationSum: precipSum, rainSum: precipSum,
+                sunshineDuration, sunrise, sunset, isActual: true
+              }
+            });
+          }
         } catch (e: any) {
           console.error(`[WeatherEngine] Failed to get historical data for ${city.cityName}`, e.message);
-          continue;
         }
-
-        // Aggregate the 24 hours into a single daily record
-        let maxTemp = -999;
-        let minTemp = 999;
-        let windSpeedMax = 0;
-        let precipSum = 0;
-        let humidityMax = 0;
-        
-        for (const h of histData) {
-          const temp = h.Temperature?.Metric?.Value;
-          if (temp !== undefined) {
-            if (temp > maxTemp) maxTemp = temp;
-            if (temp < minTemp) minTemp = temp;
-          }
-          const wind = h.Wind?.Speed?.Metric?.Value || 0;
-          if (wind > windSpeedMax) windSpeedMax = wind;
-          
-          precipSum += (h.Precip1hr?.Metric?.Value || 0);
-          
-          const hum = h.RelativeHumidity || 0;
-          if (hum > humidityMax) humidityMax = hum;
-        }
-        
-        if (maxTemp === -999) maxTemp = 30;
-        if (minTemp === 999) minTemp = 30;
-
-        // Use the date of the oldest record (typically yesterday)
-        const oldestRecord = histData[histData.length - 1]; // AccuWeather usually returns newest first
-        const dateStr = oldestRecord.LocalObservationDateTime.substring(0, 10);
-
-        await prisma.weatherHistorical.upsert({
-          where: { 
-            date_cityId: { date: dateStr, cityId: city.id }
-          },
-          update: {
-            maxTemp,
-            minTemp,
-            windSpeed: windSpeedMax,
-            relativeHumidity: humidityMax,
-            precipitationProb: 0,
-            precipitationSum: precipSum,
-            rainSum: precipSum,
-            sunshineDuration: 8.0,
-            sunrise: '05:30',
-            sunset: '19:00',
-            isActual: true
-          },
-          create: {
-            date: dateStr,
-            cityId: city.id,
-            maxTemp,
-            minTemp,
-            windSpeed: windSpeedMax,
-            relativeHumidity: humidityMax,
-            precipitationProb: 0,
-            precipitationSum: precipSum,
-            rainSum: precipSum,
-            sunshineDuration: 8.0,
-            sunrise: '05:30',
-            sunset: '19:00',
-            isActual: true
-          }
-        });
       }
 
       console.log(`[WeatherEngine] Daily historical weather updated for ${cities.length} cities`);
-      await ApiLogService.createLog('Weather Historical API', 'Dynamic City API', 'SUCCESS', `Updated historical weather actuals for past 30 days for all cities`);
+      await ApiLogService.createLog('Weather Historical API', 'Open-Meteo Forecast', 'SUCCESS', `Updated historical weather actuals for past 14 days for all cities`);
     } catch (error: any) {
       console.error('[WeatherEngine] Failed to update historical weather data:', error);
-      await ApiLogService.createLog('Weather Historical API', 'https://archive-api.open-meteo.com/v1/archive', 'ERROR', error.message);
+      await ApiLogService.createLog('Weather Historical API', 'https://api.open-meteo.com/v1/forecast', 'ERROR', error.message);
+    }
+  }
+
+  public static async updateDailyForecastSummary(): Promise<void> {
+    console.log('[WeatherEngine] Updating daily forecast summary data (next 14 days)...');
+    try {
+      const cities = await prisma.cityStateData.findMany();
+      if (cities.length === 0) {
+        console.warn('[WeatherEngine] No cities found. Skipping daily forecast sync.');
+        return;
+      }
+
+      for (const city of cities) {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&past_days=0&forecast_days=14&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum,sunshine_duration,relative_humidity_2m_max,precipitation_probability_max,sunrise,sunset&timezone=auto`;
+        
+        try {
+          const response = await axiosClient.get(url);
+          const daily = response.data?.daily;
+          if (!daily || !daily.time) continue;
+
+          for (let i = 0; i < daily.time.length; i++) {
+            const date = daily.time[i];
+
+            const maxTemp = daily.temperature_2m_max?.[i] ?? 30;
+            const minTemp = daily.temperature_2m_min?.[i] ?? 20;
+            const windSpeed = daily.wind_speed_10m_max?.[i] ?? 10;
+            const precipSum = daily.precipitation_sum?.[i] ?? 0;
+            const sunshineSec = daily.sunshine_duration?.[i] ?? 0;
+            const sunshineDuration = Number((sunshineSec / 3600).toFixed(2));
+            const relativeHumidity = daily.relative_humidity_2m_max?.[i] ?? 50;
+            const precipProb = daily.precipitation_probability_max?.[i] ?? 0;
+            
+            const rawSunrise = daily.sunrise?.[i] ?? '';
+            const rawSunset = daily.sunset?.[i] ?? '';
+            const sunrise = rawSunrise.includes('T') ? rawSunrise.split('T')[1] : rawSunrise || '05:30';
+            const sunset = rawSunset.includes('T') ? rawSunset.split('T')[1] : rawSunset || '19:00';
+
+            await prisma.weatherForecast.upsert({
+              where: { date_cityId: { date, cityId: city.id } },
+              update: {
+                maxTemp, minTemp, windSpeed, relativeHumidity, 
+                precipitationProb: precipProb, precipitationSum: precipSum,
+                sunshineDuration, sunrise, sunset, isActual: false
+              },
+              create: {
+                date, cityId: city.id,
+                maxTemp, minTemp, windSpeed, relativeHumidity,
+                precipitationProb: precipProb, precipitationSum: precipSum,
+                sunshineDuration, sunrise, sunset, isActual: false
+              }
+            });
+          }
+        } catch (e: any) {
+          console.error(`[WeatherEngine] Failed to get daily forecast data for ${city.cityName}`, e.message);
+        }
+      }
+
+      console.log(`[WeatherEngine] Daily forecast weather updated for ${cities.length} cities`);
+      await ApiLogService.createLog('Weather Forecast API', 'Open-Meteo Forecast', 'SUCCESS', `Updated daily forecast summary for next 14 days for all cities`);
+    } catch (error: any) {
+      console.error('[WeatherEngine] Failed to update daily forecast weather data:', error);
+      await ApiLogService.createLog('Weather Forecast API', 'https://api.open-meteo.com/v1/forecast', 'ERROR', error.message);
     }
   }
 }
