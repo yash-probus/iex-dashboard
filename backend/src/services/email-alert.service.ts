@@ -76,12 +76,12 @@ export const checkAndSendDailyChargeAlerts = async (): Promise<void> => {
           </ul>
           <p>Please add this charge / Please update these charges in the system.</p>
           <br/>
-          <p>Best regards,<br/>IEX Dashboard Automated Alert System</p>
+          <p>Best regards,<br/>Prolt Resource Center Automated Alert System</p>
         </div>
       `;
 
       await transporter.sendMail({
-        from: `"IEX Alerts" <${process.env.SMTP_USER || 'no-reply@probus.io'}>`,
+        from: `"Prolt Resource Center Alerts" <${process.env.SMTP_USER || 'no-reply@probus.io'}>`,
         to: 'aditya@probus.io',
         subject: `ACTION REQUIRED: Missing Resource Center Charges for ${today.toLocaleDateString()}`,
         html: emailContent,
