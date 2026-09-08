@@ -279,6 +279,8 @@ interface MonthTodData {
   endDate: string;   // "YYYY-MM-DD"
   peakDemandKw: number;
   slots: CustomTodSlot[];
+  'Electricity Duty'?: string;
+  'Billing Month'?: string;
 }
 
 function parseTimeToMinutes(t: string): number {
@@ -1278,7 +1280,7 @@ export default function SavingsCalculatorNewPage() {
           <Box sx={{ width: '100%', height: 6, bgcolor: '#E2E8F0', borderRadius: 3, mb: 1, overflow: 'hidden' }}>
             <Box sx={{
               height: '100%',
-              width: `${((activeStep + 1) / 5) * 100}%`,
+              width: `${((activeStep + 1) / 4) * 100}%`,
               background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
               transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
             }} />
@@ -1486,29 +1488,6 @@ export default function SavingsCalculatorNewPage() {
             )
           })}
 
-          {/* Step 4: Grid Charges & Discom Parameters */}
-          {renderStep(4, {
-            icon: <ElectricBoltIcon />,
-            title: 'Grid Charges & Discom Parameters',
-            question: 'What is your electricity duty rate?',
-            summary: `Electricity Duty: ${electricityDutyPercent}%`,
-            content: (
-              <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                <Grid item xs={12} sm={12}>
-                  <TextField
-                    label="Electricity Duty (%)"
-                    type="number"
-                    inputProps={{ step: 0.1 }}
-                    value={electricityDutyPercent}
-                    onChange={(e) => setElectricityDutyPercent(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-              </Grid>
-            )
-          })}
-
           </Box>
         </DialogContent>
 
@@ -1558,9 +1537,19 @@ export default function SavingsCalculatorNewPage() {
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#F8FAFC', borderRadius: '12px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
-                        {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
-                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
+                          {new Date(`${ym}-01`).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                        </Typography>
+                        {monthData['Billing Month'] && (
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                            Bill Month: {(() => {
+                              const [year, month] = monthData['Billing Month'].split('-');
+                              return new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1).toLocaleString('default', { month: 'short', year: 'numeric' });
+                            })()}
+                          </Typography>
+                        )}
+                      </Box>
                       <Chip
                         size="small"
                         label={coverage.isComplete24Hours ? "24h Covered" : `${coverage.coveredHoursStr} / 24h (${coverage.unallocatedHoursStr} remaining)`}
@@ -1582,6 +1571,57 @@ export default function SavingsCalculatorNewPage() {
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ p: 3, pt: 1, bgcolor: '#FFFFFF' }}>
+                  {/* ── Section: Billing Data ── */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
+                      Billing Data
+                    </Typography>
+                    <FormControl component="fieldset">
+                      <FormLabel component="legend" sx={{ fontSize: '12px', color: 'text.secondary', mb: 0.5 }}>Electricity Duty Applied?</FormLabel>
+                      <RadioGroup
+                        row
+                        value={monthData['Electricity Duty'] || 'Yes'}
+                        onChange={(e) => {
+                          const updated = { ...todConsumptions };
+                          if (updated[ym]) {
+                            updated[ym]['Electricity Duty'] = e.target.value;
+                            setTodConsumptions(updated);
+                          }
+                        }}
+                      >
+                        <FormControlLabel value="Yes" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">Yes</Typography>} />
+                        <FormControlLabel value="No" control={<Radio size="small" sx={{ color: '#8B5CF6', '&.Mui-checked': { color: '#8B5CF6' } }} />} label={<Typography variant="body2">No</Typography>} />
+                      </RadioGroup>
+                    </FormControl>
+
+                    <Box sx={{ mt: 2 }}>
+                      <TextField
+                        label="Billing Month"
+                        type="month"
+                        value={monthData['Billing Month'] || (() => {
+                          const parts = ym.split('-');
+                          const y = parseInt(parts[0], 10);
+                          const m = parseInt(parts[1], 10);
+                          const d = new Date(y, m, 1);
+                          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                        })()}
+                        onChange={(e) => {
+                          const updated = { ...todConsumptions };
+                          if (updated[ym]) {
+                            updated[ym]['Billing Month'] = e.target.value;
+                            setTodConsumptions(updated);
+                          }
+                        }}
+                        InputLabelProps={{ shrink: true }}
+                        variant="outlined"
+                        size="small"
+                        sx={{ bgcolor: '#FFF', width: { xs: '100%', sm: '50%' } }}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ mb: 2.5 }} />
+
                   {/* ── Section: Billing Demand ── */}
                   <Box sx={{ mb: 2.5 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
@@ -1848,7 +1888,7 @@ export default function SavingsCalculatorNewPage() {
             onClick={() => {
               setTodDialogOpen(false);
               setDialogOpen(true);
-              setActiveStep(4);
+              setActiveStep(3);
             }}
             sx={{
               borderRadius: 2,

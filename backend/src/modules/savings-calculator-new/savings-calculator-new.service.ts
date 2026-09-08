@@ -24,15 +24,7 @@ export class SavingsCalculatorNewService {
   }) {
     let fppaChargePercent = 10.0;
     let demandChargeKwRate = 250.0;
-    let electricityDutyPercent = 5.0;
-
-    if (params.consumerCategory) {
-      if (params.consumerCategory.includes('HV-1')) {
-        electricityDutyPercent = 5.0;
-      } else {
-        electricityDutyPercent = 7.5;
-      }
-    }
+    let electricityDutyPercent = 7.5;
 
     try {
       if (params.stateCode) {
@@ -2233,7 +2225,7 @@ export class SavingsCalculatorNewService {
         applyED = String(monthConsumptions[edKey]).trim().toLowerCase() !== 'no';
       }
 
-      const edRate = entry.consumerCategory === 'HV-1' ? 0.05 : 0.075;
+      const edRate = 0.075;
       const slabED = applyED ? discountedSlabBill * edRate : 0;
       totalElectricityDuty += slabED;
 
