@@ -1901,7 +1901,7 @@ export default function SavingsCalculatorNewPage() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
           <TextField
             label="Trader Margin (₹/kWh)"
             type="number"

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Calculator Logic & Flow (HLD & LLD)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #fff;
+            padding: 3rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        h2 {
+            margin-top: 2.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3rem;
+        }
+        ul {
+            padding-left: 1.5rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        .mermaid {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            display: flex;
+            justify-content: center;
+        }
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Savings Calculator Logic & Flow (HLD & LLD)</h1>
+        <p>This document outlines the complete calculation logic and data flow for both the legacy (<code>savings-calculator</code>) and new (<code>savings-calculator-new</code>) savings calculators. Both services share a similar fundamental architecture, with the new calculator incorporating additional granular checks (like FPPA handling and specific sub-category mappings) and default resource lookups.</p>
+
+        <h2>High-Level Design (HLD) Flow</h2>
+        <p>The HLD illustrates the macroscopic flow of how user data and market data are ingested, processed, and served back as optimized savings numbers.</p>
+        
+        <div class="mermaid">
+        flowchart TD
+            A[Client App / User Input] -->|Submit Load & TOD Consumption| B(Savings Calculator API)
+            B --> C{Determine Scope}
+            C -->|Single Month| D[calculateSavings]
+            C -->|All Months| E[calculateSavingsAllMonths]
+            E --> D
+            
+            D --> F[Fetch Entry / History Data]
+            D --> G[Fetch Shift Insights Optional]
+            D --> H{Check Category}
+            
+            H -->|HV-1 / HV-2 / Others| I[calculateSavingsHV2]
+            
+            I --> J[(Database)]
+            J -.->|Fetch Tariffs| I
+            J -.->|Fetch State & ISTS Charges, Losses| I
+            J -.->|Fetch FPPA Charges| I
+            J -.->|Query DAM/RTM/GDAM Market Prices| I
+
+            I --> K[Process 15-Min Slots Data]
+            K --> L[Calculate Baseline vs Optimized Costs]
+            L --> M[Aggregate Monthly Totals]
+            
+            M --> N[Return Savings Payload]
+            N --> A
+        </div>
+
+        <h2>Low-Level Design (LLD) Flow</h2>
+        <p>The LLD breaks down the heavy-lifting function (<code>calculateSavingsHV2</code>), which processes the core logic.</p>
+
+        <div class="mermaid">
+        flowchart TD
+            Start([Start: calculateSavingsHV2]) --> B[Extract Input Data]
+            B --> C[Calculate maxEnergyPerSlot Based on 90% Sanctioned Load]
+            C --> D[Parse Target Months & TOD Limits]
+            
+            D --> E[Determine Billing Cycle Dates Handles Discom specifics e.g., NPCL]
+            E --> F[Resolve State, Category, Sub-Category]
+            F --> G[Fetch Applicable Tariffs for the Month]
+            G --> H[Fetch Losses & Charges STU, Wheeling, ISTS, FPPA]
+            
+            H --> I[Execute Complex SQL Query]
+            I -->|FULL OUTER JOIN| J[Retrieve DAM, GDAM, RTM Prices per 15-min block]
+            
+            J --> K[Iterate through TOD Configured Hours]
+            K --> L[Map Consumption to 15-min Intervals]
+            
+            L --> M[Simulate Trading per Slot]
+            M --> N{Calculate Landed Cost}
+            N -->|Include| O1[Market Clearing Price MCP]
+            N -->|Include| O2[Losses: STU, Wheeling]
+            N -->|Include| O3[Margins: ProLT, Trader]
+            N -->|Include| O4[State specific charges: CSS, etc.]
+            
+            M --> P[Calculate Baseline Cost Using State Tariff]
+            P --> Q[Compare Baseline vs Landed Cost]
+            
+            Q --> R[Aggregate Energy & Cost]
+            R --> S[Calculate Demand Charges Electricity Duty & Misc]
+            S --> T[Finalize Total Savings Total Baseline - Total Optimized]
+            T --> End([Return Final Monthly Calculation])
+        </div>
+
+        <h2>Complete Calculation Logic & Steps</h2>
+
+        <h3>1. Initialization and Data Retrieval</h3>
+        <ul>
+            <li><strong>Inputs:</strong> Sanctioned Load, State, Discom, Consumer Category, Voltage Level, TOD (Time of Day) Consumptions, margins (Trader, ProLT, Probus, Consultancy).</li>
+            <li><strong>Slot Capacity Calculation:</strong> The maximum energy tradeable per 15-minute slot is strictly limited by the sanctioned load. This directly enforces the rules:
+                <ul>
+                    <li><em>"0.9 of sanctioned load bid hoga"</em>: <code>MW = (Sanctioned Load * 0.9) / 1000</code></li>
+                    <li><em>"Decimal ke ek place tak he hoga"</em>: The MW value is strictly floored to 1 decimal place (e.g., 1.35 MW &rarr; 1.3 MW).</li>
+                    <li><code>Max Energy Per Slot = Floored MW * 1000 * 0.25 hours</code></li>
+                </ul>
+            </li>
+            <li><strong>Billing Dates:</strong> Standard month (1st to end-of-month) unless specific Discoms are detected (e.g., <code>NPCL</code> runs from the 19th to the 18th of the next month).</li>
+        </ul>
+
+        <h3>2. Market and Tariff Data Fetching</h3>
+        <ul>
+            <li><strong>Tariffs:</strong> Fetches the state tariff based on state, discom, category, and supply voltage.</li>
+            <li><strong>Charges & Losses:</strong>
+                <ul>
+                    <li><code>stuLossPercent</code> and <code>wheelingLossPercent</code> from State Charges.</li>
+                    <li>ISTS (Inter-State Transmission System) Charges.</li>
+                    <li>FPPA (Fuel and Power Purchase Agreement) Charges based on the query month.</li>
+                </ul>
+            </li>
+            <li><strong>Market Clearing Prices (MCP):</strong> Executes a <code>FULL OUTER JOIN</code> SQL query across <code>DamRecord</code>, <code>RtmRecord</code>, and <code>GdamRecord</code>.</li>
+        </ul>
+
+        <h3>3. Slot-by-Slot Processing (Core Engine)</h3>
+        <p>The engine breaks down the monthly TOD inputs (e.g., 00:00-06:00 = 1000 kWh) into 15-minute granular blocks. For each 15-minute block:</p>
+        <ol>
+            <li><strong>Landed Cost Calculation:</strong> Determines the exact cost of buying power from the exchange, accounting for MCP, losses, margins, and statutory charges.</li>
+            <li><strong>Baseline Cost Calculation:</strong> Calculates what the Discom would charge for that same block based on the TOD slab rates and standard energy charges.</li>
+            <li><strong>Decision Making & Allocation:</strong> Compares the Landed Cost vs Baseline Cost. If the exchange is cheaper, power is "procured" from the exchange. Crucially, this enforces the rule: <em>"Market se utna he lena he jitna coming days mein consume ho jaaye"</em>. The system strictly caps the Open Access allocation to the minimum of what is available vs what is actually unfulfilled/needed at the consumer bus for that slot. The rest comes from the Discom.</li>
+        </ol>
+
+        <h3>4. Aggregation and Monthly Overheads</h3>
+        <ul>
+            <li><strong>Total Market Energy (kWh):</strong> Energy procured via open access.</li>
+            <li><strong>Total Baseline Cost:</strong> Total cost if 100% power was bought from Discom.</li>
+            <li><strong>Total Landed Exchange Cost:</strong> Cost of the open access power.</li>
+            <li><strong>Total Discom After ProLT:</strong> Remaining cost paid to the Discom for un-traded energy.</li>
+            <li><strong>Demand Charges:</strong> Based on peak demand (kVA/kW) multiplied by the demand charge rate.</li>
+            <li><strong>Electricity Duty & Misc:</strong> Additional overhead percentages applied to the final bill.</li>
+        </ul>
+
+        <h3>5. Final Savings Output</h3>
+        <ul>
+            <li><strong>Net Savings:</strong> <code>Total Baseline Cost - (Total Landed Exchange Cost + Total Discom After ProLT)</code>.</li>
+        </ul>
+    </div>
+</body>
+</html>

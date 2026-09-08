@@ -1909,7 +1909,8 @@ export default function SavingsCalculatorPage() {
                           label="Miscellaneous Charges (₹)"
                           value={todConsumptions[ym]['Miscellaneous Charges'] || ''}
                           onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Miscellaneous Charges': e.target.value } }))}
-                          fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                          fullWidth variant="outlined" size="small" type="text" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                          inputProps={{ inputMode: 'decimal' }}
                         />
                       </Grid>
                     </Grid>

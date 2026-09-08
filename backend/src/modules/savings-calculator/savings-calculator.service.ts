@@ -6,8 +6,8 @@ export function getFlooredMaxEnergyPerSlot(sanctionedLoadKw: any): number {
     ? sanctionedLoadKw.toNumber() 
     : (Number(sanctionedLoadKw) || 0);
   if (load <= 0) return 0;
-  // Convert 90% sanctioned load to Megawatts (MW)
-  const rawMw = (load * 0.9) / 1000;
+  // The frontend already passes sanctionedLoadKw as (kVA * 0.9), so we just convert to MW.
+  const rawMw = load / 1000;
   // Market buying precision is restricted to 1 decimal place in MW (e.g. 1.35 MW -> 1.3 MW)
   const flooredMw = Math.floor(rawMw * 10 + 1e-9) / 10;
   // Maximum energy per 15-minute slot (in kWh) = MW * 1000 kW/MW * 0.25 hours
@@ -1272,7 +1272,7 @@ export class SavingsCalculatorService {
     }
 
     const ctuCharges = await prisma.ctuCharges.findFirst({
-      where: { month: yyyymmMonth }
+      where: { month: calendarMonth }
     });
 
     const istsCharges = await prisma.istsCharges.findMany({
@@ -1284,7 +1284,7 @@ export class SavingsCalculatorService {
     });
 
     const iexFees = await prisma.iexFees.findFirst({
-      where: { month: yyyymmMonth }
+      where: { month: calendarMonth }
     });
 
     const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
@@ -1300,7 +1300,7 @@ export class SavingsCalculatorService {
       }
     }
     if (monthsInPlay.length === 0) {
-      monthsInPlay.push(effectiveYyyymmMonth);
+      monthsInPlay.push(calendarMonth);
     }
 
     const whereClauseTariff: any = {
@@ -1371,7 +1371,7 @@ export class SavingsCalculatorService {
     const fppaDataList = await prisma.fppaCharges.findMany({
       where: {
         state: { in: stateFormats },
-        month: yyyymmMonth
+        month: fppaQueryMonth
       }
     });
     let fppaData = fppaDataList.find(f => f.discom === entry.discom);
