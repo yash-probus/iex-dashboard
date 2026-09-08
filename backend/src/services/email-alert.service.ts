@@ -20,8 +20,8 @@ export const checkAndSendDailyChargeAlerts = async (): Promise<void> => {
     const currentYearMonth = today.getFullYear() * 100 + (today.getMonth() + 1);
     const missingCharges: string[] = [];
 
-    // Keys to ignore (static tables)
-    const ignoreKeys = ['region-state', 'discom-list'];
+    // Keys to ignore (static tables or client-specific)
+    const ignoreKeys = ['region-state', 'discom-list', 'prolt-margin'];
 
     for (const key of Object.keys(RESOURCE_REGISTRY)) {
       if (ignoreKeys.includes(key)) continue;
@@ -35,7 +35,7 @@ export const checkAndSendDailyChargeAlerts = async (): Promise<void> => {
       let count = 0;
 
       // Determine how to check based on the resource type
-      if (['iex-fees', 'prolt-margin', 'ctu-charges', 'state-tariff', 'fppa-charges'].includes(key)) {
+      if (['iex-fees', 'ctu-charges', 'state-tariff', 'fppa-charges'].includes(key)) {
         // These are monthly charges keyed by YYYYMM
         count = await (delegate as any).count({
           where: {
