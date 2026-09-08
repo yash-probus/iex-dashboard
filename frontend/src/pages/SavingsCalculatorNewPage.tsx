@@ -1581,27 +1581,48 @@ export default function SavingsCalculatorNewPage() {
                   </Box>
                 </AccordionSummary>
 
-                <AccordionDetails sx={{ p: 2.5, pt: 1, bgcolor: '#FFFFFF' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E293B' }}>
-                      Billing Period & Peak Demand for {ym}
+                <AccordionDetails sx={{ p: 3, pt: 1, bgcolor: '#FFFFFF' }}>
+                  {/* ── Section: Billing Demand ── */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
+                      Billing Demand
                     </Typography>
-                    <Button
+                    <TextField
+                      label="Peak Demand (kW)"
+                      type="number"
                       size="small"
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      onClick={() => {
+                      value={monthData.peakDemandKw || ''}
+                      onChange={(e) => {
                         setActiveMonth(ym);
-                        handleAddTodSlot();
+                        handleUpdatePeakDemand(Number(e.target.value));
                       }}
-                      sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' }, textTransform: 'none', borderRadius: 2 }}
-                    >
-                      + Add TOD Slot
-                    </Button>
+                      sx={{ bgcolor: '#FFF', width: { xs: '100%', sm: '50%' } }}
+                    />
                   </Box>
 
-                  <Grid container spacing={2} sx={{ mb: 2 }}>
-                    <Grid item xs={12} sm={8}>
+                  <Divider sx={{ mb: 2.5 }} />
+
+                  {/* ── Section: Billed Consumption ── */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block' }}>
+                        Billed Consumption & TOD Customizations
+                      </Typography>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => {
+                          setActiveMonth(ym);
+                          handleAddTodSlot();
+                        }}
+                        sx={{ bgcolor: '#8B5CF6', '&:hover': { bgcolor: '#7C3AED' }, textTransform: 'none', borderRadius: 2 }}
+                      >
+                        + Add TOD Slot
+                      </Button>
+                    </Box>
+
+                    <Box sx={{ mb: 2, width: { xs: '100%', sm: '50%' } }}>
                       <DateRangePicker
                         startDate={monthData.startDate || `${ym}-01`}
                         endDate={monthData.endDate || `${ym}-30`}
@@ -1610,141 +1631,128 @@ export default function SavingsCalculatorNewPage() {
                           handleUpdateBilledDates(start, end);
                         }}
                       />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Peak Demand (kW)"
-                        type="number"
-                        size="small"
-                        value={monthData.peakDemandKw || ''}
-                        onChange={(e) => {
-                          setActiveMonth(ym);
-                          handleUpdatePeakDemand(Number(e.target.value));
-                        }}
-                        fullWidth
-                      />
-                    </Grid>
-                  </Grid>
+                    </Box>
 
-                  {/* Slot Table */}
-                  <Table size="small" sx={{ minWidth: 950 }}>
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                        <TableCell sx={{ fontWeight: 700 }}>TOD Slot Name</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Start Time</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>End Time</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kWh)</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kVAh)</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Effective Price (₹/kWh)</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700 }}>Action</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {(() => {
-                        const slots = (monthData.slots || []) as CustomTodSlot[];
-                        const currentPf = powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0 ? Number(powerFactor) : 0.99;
+                    {/* Slot Table */}
+                    <Table size="small" sx={{ minWidth: 950 }}>
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                          <TableCell sx={{ fontWeight: 700 }}>TOD Slot Name</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>Start Time</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>End Time</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kWh)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kVAh)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>Effective Price (₹/kWh)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>Action</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(() => {
+                          const slots = (monthData.slots || []) as CustomTodSlot[];
+                          const currentPf = powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0 ? Number(powerFactor) : 0.99;
 
-                        return slots.map((slot, idx) => {
-                          const kwhVal = Number(slot.consumptionKwh) || 0;
-                          const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
+                          return slots.map((slot, idx) => {
+                            const kwhVal = Number(slot.consumptionKwh) || 0;
+                            const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
 
-                          return (
-                            <TableRow key={slot.id || idx} sx={{ bgcolor: 'inherit' }}>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            return (
+                              <TableRow key={slot.id || idx} sx={{ bgcolor: 'inherit' }}>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <TextField
+                                      size="small"
+                                      value={slot.name || ''}
+                                      onChange={(e) => {
+                                        setActiveMonth(ym);
+                                        handleUpdateTodSlot(idx, 'name', e.target.value);
+                                      }}
+                                      placeholder={`Slot ${idx + 1}`}
+                                    />
+                                  </Box>
+                                </TableCell>
+                                <TableCell align="center">
                                   <TextField
                                     size="small"
-                                    value={slot.name || ''}
+                                    type="time"
+                                    value={slot.startTime || '00:00'}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
-                                      handleUpdateTodSlot(idx, 'name', e.target.value);
+                                      handleUpdateTodSlot(idx, 'startTime', e.target.value);
                                     }}
-                                    placeholder={`Slot ${idx + 1}`}
+                                    inputProps={{ step: 300 }}
+                                    sx={{ width: 110 }}
                                   />
-                                </Box>
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="time"
-                                  value={slot.startTime || '00:00'}
-                                  onChange={(e) => {
+                                </TableCell>
+                                <TableCell align="center">
+                                  <TextField
+                                    size="small"
+                                    type="time"
+                                    value={slot.endTime || '24:00'}
+                                    onChange={(e) => {
+                                      setActiveMonth(ym);
+                                      handleUpdateTodSlot(idx, 'endTime', e.target.value);
+                                    }}
+                                    inputProps={{ step: 300 }}
+                                    sx={{ width: 110 }}
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <TextField
+                                    size="small"
+                                    type="number"
+                                    value={slot.consumptionKwh}
+                                    onChange={(e) => {
+                                      setActiveMonth(ym);
+                                      handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value);
+                                    }}
+                                    sx={{ width: 110 }}
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <TextField
+                                    size="small"
+                                    type="number"
+                                    value={kvahVal}
+                                    onChange={(e) => {
+                                      setActiveMonth(ym);
+                                      const val = e.target.value;
+                                      if (val && !isNaN(Number(val))) {
+                                        handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
+                                      } else {
+                                        handleUpdateTodSlot(idx, 'consumptionKwh', 0);
+                                      }
+                                    }}
+                                    sx={{ width: 110 }}
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <TextField
+                                    size="small"
+                                    type="number"
+                                    inputProps={{ step: 0.1 }}
+                                    value={slot.effectivePrice}
+                                    onChange={(e) => {
+                                      setActiveMonth(ym);
+                                      handleUpdateTodSlot(idx, 'effectivePrice', e.target.value);
+                                    }}
+                                    sx={{ width: 130 }}
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <IconButton color="error" size="small" onClick={() => {
                                     setActiveMonth(ym);
-                                    handleUpdateTodSlot(idx, 'startTime', e.target.value);
-                                  }}
-                                  inputProps={{ step: 300 }}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="time"
-                                  value={slot.endTime || '24:00'}
-                                  onChange={(e) => {
-                                    setActiveMonth(ym);
-                                    handleUpdateTodSlot(idx, 'endTime', e.target.value);
-                                  }}
-                                  inputProps={{ step: 300 }}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="number"
-                                  value={slot.consumptionKwh}
-                                  onChange={(e) => {
-                                    setActiveMonth(ym);
-                                    handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value);
-                                  }}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="number"
-                                  value={kvahVal}
-                                  onChange={(e) => {
-                                    setActiveMonth(ym);
-                                    const val = e.target.value;
-                                    if (val && !isNaN(Number(val))) {
-                                      handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
-                                    } else {
-                                      handleUpdateTodSlot(idx, 'consumptionKwh', 0);
-                                    }
-                                  }}
-                                  sx={{ width: 110 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <TextField
-                                  size="small"
-                                  type="number"
-                                  inputProps={{ step: 0.1 }}
-                                  value={slot.effectivePrice}
-                                  onChange={(e) => {
-                                    setActiveMonth(ym);
-                                    handleUpdateTodSlot(idx, 'effectivePrice', e.target.value);
-                                  }}
-                                  sx={{ width: 130 }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <IconButton color="error" size="small" onClick={() => {
-                                  setActiveMonth(ym);
-                                  handleRemoveTodSlot(idx);
-                                }}>
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        });
-                      })()}
-                    </TableBody>
-                  </Table>
+                                    handleRemoveTodSlot(idx);
+                                  }}>
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          });
+                        })()}
+                      </TableBody>
+                    </Table>
+                  </Box>
                 </AccordionDetails>
               </Accordion>
             );

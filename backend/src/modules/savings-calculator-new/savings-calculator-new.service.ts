@@ -1406,7 +1406,7 @@ export class SavingsCalculatorNewService {
     }
 
     const ctuCharges = await prisma.ctuCharges.findFirst({
-      where: { month: calendarMonth }
+      where: { month: yyyymmMonth }
     });
 
     const istsCharges = await prisma.istsCharges.findMany({
@@ -1418,7 +1418,7 @@ export class SavingsCalculatorNewService {
     });
 
     const iexFees = await prisma.iexFees.findFirst({
-      where: { month: calendarMonth }
+      where: { month: yyyymmMonth }
     });
 
     const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
@@ -1434,7 +1434,7 @@ export class SavingsCalculatorNewService {
       }
     }
     if (monthsInPlay.length === 0) {
-      monthsInPlay.push(calendarMonth);
+      monthsInPlay.push(effectiveYyyymmMonth);
     }
 
     const whereClauseTariff: any = {
@@ -1505,7 +1505,7 @@ export class SavingsCalculatorNewService {
     const fppaDataList = await prisma.fppaCharges.findMany({
       where: {
         state: { in: stateFormats },
-        month: fppaQueryMonth
+        month: yyyymmMonth
       }
     });
     let fppaData = fppaDataList.find(f => f.discom === entry.discom);
