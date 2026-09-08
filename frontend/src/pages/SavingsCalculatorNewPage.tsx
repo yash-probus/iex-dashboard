@@ -1132,7 +1132,7 @@ export default function SavingsCalculatorNewPage() {
               disabled={!isStepValid(stepIndex)}
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 4) {
+                  if (stepIndex < 3) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     setDialogOpen(false);
@@ -1149,7 +1149,7 @@ export default function SavingsCalculatorNewPage() {
                 '&:hover': { bgcolor: '#7C3AED' }
               }}
             >
-              Continue
+              {stepIndex === 3 ? 'Proceed to ToD' : 'Continue'}
             </Button>
           </Box>
         </Card>
