@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { VidyutPravahScraper } from './scraper.service';
 import { WeatherEngine } from './weather.service';
 import { seedCtuCharges } from '../scripts/seed-ctu';
+import { checkAndSendDailyChargeAlerts } from './email-alert.service';
 
 import { ApiLogService } from '../modules/api-log/api-log.service';
 import { NppAdjustmentService } from '../modules/dataset/npp-adjustment.service';
@@ -18,6 +19,18 @@ export class CronService {
       return;
     }
     console.log('[CronService] Initializing background cron jobs...');
+
+    // Run every day at 10:00 AM for Resource Center Daily Charge Alerts (Asia/Kolkata)
+    cron.schedule('0 10 * * *', async () => {
+      console.log('[Cron] Running daily Resource Center missing charges check');
+      try {
+        await checkAndSendDailyChargeAlerts();
+      } catch (error) {
+        console.error('[Cron] Error in daily Resource Center check:', error);
+      }
+    }, {
+      timezone: "Asia/Kolkata"
+    });
     
     // Run every 5 minutes
     cron.schedule('*/5 * * * *', async () => {
