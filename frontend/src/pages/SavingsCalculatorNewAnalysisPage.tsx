@@ -373,8 +373,15 @@ export default function SavingsCalculatorNewAnalysisPage() {
             }}>
               <Button
                 variant="outlined"
-                startIcon={<PictureAsPdfIcon />}
-                onClick={handleExportPDF}
+                startIcon={<DownloadIcon />}
+                onClick={() => {
+                  const originalTitle = document.title;
+                  if (calcEntry?.clientName) {
+                    document.title = `${calcEntry.clientName} - Savings Analysis`;
+                  }
+                  window.print();
+                  document.title = originalTitle;
+                }}
                 sx={{
                   textTransform: 'none',
                   borderRadius: 2.5,
@@ -387,7 +394,7 @@ export default function SavingsCalculatorNewAnalysisPage() {
                   '&:hover': { backgroundColor: '#F8FAFC', borderColor: 'divider' }
                 }}
               >
-                MARKET BUY REPORT (PDF)
+                Export as PDF
               </Button>
               <Button
                 variant="outlined"
@@ -658,13 +665,6 @@ export default function SavingsCalculatorNewAnalysisPage() {
                 />
               </Box>
 
-              {/* 15-Minute Interval Sourcing Detail Table */}
-              <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1E293B' }}>
-                  15-Minute Interval Landed Cost & Sourcing Table ({selectedSimMonth})
-                </Typography>
-                <TableContainer columns={columns} data={marketDecisionResult.slotsData || []} />
-              </Paper>
 
               <div id="proposal-export-target-new" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '1200px' }}>
                 <ProposalDashboardExport 
