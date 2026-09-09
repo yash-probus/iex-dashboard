@@ -82,11 +82,11 @@ export const formatYYYYMM = (m: any) => {
     return date.toLocaleString('default', { month: 'short' }) + ' ' + year;
   }
   
-  // fallback for older 1-12 format if any
+  // fallback for older 1-12 format
   const num = Number(m);
   if (num >= 1 && num <= 12) {
       const date = new Date(2026, num - 1);
-      return date.toLocaleString('default', { month: 'short' }) + ' 2026';
+      return date.toLocaleString('default', { month: 'short' });
   }
   
   return str;

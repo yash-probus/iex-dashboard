@@ -21,7 +21,7 @@ export default function StateTariffPage() {
   const [selectedState, setSelectedState] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
-  const [selectedYear, setSelectedYear] = useState('all');
+
   const config = RESOURCE_CENTER_PAGES.STATE_TARIFF;
   const { isAdmin } = useAuth();
 
@@ -78,12 +78,6 @@ export default function StateTariffPage() {
   const uniqueStates = Array.from(new Set(data.map((r: StateTariff) => r.state).filter(Boolean))).sort();
   const uniqueCategories = Array.from(new Set(data.map((r: StateTariff) => r.consumerCategory).filter(Boolean))).sort();
   const uniqueSubCategories = Array.from(new Set(data.map((r: StateTariff) => r.subCategory).filter(Boolean))).sort();
-  
-  // Extract unique years from the YYYYMM format
-  const uniqueYears = Array.from(new Set(data.map((r: StateTariff) => {
-    const s = String(r.month);
-    return s.length === 6 ? s.slice(0, 4) : '';
-  }).filter(Boolean))).sort();
 
   const filteredData = data.filter((row: StateTariff) => {
     // Text search
@@ -104,11 +98,7 @@ export default function StateTariffPage() {
     const matchesState = selectedState === 'all' || row.state === selectedState;
     const matchesCategory = selectedCategory === 'all' || row.consumerCategory === selectedCategory;
     const matchesSubCategory = selectedSubCategory === 'all' || row.subCategory === selectedSubCategory;
-    
-    const rowYear = String(row.month).length === 6 ? String(row.month).slice(0, 4) : '';
-    const matchesYear = selectedYear === 'all' || rowYear === selectedYear;
-
-    return matchesSearch && matchesState && matchesCategory && matchesSubCategory && matchesYear;
+    return matchesSearch && matchesState && matchesCategory && matchesSubCategory;
   });
 
   const formatNum = (v: unknown) => typeof v === 'number' ? v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : v;
@@ -241,20 +231,7 @@ export default function StateTariffPage() {
             </Select>
           </FormControl>
 
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Year</InputLabel>
-            <Select
-              value={selectedYear}
-              label="Year"
-              onChange={(e) => setSelectedYear(e.target.value)}
-              sx={{ bgcolor: 'background.paper' }}
-            >
-              <MenuItem value="all">All Years</MenuItem>
-              {uniqueYears.map((year) => (
-                <MenuItem key={year as string} value={year as string}>{year as string}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+
         </>
       }
     >
