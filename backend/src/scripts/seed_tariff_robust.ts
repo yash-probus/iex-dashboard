@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -28,7 +29,7 @@ function parseCSVLine(line: string): string[] {
 }
 
 async function main() {
-  const csvPath = '/Users/yashgupta/IEX-Dashboard/state-tariff-correct.csv';
+  const csvPath = path.resolve(__dirname, '../../../state-tariff-correct.csv');
   console.log(`Reading CSV file from ${csvPath}...`);
 
   const content = fs.readFileSync(csvPath, 'utf-8');
