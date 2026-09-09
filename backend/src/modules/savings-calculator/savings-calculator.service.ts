@@ -2,8 +2,8 @@ import prisma from '../../config/prisma';
 import { getCache, setCache, invalidateCache } from '../../config/redis';
 
 export function getFlooredMaxEnergyPerSlot(sanctionedLoadKw: any): number {
-  const load = (sanctionedLoadKw && typeof sanctionedLoadKw.toNumber === 'function') 
-    ? sanctionedLoadKw.toNumber() 
+  const load = (sanctionedLoadKw && typeof sanctionedLoadKw.toNumber === 'function')
+    ? sanctionedLoadKw.toNumber()
     : (Number(sanctionedLoadKw) || 0);
   if (load <= 0) return 0;
   // The frontend already passes sanctionedLoadKw as (kVA * 0.9), so we just convert to MW.
@@ -747,7 +747,7 @@ export class SavingsCalculatorService {
           where: fallbackWhere,
           orderBy: { month: 'desc' }
         });
-        const sameMonthTariff = allTariffs.find(t => 
+        const sameMonthTariff = allTariffs.find(t =>
           t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
         );
         const latestTariff = sameMonthTariff || allTariffs[0];
@@ -928,7 +928,7 @@ export class SavingsCalculatorService {
         discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
 
         if (entry.discom === 'NPCL') {
-          discomLandingPrice = discomLandingPrice * 0.90 * (entry.powerFactor || 0.99);
+          discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
         }
 
         let comparedLowestPrice = discomLandingPrice;
@@ -988,7 +988,7 @@ export class SavingsCalculatorService {
       Object.keys(slotsByTod).forEach(groupKey => {
         // Find the total energy requirement for this TOD slab from the input
         let remainingEnergy = 0;
-        
+
         if (shiftInsights) {
           const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
           remainingEnergy = todSummary ? todSummary.newEnergy : 0;
@@ -1325,7 +1325,7 @@ export class SavingsCalculatorService {
         where: fallbackWhere,
         orderBy: { month: 'desc' }
       });
-      const sameMonthTariff = allTariffs.find(t => 
+      const sameMonthTariff = allTariffs.find(t =>
         t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
       );
       const latestTariff = sameMonthTariff || allTariffs[0];
@@ -1560,8 +1560,8 @@ export class SavingsCalculatorService {
       }
 
       let discomLanding = discomBase * (1 + (fppaPercent / 100));
-      if (entry.discom === 'NPCL') {
-        discomLanding = discomLanding * 0.90 * (entry.powerFactor || 0.99);
+      if (isNpcl) {
+        discomLanding = discomLanding * 0.90 * 0.99;
       }
 
       const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
@@ -1801,7 +1801,7 @@ export class SavingsCalculatorService {
     let preTotalEnergyKwh = 0;
     Object.keys(slotsByTod).forEach(groupKey => {
       let slabConsumption = 0;
-      
+
       if (shiftInsights) {
         const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
         slabConsumption = todSummary ? todSummary.newEnergy : 0;
@@ -1810,7 +1810,7 @@ export class SavingsCalculatorService {
           if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
         });
-        
+
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
@@ -1841,13 +1841,13 @@ export class SavingsCalculatorService {
     Object.keys(slotsByTod).forEach(groupKey => {
       const slotsInGroup = slotsByTod[groupKey];
       let slabConsumption = 0;
-      
+
       if (shiftInsights) {
         const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
         slabConsumption = todSummary ? todSummary.newEnergy : 0;
-        
+
         if (slabConsumption <= 0) return;
-        
+
         slotsInGroup.forEach(s => {
           const shiftSlot = shiftInsights.slotsData.find((ss: any) => ss.date === s.date && ss.timeblock === s.timeblock);
           if (shiftSlot) {
@@ -1866,7 +1866,7 @@ export class SavingsCalculatorService {
           if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
         });
-        
+
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
@@ -2075,7 +2075,7 @@ export class SavingsCalculatorService {
       const fppaMultiplier = 1 + (fppaPercent / 100);
 
       const getDiscountedDemandCharge = (dc: number) => {
-        return entry.discom === 'NPCL' ? dc * 0.90 * (entry.powerFactor || 0.99) : dc;
+        return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
       };
 
       // FPPA should be applied on (energy charges + demand charges).
@@ -2084,7 +2084,7 @@ export class SavingsCalculatorService {
 
       const discountedSlabBill = slabEnergyBill + demandChargeWithFppa;
       totalBaselineEnergyCharges += slabEnergyBill;
-      
+
       const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
       let applyED = true;
       if (edKey && monthConsumptions[edKey] !== undefined && monthConsumptions[edKey] !== null) {
