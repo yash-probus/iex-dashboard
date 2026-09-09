@@ -1,0 +1,314 @@
+State,Consumer Category,Sub Category,Supply Voltage Category,Supply Voltage,Month,TOD Start Time,TOD End Time,Base Energy Rate (₹),Base Energy Unit,TOD Charge %,Energy Rate (₹)
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Apr-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,May-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Jun-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Jul-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Aug-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Sep-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Oct-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Nov-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Dec-26,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Jan-27,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Feb-27,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),Low Tension (LT),,Mar-27,,,6.2,kWh,0,6.2
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Apr-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,May-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Jun-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Jul-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Aug-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Sep-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Oct-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Nov-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Dec-26,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Jan-27,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Feb-27,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,Multistoried Buildings (Common Usage),High Tension (HT),,Mar-27,,,5.9,kWh,0,5.9
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Apr-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Apr-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,May-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,May-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Jun-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Jun-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Jul-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Jul-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Aug-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Aug-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Sep-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Sep-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Oct-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Oct-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Nov-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Nov-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Dec-26,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Dec-26,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Jan-27,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Jan-27,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Feb-27,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Feb-27,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Mar-27,9:00,16:00,7.7,kWh,-20,6.16
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",Low Tension (LT),,Mar-27,16:00,9:00,7.7,kWh,0,7.7
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Apr-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Apr-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,May-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,May-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Jun-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Jun-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Jul-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Jul-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Aug-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Aug-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Sep-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Sep-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Oct-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Oct-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Nov-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Nov-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Dec-26,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Dec-26,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Jan-27,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Jan-27,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Feb-27,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Feb-27,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Mar-27,9:00,16:00,7.3,kWh,-20,5.84
+Uttar Pradesh,LMV-11,"Public Charging, BaaS, Swapping Stations",High Tension (HT),,Mar-27,16:00,9:00,7.3,kWh,0,7.3
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Apr-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,May-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Jun-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Jul-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Aug-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Sep-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Oct-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Nov-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Dec-26,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Jan-27,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Feb-27,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",At 11 kV,11,Mar-27,,,8.32,kVAh,0,8.32
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Apr-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",May-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Jun-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Jul-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Aug-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Sep-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Oct-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Nov-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Dec-26,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Jan-27,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Feb-27,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Commercial, Private Inst., Non-Domestic Bulk (>=75 kW)",Above 11 kV,"33,66,132",Mar-27,,,8.12,kVAh,0,8.12
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Apr-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,May-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Jun-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Jul-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Aug-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Sep-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Oct-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Nov-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Dec-26,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Jan-27,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Feb-27,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",At 11 kV,11,Mar-27,,,7.7,kVAh,0,7.7
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Apr-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",May-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Jun-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Jul-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Aug-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Sep-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Oct-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Nov-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Dec-26,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Jan-27,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Feb-27,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-1,"Public Inst., Societies, Townships (>=75 kW)",Above 11 kV,"33,66,132",Mar-27,,,7.5,kVAh,0,7.5
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Apr-26,5:00,10:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Apr-26,10:00,19:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Apr-26,19:00,3:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Apr-26,3:00,5:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,May-26,5:00,10:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,May-26,10:00,19:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,May-26,19:00,3:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,May-26,3:00,5:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jun-26,5:00,10:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jun-26,10:00,19:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jun-26,19:00,3:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jun-26,3:00,5:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jul-26,5:00,10:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jul-26,10:00,19:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jul-26,19:00,3:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jul-26,3:00,5:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Aug-26,5:00,10:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Aug-26,10:00,19:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Aug-26,19:00,3:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Aug-26,3:00,5:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Sep-26,5:00,10:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Sep-26,10:00,19:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Sep-26,19:00,3:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Sep-26,3:00,5:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Oct-26,5:00,11:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Oct-26,11:00,17:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Oct-26,17:00,23:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Oct-26,23:00,5:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Nov-26,5:00,11:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Nov-26,11:00,17:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Nov-26,17:00,23:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Nov-26,23:00,5:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Dec-26,5:00,11:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Dec-26,11:00,17:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Dec-26,17:00,23:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Dec-26,23:00,5:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jan-27,5:00,11:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jan-27,11:00,17:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jan-27,17:00,23:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Jan-27,23:00,5:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Feb-27,5:00,11:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Feb-27,11:00,17:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Feb-27,17:00,23:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Feb-27,23:00,5:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Mar-27,5:00,11:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Mar-27,11:00,17:00,7.1,kVAh,0,7.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Mar-27,17:00,23:00,7.1,kVAh,15,8.165
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Up to 11 kV,11,Mar-27,23:00,5:00,7.1,kVAh,-15,6.035
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Apr-26,5:00,10:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Apr-26,10:00,19:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Apr-26,19:00,3:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Apr-26,3:00,5:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",May-26,5:00,10:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",May-26,10:00,19:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",May-26,19:00,3:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",May-26,3:00,5:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jun-26,5:00,10:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jun-26,10:00,19:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jun-26,19:00,3:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jun-26,3:00,5:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jul-26,5:00,10:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jul-26,10:00,19:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jul-26,19:00,3:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jul-26,3:00,5:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Aug-26,5:00,10:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Aug-26,10:00,19:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Aug-26,19:00,3:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Aug-26,3:00,5:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Sep-26,5:00,10:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Sep-26,10:00,19:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Sep-26,19:00,3:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Sep-26,3:00,5:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Oct-26,5:00,11:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Oct-26,11:00,17:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Oct-26,17:00,23:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Oct-26,23:00,5:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Nov-26,5:00,11:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Nov-26,11:00,17:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Nov-26,17:00,23:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Nov-26,23:00,5:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Dec-26,5:00,11:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Dec-26,11:00,17:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Dec-26,17:00,23:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Dec-26,23:00,5:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jan-27,5:00,11:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jan-27,11:00,17:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jan-27,17:00,23:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Jan-27,23:00,5:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Feb-27,5:00,11:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Feb-27,11:00,17:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Feb-27,17:00,23:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Feb-27,23:00,5:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Mar-27,5:00,11:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Mar-27,11:00,17:00,6.8,kVAh,0,6.8
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Mar-27,17:00,23:00,6.8,kVAh,15,7.82
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 11 kV to 66 kV,"33,66",Mar-27,23:00,5:00,6.8,kVAh,-15,5.78
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Apr-26,5:00,10:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Apr-26,10:00,19:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Apr-26,19:00,3:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Apr-26,3:00,5:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,May-26,5:00,10:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,May-26,10:00,19:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,May-26,19:00,3:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,May-26,3:00,5:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jun-26,5:00,10:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jun-26,10:00,19:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jun-26,19:00,3:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jun-26,3:00,5:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jul-26,5:00,10:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jul-26,10:00,19:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jul-26,19:00,3:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jul-26,3:00,5:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Aug-26,5:00,10:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Aug-26,10:00,19:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Aug-26,19:00,3:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Aug-26,3:00,5:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Sep-26,5:00,10:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Sep-26,10:00,19:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Sep-26,19:00,3:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Sep-26,3:00,5:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Oct-26,5:00,11:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Oct-26,11:00,17:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Oct-26,17:00,23:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Oct-26,23:00,5:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Nov-26,5:00,11:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Nov-26,11:00,17:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Nov-26,17:00,23:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Nov-26,23:00,5:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Dec-26,5:00,11:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Dec-26,11:00,17:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Dec-26,17:00,23:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Dec-26,23:00,5:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jan-27,5:00,11:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jan-27,11:00,17:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jan-27,17:00,23:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Jan-27,23:00,5:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Feb-27,5:00,11:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Feb-27,11:00,17:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Feb-27,17:00,23:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Feb-27,23:00,5:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Mar-27,5:00,11:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Mar-27,11:00,17:00,6.4,kVAh,0,6.4
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Mar-27,17:00,23:00,6.4,kVAh,15,7.36
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 66 kV to 132 kV,132,Mar-27,23:00,5:00,6.4,kVAh,-15,5.44
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"22,04,00,765",Apr-26,5:00,10:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,"22,04,00,765",Apr-26,10:00,19:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Apr-26,19:00,3:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Apr-26,3:00,5:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,May-26,5:00,10:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,May-26,10:00,19:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,May-26,19:00,3:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,May-26,3:00,5:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jun-26,5:00,10:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jun-26,10:00,19:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jun-26,19:00,3:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jun-26,3:00,5:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jul-26,5:00,10:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jul-26,10:00,19:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jul-26,19:00,3:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jul-26,3:00,5:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Aug-26,5:00,10:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Aug-26,10:00,19:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Aug-26,19:00,3:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Aug-26,3:00,5:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Sep-26,5:00,10:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Sep-26,10:00,19:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Sep-26,19:00,3:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Sep-26,3:00,5:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Oct-26,5:00,11:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Oct-26,11:00,17:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Oct-26,17:00,23:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Oct-26,23:00,5:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Nov-26,5:00,11:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Nov-26,11:00,17:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Nov-26,17:00,23:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Nov-26,23:00,5:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Dec-26,5:00,11:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Dec-26,11:00,17:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Dec-26,17:00,23:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Dec-26,23:00,5:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jan-27,5:00,11:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jan-27,11:00,17:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jan-27,17:00,23:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Jan-27,23:00,5:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Feb-27,5:00,11:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Feb-27,11:00,17:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Feb-27,17:00,23:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Feb-27,23:00,5:00,6.1,kVAh,-15,5.185
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Mar-27,5:00,11:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Mar-27,11:00,17:00,6.1,kVAh,0,6.1
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Mar-27,17:00,23:00,6.1,kVAh,15,7.015
+Uttar Pradesh,HV-2,Urban Schedule (Large & Heavy Power),Above 132 kV,,Mar-27,23:00,5:00,6.1,kVAh,-15,5.185
+,,,,,,,,0,,,
