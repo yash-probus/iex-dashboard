@@ -1683,6 +1683,7 @@ export default function SavingsCalculatorNewPage() {
                           <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kWh)</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 700 }}>Consumption (kVAh)</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 700 }}>Effective Price (₹/kWh)</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>Effective Price (₹/kVAh)</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 700 }}>Action</TableCell>
                         </TableRow>
                       </TableHead>
@@ -1694,6 +1695,7 @@ export default function SavingsCalculatorNewPage() {
                           return slots.map((slot, idx) => {
                             const kwhVal = Number(slot.consumptionKwh) || 0;
                             const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
+                            const effPriceKvahVal = slot.effectivePrice ? Number((Number(slot.effectivePrice) * currentPf).toFixed(4)) : '';
 
                             return (
                               <TableRow key={slot.id || idx} sx={{ bgcolor: 'inherit' }}>
@@ -1779,6 +1781,24 @@ export default function SavingsCalculatorNewPage() {
                                   />
                                 </TableCell>
                                 <TableCell align="center">
+                                  <TextField
+                                    size="small"
+                                    type="number"
+                                    inputProps={{ step: 0.1 }}
+                                    value={effPriceKvahVal}
+                                    onChange={(e) => {
+                                      setActiveMonth(ym);
+                                      const val = e.target.value;
+                                      if (val && !isNaN(Number(val))) {
+                                        handleUpdateTodSlot(idx, 'effectivePrice', Number((Number(val) / currentPf).toFixed(4)));
+                                      } else {
+                                        handleUpdateTodSlot(idx, 'effectivePrice', '');
+                                      }
+                                    }}
+                                    sx={{ width: 130 }}
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
                                   <IconButton color="error" size="small" onClick={() => {
                                     setActiveMonth(ym);
                                     handleRemoveTodSlot(idx);
@@ -1809,7 +1829,7 @@ export default function SavingsCalculatorNewPage() {
               <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>+ Add New Month</Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ p: 3, pt: 1 }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Month</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', display: 'block', mb: 1 }}>Consumption Month</Typography>
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                 <TextField
                   select
