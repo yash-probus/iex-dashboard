@@ -61,7 +61,7 @@ export class SavingsCalculatorNewService {
         const today = new Date();
         const yyyymmMonth = params.monthStr 
           ? parseInt(params.monthStr.replace('-', ''), 10) 
-          : today.getMonth() + 1;
+          : today.getFullYear() * 100 + (today.getMonth() + 1);
         
         const fppaDataList = await prisma.fppaCharges.findMany({
           where: {
@@ -705,7 +705,7 @@ export class SavingsCalculatorNewService {
 
       const stateFormats = [stateName, stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_'), stateName.charAt(0).toUpperCase() + stateName.slice(1).toLowerCase()];
 
-      const effectiveYyyymmMonth = nextMonth;
+      const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
 
       let startDayInput = monthConsumptions['Start Date'];
       let endDayInput = monthConsumptions['End Date'];
@@ -803,7 +803,7 @@ export class SavingsCalculatorNewService {
         const cur = new Date(startD.getFullYear(), startD.getMonth(), 1);
         const limit = new Date(endD.getFullYear(), endD.getMonth(), 1);
         while (cur <= limit) {
-          monthsInPlay.push(cur.getMonth() + 1);
+          monthsInPlay.push(cur.getFullYear() * 100 + (cur.getMonth() + 1));
           cur.setMonth(cur.getMonth() + 1);
         }
       }
@@ -992,7 +992,7 @@ export class SavingsCalculatorNewService {
             }
           }
         } else if (tariffs.length > 0) {
-          const slotMonth = deliveryDate.getMonth() + 1;
+          const slotMonth = deliveryDate.getFullYear() * 100 + (deliveryDate.getMonth() + 1);
           let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
           if (tariffsForMonth.length === 0) {
             tariffsForMonth = tariffs;
@@ -1413,7 +1413,7 @@ export class SavingsCalculatorNewService {
       where: { month: yyyymmMonth }
     });
 
-    const effectiveYyyymmMonth = nextMonth;
+    const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
     const monthsInPlay: number[] = [];
     const startD = new Date(startStr);
     const endD = new Date(endStr);
@@ -1421,7 +1421,7 @@ export class SavingsCalculatorNewService {
       const cur = new Date(startD.getFullYear(), startD.getMonth(), 1);
       const limit = new Date(endD.getFullYear(), endD.getMonth(), 1);
       while (cur <= limit) {
-        monthsInPlay.push(cur.getMonth() + 1);
+        monthsInPlay.push(cur.getFullYear() * 100 + (cur.getMonth() + 1));
         cur.setMonth(cur.getMonth() + 1);
       }
     }
@@ -1665,7 +1665,7 @@ export class SavingsCalculatorNewService {
           }
         }
       } else if (tariffs.length > 0) {
-        const slotMonth = deliveryDate.getMonth() + 1;
+        const slotMonth = deliveryDate.getFullYear() * 100 + (deliveryDate.getMonth() + 1);
         let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
         if (tariffsForMonth.length === 0) {
           tariffsForMonth = tariffs;
