@@ -36,7 +36,7 @@ async function main() {
   const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
 
   const headersRaw = parseCSVLine(lines[0]);
-  const headers = headersRaw.map(h => h.toLowerCase().trim().replace(/ /g, '_').replace(/\(₹\)/g, '').trim().replace(/_+/g, '_'));
+  const headers = headersRaw.map(h => h.toLowerCase().trim().replace(/ /g, '_').replace(/\(₹\)/g, '').replace(/%/g, 'percent').trim().replace(/_+/g, '_').replace(/_$/, ''));
 
   console.log('Clearing all records from stateTariff table...');
   const deleteResult = await prisma.stateTariff.deleteMany({});
