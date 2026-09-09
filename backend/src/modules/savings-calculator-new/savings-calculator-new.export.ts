@@ -329,14 +329,6 @@ export class SavingsCalculatorNewExportService {
       let baseEnergyCharges = Math.round((result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0);
       const baseDemandCharges = Math.round(result.demandCharge || 0);
 
-      // If FPPA was not explicitly provided (e.g. old calculator) but we have fppaPercent and baselineEnergyCharges, we can extract it
-      if (!hasExplicitFppa && fppaPercent > 0 && (result as any).baselineEnergyCharges) {
-        const combinedEnergyAndDemand = (result as any).baselineEnergyCharges + (result as any).demandAndFixedChargesApplied;
-        const baseCombined = combinedEnergyAndDemand / (1 + (fppaPercent / 100));
-        fppaCharges = Math.round(combinedEnergyAndDemand - baseCombined);
-        baseEnergyCharges = Math.round((result as any).baselineEnergyCharges / (1 + (fppaPercent / 100)));
-      }
-
       const energyRow = sheet.addRow(['Energy Charges', baseEnergyCharges]);
       rowMapping['energyChargesRow'] = energyRow.number;
       
@@ -355,12 +347,6 @@ export class SavingsCalculatorNewExportService {
     const hasExplicitFppa = ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
     let correctBaseEnergy = (result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0;
     let correctFppa = (result as any).fppaCharge || (result as any).fppaSurcharge || 0;
-    if (!hasExplicitFppa && !isNpcl && fppaPercent > 0 && (result as any).baselineEnergyCharges) {
-        const combinedEnergyAndDemand = (result as any).baselineEnergyCharges + (result as any).demandAndFixedChargesApplied;
-        const baseCombined = combinedEnergyAndDemand / (1 + (fppaPercent / 100));
-        correctFppa = combinedEnergyAndDemand - baseCombined;
-        correctBaseEnergy = (result as any).baselineEnergyCharges / (1 + (fppaPercent / 100));
-    }
     const totalBaselineWithMisc = correctBaseEnergy + correctFppa + (isNpcl ? demandCharges : (result.demandCharge || 0)) + (result.electricityDuty || 0) + arrear + lpsc + misc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     baseTotalRow.font = { bold: true };
@@ -389,8 +375,8 @@ export class SavingsCalculatorNewExportService {
       const demandRebate10 = grossDemand * 0.10;
       const demandRebate1 = (grossDemand - demandRebate10) * 0.01;
       
-      const baseGrossTotalAfterOA = grossTotalAfterOA / (1 + (fppaPercent / 100));
-      const fppaChargesAfterOA = grossTotalAfterOA - baseGrossTotalAfterOA;
+      const baseGrossTotalAfterOA = grossTotalAfterOA;
+      const fppaChargesAfterOA = Math.round((result as any).fppaChargeAfterOA || 0);
       const energyShareAfterOA = grossTotalAfterOA > 0 ? grossEnergyAfterOA / grossTotalAfterOA : 0;
       const baseGrossEnergyAfterOA = baseGrossTotalAfterOA * energyShareAfterOA;
       const baseGrossDemandAfterOA = baseGrossTotalAfterOA - baseGrossEnergyAfterOA;
@@ -406,13 +392,6 @@ export class SavingsCalculatorNewExportService {
       const baseDemandChargesAfterOA = Math.round(result.demandCharge || 0);
       let baseEnergyChargesAfterOA = Math.round((result as any).discomEnergyChargesAfterOA ?? (result.totalDiscomAfterProlt || 0));
 
-      if (!((result as any).fppaChargeAfterOA) && fppaPercent > 0 && (result as any).discomEnergyChargesAfterOA) {
-         const combinedAfterOA = (result as any).discomEnergyChargesAfterOA + (result as any).demandAndFixedChargesApplied;
-         const baseCombinedAfterOA = combinedAfterOA / (1 + (fppaPercent / 100));
-         fppaChargesAfterOA = Math.round(combinedAfterOA - baseCombinedAfterOA);
-         baseEnergyChargesAfterOA = Math.round((result as any).discomEnergyChargesAfterOA / (1 + (fppaPercent / 100)));
-      }
-
       sheet.addRow(['Energy Charges', baseEnergyChargesAfterOA]);
       sheet.addRow(['FPPA Surcharge', fppaChargesAfterOA]);
       sheet.addRow(['Demand & Fixed Charges', baseDemandChargesAfterOA]);
@@ -425,12 +404,6 @@ export class SavingsCalculatorNewExportService {
     
     let correctFppaAfterOA = (result as any).fppaChargeAfterOA || 0;
     let correctEnergyAfterOA = energyChargesAfterOA;
-    if (!((result as any).fppaChargeAfterOA) && !isNpcl && fppaPercent > 0 && (result as any).discomEnergyChargesAfterOA) {
-        const combinedAfterOA = (result as any).discomEnergyChargesAfterOA + (result as any).demandAndFixedChargesApplied;
-        const baseCombinedAfterOA = combinedAfterOA / (1 + (fppaPercent / 100));
-        correctFppaAfterOA = combinedAfterOA - baseCombinedAfterOA;
-        correctEnergyAfterOA = (result as any).discomEnergyChargesAfterOA / (1 + (fppaPercent / 100));
-    }
     
     const totalDiscomAfterOAWithMisc = (correctEnergyAfterOA + correctFppaAfterOA + (isNpcl ? demandCharges : (result.demandCharge || 0)) + electricityDutyAfterOA + misc) + arrear + lpsc;
     const afterTotalRow = sheet.addRow(['Total DISCOM Bill After Open Access', Math.round(totalDiscomAfterOAWithMisc)]);
