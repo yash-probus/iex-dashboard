@@ -1036,7 +1036,7 @@ export class SavingsCalculatorNewService {
         }
 
         if (entry.discom === 'NPCL' && !matchedCustomSlot) {
-          discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
+          discomLandingPrice = discomLandingPrice * 0.90 * (entry.powerFactor || 0.99);
         }
 
         let comparedLowestPrice = discomLandingPrice;
@@ -1699,7 +1699,7 @@ export class SavingsCalculatorNewService {
       }
       
       if (isNpcl) {
-        discomLanding = discomLanding * 0.90 * 0.99;
+        discomLanding = discomLanding * 0.90 * (entry.powerFactor || 0.99);
       }
 
       const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
@@ -2213,7 +2213,7 @@ export class SavingsCalculatorNewService {
       const fppaMultiplier = 1 + (fppaPercent / 100);
 
       const getDiscountedDemandCharge = (dc: number) => {
-        return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
+        return entry.discom === 'NPCL' ? dc * 0.90 * (entry.powerFactor || 0.99) : dc;
       };
 
       // FPPA should be applied on (energy charges + demand charges).

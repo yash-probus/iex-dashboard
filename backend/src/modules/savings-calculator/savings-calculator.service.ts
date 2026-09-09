@@ -928,7 +928,7 @@ export class SavingsCalculatorService {
         discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
 
         if (entry.discom === 'NPCL') {
-          discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
+          discomLandingPrice = discomLandingPrice * 0.90 * (entry.powerFactor || 0.99);
         }
 
         let comparedLowestPrice = discomLandingPrice;
@@ -994,14 +994,14 @@ export class SavingsCalculatorService {
           remainingEnergy = todSummary ? todSummary.newEnergy : 0;
         } else {
           const matchedKey = Object.keys(monthConsumptions).find(k => {
-            if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+            if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
             return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
           });
 
           if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
             remainingEnergy = Number(monthConsumptions[matchedKey]);
           } else {
-            const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+            const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
             const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
             let flatTotal = 0;
             if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -1560,8 +1560,8 @@ export class SavingsCalculatorService {
       }
 
       let discomLanding = discomBase * (1 + (fppaPercent / 100));
-      if (isNpcl) {
-        discomLanding = discomLanding * 0.90 * 0.99;
+      if (entry.discom === 'NPCL') {
+        discomLanding = discomLanding * 0.90 * (entry.powerFactor || 0.99);
       }
 
       const shouldBuyFromMarket = bestMarketLanding > 0 && bestMarketLanding < discomLanding;
@@ -1807,14 +1807,14 @@ export class SavingsCalculatorService {
         slabConsumption = todSummary ? todSummary.newEnergy : 0;
       } else {
         const matchedKey = Object.keys(monthConsumptions).find(k => {
-          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
         });
         
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
           let flatTotal = 0;
           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -1863,14 +1863,14 @@ export class SavingsCalculatorService {
         });
       } else {
         const matchedKey = Object.keys(monthConsumptions).find(k => {
-          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
         });
         
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
           let flatTotal = 0;
           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -2022,13 +2022,13 @@ export class SavingsCalculatorService {
         slabConsumption = todSummary ? todSummary.newEnergy : 0;
       } else {
         const matchedKey = Object.keys(monthConsumptions).find(k => {
-          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
         });
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
         } else {
-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges'];
+          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
           let flatTotal = 0;
           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
@@ -2075,7 +2075,7 @@ export class SavingsCalculatorService {
       const fppaMultiplier = 1 + (fppaPercent / 100);
 
       const getDiscountedDemandCharge = (dc: number) => {
-        return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
+        return entry.discom === 'NPCL' ? dc * 0.90 * (entry.powerFactor || 0.99) : dc;
       };
 
       // FPPA should be applied on (energy charges + demand charges).

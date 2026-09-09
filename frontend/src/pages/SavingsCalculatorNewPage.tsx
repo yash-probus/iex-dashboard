@@ -638,11 +638,8 @@ export default function SavingsCalculatorNewPage() {
 
     const kwVal = entry.sanctionedLoadKw ? String(entry.sanctionedLoadKw) : '';
     setSanctionedLoadKw(kwVal);
-    if (kwVal && !isNaN(Number(kwVal))) {
-      setSanctionedLoadKva((Number(kwVal) / 0.9).toFixed(2).replace(/\.00$/, ''));
-    } else {
-      setSanctionedLoadKva('');
-    }
+    const pf = entry.powerFactor || 0.99;
+    setSanctionedLoadKva(kwVal && !isNaN(Number(kwVal)) ? (Number(kwVal) / pf).toFixed(2).replace(/\.00$/, '') : '');
 
     setStateCode(entry.stateCode || 'MH');
     setDiscom(entry.discom || 'MSEDCL');
@@ -1448,7 +1445,7 @@ export default function SavingsCalculatorNewPage() {
             summary: `Sanctioned Load: ${sanctionedLoadKw} kW (${sanctionedLoadKva} kVA)`,
             content: (
               <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={4}>
                   <TextField
                     label="Sanctioned Load (kW) *"
                     type="number"
@@ -1456,8 +1453,9 @@ export default function SavingsCalculatorNewPage() {
                     onChange={(e) => {
                       const val = e.target.value;
                       setSanctionedLoadKw(val);
+                      const currentPf = powerFactor && !isNaN(Number(powerFactor)) ? Number(powerFactor) : 0.99;
                       if (val && !isNaN(Number(val))) {
-                        setSanctionedLoadKva((Number(val) / 0.9).toFixed(2).replace(/\.00$/, ''));
+                        setSanctionedLoadKva((Number(val) / currentPf).toFixed(2).replace(/\.00$/, ''));
                       } else {
                         setSanctionedLoadKva('');
                       }
@@ -1466,7 +1464,7 @@ export default function SavingsCalculatorNewPage() {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={4}>
                   <TextField
                     label="Sanctioned Load (kVA)"
                     type="number"
@@ -1474,14 +1472,48 @@ export default function SavingsCalculatorNewPage() {
                     onChange={(e) => {
                       const val = e.target.value;
                       setSanctionedLoadKva(val);
+                      const currentPf = powerFactor && !isNaN(Number(powerFactor)) ? Number(powerFactor) : 0.99;
                       if (val && !isNaN(Number(val))) {
-                        setSanctionedLoadKw((Number(val) * 0.9).toFixed(2).replace(/\.00$/, ''));
+                        setSanctionedLoadKw((Number(val) * currentPf).toFixed(2).replace(/\.00$/, ''));
                       } else {
                         setSanctionedLoadKw('');
                       }
                     }}
                     fullWidth
                     size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Power Factor"
+                    type="number"
+                    value={powerFactor}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val !== '') {
+                        if (Number(val) > 1) val = '1';
+                        else if (Number(val) < 0) val = '';
+                      }
+                      setPowerFactor(val);
+                      
+                      // Also update kVA based on current kW and new PF
+                      if (sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
+                        const newPf = val && !isNaN(Number(val)) && Number(val) > 0 ? Number(val) : 0.99;
+                        setSanctionedLoadKva((Number(sanctionedLoadKw) / newPf).toFixed(2).replace(/\.00$/, ''));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === '' || Number(e.target.value) <= 0) {
+                        setPowerFactor('0.99');
+                        if (sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
+                          setSanctionedLoadKva((Number(sanctionedLoadKw) / 0.99).toFixed(2).replace(/\.00$/, ''));
+                        }
+                      }
+                    }}
+                    fullWidth
+                    size="small"
+                    placeholder="0.99"
+                    inputProps={{ max: 1, min: 0.01, step: 0.01 }}
                   />
                 </Grid>
               </Grid>
