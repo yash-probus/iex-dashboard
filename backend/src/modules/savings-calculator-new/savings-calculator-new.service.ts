@@ -1693,7 +1693,11 @@ export class SavingsCalculatorNewService {
         }
       }
 
-      let discomLanding = discomBase * (1 + (fppaPercent / 100));
+      let discomLanding = discomBase;
+      if (!matchedCustomSlot) {
+        discomLanding = discomBase * (1 + (fppaPercent / 100));
+      }
+      
       if (isNpcl) {
         discomLanding = discomLanding * 0.90 * 0.99;
       }
