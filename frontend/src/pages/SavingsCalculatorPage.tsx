@@ -1838,25 +1838,45 @@ export default function SavingsCalculatorPage() {
                     <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
                       Billed Consumption
                     </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={12}>
-                        <DateRangePicker
-                          startDate={todConsumptions[ym]['Start Date'] || ''}
-                          endDate={todConsumptions[ym]['End Date'] || ''}
-                          onChange={(start, end) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end } }))}
-                        />
-                      </Grid>
-                      {monthSlabs.map(slab => (
-                        <Grid item xs={12} sm={6} md={3} key={slab}>
-                          <TextField
-                            label={`${slab}`}
-                            value={todConsumptions[ym][slab] || ''}
-                            onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], [slab]: e.target.value } }))}
-                            fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={12}>
+                          <DateRangePicker
+                            startDate={todConsumptions[ym]['Start Date'] || ''}
+                            endDate={todConsumptions[ym]['End Date'] || ''}
+                            onChange={(start, end) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end } }))}
                           />
                         </Grid>
-                      ))}
-                    </Grid>
+                        {monthSlabs.map(slab => (
+                          <Grid item xs={12} sm={6} md={3} key={slab}>
+                            <TextField
+                              label={`${slab} (kVAh)`}
+                              value={todConsumptions[ym][slab] || ''}
+                              onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], [slab]: e.target.value } }))}
+                              fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                            />
+                          </Grid>
+                        ))}
+                      </Grid>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mt: 2, mb: 1 }}>
+                        Calculated Consumption (kWh)
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {monthSlabs.map(slab => {
+                          const kvahVal = Number(todConsumptions[ym][slab]) || 0;
+                          const pf = Number(todConsumptions[ym]['Power Factor']) || 1;
+                          const kwhVal = kvahVal > 0 ? (kvahVal * pf).toFixed(2) : '';
+                          return (
+                            <Grid item xs={12} sm={6} md={3} key={`kwh-${slab}`}>
+                              <TextField
+                                label={`${slab} (kWh)`}
+                                value={kwhVal}
+                                InputProps={{ readOnly: true }}
+                                fullWidth variant="filled" size="small" sx={{ bgcolor: '#F1F5F9' }}
+                              />
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
                   </Box>
 
                   <Divider sx={{ mb: 2.5 }} />
