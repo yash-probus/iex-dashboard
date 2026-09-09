@@ -908,8 +908,8 @@ model ForecastConsumerDemand {
   confidence       Decimal? @db.Decimal(18, 4)
 
   @@map("consumer_demand_forecasting")
-  @@schema("forecasting")
   @@ignore
+  @@schema("forecasting")
 }
 
 model ForecastAllIndiaDemand {

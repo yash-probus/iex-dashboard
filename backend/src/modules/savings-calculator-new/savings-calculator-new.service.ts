@@ -992,7 +992,7 @@ export class SavingsCalculatorNewService {
             }
           }
         } else if (tariffs.length > 0) {
-          const slotMonth = deliveryDate.getFullYear() * 100 + (deliveryDate.getMonth() + 1);
+          const slotMonth = deliveryDate.getMonth() + 1;
           let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
           if (tariffsForMonth.length === 0) {
             tariffsForMonth = tariffs;
@@ -1665,7 +1665,7 @@ export class SavingsCalculatorNewService {
           }
         }
       } else if (tariffs.length > 0) {
-        const slotMonth = deliveryDate.getFullYear() * 100 + (deliveryDate.getMonth() + 1);
+        const slotMonth = deliveryDate.getMonth() + 1;
         let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
         if (tariffsForMonth.length === 0) {
           tariffsForMonth = tariffs;
