@@ -281,6 +281,9 @@ interface MonthTodData {
   slots: CustomTodSlot[];
   'Electricity Duty'?: string;
   'Billing Month'?: string;
+  'Current LPSC'?: string;
+  'Arrear Amount'?: string;
+  'Miscellaneous Charges'?: string;
 }
 
 function parseTimeToMinutes(t: string): number {
@@ -1846,6 +1849,56 @@ export default function SavingsCalculatorNewPage() {
                         })()}
                       </TableBody>
                     </Table>
+                  </Box>
+
+                  <Divider sx={{ mt: 3, mb: 2.5 }} />
+
+                  {/* ── Section: Other Info (optional) ── */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#8B5CF6', display: 'block', mb: 1.5 }}>
+                      Other Info <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span>
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6} md={4}>
+                        <TextField
+                          label="Current LPSC (₹)"
+                          value={monthData['Current LPSC'] || ''}
+                          onChange={(e) => {
+                            const updated = { ...todConsumptions };
+                            if (!updated[ym]) updated[ym] = { startDate: '', endDate: '', peakDemandKw: 1000, slots: [] };
+                            updated[ym]['Current LPSC'] = e.target.value;
+                            setTodConsumptions(updated);
+                          }}
+                          fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={4}>
+                        <TextField
+                          label="Arrear Amount (₹)"
+                          value={monthData['Arrear Amount'] || ''}
+                          onChange={(e) => {
+                            const updated = { ...todConsumptions };
+                            if (!updated[ym]) updated[ym] = { startDate: '', endDate: '', peakDemandKw: 1000, slots: [] };
+                            updated[ym]['Arrear Amount'] = e.target.value;
+                            setTodConsumptions(updated);
+                          }}
+                          fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={4}>
+                        <TextField
+                          label="Miscellaneous Charges (₹)"
+                          value={monthData['Miscellaneous Charges'] || ''}
+                          onChange={(e) => {
+                            const updated = { ...todConsumptions };
+                            if (!updated[ym]) updated[ym] = { startDate: '', endDate: '', peakDemandKw: 1000, slots: [] };
+                            updated[ym]['Miscellaneous Charges'] = e.target.value;
+                            setTodConsumptions(updated);
+                          }}
+                          fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                        />
+                      </Grid>
+                    </Grid>
                   </Box>
                 </AccordionDetails>
               </Accordion>
