@@ -1694,7 +1694,7 @@ export default function SavingsCalculatorNewPage() {
 
                           return slots.map((slot, idx) => {
                             const kwhVal = Number(slot.consumptionKwh) || 0;
-                            const kvahVal = kwhVal > 0 ? Math.round(kwhVal / currentPf) : 0;
+                            const kvahVal = kwhVal > 0 ? parseFloat((kwhVal / currentPf).toFixed(4)) : '';
                             const effPriceKvahVal = slot.effectivePrice ? Number((Number(slot.effectivePrice) * currentPf).toFixed(4)) : '';
 
                             return (
@@ -1742,6 +1742,7 @@ export default function SavingsCalculatorNewPage() {
                                   <TextField
                                     size="small"
                                     type="number"
+                                    inputProps={{ step: 'any' }}
                                     value={slot.consumptionKwh}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
@@ -1754,14 +1755,15 @@ export default function SavingsCalculatorNewPage() {
                                   <TextField
                                     size="small"
                                     type="number"
+                                    inputProps={{ step: 'any' }}
                                     value={kvahVal}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
                                       const val = e.target.value;
                                       if (val && !isNaN(Number(val))) {
-                                        handleUpdateTodSlot(idx, 'consumptionKwh', Math.round(Number(val) * currentPf));
+                                        handleUpdateTodSlot(idx, 'consumptionKwh', parseFloat((Number(val) * currentPf).toFixed(4)));
                                       } else {
-                                        handleUpdateTodSlot(idx, 'consumptionKwh', 0);
+                                        handleUpdateTodSlot(idx, 'consumptionKwh', '');
                                       }
                                     }}
                                     sx={{ width: 110 }}
