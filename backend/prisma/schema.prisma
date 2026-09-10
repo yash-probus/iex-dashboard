@@ -6,15 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["public", "forecasting"]
-}
-
-enum Role {
-  SUPER_ADMIN
-  ADMIN
-  CLIENT
-
-  @@schema("public")
+  schemas  = ["forecasting", "public"]
 }
 
 model User {
@@ -24,9 +16,9 @@ model User {
   passwordHash    String   @db.VarChar(255)
   role            Role     @default(CLIENT)
   hiddenModules   String[] @default([])
-  readOnlyModules String[] @default([])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  readOnlyModules String[] @default([])
 
   @@index([username])
   @@index([email])
@@ -43,10 +35,10 @@ model Dataset {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   damRecords     DamRecord[]
-  gdamRecords    GdamRecord[]
   gdamNewRecords GdamNewRecord[]
-  rtmRecords     RtmRecord[]
+  gdamRecords    GdamRecord[]
   recRecords     RecRecord[]
+  rtmRecords     RtmRecord[]
   uploadHistory  UploadHistory[]
 
   @@index([market])
@@ -76,7 +68,6 @@ model UploadHistory {
 model DamRecord {
   id             String  @id @default(uuid())
   datasetId      String
-  date           String? @db.VarChar(10)
   intervalNumber Int     @db.SmallInt
   intervalTime   String  @db.VarChar(15)
   purchaseBid    Decimal @db.Decimal(18, 4)
@@ -84,6 +75,7 @@ model DamRecord {
   mcv            Decimal @db.Decimal(18, 4)
   fsv            Decimal @db.Decimal(18, 4)
   mcp            Decimal @db.Decimal(18, 4)
+  date           String? @db.VarChar(10)
   dataset        Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
   @@unique([datasetId, intervalNumber])
@@ -96,7 +88,6 @@ model DamRecord {
 model GdamRecord {
   id              String   @id @default(uuid())
   datasetId       String
-  date            String?  @db.VarChar(10)
   intervalNumber  Int      @db.SmallInt
   intervalTime    String   @db.VarChar(15)
   purchaseBid     Decimal  @db.Decimal(18, 4)
@@ -104,24 +95,25 @@ model GdamRecord {
   sellBidSolar    Decimal? @db.Decimal(18, 4)
   sellBidNonSolar Decimal? @db.Decimal(18, 4)
   sellBidHydro    Decimal  @db.Decimal(18, 4)
-  sellBidWind     Decimal  @default(0) @db.Decimal(18, 4)
-  sellBidOtherRE  Decimal  @default(0) @db.Decimal(18, 4)
-  sellBidORE      Decimal  @default(0) @db.Decimal(18, 4)
   mcvTotal        Decimal  @db.Decimal(18, 4)
   mcvSolar        Decimal? @db.Decimal(18, 4)
   mcvNonSolar     Decimal? @db.Decimal(18, 4)
   mcvHydro        Decimal  @db.Decimal(18, 4)
-  mcvWind         Decimal  @default(0) @db.Decimal(18, 4)
-  mcvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
-  mcvORE          Decimal  @default(0) @db.Decimal(18, 4)
   fsvTotal        Decimal  @db.Decimal(18, 4)
   fsvSolar        Decimal? @db.Decimal(18, 4)
   fsvNonSolar     Decimal? @db.Decimal(18, 4)
   fsvHydro        Decimal  @db.Decimal(18, 4)
-  fsvWind         Decimal  @default(0) @db.Decimal(18, 4)
-  fsvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
-  fsvORE          Decimal  @default(0) @db.Decimal(18, 4)
   mcp             Decimal  @db.Decimal(18, 4)
+  date            String?  @db.VarChar(10)
+  fsvORE          Decimal  @default(0) @db.Decimal(18, 4)
+  fsvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
+  fsvWind         Decimal  @default(0) @db.Decimal(18, 4)
+  mcvORE          Decimal  @default(0) @db.Decimal(18, 4)
+  mcvOtherRE      Decimal  @default(0) @db.Decimal(18, 4)
+  mcvWind         Decimal  @default(0) @db.Decimal(18, 4)
+  sellBidORE      Decimal  @default(0) @db.Decimal(18, 4)
+  sellBidOtherRE  Decimal  @default(0) @db.Decimal(18, 4)
+  sellBidWind     Decimal  @default(0) @db.Decimal(18, 4)
   dataset         Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
   @@unique([datasetId, intervalNumber])
@@ -166,7 +158,6 @@ model GdamNewRecord {
 model RtmRecord {
   id             String  @id @default(uuid())
   datasetId      String
-  date           String? @db.VarChar(10)
   intervalNumber Int     @db.SmallInt
   intervalTime   String  @db.VarChar(15)
   sessionId      String  @db.VarChar(50)
@@ -175,6 +166,7 @@ model RtmRecord {
   mcv            Decimal @db.Decimal(18, 4)
   fsv            Decimal @db.Decimal(18, 4)
   mcp            Decimal @db.Decimal(18, 4)
+  date           String? @db.VarChar(10)
   dataset        Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
   @@unique([datasetId, intervalNumber])
@@ -187,14 +179,14 @@ model RtmRecord {
 model RecRecord {
   id               String  @id @default(uuid())
   datasetId        String
-  year             Int     @db.SmallInt
-  month            String  @db.VarChar(50)
-  type             String  @db.VarChar(50)
   buyBids          Decimal @db.Decimal(18, 4)
-  sellBids         Decimal @db.Decimal(18, 4)
-  clearedVolume    Decimal @db.Decimal(18, 4)
   clearedPrice     Decimal @db.Decimal(18, 4)
-  noOfParticipants Int     @db.Integer
+  clearedVolume    Decimal @db.Decimal(18, 4)
+  month            String  @db.VarChar(50)
+  noOfParticipants Int
+  sellBids         Decimal @db.Decimal(18, 4)
+  type             String  @db.VarChar(50)
+  year             Int     @db.SmallInt
   dataset          Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
   @@unique([datasetId, year, month, type])
@@ -231,9 +223,9 @@ model DiscomList {
 
 model IstsCharges {
   id              Int      @id @default(autoincrement())
-  startDate       DateTime @map("start_date") @db.Date
-  endDate         DateTime @map("end_date") @db.Date
   istsLossPercent Decimal  @map("ists_loss_percent") @db.Decimal(6, 4)
+  endDate         DateTime @map("end_date") @db.Date
+  startDate       DateTime @map("start_date") @db.Date
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([startDate, endDate], map: "uq_ists_charges_dates")
@@ -287,7 +279,6 @@ model CtuCharges {
 model StateCharges {
   id                             Int      @id @default(autoincrement())
   state                          String   @db.VarChar(100)
-  discom                         String?  @db.VarChar(100)
   category                       String?  @db.VarChar(100)
   subCategory                    String?  @map("sub_category") @db.VarChar(255)
   supplyVoltageCategory          String?  @map("supply_voltage_category") @db.VarChar(100)
@@ -302,28 +293,29 @@ model StateCharges {
   wheelingLossPercent            Decimal? @map("wheeling_loss_percent") @db.Decimal(12, 6)
   additionalCharge               Decimal? @map("additional_charge") @db.Decimal(12, 6)
   updatedAt                      DateTime @default(now()) @updatedAt @map("updated_at")
+  discom                         String?  @db.VarChar(100)
 
   @@map("state_charges")
   @@schema("public")
 }
 
 model StateTariff {
-  id                    Int      @id @default(autoincrement())
-  state                 String   @db.VarChar(100)
-  discom                String?  @db.VarChar(100)
-  consumerCategory      String   @map("consumer_category") @db.VarChar(50)
-  subCategory           String   @map("sub_category") @db.VarChar(255)
-  supplyVoltageCategory String   @map("supply_voltage_category") @db.VarChar(100)
-  supplyVoltage         String   @map("supply_voltage") @db.VarChar(50)
   month                 Int
-  consumptionMonth      Int?     @map("consumption_month")
-  todStartTime          String   @map("tod_start_time") @db.VarChar(20)
-  todEndTime            String   @map("tod_end_time") @db.VarChar(20)
+  state                 String   @db.VarChar(100)
+  subCategory           String   @map("sub_category") @db.VarChar(255)
+  id                    Int      @id @default(autoincrement())
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
   baseEnergyRate        Decimal  @map("base_energy_rate") @db.Decimal(12, 6)
   baseEnergyUnit        String   @map("base_energy_unit") @db.VarChar(10)
-  todChargePercent      Int      @map("tod_charge_percent")
+  consumerCategory      String   @map("consumer_category") @db.VarChar(50)
   energyRate            Decimal  @map("energy_rate") @db.Decimal(12, 6)
-  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
+  supplyVoltage         String   @map("supply_voltage") @db.VarChar(50)
+  supplyVoltageCategory String   @map("supply_voltage_category") @db.VarChar(100)
+  todChargePercent      Int      @map("tod_charge_percent")
+  todEndTime            String   @map("tod_end_time") @db.VarChar(20)
+  todStartTime          String   @map("tod_start_time") @db.VarChar(20)
+  discom                String?  @db.VarChar(100)
+  consumptionMonth      Int?     @map("consumption_month")
 
   @@unique([state, consumerCategory, subCategory, supplyVoltageCategory, supplyVoltage, month, todStartTime, todEndTime], map: "uq_state_tariff_composite")
   @@map("state_tariff")
@@ -357,43 +349,11 @@ model user_details {
   @@schema("public")
 }
 
-enum MarketType {
-  DAM
-  GDAM
-  RTM
-  REC
-
-  @@schema("public")
-}
-
-enum DatasetStatus {
-  ACTIVE
-  REPLACED
-  DELETED
-
-  @@schema("public")
-}
-
-enum UploadAction {
-  UPLOAD
-  REPLACE
-  DELETE
-
-  @@schema("public")
-}
-
-enum state_ut_enum {
-  state
-  ut
-
-  @@schema("public")
-}
-
 model StateDemandData {
   id        String   @id @default(uuid())
   stateName String
-  date      String   @db.VarChar(10) // YYYY-MM-DD
-  timeStr   String   @db.VarChar(10) // HH:MM
+  date      String   @db.VarChar(10)
+  timeStr   String   @db.VarChar(10)
   demand    Int
   unit      String
   region    String
@@ -406,21 +366,21 @@ model StateDemandData {
 
 model WeatherForecast {
   id                String        @id @default(uuid())
-  date              String        @db.VarChar(10) // YYYY-MM-DD
-  cityId            String
-  city              CityStateData @relation(fields: [cityId], references: [id])
+  date              String        @db.VarChar(10)
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
   relativeHumidity  Float         @default(0)
   precipitationProb Float         @default(0)
   precipitationSum  Float         @default(0)
-  rainSum           Float         @default(0)
   sunshineDuration  Float         @default(0)
   sunrise           String        @default("") @db.VarChar(10)
   sunset            String        @default("") @db.VarChar(10)
   isActual          Boolean       @default(false)
   updatedAt         DateTime      @default(now()) @updatedAt
+  cityId            String
+  rainSum           Float         @default(0)
+  city              CityStateData @relation(fields: [cityId], references: [id])
 
   @@unique([date, cityId])
   @@schema("public")
@@ -428,22 +388,22 @@ model WeatherForecast {
 
 model WeatherForecastHourly {
   id                String        @id @default(uuid())
-  date              String        @db.VarChar(10) // YYYY-MM-DD
-  timeStr           String        @db.VarChar(5) // HH:MM
-  cityId            String
-  city              CityStateData @relation(fields: [cityId], references: [id])
+  date              String        @db.VarChar(10)
+  timeStr           String        @db.VarChar(5)
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
   relativeHumidity  Float         @default(0)
   precipitationProb Float         @default(0)
   precipitationSum  Float         @default(0)
-  rainSum           Float         @default(0)
   sunshineDuration  Float         @default(0)
   sunrise           String        @default("") @db.VarChar(10)
   sunset            String        @default("") @db.VarChar(10)
   isActual          Boolean       @default(false)
   updatedAt         DateTime      @default(now()) @updatedAt
+  cityId            String
+  rainSum           Float         @default(0)
+  city              CityStateData @relation(fields: [cityId], references: [id])
 
   @@unique([date, timeStr, cityId])
   @@schema("public")
@@ -451,21 +411,21 @@ model WeatherForecastHourly {
 
 model WeatherHistorical {
   id                String        @id @default(uuid())
-  date              String        @db.VarChar(10) // YYYY-MM-DD
-  cityId            String
-  city              CityStateData @relation(fields: [cityId], references: [id])
+  date              String        @db.VarChar(10)
   maxTemp           Float
   minTemp           Float
   windSpeed         Float
   relativeHumidity  Float         @default(0)
   precipitationProb Float         @default(0)
   precipitationSum  Float         @default(0)
-  rainSum           Float         @default(0)
   sunshineDuration  Float         @default(0)
   sunrise           String        @default("") @db.VarChar(10)
   sunset            String        @default("") @db.VarChar(10)
   isActual          Boolean       @default(false)
   updatedAt         DateTime      @default(now()) @updatedAt
+  cityId            String
+  rainSum           Float         @default(0)
+  city              CityStateData @relation(fields: [cityId], references: [id])
 
   @@unique([date, cityId])
   @@schema("public")
@@ -473,11 +433,11 @@ model WeatherHistorical {
 
 model NppRawDemandData {
   id            String   @id @default(uuid())
-  date          String // e.g., '2026-07-01'
-  timeStr       String // e.g., '00:03'
+  date          String
+  timeStr       String
   demandMet     Float
-  dataUpdatedAt String? // The time at which they updated the data
-  fetchedAt     DateTime @default(now()) // The time at which we fetched the data
+  dataUpdatedAt String?
+  fetchedAt     DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
@@ -488,16 +448,16 @@ model NppRawDemandData {
 
 model NppRawGenerationData {
   id            String   @id @default(uuid())
-  date          String // e.g., '2026-07-01'
-  timeStr       String // e.g., '00:03'
+  date          String
+  timeStr       String
   thermal       Float?
   gas           Float?
   nuclear       Float?
   hydro         Float?
   wind          Float?
   solar         Float?
-  dataUpdatedAt String? // The time at which they updated the data
-  fetchedAt     DateTime @default(now()) // The time at which we fetched the data
+  dataUpdatedAt String?
+  fetchedAt     DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
@@ -540,7 +500,7 @@ model NppAdjustedGenerationData {
 model HolidayCalendar {
   id          String   @id @default(uuid())
   month       String   @db.VarChar(20)
-  holidayDate String   @db.VarChar(10) // DD-MM-YYYY
+  holidayDate String   @db.VarChar(10)
   holidayName String   @db.VarChar(255)
   holidayType String   @db.VarChar(50)
   state       String   @db.VarChar(100)
@@ -555,15 +515,15 @@ model ApiLog {
   id        String   @id @default(uuid())
   apiName   String   @db.VarChar(100)
   endpoint  String?  @db.VarChar(255)
-  status    String   @db.VarChar(50) // SUCCESS, ERROR
-  details   String?  @db.Text
+  status    String   @db.VarChar(50)
   createdAt DateTime @default(now())
+  details   String?
 
   @@schema("public")
 }
 
 model ForecastAllIndiaDemandV2 {
-  timestamp       DateTime @id @db.Timestamp(3)
+  timestamp       DateTime @id
   forecast_demand Float?
 
   @@map("all_india_demand_forecasting_v2")
@@ -572,8 +532,8 @@ model ForecastAllIndiaDemandV2 {
 
 model GenerationForecasting {
   id                     Int       @id @default(autoincrement())
-  forecast_generated_at  DateTime? @db.Timestamp(3)
-  forecast_for_timestamp DateTime? @db.Timestamp(3)
+  forecast_generated_at  DateTime?
+  forecast_for_timestamp DateTime?
   source                 String?   @db.VarChar(50)
   forecast_mw            Float?
   model_name             String?   @db.VarChar(100)
@@ -616,73 +576,65 @@ model CityStateData {
 }
 
 model SavingsCalculatorEntry {
-  id                String   @id @default(uuid())
-  clientName        String   @map("client_name") @db.VarChar(255)
-  industryName      String   @map("industry_name") @db.VarChar(255)
-  address           String   @db.Text
-  sanctionedLoadKw  Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
-  proltMargin       Decimal? @map("prolt_margin") @db.Decimal(12, 4)
-  traderMargin      Decimal? @map("trader_margin") @db.Decimal(12, 4)
-  meteringCharges   Decimal? @map("metering_charges") @db.Decimal(12, 4)
-  consultancyFee    Decimal? @map("consultancy_fee") @db.Decimal(12, 4)
-  probusPlatformFee Decimal? @map("probus_platform_fee") @db.Decimal(12, 4)
-
-  stateCode        String? @map("state_code") @db.VarChar(100)
-  discom           String? @map("discom") @db.VarChar(100)
-  consumerCategory String? @map("consumer_category") @db.VarChar(100)
-  voltageLevel     String? @map("voltage_level") @db.VarChar(50)
-  todConsumptions  Json?   @map("tod_consumptions")
-
-  billedDemandKv       Decimal? @map("billed_demand_kv") @db.Decimal(12, 4)
-  powerFactor          Decimal? @map("power_factor") @db.Decimal(5, 4)
-  arrearAmount         Decimal? @map("arrear_amount") @db.Decimal(15, 2)
-  currentLpsc          Decimal? @map("current_lpsc") @db.Decimal(15, 2)
-  billDate             String?  @map("bill_date") @db.VarChar(50)
-  applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
-  createdBy            String?  @map("created_by") @db.VarChar(50)
-  updatedBy            String?  @map("updated_by") @db.VarChar(50)
-
-  history SavingsCalculatorEntryHistory[]
+  id                   String                          @id @default(uuid())
+  clientName           String                          @map("client_name") @db.VarChar(255)
+  industryName         String                          @map("industry_name") @db.VarChar(255)
+  address              String
+  sanctionedLoadKw     Decimal?                        @map("sanctioned_load_kw") @db.Decimal(12, 4)
+  stateCode            String?                         @map("state_code") @db.VarChar(100)
+  discom               String?                         @map("discom") @db.VarChar(100)
+  consumerCategory     String?                         @map("consumer_category") @db.VarChar(100)
+  voltageLevel         String?                         @map("voltage_level") @db.VarChar(50)
+  todConsumptions      Json?                           @map("tod_consumptions")
+  createdAt            DateTime                        @default(now()) @map("created_at")
+  updatedAt            DateTime                        @updatedAt @map("updated_at")
+  proltMargin          Decimal?                        @map("prolt_margin") @db.Decimal(12, 4)
+  traderMargin         Decimal?                        @map("trader_margin") @db.Decimal(12, 4)
+  applyElectricityDuty Boolean                         @default(true) @map("apply_electricity_duty")
+  arrearAmount         Decimal?                        @map("arrear_amount") @db.Decimal(15, 2)
+  billDate             String?                         @map("bill_date") @db.VarChar(50)
+  billedDemandKv       Decimal?                        @map("billed_demand_kv") @db.Decimal(12, 4)
+  consultancyFee       Decimal?                        @map("consultancy_fee") @db.Decimal(12, 4)
+  currentLpsc          Decimal?                        @map("current_lpsc") @db.Decimal(15, 2)
+  powerFactor          Decimal?                        @map("power_factor") @db.Decimal(5, 4)
+  probusPlatformFee    Decimal?                        @map("probus_platform_fee") @db.Decimal(12, 4)
+  createdBy            String?                         @map("created_by") @db.VarChar(50)
+  updatedBy            String?                         @map("updated_by") @db.VarChar(50)
+  meteringCharges      Decimal?                        @map("metering_charges") @db.Decimal(12, 4)
+  history              SavingsCalculatorEntryHistory[]
 
   @@map("savings_calculator_entries")
   @@schema("public")
 }
 
 model SavingsCalculatorEntryHistory {
-  id      String @id @default(uuid())
-  entryId String @map("entry_id") @db.VarChar(36)
-  version Int
-
-  // Snapshot of data
-  clientName        String   @map("client_name") @db.VarChar(255)
-  industryName      String   @map("industry_name") @db.VarChar(255)
-  address           String   @db.Text
-  sanctionedLoadKw  Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
-  proltMargin       Decimal? @map("prolt_margin") @db.Decimal(12, 4)
-  traderMargin      Decimal? @map("trader_margin") @db.Decimal(12, 4)
-  meteringCharges   Decimal? @map("metering_charges") @db.Decimal(12, 4)
-  consultancyFee    Decimal? @map("consultancy_fee") @db.Decimal(12, 4)
-  probusPlatformFee Decimal? @map("probus_platform_fee") @db.Decimal(12, 4)
-  stateCode         String?  @map("state_code") @db.VarChar(100)
-  discom            String?  @map("discom") @db.VarChar(100)
-  consumerCategory  String?  @map("consumer_category") @db.VarChar(100)
-  voltageLevel      String?  @map("voltage_level") @db.VarChar(50)
-  todConsumptions   Json?    @map("tod_consumptions")
-
-  billedDemandKv       Decimal? @map("billed_demand_kv") @db.Decimal(12, 4)
-  powerFactor          Decimal? @map("power_factor") @db.Decimal(5, 4)
-  arrearAmount         Decimal? @map("arrear_amount") @db.Decimal(15, 2)
-  currentLpsc          Decimal? @map("current_lpsc") @db.Decimal(15, 2)
-  billDate             String?  @map("bill_date") @db.VarChar(50)
-  applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
-
-  changedAt DateTime @default(now()) @map("changed_at")
-  createdBy String?  @map("created_by") @db.VarChar(50)
-  updatedBy String?  @map("updated_by") @db.VarChar(50)
-
-  entry SavingsCalculatorEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  id                   String                 @id @default(uuid())
+  entryId              String                 @map("entry_id") @db.VarChar(36)
+  version              Int
+  clientName           String                 @map("client_name") @db.VarChar(255)
+  industryName         String                 @map("industry_name") @db.VarChar(255)
+  address              String
+  sanctionedLoadKw     Decimal?               @map("sanctioned_load_kw") @db.Decimal(12, 4)
+  proltMargin          Decimal?               @map("prolt_margin") @db.Decimal(12, 4)
+  traderMargin         Decimal?               @map("trader_margin") @db.Decimal(12, 4)
+  consultancyFee       Decimal?               @map("consultancy_fee") @db.Decimal(12, 4)
+  probusPlatformFee    Decimal?               @map("probus_platform_fee") @db.Decimal(12, 4)
+  stateCode            String?                @map("state_code") @db.VarChar(100)
+  discom               String?                @map("discom") @db.VarChar(100)
+  consumerCategory     String?                @map("consumer_category") @db.VarChar(100)
+  voltageLevel         String?                @map("voltage_level") @db.VarChar(50)
+  todConsumptions      Json?                  @map("tod_consumptions")
+  billedDemandKv       Decimal?               @map("billed_demand_kv") @db.Decimal(12, 4)
+  powerFactor          Decimal?               @map("power_factor") @db.Decimal(5, 4)
+  arrearAmount         Decimal?               @map("arrear_amount") @db.Decimal(15, 2)
+  currentLpsc          Decimal?               @map("current_lpsc") @db.Decimal(15, 2)
+  billDate             String?                @map("bill_date") @db.VarChar(50)
+  applyElectricityDuty Boolean                @default(true) @map("apply_electricity_duty")
+  changedAt            DateTime               @default(now()) @map("changed_at")
+  createdBy            String?                @map("created_by") @db.VarChar(50)
+  updatedBy            String?                @map("updated_by") @db.VarChar(50)
+  meteringCharges      Decimal?               @map("metering_charges") @db.Decimal(12, 4)
+  entry                SavingsCalculatorEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@index([entryId])
   @@map("savings_calculator_entry_histories")
@@ -690,73 +642,65 @@ model SavingsCalculatorEntryHistory {
 }
 
 model SavingsCalculatorNewEntry {
-  id                String   @id @default(uuid())
-  clientName        String   @map("client_name") @db.VarChar(255)
-  industryName      String   @map("industry_name") @db.VarChar(255)
-  address           String   @db.Text
-  sanctionedLoadKw  Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
-  proltMargin       Decimal? @map("prolt_margin") @db.Decimal(12, 4)
-  traderMargin      Decimal? @map("trader_margin") @db.Decimal(12, 4)
-  meteringCharges   Decimal? @map("metering_charges") @db.Decimal(12, 4)
-  consultancyFee    Decimal? @map("consultancy_fee") @db.Decimal(12, 4)
-  probusPlatformFee Decimal? @map("probus_platform_fee") @db.Decimal(12, 4)
-
-  stateCode        String? @map("state_code") @db.VarChar(100)
-  discom           String? @map("discom") @db.VarChar(100)
-  consumerCategory String? @map("consumer_category") @db.VarChar(100)
-  voltageLevel     String? @map("voltage_level") @db.VarChar(50)
-  todConsumptions  Json?   @map("tod_consumptions")
-
-  billedDemandKv       Decimal? @map("billed_demand_kv") @db.Decimal(12, 4)
-  powerFactor          Decimal? @map("power_factor") @db.Decimal(5, 4)
-  arrearAmount         Decimal? @map("arrear_amount") @db.Decimal(15, 2)
-  currentLpsc          Decimal? @map("current_lpsc") @db.Decimal(15, 2)
-  billDate             String?  @map("bill_date") @db.VarChar(50)
-  applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
-  createdBy            String?  @map("createdBy") @db.VarChar(50)
-  updatedBy            String?  @map("updatedBy") @db.VarChar(50)
-
-  history SavingsCalculatorNewEntryHistory[]
+  id                   String                             @id @default(uuid())
+  clientName           String                             @map("client_name") @db.VarChar(255)
+  industryName         String                             @map("industry_name") @db.VarChar(255)
+  address              String
+  sanctionedLoadKw     Decimal?                           @map("sanctioned_load_kw") @db.Decimal(12, 4)
+  proltMargin          Decimal?                           @map("prolt_margin") @db.Decimal(12, 4)
+  traderMargin         Decimal?                           @map("trader_margin") @db.Decimal(12, 4)
+  meteringCharges      Decimal?                           @map("metering_charges") @db.Decimal(12, 4)
+  consultancyFee       Decimal?                           @map("consultancy_fee") @db.Decimal(12, 4)
+  probusPlatformFee    Decimal?                           @map("probus_platform_fee") @db.Decimal(12, 4)
+  stateCode            String?                            @map("state_code") @db.VarChar(100)
+  discom               String?                            @map("discom") @db.VarChar(100)
+  consumerCategory     String?                            @map("consumer_category") @db.VarChar(100)
+  voltageLevel         String?                            @map("voltage_level") @db.VarChar(50)
+  todConsumptions      Json?                              @map("tod_consumptions")
+  billedDemandKv       Decimal?                           @map("billed_demand_kv") @db.Decimal(12, 4)
+  powerFactor          Decimal?                           @map("power_factor") @db.Decimal(5, 4)
+  arrearAmount         Decimal?                           @map("arrear_amount") @db.Decimal(15, 2)
+  currentLpsc          Decimal?                           @map("current_lpsc") @db.Decimal(15, 2)
+  billDate             String?                            @map("bill_date") @db.VarChar(50)
+  applyElectricityDuty Boolean                            @default(true) @map("apply_electricity_duty")
+  createdAt            DateTime                           @default(now()) @map("created_at")
+  updatedAt            DateTime                           @updatedAt @map("updated_at")
+  createdBy            String?                            @map("createdBy") @db.VarChar(50)
+  updatedBy            String?                            @map("updatedBy") @db.VarChar(50)
+  history              SavingsCalculatorNewEntryHistory[]
 
   @@map("savings_calculator_new_entries")
   @@schema("public")
 }
 
 model SavingsCalculatorNewEntryHistory {
-  id      String @id @default(uuid())
-  entryId String @map("entry_id") @db.VarChar(36)
-  version Int
-
-  // Snapshot of data
-  clientName        String   @map("client_name") @db.VarChar(255)
-  industryName      String   @map("industry_name") @db.VarChar(255)
-  address           String   @db.Text
-  sanctionedLoadKw  Decimal? @map("sanctioned_load_kw") @db.Decimal(12, 4)
-  proltMargin       Decimal? @map("prolt_margin") @db.Decimal(12, 4)
-  traderMargin      Decimal? @map("trader_margin") @db.Decimal(12, 4)
-  meteringCharges   Decimal? @map("metering_charges") @db.Decimal(12, 4)
-  consultancyFee    Decimal? @map("consultancy_fee") @db.Decimal(12, 4)
-  probusPlatformFee Decimal? @map("probus_platform_fee") @db.Decimal(12, 4)
-  stateCode         String?  @map("state_code") @db.VarChar(100)
-  discom            String?  @map("discom") @db.VarChar(100)
-  consumerCategory  String?  @map("consumer_category") @db.VarChar(100)
-  voltageLevel      String?  @map("voltage_level") @db.VarChar(50)
-  todConsumptions   Json?    @map("tod_consumptions")
-
-  billedDemandKv       Decimal? @map("billed_demand_kv") @db.Decimal(12, 4)
-  powerFactor          Decimal? @map("power_factor") @db.Decimal(5, 4)
-  arrearAmount         Decimal? @map("arrear_amount") @db.Decimal(15, 2)
-  currentLpsc          Decimal? @map("current_lpsc") @db.Decimal(15, 2)
-  billDate             String?  @map("bill_date") @db.VarChar(50)
-  applyElectricityDuty Boolean  @default(true) @map("apply_electricity_duty")
-
-  changedAt DateTime @default(now()) @map("changed_at")
-  createdBy String?  @map("createdBy") @db.VarChar(50)
-  updatedBy String?  @map("updatedBy") @db.VarChar(50)
-
-  entry SavingsCalculatorNewEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  id                   String                    @id @default(uuid())
+  entryId              String                    @map("entry_id") @db.VarChar(36)
+  version              Int
+  clientName           String                    @map("client_name") @db.VarChar(255)
+  industryName         String                    @map("industry_name") @db.VarChar(255)
+  address              String
+  sanctionedLoadKw     Decimal?                  @map("sanctioned_load_kw") @db.Decimal(12, 4)
+  proltMargin          Decimal?                  @map("prolt_margin") @db.Decimal(12, 4)
+  traderMargin         Decimal?                  @map("trader_margin") @db.Decimal(12, 4)
+  meteringCharges      Decimal?                  @map("metering_charges") @db.Decimal(12, 4)
+  consultancyFee       Decimal?                  @map("consultancy_fee") @db.Decimal(12, 4)
+  probusPlatformFee    Decimal?                  @map("probus_platform_fee") @db.Decimal(12, 4)
+  stateCode            String?                   @map("state_code") @db.VarChar(100)
+  discom               String?                   @map("discom") @db.VarChar(100)
+  consumerCategory     String?                   @map("consumer_category") @db.VarChar(100)
+  voltageLevel         String?                   @map("voltage_level") @db.VarChar(50)
+  todConsumptions      Json?                     @map("tod_consumptions")
+  billedDemandKv       Decimal?                  @map("billed_demand_kv") @db.Decimal(12, 4)
+  powerFactor          Decimal?                  @map("power_factor") @db.Decimal(5, 4)
+  arrearAmount         Decimal?                  @map("arrear_amount") @db.Decimal(15, 2)
+  currentLpsc          Decimal?                  @map("current_lpsc") @db.Decimal(15, 2)
+  billDate             String?                   @map("bill_date") @db.VarChar(50)
+  applyElectricityDuty Boolean                   @default(true) @map("apply_electricity_duty")
+  changedAt            DateTime                  @default(now()) @map("changed_at")
+  createdBy            String?                   @map("createdBy") @db.VarChar(50)
+  updatedBy            String?                   @map("updatedBy") @db.VarChar(50)
+  entry                SavingsCalculatorNewEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@index([entryId])
   @@map("savings_calculator_new_entry_histories")
@@ -772,8 +716,8 @@ model StateMarketRecord {
   intervalTime   String     @db.VarChar(15)
   purchaseBid    Decimal    @db.Decimal(18, 4)
   sellBid        Decimal    @db.Decimal(18, 4)
-  clearedVolume  Decimal    @db.Decimal(18, 4) // MCV
-  price          Decimal    @db.Decimal(18, 4) // MCP
+  clearedVolume  Decimal    @db.Decimal(18, 4)
+  price          Decimal    @db.Decimal(18, 4)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
@@ -787,11 +731,11 @@ model StateMarketRecord {
 model FppaCharges {
   id                Int      @id @default(autoincrement())
   state             String   @db.VarChar(100)
-  discom            String?  @db.VarChar(200)
   month             Int
-  billingMonth      Int?     @map("billing_month")
   fppaChargePercent Decimal? @map("fppa_charge_percent") @db.Decimal(12, 6)
   updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
+  discom            String?  @db.VarChar(200)
+  billingMonth      Int?     @map("billing_month")
 
   @@unique([state, discom, month], map: "uq_fppa_charges_state_discom_month")
   @@map("fppa_charges")
@@ -802,10 +746,10 @@ model AuditLog {
   id        String   @id @default(uuid())
   tableName String   @db.VarChar(100)
   recordId  String   @db.VarChar(100)
-  action    String   @db.VarChar(50) // CREATE, UPDATE, DELETE
+  action    String   @db.VarChar(50)
   oldData   Json?
   newData   Json?
-  userId    String?  @db.VarChar(100) // Optional, to track who made the change
+  userId    String?  @db.VarChar(100)
   createdAt DateTime @default(now())
 
   @@index([tableName])
@@ -828,7 +772,6 @@ model ForecastGdam {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @default(now()) @updatedAt
 
-  // @@unique([date, intervalNumber])
   @@index([date])
   @@index([intervalNumber])
   @@index([intervalTime])
@@ -837,16 +780,16 @@ model ForecastGdam {
 }
 
 model DamForecasting {
-  id              String   @id @default(uuid())
   forecasting_for DateTime
   time_block      Int      @db.SmallInt
   model_number    Int
   forecast_date   DateTime
   predicted_mcp   Decimal  @db.Decimal(18, 4)
   confidence_pct  Decimal? @db.Decimal(5, 2)
-  price_range     String?  @db.VarChar(50)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
+  id              String   @id @default(uuid())
+  price_range     String?  @db.VarChar(50)
 
   @@unique([forecasting_for, time_block, model_number, forecast_date])
   @@index([forecasting_for])
@@ -901,7 +844,7 @@ model RtmNowcast {
 }
 
 model ForecastConsumerDemand {
-  timestamp        DateTime @db.Timestamp(3)
+  timestamp        DateTime
   slotNumber       Int      @map("slot_number") @db.SmallInt
   actualEnergy     Decimal? @map("actual_energy") @db.Decimal(18, 4)
   forecastedEnergy Decimal? @map("forecasted_energy") @db.Decimal(18, 4)
@@ -933,11 +876,11 @@ model ForecastAllIndiaDemand {
 
 model UserAuditLog {
   id           String   @id @default(uuid())
-  action       String   @db.VarChar(50) // 'CREATE', 'UPDATE', 'DELETE'
+  action       String   @db.VarChar(50)
   targetUserId String?  @db.VarChar(36)
-  targetUser   String   @db.VarChar(50) // username
-  performedBy  String   @db.VarChar(50) // username of the admin who did it
-  changes      Json // JSON detailing old and new values
+  targetUser   String   @db.VarChar(50)
+  performedBy  String   @db.VarChar(50)
+  changes      Json
   timestamp    DateTime @default(now())
 
   @@index([targetUserId])
@@ -954,4 +897,65 @@ model MarketForecasting {
 
   @@map("market_forecasting")
   @@schema("forecasting")
+}
+
+model gdam_dayahead_forecast {
+  id              String    @id
+  date            String    @db.VarChar(10)
+  intervalNumber  Int       @db.SmallInt
+  intervalTime    String    @db.VarChar(15)
+  forecastingFor  DateTime? @db.Date
+  forecastDate    DateTime?
+  predictedMcp    Decimal?  @db.Decimal(18, 4)
+  predictedMcpP10 Decimal?  @db.Decimal(18, 4)
+  predictedMcpP50 Decimal?  @db.Decimal(18, 4)
+  predictedMcpP90 Decimal?  @db.Decimal(18, 4)
+  confidence      Decimal?  @db.Decimal(18, 4)
+  price_range     String?   @db.VarChar(30)
+  modelVersion    String?   @db.VarChar(100)
+  modelNumber     Int?      @default(1)
+  createdAt       DateTime? @default(now())
+  updatedAt       DateTime? @default(now())
+
+  @@schema("forecasting")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CLIENT
+
+  @@schema("public")
+}
+
+enum MarketType {
+  DAM
+  GDAM
+  RTM
+  REC
+
+  @@schema("public")
+}
+
+enum DatasetStatus {
+  ACTIVE
+  REPLACED
+  DELETED
+
+  @@schema("public")
+}
+
+enum UploadAction {
+  UPLOAD
+  REPLACE
+  DELETE
+
+  @@schema("public")
+}
+
+enum state_ut_enum {
+  state
+  ut
+
+  @@schema("public")
 }
