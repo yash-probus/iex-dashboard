@@ -768,20 +768,20 @@ export default function SavingsCalculatorNewPage() {
     });
   };
 
-  const handleUpdateTodSlot = (slotIndex: number, field: keyof CustomTodSlot, value: any) => {
+  const handleUpdateTodSlot = (ymStr: string, slotIndex: number, field: keyof CustomTodSlot, value: any) => {
     setTodConsumptions(prev => {
-      const cur = prev[activeMonth];
+      const cur = prev[ymStr];
       if (!cur) return prev;
       const slots = [...cur.slots];
       if (slots[slotIndex]) {
         slots[slotIndex] = {
           ...slots[slotIndex],
-          [field]: field === 'consumptionKwh' || field === 'effectivePrice' ? (isNaN(Number(value)) ? 0 : Number(value)) : value
+          [field]: value
         };
       }
       return {
         ...prev,
-        [activeMonth]: {
+        [ymStr]: {
           ...cur,
           slots
         }
@@ -1714,7 +1714,7 @@ export default function SavingsCalculatorNewPage() {
                                       value={slot.name || ''}
                                       onChange={(e) => {
                                         setActiveMonth(ym);
-                                        handleUpdateTodSlot(idx, 'name', e.target.value);
+                                        handleUpdateTodSlot(ym, idx, 'name', e.target.value);
                                       }}
                                       placeholder={`Slot ${idx + 1}`}
                                     />
@@ -1727,7 +1727,7 @@ export default function SavingsCalculatorNewPage() {
                                     value={slot.startTime || '00:00'}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
-                                      handleUpdateTodSlot(idx, 'startTime', e.target.value);
+                                      handleUpdateTodSlot(ym, idx, 'startTime', e.target.value);
                                     }}
                                     inputProps={{ step: 300 }}
                                     sx={{ width: 110 }}
@@ -1740,7 +1740,7 @@ export default function SavingsCalculatorNewPage() {
                                     value={slot.endTime || '24:00'}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
-                                      handleUpdateTodSlot(idx, 'endTime', e.target.value);
+                                      handleUpdateTodSlot(ym, idx, 'endTime', e.target.value);
                                     }}
                                     inputProps={{ step: 300 }}
                                     sx={{ width: 110 }}
@@ -1754,7 +1754,8 @@ export default function SavingsCalculatorNewPage() {
                                     value={slot.consumptionKwh}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
-                                      handleUpdateTodSlot(idx, 'consumptionKwh', e.target.value);
+                                      handleUpdateTodSlot(ym, idx, '_kvahInput' as any, undefined);
+                                      handleUpdateTodSlot(ym, idx, 'consumptionKwh', e.target.value);
                                     }}
                                     sx={{ width: 110 }}
                                   />
@@ -1764,14 +1765,15 @@ export default function SavingsCalculatorNewPage() {
                                     size="small"
                                     type="number"
                                     inputProps={{ step: 'any' }}
-                                    value={kvahVal}
+                                    value={(slot as any)._kvahInput !== undefined ? (slot as any)._kvahInput : kvahVal}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
                                       const val = e.target.value;
+                                      handleUpdateTodSlot(ym, idx, '_kvahInput' as any, val);
                                       if (val && !isNaN(Number(val))) {
-                                        handleUpdateTodSlot(idx, 'consumptionKwh', parseFloat((Number(val) * currentPf).toFixed(4)));
+                                        handleUpdateTodSlot(ym, idx, 'consumptionKwh', parseFloat((Number(val) * currentPf).toFixed(4)));
                                       } else {
-                                        handleUpdateTodSlot(idx, 'consumptionKwh', '');
+                                        handleUpdateTodSlot(ym, idx, 'consumptionKwh', '');
                                       }
                                     }}
                                     sx={{ width: 110 }}
@@ -1785,7 +1787,8 @@ export default function SavingsCalculatorNewPage() {
                                     value={slot.effectivePrice}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
-                                      handleUpdateTodSlot(idx, 'effectivePrice', e.target.value);
+                                      handleUpdateTodSlot(ym, idx, '_effPriceKvahInput' as any, undefined);
+                                      handleUpdateTodSlot(ym, idx, 'effectivePrice', e.target.value);
                                     }}
                                     sx={{ width: 130 }}
                                   />
@@ -1795,14 +1798,15 @@ export default function SavingsCalculatorNewPage() {
                                     size="small"
                                     type="number"
                                     inputProps={{ step: 0.1 }}
-                                    value={effPriceKvahVal}
+                                    value={(slot as any)._effPriceKvahInput !== undefined ? (slot as any)._effPriceKvahInput : effPriceKvahVal}
                                     onChange={(e) => {
                                       setActiveMonth(ym);
                                       const val = e.target.value;
+                                      handleUpdateTodSlot(ym, idx, '_effPriceKvahInput' as any, val);
                                       if (val && !isNaN(Number(val))) {
-                                        handleUpdateTodSlot(idx, 'effectivePrice', Number((Number(val) / currentPf).toFixed(4)));
+                                        handleUpdateTodSlot(ym, idx, 'effectivePrice', Number((Number(val) / currentPf).toFixed(4)));
                                       } else {
-                                        handleUpdateTodSlot(idx, 'effectivePrice', '');
+                                        handleUpdateTodSlot(ym, idx, 'effectivePrice', '');
                                       }
                                     }}
                                     sx={{ width: 130 }}
