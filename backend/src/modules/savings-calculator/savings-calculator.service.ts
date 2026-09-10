@@ -925,7 +925,7 @@ export class SavingsCalculatorService {
           }
         }
 
-        discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
+        // FPPA is now calculated explicitly later, so we do not bake it into discomLandingPrice
 
         if (entry.discom === 'NPCL') {
           discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
@@ -1559,7 +1559,7 @@ export class SavingsCalculatorService {
         }
       }
 
-      let discomLanding = discomBase * (1 + (fppaPercent / 100));
+      let discomLanding = discomBase;
       if (isNpcl) {
         discomLanding = discomLanding * 0.90 * 0.99;
       }
@@ -1994,6 +1994,8 @@ export class SavingsCalculatorService {
     let totalBaselineEnergyCharges = 0;
     let totalDiscomEnergyChargesAfterOA = 0;
     let totalDemandAndFixedChargesApplied = 0;
+    let totalFppaCharge = 0;
+    let totalFppaChargeAfterOA = 0;
 
     let globalCssCharge = 0;
     let globalRpoCharge = 0;
@@ -2072,17 +2074,19 @@ export class SavingsCalculatorService {
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
       const slabEnergyBill = slabConsumption * slabDiscomRate;
-      const fppaMultiplier = 1 + (fppaPercent / 100);
 
       const getDiscountedDemandCharge = (dc: number) => {
         return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
       };
 
-      // FPPA should be applied on (energy charges + demand charges).
-      const demandChargeWithFppa = getDiscountedDemandCharge(slabDemandCharge) * fppaMultiplier;
-      totalDemandAndFixedChargesApplied += demandChargeWithFppa;
+      const demandChargeDiscounted = getDiscountedDemandCharge(slabDemandCharge);
+      totalDemandAndFixedChargesApplied += demandChargeDiscounted;
 
-      const discountedSlabBill = slabEnergyBill + demandChargeWithFppa;
+      // Explicit FPPA Calculation
+      const slabFppaCharge = (slabEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
+      totalFppaCharge += slabFppaCharge;
+
+      const discountedSlabBill = slabEnergyBill + demandChargeDiscounted + slabFppaCharge;
       totalBaselineEnergyCharges += slabEnergyBill;
 
       const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
@@ -2100,7 +2104,11 @@ export class SavingsCalculatorService {
 
       const proltEnergyBill = discomEnergy * slabDiscomRate;
       totalDiscomEnergyChargesAfterOA += proltEnergyBill;
-      const discountedProltBill = proltEnergyBill + demandChargeWithFppa;
+      
+      const slabFppaChargeAfterOA = (proltEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
+      totalFppaChargeAfterOA += slabFppaChargeAfterOA;
+
+      const discountedProltBill = proltEnergyBill + demandChargeDiscounted + slabFppaChargeAfterOA;
       const slabEDAfterOA = applyED ? discountedProltBill * edRate : 0;
       totalElectricityDutyAfterOA += slabEDAfterOA;
       const proltDiscomBillTotal = discountedProltBill + slabEDAfterOA;
@@ -2190,6 +2198,8 @@ export class SavingsCalculatorService {
       totalConsumerBusEnergyKwh,
       totalBaselineCost,
       fppaPercent,
+      fppaCharge: totalFppaCharge,
+      fppaChargeAfterOA: totalFppaChargeAfterOA,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
       baselineEnergyCharges: totalBaselineEnergyCharges,
