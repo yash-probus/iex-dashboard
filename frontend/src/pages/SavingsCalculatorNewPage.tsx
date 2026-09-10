@@ -808,17 +808,17 @@ export default function SavingsCalculatorNewPage() {
     });
   };
 
-  const handleUpdatePeakDemand = (peakDemandKw: number) => {
+  const handleUpdatePeakDemand = (ymStr: string, peakDemandKw: any) => {
     setTodConsumptions(prev => {
-      const cur = prev[activeMonth] || {
-        startDate: `${activeMonth}-01`,
-        endDate: `${activeMonth}-30`,
+      const cur = prev[ymStr] || {
+        startDate: `${ymStr}-01`,
+        endDate: `${ymStr}-30`,
         peakDemandKw,
         slots: []
       };
       return {
         ...prev,
-        [activeMonth]: {
+        [ymStr]: {
           ...cur,
           peakDemandKw
         }
@@ -1641,7 +1641,7 @@ export default function SavingsCalculatorNewPage() {
                       value={monthData.peakDemandKw || ''}
                       onChange={(e) => {
                         setActiveMonth(ym);
-                        handleUpdatePeakDemand(Number(e.target.value));
+                        handleUpdatePeakDemand(ym, e.target.value);
                       }}
                       sx={{ bgcolor: '#FFF', width: { xs: '100%', sm: '50%' } }}
                     />
