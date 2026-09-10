@@ -254,7 +254,7 @@ export class SavingsCalculatorNewExportService {
       const discomKvah = Math.round(discomU / pf);
       const discomUnitsAfterOAKvah = Math.round(discomUnitsAfterOA / pf);
       const rateKwh = Number((b.discomRate || 0).toFixed(4));
-      const rateKvah = discomKvah > 0 ? Number(((discomU * rateKwh) / discomKvah).toFixed(4)) : 0;
+      const rateKvah = Number(((b.discomRate || 0) * pf).toFixed(4));
 
       sheet.addRow([
         b.slabName,

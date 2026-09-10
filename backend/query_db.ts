@@ -1,19 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-
 async function main() {
-  const charges = await prisma.stateCharges.findMany({
-    where: {
-      state: { contains: 'Uttar Pradesh' }
-    }
+  const tariffs = await prisma.stateTariff.findMany({
+    where: { todStartTime: '23:00', todEndTime: '5:00' },
+    take: 5
   });
-  console.log(charges.map(c => ({
-    id: c.id,
-    state: c.state,
-    category: c.category,
-    subCategory: c.subCategory,
-    supplyVoltageCategory: c.supplyVoltageCategory,
-    demandFixedChargeKvaPerMonthRs: c.demandFixedChargeKvaPerMonthRs
-  })));
+  console.log(tariffs);
 }
-main().catch(e => console.error(e)).finally(() => prisma.$disconnect());
+main();
