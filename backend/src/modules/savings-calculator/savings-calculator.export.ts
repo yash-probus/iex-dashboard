@@ -175,7 +175,8 @@ export class SavingsCalculatorExportService {
       'OA Units (kWh, Regional Bus)',
       'OA Units (kWh, Consumer Bus)',
       'OA Energy Charges (Rs.)',
-      'DISCOM Units after OA',
+      'DISCOM Units after OA (kWh)',
+      'DISCOM Units after OA (kVAh)',
       'DISCOM Bill after OA (Rs.)'
     ];
     const breakdownHeaderRow = sheet.addRow(breakdownHeader);
@@ -185,7 +186,7 @@ export class SavingsCalculatorExportService {
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
       c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
-    for (let col = 2; col <= 11; col++) {
+    for (let col = 2; col <= 12; col++) {
       sheet.getColumn(col).width = 18;
     }
 
@@ -198,6 +199,7 @@ export class SavingsCalculatorExportService {
     let totalConsumerURounded = 0;
     let totalOaBRounded = 0;
     let totalDiscomUnitsAfterOARounded = 0;
+    let totalDiscomUnitsAfterOAKvahRounded = 0;
     let totalNetBRounded = 0;
 
     // Pre-calculate visibleTotalOa to distribute overheads across TOD slabs
@@ -249,6 +251,7 @@ export class SavingsCalculatorExportService {
       const netB = Math.round(b.proltDiscomBill / fppaMultiplier);
       const pf = result.powerFactor || 0.99;
       const discomKvah = Math.round(discomU / pf);
+      const discomUnitsAfterOAKvah = Math.round(discomUnitsAfterOA / pf);
       const rateKwh = Number((b.discomRate || 0).toFixed(4));
       const rateKvah = discomKvah > 0 ? Number(((discomU * rateKwh) / discomKvah).toFixed(4)) : 0;
 
@@ -263,6 +266,7 @@ export class SavingsCalculatorExportService {
         consumerU,
         oaB,
         discomUnitsAfterOA,
+        discomUnitsAfterOAKvah,
         netB
       ]);
       totalDiscomURounded += discomU;
@@ -272,6 +276,7 @@ export class SavingsCalculatorExportService {
       totalConsumerURounded += consumerU;
       totalOaBRounded += oaB;
       totalDiscomUnitsAfterOARounded += discomUnitsAfterOA;
+      totalDiscomUnitsAfterOAKvahRounded += discomUnitsAfterOAKvah;
       totalNetBRounded += netB;
     });
 
@@ -288,6 +293,7 @@ export class SavingsCalculatorExportService {
       totalConsumerURounded, 
       totalOaBRounded,
       totalDiscomUnitsAfterOARounded,
+      totalDiscomUnitsAfterOAKvahRounded,
       totalNetBRounded
     ]);
     todTotalRow.font = { bold: true };
