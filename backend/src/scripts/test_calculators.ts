@@ -13,6 +13,7 @@ async function runTest() {
       data: {
         clientName: 'TEST OLD',
         industryName: 'FLOUR MILL',
+        address: 'Test Address',
         stateCode: 'UP',
         discom: 'DVVNL',
         consumerCategory: 'HV-2',
@@ -23,15 +24,7 @@ async function runTest() {
         proltMargin: 0,
         traderMargin: 0,
         todConsumptions: {
-          "Start Date": "01/08/2025",
-          "End Date": "31/08/2025",
-          "Season": "Summer",
-          "Billing Month": "Aug-25",
-          "05:00-10:00": 20000,
-          "10:00-19:00": 50000,
-          "19:00-03:00": 40000,
-          "03:00-05:00": 10000,
-          "_rawKvah": {
+          "2025-08": {
             "05:00-10:00": 20000,
             "10:00-19:00": 50000,
             "19:00-03:00": 40000,
@@ -47,6 +40,7 @@ async function runTest() {
       data: {
         clientName: 'TEST NEW',
         industryName: 'FLOUR MILL',
+        address: 'Test Address',
         stateCode: 'UP',
         discom: 'DVVNL',
         consumerCategory: 'HV-2',
@@ -57,27 +51,19 @@ async function runTest() {
         proltMargin: 0,
         traderMargin: 0,
         todConsumptions: {
-          "Start Date": "01/08/2025",
-          "End Date": "31/08/2025",
-          "Season": "Summer",
-          "Billing Month": "Aug-25",
-          "05:00-10:00": 20000,
-          "10:00-19:00": 50000,
-          "19:00-03:00": 40000,
-          "03:00-05:00": 10000,
-          "_rawKvah": {
+          "2025-08": {
             "05:00-10:00": 20000,
             "10:00-19:00": 50000,
             "19:00-03:00": 40000,
             "03:00-05:00": 10000
-          },
-          "customSlots": [
-            { "startTime": "05:00", "endTime": "10:00", "effectivePrice": 0 },
-            { "startTime": "10:00", "endTime": "19:00", "effectivePrice": 0 },
-            { "startTime": "19:00", "endTime": "03:00", "effectivePrice": 0 },
-            { "startTime": "03:00", "endTime": "05:00", "effectivePrice": 0 }
-          ]
-        }
+          }
+        },
+        customSlots: [
+          { startTime: '05:00', endTime: '10:00', effectivePrice: 0 },
+          { startTime: '10:00', endTime: '19:00', effectivePrice: 0 },
+          { startTime: '19:00', endTime: '03:00', effectivePrice: 0 },
+          { startTime: '03:00', endTime: '05:00', effectivePrice: 0 }
+        ]
       }
     });
     console.log("New Entry Created:", newEntry.id);
