@@ -91,8 +91,8 @@ export default function FppaChargesPage() {
     { field: 'id', headerName: 'ID', align: 'center', width: 100 },
     { field: 'state', headerName: 'State', align: 'center', width: 250 },
     { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
-    { field: 'month', headerName: 'Calendar Month', align: 'center', width: 150, valueFormatter: formatMonth },
-    { field: 'billingMonth', headerName: 'Billing Month', align: 'center', width: 150, renderCell: (row: any) => row.billingMonth ? formatMonth(row.billingMonth) : getBillingMonthStr(row.month) },
+    { field: 'month', headerName: 'Billing Month', align: 'center', width: 150, valueFormatter: formatMonth },
+    { field: 'billingMonth', headerName: 'Calendar Month', align: 'center', width: 150, renderCell: (row: any) => row.billingMonth ? formatMonth(row.billingMonth) : getBillingMonthStr(row.month) },
     { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 250, valueFormatter: formatNum },
   ];
 

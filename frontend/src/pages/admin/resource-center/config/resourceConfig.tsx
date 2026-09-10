@@ -240,15 +240,15 @@ export const RESOURCE_CONFIG: Record<string, ResourceConfig> = {
       { field: 'id', headerName: 'ID', align: 'center', width: 100 },
       { field: 'state', headerName: 'State', align: 'center', width: 250 },
       { field: 'discom', headerName: 'Discom', align: 'center', width: 250 },
-      { field: 'month', headerName: 'Month', align: 'center', width: 150 },
-      { field: 'billingMonth', headerName: 'Billing Month', align: 'center', width: 150 },
+      { field: 'month', headerName: 'Billing Month', align: 'center', width: 150 },
+      { field: 'billingMonth', headerName: 'Month', align: 'center', width: 150 },
       { field: 'fppaChargePercent', headerName: 'FPPA Charge %', align: 'center', width: 200, valueFormatter: formatNum },
     ],
     fields: [
       { name: 'state', label: 'State', type: 'dropdown', options: STATE_OPTIONS },
       { name: 'discom', label: 'Discom', type: 'dropdown-multi', options: getDiscomOptions },
-      { name: 'month', label: 'Month (YYYYMM)', type: 'number' },
-      { name: 'billingMonth', label: 'Billing Month (YYYYMM)', type: 'number' },
+      { name: 'month', label: 'Billing Month (YYYYMM)', type: 'number' },
+      { name: 'billingMonth', label: 'Month (YYYYMM)', type: 'number' },
       { name: 'fppaChargePercent', label: 'FPPA Charge %', type: 'number' },
     ]
   }

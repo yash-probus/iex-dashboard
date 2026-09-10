@@ -74,8 +74,10 @@ export default function StateChargesPage() {
   };
 
   const uniqueStates = Array.from(new Set(data.map((r: StateCharges) => r.state).filter(Boolean))).sort();
-  const uniqueCategories = Array.from(new Set(data.map((r: StateCharges) => r.category).filter(Boolean))).sort();
-  const uniqueSubCategories = Array.from(new Set(data.map((r: StateCharges) => r.subCategory).filter(Boolean))).sort();
+  const filteredForCat = selectedState === 'all' ? data : data.filter((r: StateCharges) => r.state === selectedState);
+  const uniqueCategories = Array.from(new Set(filteredForCat.map((r: StateCharges) => r.category).filter(Boolean))).sort();
+  const filteredForSubCat = filteredForCat.filter((r: StateCharges) => selectedCategory === 'all' || r.category === selectedCategory);
+  const uniqueSubCategories = Array.from(new Set(filteredForSubCat.map((r: StateCharges) => r.subCategory).filter(Boolean))).sort();
 
   const filteredData = data.filter((row: StateCharges) => {
     // Text search

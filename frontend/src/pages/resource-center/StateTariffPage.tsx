@@ -76,11 +76,12 @@ export default function StateTariffPage() {
   };
 
   const uniqueStates = Array.from(new Set(data.map((r: StateTariff) => r.state).filter(Boolean))).sort();
-  const uniqueCategories = Array.from(new Set(data.map((r: StateTariff) => r.consumerCategory).filter(Boolean))).sort();
-  const uniqueSubCategories = Array.from(new Set(data.map((r: StateTariff) => r.subCategory).filter(Boolean))).sort();
-  
-  // Extract unique years from the YYYYMM format
-  const uniqueYears = Array.from(new Set(data.map((r: StateTariff) => {
+  const filteredForCat = selectedState === 'all' ? data : data.filter((r: StateTariff) => r.state === selectedState);
+  const uniqueCategories = Array.from(new Set(filteredForCat.map((r: StateTariff) => r.consumerCategory).filter(Boolean))).sort();
+  const filteredForSubCat = filteredForCat.filter((r: StateTariff) => selectedCategory === 'all' || r.consumerCategory === selectedCategory);
+  const uniqueSubCategories = Array.from(new Set(filteredForSubCat.map((r: StateTariff) => r.subCategory).filter(Boolean))).sort();
+  const filteredForYears = filteredForSubCat.filter((r: StateTariff) => selectedSubCategory === 'all' || r.subCategory === selectedSubCategory);
+  const uniqueYears = Array.from(new Set(filteredForYears.map((r: StateTariff) => {
     const s = String(r.month);
     return s.length === 6 ? s.slice(0, 4) : '';
   }).filter(Boolean))).sort();
