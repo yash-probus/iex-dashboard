@@ -169,6 +169,8 @@ export class SavingsCalculatorExportService {
       'TOD Slab',
       'Actual DISCOM Units (kWh)',
       'Actual DISCOM Units (kVAh)',
+      'Actual DISCOM Rate (Rs./kWh)',
+      'Actual DISCOM Rate (Rs./kVAh)',
       'Actual DISCOM Bill (Rs.)',
       'OA Units (kWh, Regional Bus)',
       'OA Units (kWh, Consumer Bus)',
@@ -183,7 +185,7 @@ export class SavingsCalculatorExportService {
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
       c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
-    for (let col = 2; col <= 9; col++) {
+    for (let col = 2; col <= 11; col++) {
       sheet.getColumn(col).width = 18;
     }
 
@@ -247,11 +249,15 @@ export class SavingsCalculatorExportService {
       const netB = Math.round(b.proltDiscomBill / fppaMultiplier);
       const pf = result.powerFactor || 0.99;
       const discomKvah = Math.round(discomU / pf);
+      const rateKwh = Number((b.discomRate || 0).toFixed(4));
+      const rateKvah = pf > 0 ? Number(((b.discomRate || 0) * pf).toFixed(4)) : 0;
 
       sheet.addRow([
         b.slabName,
         discomU,
         discomKvah,
+        rateKwh,
+        rateKvah,
         discomB,
         oaU,
         consumerU,
@@ -275,6 +281,8 @@ export class SavingsCalculatorExportService {
       'Total', 
       totalDiscomURounded, 
       totalDiscomKvahRounded,
+      '-',
+      '-',
       totalDiscomBRounded, 
       totalOaURounded, 
       totalConsumerURounded, 

@@ -2161,7 +2161,8 @@ export class SavingsCalculatorService {
         discomBill: slabEnergyBill,
         proltDiscomBill: proltEnergyBill,
         consumerBusUnits,
-        oaBill: slabOaBill
+        oaBill: slabOaBill,
+        discomRate: slabDiscomRate
       });
     });
 

@@ -2303,7 +2303,8 @@ export class SavingsCalculatorNewService {
         discomBill: slabEnergyBill,
         proltDiscomBill: proltEnergyBill,
         consumerBusUnits,
-        oaBill: slabOaBill
+        oaBill: slabOaBill,
+        discomRate: slabDiscomRate
       });
     });
     const nocFee = 7000;
