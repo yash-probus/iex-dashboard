@@ -790,7 +790,7 @@ export class SavingsCalculatorNewExportService {
       const rowData: any[] = [`Cleared Units@Consumer bus ${tod}`];
       allResults.forEach((r, idx) => {
         const mMapping = monthRowMap[r.monthStr];
-        const formula = `IFERROR(VLOOKUP("${tod}", '${mMapping.sheetName}'!$A$${mMapping.breakdownTableStart}:$K$${mMapping.breakdownTableEnd}, 8, FALSE), 0)`;
+        const formula = `IFERROR(VLOOKUP("${tod}", '${mMapping.sheetName}'!$A$${mMapping.breakdownTableStart}:$L$${mMapping.breakdownTableEnd}, 8, FALSE), 0)`;
         rowData.push({ formula });
       });
       const addedRow = sheet.addRow(rowData);
