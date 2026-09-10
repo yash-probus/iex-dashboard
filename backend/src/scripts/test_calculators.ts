@@ -52,38 +52,25 @@ async function runTest() {
         traderMargin: 0,
         todConsumptions: {
           "2025-08": {
-            "05:00-10:00": 20000,
-            "10:00-19:00": 50000,
-            "19:00-03:00": 40000,
-            "03:00-05:00": 10000
+            "slots": [
+              { "startTime": "05:00", "endTime": "10:00", "effectivePrice": 0, "consumptionKwh": 20000 },
+              { "startTime": "10:00", "endTime": "19:00", "effectivePrice": 0, "consumptionKwh": 50000 },
+              { "startTime": "19:00", "endTime": "03:00", "effectivePrice": 0, "consumptionKwh": 40000 },
+              { "startTime": "03:00", "endTime": "05:00", "effectivePrice": 0, "consumptionKwh": 10000 }
+            ]
           }
-        },
-        customSlots: [
-          { startTime: '05:00', endTime: '10:00', effectivePrice: 0 },
-          { startTime: '10:00', endTime: '19:00', effectivePrice: 0 },
-          { startTime: '19:00', endTime: '03:00', effectivePrice: 0 },
-          { startTime: '03:00', endTime: '05:00', effectivePrice: 0 }
-        ]
+        }
       }
     });
     console.log("New Entry Created:", newEntry.id);
 
     console.log("\nCalculating Old Savings...");
-    const oldResult = await SavingsCalculatorService.calculateSavings(oldEntry.id);
-    const oldSummary = (oldResult as any).sortedMonthlyList ? (oldResult as any).sortedMonthlyList[0] : oldResult;
-    
-    console.log("Total Discom Cost:\t", oldSummary.totalBaselineCost);
-    console.log("Total Savings:\t\t", oldSummary.totalSavings);
+    const oldResult = await SavingsCalculatorService.calculateSavings(oldEntry.id, 'all');
+    console.log("OLD RESULT:", JSON.stringify(oldResult, null, 2));
 
     console.log("\nCalculating New Savings...");
-    const newResult = await SavingsCalculatorNewService.calculateSavings(newEntry.id);
-    const newSummary = (newResult as any).sortedMonthlyList ? (newResult as any).sortedMonthlyList[0] : newResult;
-    
-    console.log("Total Discom Cost:\t", newSummary.totalBaselineCost);
-    console.log("Total Savings:\t\t", newSummary.totalSavings);
-
-    console.log("\nDifference in Savings:\t", Math.abs(oldSummary.totalSavings - newSummary.totalSavings));
-    console.log("Difference in Discom Cost:\t", Math.abs(oldSummary.totalBaselineCost - newSummary.totalBaselineCost));
+    const newResult = await SavingsCalculatorNewService.calculateSavings(newEntry.id, 'all');
+    console.log("NEW RESULT:", JSON.stringify(newResult, null, 2));
 
     // Cleanup
     await prisma.savingsCalculatorEntry.delete({ where: { id: oldEntry.id } });
