@@ -1040,9 +1040,7 @@ export class SavingsCalculatorNewService {
           }
         }
 
-        if (!matchedCustomSlot || Number(matchedCustomSlot.effectivePrice) === 0) {
-          discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
-        }
+        discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
 
         if (entry.discom === 'NPCL' && (!matchedCustomSlot || Number(matchedCustomSlot.effectivePrice) === 0)) {
           discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
@@ -1702,10 +1700,7 @@ export class SavingsCalculatorNewService {
         }
       }
 
-      let discomLanding = discomBase;
-      if (!matchedCustomSlot) {
-        discomLanding = discomBase * (1 + (fppaPercent / 100));
-      }
+      let discomLanding = discomBase * (1 + (fppaPercent / 100));
       
       if (isNpcl) {
         discomLanding = discomLanding * 0.90 * 0.99;

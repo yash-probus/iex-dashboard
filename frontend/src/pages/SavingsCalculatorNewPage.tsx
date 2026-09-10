@@ -684,7 +684,13 @@ export default function SavingsCalculatorNewPage() {
             startDate: val.startDate || `${m}-01`,
             endDate: val.endDate || `${m}-${String(lastDay).padStart(2, '0')}`,
             peakDemandKw: Number(val.peakDemandKw || entry.sanctionedLoadKw || 1000),
-            slots: Array.isArray(val.slots) ? val.slots : []
+            slots: Array.isArray(val.slots) ? val.slots : [],
+            'Electricity Duty': val['Electricity Duty'],
+            'Billing Month': val['Billing Month'],
+            'Current LPSC': val['Current LPSC'],
+            'Arrear Amount': val['Arrear Amount'],
+            'Miscellaneous Charges': val['Miscellaneous Charges'],
+            'Power Factor': val['Power Factor']
           };
         }
       });
