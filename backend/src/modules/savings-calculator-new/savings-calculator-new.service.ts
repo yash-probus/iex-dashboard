@@ -1695,7 +1695,7 @@ export class SavingsCalculatorNewService {
         if (matched) {
           discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
           if (String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah') {
-            const pf = entry.powerFactor || 0.99;
+            const pf = Number(entry.powerFactor) || 0.99;
             discomBase = discomBase / pf;
           }
           matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
