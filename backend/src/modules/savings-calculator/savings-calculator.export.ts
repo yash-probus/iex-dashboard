@@ -168,6 +168,7 @@ export class SavingsCalculatorExportService {
     const breakdownHeader = [
       'TOD Slab',
       'Actual DISCOM Units (kWh)',
+      'Actual DISCOM Units (kVAh)',
       'Actual DISCOM Bill (Rs.)',
       'OA Units (kWh, Regional Bus)',
       'OA Units (kWh, Consumer Bus)',
@@ -182,13 +183,14 @@ export class SavingsCalculatorExportService {
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
       c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
-    for (let col = 2; col <= 8; col++) {
+    for (let col = 2; col <= 9; col++) {
       sheet.getColumn(col).width = 18;
     }
 
     rowMapping['breakdownTableStart'] = sheet.rowCount + 1;
 
     let totalDiscomURounded = 0;
+    let totalDiscomKvahRounded = 0;
     let totalDiscomBRounded = 0;
     let totalOaURounded = 0;
     let totalConsumerURounded = 0;
@@ -243,10 +245,13 @@ export class SavingsCalculatorExportService {
 
       const discomUnitsAfterOA = Math.max(0, discomU - consumerU);
       const netB = Math.round(b.proltDiscomBill / fppaMultiplier);
+      const pf = result.powerFactor || 0.99;
+      const discomKvah = Math.round(discomU / pf);
 
       sheet.addRow([
         b.slabName,
         discomU,
+        discomKvah,
         discomB,
         oaU,
         consumerU,
@@ -255,6 +260,7 @@ export class SavingsCalculatorExportService {
         netB
       ]);
       totalDiscomURounded += discomU;
+      totalDiscomKvahRounded += discomKvah;
       totalDiscomBRounded += discomB;
       totalOaURounded += oaU;
       totalConsumerURounded += consumerU;
@@ -268,6 +274,7 @@ export class SavingsCalculatorExportService {
     const todTotalRow = sheet.addRow([
       'Total', 
       totalDiscomURounded, 
+      totalDiscomKvahRounded,
       totalDiscomBRounded, 
       totalOaURounded, 
       totalConsumerURounded, 
@@ -345,12 +352,12 @@ export class SavingsCalculatorExportService {
     }
     
     sheet.addRow(['Electricity Duty', Math.round(result.electricityDuty || 0)]);
-    if (misc > 0) {
+    if (misc !== 0) {
       const miscRow = sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
       rowMapping['miscellaneousChargesRow'] = miscRow.number;
     }
-    if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
-    if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
+    if (arrear !== 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
+    if (lpsc !== 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     
     const hasExplicitFppa = ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
     let correctBaseEnergy = (result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0;
