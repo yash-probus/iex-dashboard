@@ -893,7 +893,16 @@ export class SavingsCalculatorNewService {
         return parseInt(val, 10);
       };
 
-      const customSlots = (entry.customSlots || []) as any[];
+      const customSlots: any[] = [];
+      if (monthConsumptions.slots && Array.isArray(monthConsumptions.slots)) {
+        (monthConsumptions.slots as any[]).forEach((s: any) => {
+          customSlots.push(s);
+          const slotKey = `${s.startTime}-${s.endTime}`.toUpperCase();
+          monthConsumptions[slotKey] = Number(s.consumptionKwh);
+        });
+      } else if (entry.customSlots && Array.isArray(entry.customSlots)) {
+        customSlots.push(...(entry.customSlots as any[]));
+      }
 
       // Construct the flat monthly slots array
       const slotsData = records.map(rec => {
@@ -1031,11 +1040,11 @@ export class SavingsCalculatorNewService {
           }
         }
 
-        if (!matchedCustomSlot) {
+        if (!matchedCustomSlot || Number(matchedCustomSlot.effectivePrice) === 0) {
           discomLandingPrice = discomLandingPrice * (1 + (fppaPercent / 100));
         }
 
-        if (entry.discom === 'NPCL' && !matchedCustomSlot) {
+        if (entry.discom === 'NPCL' && (!matchedCustomSlot || Number(matchedCustomSlot.effectivePrice) === 0)) {
           discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
         }
 
