@@ -1998,7 +1998,7 @@ export class SavingsCalculatorNewService {
           const shiftSlot = shiftInsights.slotsData.find((ss: any) => ss.date === s.date && ss.timeblock === s.timeblock);
           if (shiftSlot) {
             (s as any).marketEnergy = shiftSlot.marketEnergy || 0;
-            (s as any).consumedMarketEnergy = shiftSlot.marketEnergy || 0;
+            (s as any).consumedMarketEnergy = shiftSlot.consumedMarketEnergy || 0;
             (s as any).discomEnergy = shiftSlot.discomEnergy || 0;
             let basePrice = 0;
             if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
@@ -2474,11 +2474,16 @@ export class SavingsCalculatorNewService {
     const shiftableSlots = slotsData.map((s: any, index: number) => {
       const costPerKwh = s.shouldBuyFromMarket ? s.bestMarketLanding : s.discomLanding;
       const originalMarketEnergy = s.marketEnergy || 0;
+      const originalConsumedMarketEnergy = s.consumedMarketEnergy || 0;
       const originalDiscomEnergy = s.discomEnergy || 0;
-      // Use consumedMarketEnergy (consumer bus) instead of marketEnergy (regional bus)
-      // to correctly represent the actual demand in this slot without inflating units
-      const currentEnergy = (s.consumedMarketEnergy || 0) + originalDiscomEnergy;
-      const headroom = Math.max(0, maxEnergyPerSlot - currentEnergy);
+      const currentEnergy = originalConsumedMarketEnergy + originalDiscomEnergy;
+      
+      const lossMultiplier = originalMarketEnergy > 0 
+        ? (originalConsumedMarketEnergy / originalMarketEnergy) 
+        : 0.90; // Default fallback if no market energy bought
+        
+      const regionalHeadroom = Math.max(0, maxEnergyPerSlot - originalMarketEnergy);
+      const headroom = regionalHeadroom * lossMultiplier;
       originalTotalCost += (currentEnergy * costPerKwh);
 
       return {
@@ -2488,9 +2493,12 @@ export class SavingsCalculatorNewService {
         originalEnergy: currentEnergy,
         currentMarketEnergy: originalMarketEnergy,
         originalMarketEnergy,
+        currentConsumedMarketEnergy: originalConsumedMarketEnergy,
+        originalConsumedMarketEnergy,
         currentDiscomEnergy: originalDiscomEnergy,
         shouldBuyFromMarket: s.shouldBuyFromMarket,
         headroom,
+        lossMultiplier,
         date: s.date,
         timeblock: s.timeblock,
         tod: s.tod
