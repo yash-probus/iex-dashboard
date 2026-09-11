@@ -36,8 +36,10 @@ const SavingsCalculatorViewPage = lazy(() => import('../pages/SavingsCalculatorV
 const SavingsCalculatorAnalysisPage = lazy(() => import('../pages/SavingsCalculatorAnalysisPage'));
 const SavingsCalculatorNewPage = lazy(() => import('../pages/SavingsCalculatorNewPage'));
 const SavingsCalculatorNewAnalysisPage = lazy(() => import('../pages/SavingsCalculatorNewAnalysisPage'));
+const TraderPerformanceDashboardPage = lazy(() => import('../pages/TraderPerformanceDashboardPage'));
 const ForecastPage = lazy(() => import('../pages/ForecastPage'));
 const MarketRecommendationPage = lazy(() => import('../pages/MarketRecommendationPage'));
+const TraderPerformancePage = lazy(() => import('../pages/TraderPerformancePage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -60,6 +62,8 @@ export default function AppRoutes() {
 
             <Route path="savings-calculator-new" element={<SavingsCalculatorNewPage />} />
             <Route path="savings-calculator-new/:id/analysis" element={<SavingsCalculatorNewAnalysisPage />} />
+            <Route path="trader-performance" element={<TraderPerformancePage />} />
+            <Route path="trader-performance/:id/dashboard" element={<TraderPerformanceDashboardPage />} />
 
             {/* Module Layout wrapping all module sub-pages */}
             <Route element={<ModuleLayout />}>

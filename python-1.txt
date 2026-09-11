@@ -1,0 +1,46 @@
+@api_view(['POST'])
+def upload_trade_reports(request):
+
+    files = request.FILES.getlist("files")
+    if not files:
+        return Response({"error": "No files uploaded"}, status=400)
+    if len(files) > MAX_FILES:
+        return Response(
+            {"error": f"Maximum {MAX_FILES} files are allowed"},
+            status=400,
+        )
+    data = {}
+    files_status = []
+    for pdf_file in files:
+        filename = pdf_file.name
+        if not _is_pdf(pdf_file):
+            files_status.append({
+                "file_name": filename,
+                "status": "FAILURE",
+                "message": (
+                    f"Only PDF files are allowed "
+                    f"(received content_type='{pdf_file.content_type}')."
+                ),
+            })
+            continue
+        try:
+            data[filename] = extract_full_iex_report(pdf_file)
+            files_status.append({
+                "file_name": filename,
+                "status": "SUCCESS",
+                "message": "OK",
+            })
+        except Exception as e:
+            files_status.append({
+                "file_name": filename,
+                "status": "FAILURE",
+                "message": str(e),
+            })
+    return Response({"data": data, "files_status": files_status}, status=200)
+
+def _is_pdf(pdf_file) -> bool:
+    if pdf_file.content_type in ALLOWED_CONTENT_TYPES:
+        return True
+    name = (pdf_file.name or "").lower()
+    return name.endswith(".pdf")
+ 

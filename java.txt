@@ -1,0 +1,100 @@
+@PostMapping(value = "upload-oa-bill", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+public OaBillResponse getOaBillDetails(@RequestPart("files") MultipartFile[] files, @RequestParam Month month,
+  @RequestParam Integer year, HttpServletRequest request) throws IOException, InterruptedException {
+ final String userId = request.getUserPrincipal().getName();
+ String authHeader = request.getHeader("Authorization");
+ return billOverviewService.uploadOaBill(files, month, year, authHeader, userId);
+}
+
+@Transactional
+public OaBillResponse uploadOaBill(MultipartFile[] files, Month month, Integer year, String authorizationHeader,
+  String userId) throws BadRequestException, IOException, InterruptedException {
+
+ int daysInMonth = YearMonth.of(year, month).lengthOfMonth();
+ UserBillUploadType uploadedFrom = UserBillUploadType.CALCULATOR;
+
+ if (files.length > daysInMonth) {
+  throw new BadRequestException("Maximum " + daysInMonth + " files can be uploaded for the selected month.");
+ }
+
+ URI endpoint = buildEndpointUrl("api/parse-trade-report-pdfs/");
+ String responseBody = callBillParser(endpoint, files, Collections.emptyMap(), authorizationHeader);
+
+ OaBillParserDto parserResponse = objectMapper.readValue(responseBody, OaBillParserDto.class);
+
+ List<FileValidationResultDto> validationResults = validateOaBill(parserResponse, month, year);
+
+ boolean anyFailure = validationResults.stream()
+   .anyMatch(r -> r.getStatus() == FileValidationResultDto.Status.FAILURE);
+
+ OaBillResponse response;
+ if (anyFailure) {
+  response = new OaBillResponse();
+ } else {
+  response = buildOaBillResponse(parserResponse);
+  Map<String, OaBillFileDto> data = Optional.ofNullable(parserResponse.getData()).orElse(Map.of());
+  for (OaBillFileDto fileDto : data.values()) {
+   saveOaBillInsight(userId, fileDto, uploadedFrom);
+  }
+ }
+
+ response.setFileValidationResults(validationResults);
+ return response;
+}
+
+private void saveOaBillInsight(String userId, OaBillFileDto fileDto, UserBillUploadType uploadedFrom) {
+ if (fileDto == null || fileDto.getDeliveryDate() == null) {
+  return;
+ }
+ LocalDate deliveryDate = LocalDate.parse(fileDto.getDeliveryDate().trim(), OA_DELIVERY_DATE_FORMATTER);
+
+ final LocalDate tradingDate;
+ if (Objects.isNull(fileDto.getTradingDate())) {
+  tradingDate = deliveryDate;
+ } else {
+  tradingDate = LocalDate.parse(fileDto.getTradingDate().trim(), OA_DELIVERY_DATE_FORMATTER);
+ }
+
+ final OaMarketType oaMarketType = deliveryDate.equals(tradingDate) ? OaMarketType.RTM : OaMarketType.DAM;
+
+ OaBillInsight insight = oaBillInsightRepository
+   .findByUserIdAndDeliveryDateAndOaMarketType(userId, deliveryDate, oaMarketType)
+   .orElseGet(OaBillInsight::new);
+
+ insight.setUserId(userId);
+ insight.setDeliveryDate(deliveryDate);
+ insight.setTradingDate(tradingDate);
+ insight.setEntityId(fileDto.getEntityId());
+ insight.setEntityName(fileDto.getEntityName());
+ insight.setPortfolioCode(fileDto.getPortfolioCode());
+ insight.setPortfolioName(fileDto.getPortfolioName());
+ insight.setTotalAmount(fileDto.getTotalAmount() * -1);
+ insight.setFundsPayinPayout(fileDto.getFundsPayinPayout() * -1);
+ insight.setRemarks(fileDto.getRemarks());
+ insight.setTotalTradeMwh(fileDto.getTotalTradeMwh());
+ insight.setOaMarketType(oaMarketType);
+
+ OaBillChargesDto charges = fileDto.getOaBillChargesDto();
+ insight.setNldcApplicationFees(charges.getNldcApplicationFees() * -1);
+ insight.setCtuTransmissionCharges(charges.getCtuTransmissionCharges() * -1);
+ insight.setNldcSchedulingAndOperatingChargesBuy(charges.getNldcSchedulingAndOperatingChargesBuy() * -1);
+ insight.setNldcSchedulingAndOperatingChargesSell(charges.getNldcSchedulingAndOperatingChargesSell() * -1);
+ insight.setStuTransmissionCharges(charges.getStuTransmissionCharges() * -1);
+ insight.setDistributionCharges(charges.getDistributionCharges() * -1);
+ insight.setAnyOtherCharges(charges.getAnyOtherCharges() * -1);
+ insight.setSldcSchedulingAndOperatingCharges(charges.getSldcSchedulingAndOperatingCharges() * -1);
+ insight.setAldcSchedulingAndOperatingCharges(charges.getAldcSchedulingAndOperatingCharges() * -1);
+ insight.setFees(charges.getFees() * -1);
+ insight.setIgst(charges.getIgst() * -1);
+ insight.setSgst(charges.getSgst() * -1);
+ insight.setCgst(charges.getCgst() * -1);
+ insight.setUtgst(charges.getUtgst() * -1);
+ insight.setUploadedFrom(uploadedFrom);
+
+ applyTrades(insight, fileDto.getTrades());
+
+ if (insight.getId() == null) {
+  oaBillInsightRepository.save(insight);
+ }
+}
+ 
