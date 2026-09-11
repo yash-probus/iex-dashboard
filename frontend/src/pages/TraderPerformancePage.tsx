@@ -1601,7 +1601,12 @@ export default function TraderPerformancePage() {
                             const res = await apiClient.post('/trader-performance/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
                             setTodConsumptions(prev => {
                               const cur = prev[ym] || {};
-                              return { ...prev, [ym]: { ...cur, traderReports: res.data } };
+                              const existingReports = cur.traderReports || { data: {}, files_status: [] };
+                              const mergedReports = {
+                                data: { ...existingReports.data, ...(res.data.data || {}) },
+                                files_status: [...(existingReports.files_status || []), ...(res.data.files_status || [])]
+                              };
+                              return { ...prev, [ym]: { ...cur, traderReports: mergedReports } };
                             });
                             alert('PDFs processed successfully!');
                           } catch (err: any) {

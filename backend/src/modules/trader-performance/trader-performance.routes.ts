@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 // PDF upload route
-router.post('/upload', upload.array('files', 31), uploadTradeReports);
+router.post('/upload', upload.array('files', 200), uploadTradeReports);
 
 // CRUD routes
 router.get('/', TraderPerformanceController.getAll);
