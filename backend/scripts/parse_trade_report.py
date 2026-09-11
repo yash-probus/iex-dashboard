@@ -111,7 +111,10 @@ def extract_full_iex_report(file_path):
             if remarks_match:
                 data["remarks"] = clean_text(remarks_match.group(1))
 
-            m = re.search(r"Total(?: Trade|).*?MWh[^\d]*([\d,.]+)", full_text, re.IGNORECASE)
+            m = re.search(r"Total Trade\s*\(Buy \+ Sell\)\s*MWh\s+([\d,.]+)", full_text)
+            if not m:
+                m = re.search(r"^Total(?: Trade|).*?MWh\s+([\d,.]+)", full_text, re.IGNORECASE | re.MULTILINE)
+            
             if m:
                 data["total_trade_mwh"] = to_float(m.group(1))
 
