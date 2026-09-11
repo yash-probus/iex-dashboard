@@ -48,18 +48,21 @@ def extract_full_iex_report(file_path):
         data["oa_market_type"] = "DAM"
 
     with pdfplumber.open(file_path) as pdf:
-        page1 = pdf.pages[0].extract_text()
-        
-        if page1:
-            m = re.search(r"Trading Date\s*:\s*(\d{1,2}-\w{3}-\d{2})", page1)
+        full_text = ""
+        for page in pdf.pages:
+            text = page.extract_text()
+            if text:
+                full_text += text + "\n"
+                
+        if full_text:
+            m = re.search(r"Trading Date\s*:\s*(\d{1,2}-\w{3}-\d{2})", full_text)
             if m:
                 data["trading_date"] = m.group(1)
 
-            m = re.search(r"Delivery Date\s*:\s*(\d{1,2}-\w{3}-\d{2})", page1)
+            m = re.search(r"Delivery Date\s*:\s*(\d{1,2}-\w{3}-\d{2})", full_text)
             if m:
                 data["delivery_date"] = m.group(1)
 
-            # Note: We override market type with filename, but if filename is not recognized, fallback to date logic
             if not data["oa_market_type"]:
                 if data["trading_date"] is None and data["delivery_date"] is not None:
                     data["trading_date"] = data["delivery_date"]
@@ -67,27 +70,27 @@ def extract_full_iex_report(file_path):
                 elif data["trading_date"] is not None and data["delivery_date"] is not None and data["trading_date"] != data["delivery_date"]:
                     data["oa_market_type"] = "DAM"
 
-            m = re.search(r"Entity ID\s*:\s*([A-Z0-9]+)", page1)
+            m = re.search(r"Entity ID\s*:\s*([A-Z0-9]+)", full_text)
             if m:
                 data["entity_id"] = m.group(1)
 
-            m = re.search(r"Entity Name\s*:\s*(.+?)(?:Portfolio Code|$)", page1, re.S)
+            m = re.search(r"Entity Name\s*:\s*(.+?)(?:Portfolio Code|$)", full_text, re.S)
             if m:
                 data["entity_name"] = clean_text(m.group(1))
 
-            m = re.search(r"Portfolio Code\s*:\s*([A-Z0-9]+)", page1)
+            m = re.search(r"Portfolio Code\s*:\s*([A-Z0-9]+)", full_text)
             if m:
                 data["portfolio_code"] = m.group(1)
 
-            m = re.search(r"Portfolio Name\s*:\s*(.+?)(?:Funds Payin|Charges|$)", page1, re.S)
+            m = re.search(r"Portfolio Name\s*:\s*(.+?)(?:Funds Payin|Charges|$)", full_text, re.S)
             if m:
                 data["portfolio_name"] = clean_text(m.group(1))
 
-            m = re.search(r"Funds Payin\(-\)\s*/\s*Payout\(\+\)\s+(-?[\d,]+\.\d+)", page1)
+            m = re.search(r"Funds Payin\(-\)\s*/\s*Payout\(\+\)\s+(-?[\d,]+\.\d+)", full_text)
             if m:
                 data["funds_payin_payout"] = to_float(m.group(1))
 
-            charge_matches = re.findall(r"(?:>\s*|^)([A-Za-z &\-/]+?)\s+(-?[\d,]+\.\d+)", page1, re.MULTILINE)
+            charge_matches = re.findall(r"(?:>\s*|^)([A-Za-z &\-/]+?)\s+(-?[\d,]+\.\d+)", full_text, re.MULTILINE)
             for label, amount in charge_matches:
                 label = clean_text(label)
                 if label.lower() in ["total", "funds payin(-) / payout(+)"]:
@@ -96,40 +99,37 @@ def extract_full_iex_report(file_path):
                 data["charges"][key] = to_float(amount)
 
             if "fees" not in data["charges"]:
-                m = re.search(r"Fees\s+(-?[\d,]+\.\d+)", page1)
+                m = re.search(r"Fees\s+(-?[\d,]+\.\d+)", full_text)
                 if m:
                     data["charges"]["fees"] = to_float(m.group(1))
 
-            m = re.search(r"Total\s+(-?[\d,]+\.\d+)", page1)
+            m = re.search(r"Total\s+(-?[\d,]+\.\d+)", full_text)
             if m:
                 data["total_amount"] = to_float(m.group(1))
 
-            remarks_match = re.search(r"Remarks\s*:(.*?)(\*\* This is a computer generated report|\Z)", page1, re.S)
+            remarks_match = re.search(r"Remarks\s*:(.*?)(\*\* This is a computer generated report|\Z)", full_text, re.S)
             if remarks_match:
                 data["remarks"] = clean_text(remarks_match.group(1))
 
-        if len(pdf.pages) > 1:
-            page2 = pdf.pages[1].extract_text()
-            if page2:
-                m = re.search(r"Total Trade.*?MWh\s+([\d.]+)", page2)
-                if m:
-                    data["total_trade_mwh"] = to_float(m.group(1))
+            m = re.search(r"Total Trade.*?MWh\s+([\d.]+)", full_text)
+            if m:
+                data["total_trade_mwh"] = to_float(m.group(1))
 
-                trade_matches = re.findall(r"(\d{2}:\d{2}\s*-\s*\d{2}:\d{2})\s+(-?[\d.]+)\s+([\d,]+\.\d+)\s+(-?[\d,]+\.\d+)", page2)
-                sum_qty = 0.0
-                for period, qty, rate, amount in trade_matches:
-                    q = to_float(qty)
-                    data["trades"].append({
-                        "period": period,
-                        "qty_mw": q,
-                        "rate_mwh": to_float(rate),
-                        "amount": to_float(amount)
-                    })
-                    if q > 0:
-                        sum_qty += q
-                        
-                if data["total_trade_mwh"] is None and sum_qty > 0:
-                    data["total_trade_mwh"] = sum_qty * 0.25
+            trade_matches = re.findall(r"(\d{2}:\d{2}\s*-\s*\d{2}:\d{2})\s+(-?[\d,.]+)\s+([\d,]+(?:\.\d+)?)\s+(-?[\d,]+(?:\.\d+)?)", full_text)
+            sum_qty = 0.0
+            for period, qty, rate, amount in trade_matches:
+                q = to_float(qty)
+                data["trades"].append({
+                    "period": period,
+                    "qty_mw": q,
+                    "rate_mwh": to_float(rate),
+                    "amount": to_float(amount)
+                })
+                if q > 0:
+                    sum_qty += q
+                    
+            if data["total_trade_mwh"] is None and sum_qty > 0:
+                data["total_trade_mwh"] = sum_qty * 0.25
 
     return data
 

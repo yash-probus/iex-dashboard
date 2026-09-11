@@ -673,16 +673,31 @@ export default function TraderPerformanceDashboardPage() {
                             </TableHead>
                             <TableBody>
                               {(() => {
-                                // Compute actual trader stats from PDFs for the selected month
                                 let traderBoughtKwh = 0;
                                 let traderMarketCost = 0;
-                                const tc = (calcEntry.todConsumptions as any)?.[selectedSimMonth];
-                                if (tc && tc.traderReports && tc.traderReports.data) {
-                                  Object.values(tc.traderReports.data).forEach((report: any) => {
-                                    if (report.total_trade_mwh) traderBoughtKwh += report.total_trade_mwh * 1000;
-                                    if (report.total_amount) traderMarketCost += report.total_amount;
+                                
+                                const aggregateReports = (reports: any) => {
+                                  if (reports && reports.data) {
+                                    Object.values(reports.data).forEach((report: any) => {
+                                      if (report.total_trade_mwh) traderBoughtKwh += report.total_trade_mwh * 1000;
+                                      if (report.total_amount) traderMarketCost += report.total_amount;
+                                    });
+                                  }
+                                };
+
+                                if (selectedSimMonth === 'all') {
+                                  Object.values(calcEntry.todConsumptions || {}).forEach((tc: any) => {
+                                    if (tc && tc.traderReports) {
+                                      aggregateReports(tc.traderReports);
+                                    }
                                   });
+                                } else {
+                                  const tc = (calcEntry.todConsumptions as any)?.[selectedSimMonth];
+                                  if (tc && tc.traderReports) {
+                                    aggregateReports(tc.traderReports);
+                                  }
                                 }
+
 
                                 const totalEnergy = marketDecisionResult.totalEnergyKwh || 0;
                                 const discomCost = marketDecisionResult.totalBaselineCost || 0;
