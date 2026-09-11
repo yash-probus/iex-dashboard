@@ -1594,7 +1594,7 @@ export default function TraderPerformancePage() {
                         accept=".pdf" 
                         onChange={async (e) => {
                           if (!e.target.files) return;
-                          const files = Array.from(e.target.files).slice(0, 3);
+                          const files = Array.from(e.target.files).slice(0, 200);
                           const formData = new FormData();
                           files.forEach(f => formData.append('files', f));
                           try {
