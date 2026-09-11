@@ -121,7 +121,7 @@ export const calculateTraderPerformance = async (id: string, month?: string, ver
   return response.data.data;
 };
 
-export const calculateMarketDecisionNew = async (id: string, month?: string, version?: number): Promise<MarketDecisionResult> => {
+export const calculateMarketDecisionTraderPerformance = async (id: string, month?: string, version?: number): Promise<MarketDecisionResult> => {
   let url = `/trader-performance/entries/${id}/market-decision`;
   const params: string[] = [];
   if (month) params.push(`monthStr=${month}`);
@@ -132,17 +132,17 @@ export const calculateMarketDecisionNew = async (id: string, month?: string, ver
   return response.data.data;
 };
 
-export const fetchClientOverviewNew = async (id: string): Promise<any> => {
+export const fetchClientOverviewTraderPerformance = async (id: string): Promise<any> => {
   const response = await apiClient.get(`/trader-performance/entries/${id}/client-overview`);
   return response.data.data;
 };
 
-export const fetchEntryHistoryNew = async (id: string): Promise<any[]> => {
+export const fetchEntryHistoryTraderPerformance = async (id: string): Promise<any[]> => {
   const response = await apiClient.get(`/trader-performance/entries/${id}/history`);
   return response.data.data;
 };
 
-export const exportSavingsExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
+export const exportTraderPerformanceExcel = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
   const queryParams: string[] = [`_t=${Date.now()}`];
   if (targetMonth) {
     queryParams.push(`month=${targetMonth}`);
@@ -165,7 +165,7 @@ export const exportSavingsExcelNew = async (id: string, targetMonth?: string, ve
   downloadBlob(blob, filename);
 };
 
-export const exportDemandShiftExcelNew = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
+export const exportDemandShiftExcelTraderPerformance = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
   const queryParams: string[] = [`_t=${Date.now()}`];
   if (targetMonth) {
     queryParams.push(`month=${targetMonth}`);

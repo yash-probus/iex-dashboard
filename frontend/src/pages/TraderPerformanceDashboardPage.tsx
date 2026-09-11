@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Box, Typography, Button, TextField, IconButton, Alert, Snackbar,
-  Grid, Card, CardContent, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow,
+  Grid, Card, CardContent, Tabs, Tab, TableContainer as MuiTableContainer, Table, TableBody, TableCell, TableHead, TableRow,
   CircularProgress, MenuItem, Paper, Tooltip as MuiTooltip, Chip, Dialog, DialogTitle, DialogContent
 } from '@mui/material';
 import {
@@ -34,7 +34,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { SlotWiseMarketHeatmap } from '../components/dashboard/SlotWiseMarketHeatmap';
 import { DynamicSlotWiseMarketHeatmap } from '../components/dashboard/DynamicSlotWiseMarketHeatmap';
-import TableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
+import CustomTableContainer, { ColumnDefinition } from '../components/dashboard/TableContainer';
 import EmptyTableState from '../components/dashboard/EmptyTableState';
 import { Dashboard } from '../components/dashboard/Dashboard';
 import { ProposalDashboardExport } from '../components/dashboard/ProposalDashboardExport';
@@ -661,7 +661,7 @@ export default function TraderPerformanceDashboardPage() {
                     <Typography variant="h6" gutterBottom color="primary">Trader Performance 3-Way Comparison (Actuals)</Typography>
                     <Card sx={{ borderRadius: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                       <CardContent>
-                        <TableContainer>
+                        <MuiTableContainer component={Paper}>
                           <Table size="small">
                             <TableHead sx={{ bgcolor: '#F8FAFC' }}>
                               <TableRow>
@@ -728,7 +728,7 @@ export default function TraderPerformanceDashboardPage() {
                               })()}
                             </TableBody>
                           </Table>
-                        </TableContainer>
+                        </MuiTableContainer>
                       </CardContent>
                     </Card>
                   </Box>

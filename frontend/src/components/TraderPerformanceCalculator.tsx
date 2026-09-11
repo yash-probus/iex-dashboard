@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Button, TextField, IconButton, Alert, alpha, OutlinedInput, Card,
@@ -284,6 +286,7 @@ interface MonthTodData {
   'Current LPSC'?: string;
   'Arrear Amount'?: string;
   'Miscellaneous Charges'?: string;
+  traderReports?: any;
   'Power Factor'?: string;
 }
 
