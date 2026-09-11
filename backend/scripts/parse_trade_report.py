@@ -111,18 +111,26 @@ def extract_full_iex_report(file_path):
         if len(pdf.pages) > 1:
             page2 = pdf.pages[1].extract_text()
             if page2:
-                m = re.search(r"Total Trade\s*\(Buy \+ Sell\)\s*MWh\s+([\d.]+)", page2)
+                m = re.search(r"Total Trade.*?MWh\s+([\d.]+)", page2)
                 if m:
                     data["total_trade_mwh"] = to_float(m.group(1))
 
                 trade_matches = re.findall(r"(\d{2}:\d{2}\s*-\s*\d{2}:\d{2})\s+(-?[\d.]+)\s+([\d,]+\.\d+)\s+(-?[\d,]+\.\d+)", page2)
+                sum_qty = 0.0
                 for period, qty, rate, amount in trade_matches:
+                    q = to_float(qty)
                     data["trades"].append({
                         "period": period,
-                        "qty_mw": to_float(qty),
+                        "qty_mw": q,
                         "rate_mwh": to_float(rate),
                         "amount": to_float(amount)
                     })
+                    if q > 0:
+                        sum_qty += q
+                        
+                if data["total_trade_mwh"] is None and sum_qty > 0:
+                    data["total_trade_mwh"] = sum_qty * 0.25
+
     return data
 
 def main():
