@@ -680,7 +680,7 @@ export default function TraderPerformanceDashboardPage() {
                                   if (reports && reports.data) {
                                     Object.values(reports.data).forEach((report: any) => {
                                       if (report.total_trade_mwh) traderBoughtKwh += report.total_trade_mwh * 1000;
-                                      if (report.total_amount) traderMarketCost += report.total_amount;
+                                      if (report.total_amount) traderMarketCost += Math.abs(report.total_amount);
                                     });
                                   }
                                 };
