@@ -56,7 +56,7 @@ export class TraderPerformanceController {
 
   static async getById(req: Request, res: Response) {
     try {
-      const entry = await TraderPerformanceService.getById(req.params.id);
+      const entry = await TraderPerformanceService.getById(req.params.id as string);
       if (!entry) return res.status(404).json({ success: false, message: 'Not found' });
       return res.status(200).json({ success: true, data: entry });
     } catch (error: any) {
@@ -75,7 +75,7 @@ export class TraderPerformanceController {
 
   static async update(req: Request, res: Response) {
     try {
-      const entry = await TraderPerformanceService.update(req.params.id, { ...req.body, updatedBy: req.user?.username });
+      const entry = await TraderPerformanceService.update(req.params.id as string, { ...req.body, updatedBy: req.user?.username });
       return res.status(200).json({ success: true, data: entry });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
@@ -84,7 +84,7 @@ export class TraderPerformanceController {
 
   static async delete(req: Request, res: Response) {
     try {
-      await TraderPerformanceService.delete(req.params.id);
+      await TraderPerformanceService.delete(req.params.id as string);
       return res.status(200).json({ success: true, message: 'Deleted' });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
@@ -93,7 +93,7 @@ export class TraderPerformanceController {
 
   static async getClientOverview(req: Request, res: Response) {
     try {
-      const overview = await TraderPerformanceService.getClientOverview(req.params.id);
+      const overview = await TraderPerformanceService.getClientOverview(req.params.id as string);
       return res.status(200).json({ success: true, data: overview });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
