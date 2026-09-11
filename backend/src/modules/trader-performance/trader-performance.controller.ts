@@ -29,6 +29,10 @@ export const uploadTradeReports = async (req: Request, res: Response) => {
     });
 
     pythonProcess.on('close', (code) => {
+      filePaths.forEach(fp => {
+        try { if (require('fs').existsSync(fp)) require('fs').unlinkSync(fp); } catch (e) {}
+      });
+
       if (code !== 0) {
         return res.status(500).json({ success: false, message: errorString });
       }
