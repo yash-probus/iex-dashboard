@@ -27,6 +27,12 @@ router.get('/resource-defaults', TraderPerformanceController.getResourceDefaults
 router.get('/:id', TraderPerformanceController.getById);
 router.put('/:id', TraderPerformanceController.update);
 router.delete('/:id', TraderPerformanceController.delete);
-router.get('/:id/overview', TraderPerformanceController.getClientOverview);
+router.get('/:id/client-overview', TraderPerformanceController.getClientOverview);
+router.get('/:id/history', TraderPerformanceController.getHistory);
+router.get('/:id/calculate', TraderPerformanceController.calculateSavings);
+router.get('/:id/market-decision', TraderPerformanceController.calculateMarketDecision);
+router.get('/:id/demand-shift-insights', TraderPerformanceController.getDemandShiftInsights);
+router.get('/:id/export-excel', TraderPerformanceController.exportExcel);
+router.get('/:id/demand-shift-insights/export-excel', TraderPerformanceController.exportDemandShiftExcel);
 
 export default router;
