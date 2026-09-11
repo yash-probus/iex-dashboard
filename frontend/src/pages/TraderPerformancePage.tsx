@@ -1196,7 +1196,7 @@ export default function TraderPerformancePage() {
           </Box>
           <Box>
             <Typography variant="h1" sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}>
-              Savings Calculator (New)
+              Trader Performance Calculator
             </Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               Compare grid utility tariffs against energy market procurement clearing prices.
@@ -1250,7 +1250,7 @@ export default function TraderPerformancePage() {
 
       {/* Entries Table Container */}
       <TableContainer
-        title="Savings Calculator Entries"
+        title="Trader Performance Entries"
         columns={columns}
         data={filteredEntries}
         loading={loading}

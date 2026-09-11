@@ -50,7 +50,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python-docx and lightgbm (pre-compiled binary wheels)
-RUN pip3 install --break-system-packages lightgbm python-docx SQLAlchemy psycopg2-binary python-dotenv
+RUN pip3 install --break-system-packages lightgbm python-docx SQLAlchemy psycopg2-binary python-dotenv pdfplumber
 
 # Copy package configurations and prisma files
 COPY package*.json ./
