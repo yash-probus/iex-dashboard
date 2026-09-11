@@ -107,11 +107,6 @@ export class SavingsCalculatorNewService {
 
   static async getAll() {
     return prisma.savingsCalculatorNewEntry.findMany({
-      where: {
-        NOT: {
-          createdBy: 'TRADER_PERFORMANCE'
-        }
-      },
       orderBy: { createdAt: 'desc' }
     });
   }
