@@ -703,7 +703,12 @@ export default function TraderPerformanceDashboardPage() {
                                 const discomCost = marketDecisionResult.totalBaselineCost || 0;
                                 const probusCost = discomCost - (marketDecisionResult.totalSavings || 0);
                                 
-                                const leftoverDiscomEnergy = Math.max(0, totalEnergy - traderBoughtKwh);
+                                const probusConsumerBusKwh = marketDecisionResult.totalConsumerBusEnergyKwh || 0;
+                                const probusMarketKwh = marketDecisionResult.totalMarketEnergyKwh || 0;
+                                const lossMultiplier = probusMarketKwh > 0 ? (probusConsumerBusKwh / probusMarketKwh) : 1;
+                                const traderConsumerBusKwh = traderBoughtKwh * lossMultiplier;
+
+                                const leftoverDiscomEnergy = Math.max(0, totalEnergy - traderConsumerBusKwh);
                                 // Approximate discom rate
                                 const discomRate = totalEnergy > 0 ? (discomCost / totalEnergy) : 0;
                                 const actualTraderCost = (leftoverDiscomEnergy * discomRate) + traderMarketCost;
@@ -719,8 +724,8 @@ export default function TraderPerformanceDashboardPage() {
                                     <TableRow>
                                       <TableCell>Energy from Market (kWh)</TableCell>
                                       <TableCell align="right">0</TableCell>
-                                      <TableCell align="right">{(marketDecisionResult.totalMarketEnergyKwh || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                      <TableCell align="right">{traderBoughtKwh.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      <TableCell align="right">{probusConsumerBusKwh.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      <TableCell align="right">{traderConsumerBusKwh.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                     </TableRow>
                                     <TableRow>
                                       <TableCell>Total Cost (₹)</TableCell>

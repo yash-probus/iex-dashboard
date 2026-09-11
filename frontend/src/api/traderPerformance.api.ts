@@ -60,6 +60,7 @@ export interface MarketDecisionResult {
   todSummaries: any[];
   totalEnergyKwh: number;
   totalMarketEnergyKwh: number;
+  totalConsumerBusEnergyKwh?: number;
   totalBaselineCost: number;
   fullBaselineDiscomCost: number;
   totalLandedExchangeCost: number;
