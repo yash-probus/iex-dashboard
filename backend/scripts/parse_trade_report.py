@@ -111,7 +111,7 @@ def extract_full_iex_report(file_path):
             if remarks_match:
                 data["remarks"] = clean_text(remarks_match.group(1))
 
-            m = re.search(r"Total Trade.*?MWh\s+([\d.]+)", full_text)
+            m = re.search(r"Total(?: Trade|).*?MWh[^\d]*([\d,.]+)", full_text, re.IGNORECASE)
             if m:
                 data["total_trade_mwh"] = to_float(m.group(1))
 
@@ -145,6 +145,8 @@ def main():
         filename = os.path.basename(file_path)
         try:
             parsed = extract_full_iex_report(file_path)
+            if not parsed["trading_date"] and not parsed["delivery_date"] and not parsed["trades"]:
+                raise Exception("Could not extract any meaningful data. Is this a scanned PDF or a different format?")
             results[filename] = parsed
             files_status.append({
                 "file_name": filename,
