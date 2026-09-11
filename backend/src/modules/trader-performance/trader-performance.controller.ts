@@ -30,13 +30,13 @@ export const uploadTradeReports = async (req: Request, res: Response) => {
 
     pythonProcess.on('close', (code) => {
       if (code !== 0) {
-        return res.status(500).json({ error: 'Failed to process PDFs', details: errorString });
+        return res.status(500).json({ success: false, message: errorString });
       }
       try {
         const result = JSON.parse(dataString);
         res.status(200).json(result);
       } catch (err) {
-        res.status(500).json({ error: 'Invalid output from parser script' });
+        res.status(500).json({ success: false, message: 'Invalid output from parser script' });
       }
     });
   } catch (error) {
