@@ -75,12 +75,12 @@ export interface MarketDecisionResult {
 }
 
 export const fetchTraderPerformanceEntries = async (): Promise<TraderPerformanceEntry[]> => {
-  const response = await apiClient.get('/trader-performance/entries');
+  const response = await apiClient.get('/trader-performance');
   return response.data.data;
 };
 
 export const fetchTraderPerformanceEntryById = async (id: string, version?: number): Promise<TraderPerformanceEntry> => {
-  const url = version ? `/trader-performance/entries/${id}?version=${version}` : `/trader-performance/entries/${id}`;
+  const url = version ? `/trader-performance/${id}?version=${version}` : `/trader-performance/${id}`;
   const response = await apiClient.get(url);
   return response.data.data;
 };
@@ -92,26 +92,26 @@ export const fetchResourceDefaults = async (params: {
   voltageLevel?: string;
   monthStr?: string;
 }): Promise<{ fppaChargePercent: number; demandChargeKwRate: number; electricityDutyPercent: number }> => {
-  const response = await apiClient.get('/trader-performance/entries/resource-defaults', { params });
+  const response = await apiClient.get('/trader-performance/resource-defaults', { params });
   return response.data.data || { fppaChargePercent: 10.0, demandChargeKwRate: 250.0, electricityDutyPercent: 5.0 };
 };
 
 export const createTraderPerformanceEntry = async (data: Partial<TraderPerformanceEntry>): Promise<TraderPerformanceEntry> => {
-  const response = await apiClient.post('/trader-performance/entries', data);
+  const response = await apiClient.post('/trader-performance', data);
   return response.data.data;
 };
 
 export const updateTraderPerformanceEntry = async (id: string, data: Partial<TraderPerformanceEntry>): Promise<TraderPerformanceEntry> => {
-  const response = await apiClient.put(`/trader-performance/entries/${id}`, data);
+  const response = await apiClient.put(`/trader-performance/${id}`, data);
   return response.data.data;
 };
 
 export const deleteTraderPerformanceEntry = async (id: string): Promise<void> => {
-  await apiClient.delete(`/trader-performance/entries/${id}`);
+  await apiClient.delete(`/trader-performance/${id}`);
 };
 
 export const calculateTraderPerformance = async (id: string, month?: string, version?: number): Promise<CalculationResult> => {
-  let url = `/trader-performance/entries/${id}/calculate`;
+  let url = `/trader-performance/${id}/calculate`;
   const params: string[] = [];
   if (month) params.push(`month=${month}`);
   if (version) params.push(`version=${version}`);
@@ -122,7 +122,7 @@ export const calculateTraderPerformance = async (id: string, month?: string, ver
 };
 
 export const calculateMarketDecisionTraderPerformance = async (id: string, month?: string, version?: number): Promise<MarketDecisionResult> => {
-  let url = `/trader-performance/entries/${id}/market-decision`;
+  let url = `/trader-performance/${id}/market-decision`;
   const params: string[] = [];
   if (month) params.push(`monthStr=${month}`);
   if (version) params.push(`version=${version}`);
@@ -133,12 +133,12 @@ export const calculateMarketDecisionTraderPerformance = async (id: string, month
 };
 
 export const fetchClientOverviewTraderPerformance = async (id: string): Promise<any> => {
-  const response = await apiClient.get(`/trader-performance/entries/${id}/client-overview`);
+  const response = await apiClient.get(`/trader-performance/${id}/client-overview`);
   return response.data.data;
 };
 
 export const fetchEntryHistoryTraderPerformance = async (id: string): Promise<any[]> => {
-  const response = await apiClient.get(`/trader-performance/entries/${id}/history`);
+  const response = await apiClient.get(`/trader-performance/${id}/history`);
   return response.data.data;
 };
 
@@ -152,7 +152,7 @@ export const exportTraderPerformanceExcel = async (id: string, targetMonth?: str
   }
   const queryString = `?${queryParams.join('&')}`;
 
-  const response = await apiClient.get(`/trader-performance/entries/${id}/export-excel${queryString}`, {
+  const response = await apiClient.get(`/trader-performance/${id}/export-excel${queryString}`, {
     responseType: 'blob'
   });
 
@@ -175,7 +175,7 @@ export const exportDemandShiftExcelTraderPerformance = async (id: string, target
   }
   const queryString = `?${queryParams.join('&')}`;
 
-  const response = await apiClient.get(`/trader-performance/entries/${id}/demand-shift-insights/export-excel${queryString}`, {
+  const response = await apiClient.get(`/trader-performance/${id}/demand-shift-insights/export-excel${queryString}`, {
     responseType: 'blob'
   });
 
