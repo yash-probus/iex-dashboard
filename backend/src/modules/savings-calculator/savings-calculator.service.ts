@@ -2402,14 +2402,16 @@ export class SavingsCalculatorService {
       } else {
         const remainingToRemove = amountToShift - expSlot.currentDiscomEnergy;
         expSlot.currentDiscomEnergy = 0;
-        expSlot.currentMarketEnergy -= remainingToRemove;
+        expSlot.currentConsumedMarketEnergy -= remainingToRemove;
+        expSlot.currentMarketEnergy -= (remainingToRemove / expSlot.lossMultiplier);
       }
 
       cheapSlot.headroom -= amountToShift;
       cheapSlot.currentEnergy += amountToShift;
       // Add energy to the cheap slot using its cheapest available source (determined by shouldBuyFromMarket)
       if (cheapSlot.shouldBuyFromMarket) {
-        cheapSlot.currentMarketEnergy += amountToShift;
+        cheapSlot.currentConsumedMarketEnergy += amountToShift;
+        cheapSlot.currentMarketEnergy += (amountToShift / cheapSlot.lossMultiplier);
       } else {
         cheapSlot.currentDiscomEnergy += amountToShift;
       }
