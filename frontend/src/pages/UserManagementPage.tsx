@@ -26,7 +26,7 @@ const AVAILABLE_MODULES = [
   { id: 'market-recommendation', label: 'Market Recommendation' },
   { id: 'api-logs', label: 'API Logs' },
   { id: 'user-management', label: 'User Management' },
-  { id: 'customer-lead', label: 'Customer Lead' },
+  { id: 'trader-performance', label: 'Trader Performance' },
 ];
 
 export default function UserManagementPage() {
