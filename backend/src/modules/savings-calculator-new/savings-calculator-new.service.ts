@@ -107,6 +107,11 @@ export class SavingsCalculatorNewService {
 
   static async getAll() {
     return prisma.savingsCalculatorNewEntry.findMany({
+      where: {
+        NOT: {
+          createdBy: 'TRADER_PERFORMANCE'
+        }
+      },
       orderBy: { createdAt: 'desc' }
     });
   }
@@ -2475,7 +2480,9 @@ export class SavingsCalculatorNewService {
       const costPerKwh = s.shouldBuyFromMarket ? s.bestMarketLanding : s.discomLanding;
       const originalMarketEnergy = s.marketEnergy || 0;
       const originalDiscomEnergy = s.discomEnergy || 0;
-      const currentEnergy = originalMarketEnergy + originalDiscomEnergy;
+      // Use consumedMarketEnergy (consumer bus) instead of marketEnergy (regional bus)
+      // to correctly represent the actual demand in this slot without inflating units
+      const currentEnergy = (s.consumedMarketEnergy || 0) + originalDiscomEnergy;
       const headroom = Math.max(0, maxEnergyPerSlot - currentEnergy);
       originalTotalCost += (currentEnergy * costPerKwh);
 
