@@ -10,7 +10,7 @@ export const uploadTradeReports = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    const scriptPath = path.join(__dirname, '../../scripts/parse_trade_report.py');
+    const scriptPath = path.join(__dirname, '../../../scripts/parse_trade_report.py');
     const filePaths = files.map(f => f.path);
     const venvPythonPath = path.join(__dirname, '../../../venv/bin/python');
     const pythonExecutable = require('fs').existsSync(venvPythonPath) ? venvPythonPath : 'python3';
