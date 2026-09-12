@@ -143,18 +143,18 @@ export default function LoginPage() {
         }}
       >
         <Box sx={{ maxWidth: 450 }}>
-          {/* <Box 
-            component="img"
-            src="/assets/logo.png"
-            alt="IEX Dashboard Logo"
-            sx={{ 
-              height: 'auto',
-              width: '100%',
-              maxWidth: 400,
-              mb: 2,
-              filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.1))'
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: 900,
+              color: '#ffffff',
+              letterSpacing: '2px',
+              textShadow: '0px 4px 10px rgba(0,0,0,0.3)',
+              mb: 2
             }}
-          /> */}
+          >
+            ENERSYNC
+          </Typography>
         </Box>
       </Box>
 

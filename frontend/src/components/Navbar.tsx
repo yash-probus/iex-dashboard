@@ -514,19 +514,20 @@ export default function Navbar() {
             sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: 1 }}
             aria-label="Home"
           >
-            {/* <Box
-              component="img"
-              src="/assets/logo.png"
-              alt="IEX Analytics"
+            <Typography
+              variant="h5"
               onClick={() => navigate('/dashboard')}
               sx={{
                 cursor: 'pointer',
-                maxHeight: { xs: '32px', sm: '44px' },
-                height: 'auto',
-                width: 'auto',
-                objectFit: 'contain',
+                fontWeight: 900,
+                color: 'primary.main',
+                letterSpacing: '1px',
+                display: 'flex',
+                alignItems: 'center'
               }}
-            /> */}
+            >
+              ENERSYNC
+            </Typography>
           </Box>
 
 
