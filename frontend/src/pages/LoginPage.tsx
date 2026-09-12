@@ -143,7 +143,7 @@ export default function LoginPage() {
         }}
       >
         <Box sx={{ maxWidth: 450 }}>
-          <Box 
+          {/* <Box 
             component="img"
             src="/assets/logo.png"
             alt="IEX Dashboard Logo"
@@ -154,7 +154,7 @@ export default function LoginPage() {
               mb: 2,
               filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.1))'
             }}
-          />
+          /> */}
         </Box>
       </Box>
 
