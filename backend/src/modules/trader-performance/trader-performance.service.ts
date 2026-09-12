@@ -455,6 +455,8 @@ export class TraderPerformanceService {
     let electricityDuty = 0;
     let peakDemand = 0;
     let totalConsumerBusEnergyKwh = 0;
+    let totalTraderMarketEnergy = 0;
+    let totalTraderLandedCost = 0;
     let demandChargeRate = 0;
 
     const aggregatedTotals = {
@@ -482,6 +484,8 @@ export class TraderPerformanceService {
           electricityDuty += res.electricityDuty;
           peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
           totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
+          totalTraderMarketEnergy += (res as any).totalTraderMarketEnergy || 0;
+          totalTraderLandedCost += (res as any).totalTraderLandedCost || 0;
           demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
 
           if (res.oaDetailed) {
@@ -519,6 +523,8 @@ export class TraderPerformanceService {
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalConsumerBusEnergyKwh,
+      totalTraderMarketEnergy,
+      totalTraderLandedCost,
       totalBaselineCost,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
@@ -556,6 +562,8 @@ export class TraderPerformanceService {
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
     let totalConsumerBusEnergyKwh = 0;
+    let totalTraderMarketEnergy = 0;
+    let totalTraderLandedCost = 0;
 
     for (const month of months) {
       try {
@@ -567,6 +575,8 @@ export class TraderPerformanceService {
           totalEnergyKwh += res.totalEnergyKwh;
           totalMarketEnergyKwh += res.totalMarketEnergyKwh;
           totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
+          totalTraderMarketEnergy += (res as any).totalTraderMarketEnergy || 0;
+          totalTraderLandedCost += (res as any).totalTraderLandedCost || 0;
         }
       } catch (e) {
         console.error("Error calculating month", month, e);
@@ -581,6 +591,8 @@ export class TraderPerformanceService {
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalConsumerBusEnergyKwh,
+      totalTraderMarketEnergy,
+      totalTraderLandedCost,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,
@@ -636,6 +648,8 @@ export class TraderPerformanceService {
     let totalEnergyKwh = 0;
     let totalMarketEnergyKwh = 0;
     let totalConsumerBusEnergyKwh = 0;
+    let totalTraderMarketEnergy = 0;
+    let totalTraderLandedCost = 0;
 
     let monthsToProcess = Object.entries(todConsumptions);
     if (targetMonth) {
@@ -1193,6 +1207,8 @@ export class TraderPerformanceService {
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalConsumerBusEnergyKwh,
+      totalTraderMarketEnergy,
+      totalTraderLandedCost,
       totalBaselineCost,
       totalOptimizedCost,
       totalSavings,
@@ -1264,7 +1280,33 @@ export class TraderPerformanceService {
     const maxEnergyPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
 
     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
+    
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+
+    const traderReports = (monthConsumptions as any).traderReports || { data: {} };
+    const traderTradesLookup: Record<string, Record<number, any>> = {};
+    if (traderReports && traderReports.data) {
+      Object.values(traderReports.data).forEach((report: any) => {
+        if (report.delivery_date && report.trades && Array.isArray(report.trades)) {
+          const dDate = new Date(report.delivery_date).toISOString().split('T')[0];
+          if (!traderTradesLookup[dDate]) traderTradesLookup[dDate] = {};
+          
+          report.trades.forEach((trade: any) => {
+            if (trade.period && typeof trade.period === 'string') {
+              const startStr = trade.period.split('-')[0].trim();
+              const parts = startStr.split(':');
+              if (parts.length === 2) {
+                const hour = parseInt(parts[0], 10);
+                const min = parseInt(parts[1], 10);
+                const tb = hour * 4 + (min / 15) + 1;
+                traderTradesLookup[dDate][tb] = trade;
+              }
+            }
+          });
+        }
+      });
+    }
+
 
     const customSlots: any[] = [];
     if (monthConsumptions.slots && Array.isArray(monthConsumptions.slots)) {
@@ -1956,7 +1998,10 @@ export class TraderPerformanceService {
     const isKvahBilling = baseTariff && String(baseTariff.baseEnergyUnit || '').toLowerCase() === 'kvah';
     const globalPf = Number(entry.powerFactor) || 0.99;
     
+    
     let preTotalEnergyKwh = 0;
+    
+
     Object.keys(slotsByTod).forEach(groupKey => {
       let slabConsumption = 0;
       

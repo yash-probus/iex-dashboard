@@ -29,31 +29,7 @@ export function ProltLogo({
   className,
   onClick,
 }: ProltLogoProps) {
-  const heightClass = sizeMap[size];
-
-  return (
-    <div
-      onClick={onClick}
-      className={cn("flex items-center cursor-pointer group", className)}
-    >
-      <img
-        src={
-          variant === "icon"
-            ? proltIconSvg
-            : variant === "mini"
-              ? proltLogoWithNameSquareSvg
-              : proltLogoSvg
-        }
-        alt="Prolt"
-        className={cn(
-          "w-auto object-contain transition-transform duration-300 group-hover:scale-105",
-          heightClass,
-          // When variant is "icon" only, crop to roughly square
-          variant === "icon" && "aspect-square object-left",
-        )}
-      />
-    </div>
-  );
+  return null;
 }
 
 // Icon-only alias — keeps backward compat
@@ -64,15 +40,5 @@ export function ProltIcon({
   size?: number;
   className?: string;
 }) {
-  return (
-    <img
-      src={proltIconSvg}
-      alt="Prolt"
-      style={{ height: size, width: "auto" }}
-      className={cn(
-        "object-contain transition-transform duration-300 hover:scale-110",
-        className,
-      )}
-    />
-  );
+  return null;
 }

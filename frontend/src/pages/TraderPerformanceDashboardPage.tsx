@@ -706,12 +706,21 @@ export default function TraderPerformanceDashboardPage() {
                                 const probusConsumerBusKwh = marketDecisionResult.totalConsumerBusEnergyKwh || 0;
                                 const probusMarketKwh = marketDecisionResult.totalMarketEnergyKwh || 0;
                                 const lossMultiplier = probusMarketKwh > 0 ? (probusConsumerBusKwh / probusMarketKwh) : 1;
-                                const traderConsumerBusKwh = traderBoughtKwh * lossMultiplier;
 
+                                // --- CONTINUOUS FULLY-LANDED TRADER COST ---
+                                // Backend now supplies totalTraderMarketEnergy and totalTraderLandedCost computed slot-by-slot exactly like Probus
+                                const exactTraderLandedCost = marketDecisionResult.totalTraderLandedCost || 0;
+                                const exactTraderMarketEnergy = marketDecisionResult.totalTraderMarketEnergy || 0;
+                                
+                                // We still map market energy to consumer bus using the loss multiplier
+                                const traderConsumerBusKwh = exactTraderMarketEnergy > 0 ? (exactTraderMarketEnergy * lossMultiplier) : (traderBoughtKwh * lossMultiplier);
                                 const leftoverDiscomEnergy = Math.max(0, totalEnergy - traderConsumerBusKwh);
-                                // Approximate discom rate
+                                
+                                // We use exact total trader landed cost instead of raw PDF amount
                                 const discomRate = totalEnergy > 0 ? (discomCost / totalEnergy) : 0;
-                                const actualTraderCost = (leftoverDiscomEnergy * discomRate) + traderMarketCost;
+                                const actualTraderCost = exactTraderLandedCost > 0 
+                                      ? (leftoverDiscomEnergy * discomRate) + exactTraderLandedCost 
+                                      : (leftoverDiscomEnergy * discomRate) + traderMarketCost; // fallback to raw PDF amount if backend is old
 
                                 return (
                                   <>
