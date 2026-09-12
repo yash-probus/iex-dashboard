@@ -514,7 +514,7 @@ export default function Navbar() {
             sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: 1 }}
             aria-label="Home"
           >
-            <Box
+            {/* <Box
               component="img"
               src="/assets/logo.png"
               alt="IEX Analytics"
@@ -526,7 +526,7 @@ export default function Navbar() {
                 width: 'auto',
                 objectFit: 'contain',
               }}
-            />
+            /> */}
           </Box>
 
 
