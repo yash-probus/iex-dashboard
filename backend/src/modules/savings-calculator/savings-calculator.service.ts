@@ -1811,7 +1811,10 @@ export class SavingsCalculatorService {
       if (tariffsForMonth.length === 0) tariffsForMonth = tariffs;
       baseTariff = tariffsForMonth.find((t: any) => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') || tariffsForMonth[0];
     }
-    const isKvahBilling = baseTariff && String(baseTariff.baseEnergyUnit || '').toLowerCase() === 'kvah';
+    let isKvahBilling = baseTariff && String(baseTariff.baseEnergyUnit || '').toLowerCase() === 'kvah';
+    if (monthConsumptions['Billing Unit']) {
+      isKvahBilling = String(monthConsumptions['Billing Unit']).toLowerCase() === 'kvah';
+    }
     const globalPf = Number(entry.powerFactor) || 0.99;
     
     let preTotalEnergyKwh = 0;

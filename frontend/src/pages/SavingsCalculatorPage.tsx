@@ -1878,31 +1878,57 @@ export default function SavingsCalculatorPage() {
                             onChange={(start, end) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Start Date': start, 'End Date': end } }))}
                           />
                         </Grid>
-                        {monthSlabs.map(slab => (
-                          <Grid item xs={12} sm={6} md={3} key={slab}>
-                            <TextField
-                              label={`${slab} (kVAh)`}
-                              value={todConsumptions[ym][slab] || ''}
-                              onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], [slab]: e.target.value } }))}
-                              fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
-                            />
-                          </Grid>
-                        ))}
+                        <Grid item xs={12} sm={12}>
+                          <FormControl component="fieldset">
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 1 }}>
+                              Input Unit
+                            </Typography>
+                            <RadioGroup
+                              row
+                              value={todConsumptions[ym]['Billing Unit'] || 'kVAh'}
+                              onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Billing Unit': e.target.value } }))}
+                            >
+                              <FormControlLabel value="kVAh" control={<Radio size="small" />} label={<Typography variant="body2" sx={{ mr: 2 }}>kVAh</Typography>} />
+                              <FormControlLabel value="kWh" control={<Radio size="small" />} label={<Typography variant="body2">kWh</Typography>} />
+                            </RadioGroup>
+                          </FormControl>
+                        </Grid>
+                        {monthSlabs.map(slab => {
+                          const unit = todConsumptions[ym]['Billing Unit'] || 'kVAh';
+                          return (
+                            <Grid item xs={12} sm={6} md={3} key={slab}>
+                              <TextField
+                                label={`${slab} (${unit})`}
+                                value={todConsumptions[ym][slab] || ''}
+                                onChange={(e) => setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], [slab]: e.target.value } }))}
+                                fullWidth variant="outlined" size="small" type="number" placeholder="0" sx={{ bgcolor: '#FFF' }}
+                              />
+                            </Grid>
+                          );
+                        })}
                       </Grid>
                       <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mt: 2, mb: 1 }}>
-                        Calculated Consumption (kWh)
+                        Calculated Consumption ({todConsumptions[ym]['Billing Unit'] === 'kWh' ? 'kVAh' : 'kWh'})
                       </Typography>
                       <Grid container spacing={2}>
                         {monthSlabs.map(slab => {
-                          const kvahVal = Number(todConsumptions[ym][slab]) || 0;
+                          const unit = todConsumptions[ym]['Billing Unit'] || 'kVAh';
+                          const inputVal = Number(todConsumptions[ym][slab]) || 0;
                           const pfInput = todConsumptions[ym]['Power Factor'];
                           const pf = pfInput && pfInput.trim() ? Number(pfInput) : 0.99;
-                          const kwhVal = kvahVal > 0 ? (kvahVal * pf).toFixed(2) : '';
+                          let calculatedVal = '';
+                          if (inputVal > 0) {
+                            if (unit === 'kVAh') {
+                              calculatedVal = (inputVal * pf).toFixed(2);
+                            } else {
+                              calculatedVal = (inputVal / pf).toFixed(2);
+                            }
+                          }
                           return (
-                            <Grid item xs={12} sm={6} md={3} key={`kwh-${slab}`}>
+                            <Grid item xs={12} sm={6} md={3} key={`calc-${slab}`}>
                               <TextField
-                                label={`${slab} (kWh)`}
-                                value={kwhVal}
+                                label={`${slab} (${unit === 'kWh' ? 'kVAh' : 'kWh'})`}
+                                value={calculatedVal}
                                 InputProps={{ readOnly: true }}
                                 fullWidth variant="filled" size="small" sx={{ bgcolor: '#F1F5F9' }}
                               />
