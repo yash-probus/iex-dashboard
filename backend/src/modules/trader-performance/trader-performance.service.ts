@@ -2282,8 +2282,8 @@ export class TraderPerformanceService {
         if (traderTradesLookup && s.date && s.timeblock) {
           const trade = traderTradesLookup[s.date]?.[s.timeblock];
           if (trade) {
-             const tVolMw = Number(trade.purchase || trade.volume || 0);
-             const tPriceMwh = Number(trade.price || trade.mcp || 0);
+             const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
+             const tPriceMwh = Number(trade.rate_mwh || trade.price || trade.mcp || 0);
              
              const tKwh = tVolMw * 1000 * 0.25;
              traderMarketEnergy += tKwh;
