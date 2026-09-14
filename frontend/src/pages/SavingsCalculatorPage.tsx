@@ -639,8 +639,11 @@ export default function SavingsCalculatorPage() {
           tc[ym] = {};
           const monthData = (entry.todConsumptions![ym] as Record<string, any>) || {};
           const monthSlabs = getTodSlabsForMonth(ym);
+          const billingUnit = monthData['Billing Unit'] || 'kVAh';
+          const isKvah = billingUnit === 'kVAh';
+          
           const monthPf = monthData['Power Factor'];
-          const pf = (monthPf && String(monthPf).trim() !== '') ? Number(monthPf) : (entry.powerFactor || 1);
+          const pf = (monthPf && String(monthPf).trim() !== '') ? Number(monthPf) : (entry.powerFactor || (isKvah ? 0.99 : 1));
           
           Object.keys(monthData).forEach(slab => {
             if (slab === '_rawKvah') return;
@@ -648,7 +651,11 @@ export default function SavingsCalculatorPage() {
             if (monthSlabs.includes(slab) || slab.toUpperCase() === 'FLAT' || slab.toUpperCase() === 'TOTAL') {
               const kwh = parseFloat(monthData[slab]);
               if (!isNaN(kwh)) {
-                tc[ym][slab] = (kwh / pf).toFixed(4).replace(/\.?0+$/, '');
+                if (isKvah) {
+                  tc[ym][slab] = (kwh / pf).toFixed(4).replace(/\.?0+$/, '');
+                } else {
+                  tc[ym][slab] = String(kwh);
+                }
               } else {
                 tc[ym][slab] = String(monthData[slab]);
               }
@@ -656,6 +663,9 @@ export default function SavingsCalculatorPage() {
               tc[ym][slab] = String(monthData[slab]);
             }
           });
+          
+          // Ensure Billing Unit is set in state
+          tc[ym]['Billing Unit'] = billingUnit;
         });
       }
       setTodConsumptions(tc);
@@ -778,25 +788,32 @@ export default function SavingsCalculatorPage() {
         todConsumptions: Object.keys(todConsumptions).length > 0 ?
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => {
-              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month'];
+              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month', 'Billing Unit'];
               const monthSlabs = getTodSlabsForMonth(ym);
+              
+              const billingUnit = data['Billing Unit'] || 'kVAh';
+              const isKvah = billingUnit === 'kVAh';
+              
               const pfInput = data['Power Factor'];
-              const pf = pfInput && String(pfInput).trim() !== '' ? Number(pfInput) : 0.99;
+              const pf = pfInput && String(pfInput).trim() !== '' ? Number(pfInput) : (isKvah ? 0.99 : 1);
 
               const processed: Record<string, any> = {};
 
               Object.entries(data).forEach(([k, v]) => {
-                if (!v || v.trim() === '') return;
+                if (!v || String(v).trim() === '') return;
                 if (stringFields.includes(k)) {
                   processed[k] = v;
                 } else if (monthSlabs.includes(k) || k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL') {
-                  const kvahNum = parseFloat(v);
-                  if (!isNaN(kvahNum)) {
-                    // Store the converted kWh value as TOD consumption for all calculations
-                    processed[k] = parseFloat((kvahNum * pf).toFixed(4));
+                  const inputVal = parseFloat(String(v));
+                  if (!isNaN(inputVal)) {
+                    if (isKvah) {
+                      processed[k] = parseFloat((inputVal * pf).toFixed(4));
+                    } else {
+                      processed[k] = parseFloat(inputVal.toFixed(4));
+                    }
                   }
                 } else {
-                  processed[k] = parseFloat(v);
+                  processed[k] = parseFloat(String(v));
                 }
               });
 
