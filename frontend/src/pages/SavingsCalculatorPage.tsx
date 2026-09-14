@@ -660,8 +660,9 @@ export default function SavingsCalculatorPage() {
             }
           });
           
-          // Ensure Billing Unit is set in state
+          // Ensure Billing Unit and Power Factor are set in state
           tc[ym]['Billing Unit'] = billingUnit;
+          tc[ym]['Power Factor'] = String(pf);
         });
       }
       setTodConsumptions(tc);
@@ -784,7 +785,7 @@ export default function SavingsCalculatorPage() {
         todConsumptions: Object.keys(todConsumptions).length > 0 ?
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => {
-              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month', 'Billing Unit'];
+              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month', 'Billing Unit', 'Power Factor'];
               const monthSlabs = getTodSlabsForMonth(ym);
               
               const billingUnit = data['Billing Unit'] || 'kVAh';
@@ -795,8 +796,16 @@ export default function SavingsCalculatorPage() {
 
               const processed: Record<string, any> = {};
 
+              // Explicitly set these default fields so they are never lost
+              processed['Billing Unit'] = billingUnit;
+              processed['Power Factor'] = pf;
+
               Object.entries(data).forEach(([k, v]) => {
                 if (!v || String(v).trim() === '') return;
+                
+                // Skip if we already explicitly set it
+                if (k === 'Billing Unit' || k === 'Power Factor') return;
+
                 if (stringFields.includes(k)) {
                   processed[k] = v;
                 } else if (monthSlabs.includes(k) || k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL') {
