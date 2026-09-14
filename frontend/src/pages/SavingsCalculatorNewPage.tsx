@@ -681,6 +681,7 @@ export default function SavingsCalculatorNewPage() {
           };
         } else if (val && typeof val === 'object') {
           parsed[m] = {
+            ...val,
             startDate: val.startDate || `${m}-01`,
             endDate: val.endDate || `${m}-${String(lastDay).padStart(2, '0')}`,
             peakDemandKw: Number(val.peakDemandKw || entry.sanctionedLoadKw || 1000),
