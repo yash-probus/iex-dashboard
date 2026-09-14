@@ -685,7 +685,7 @@ export default function SavingsCalculatorPage() {
   const isTodValid = () => {
     let hasAtLeastOneValue = false;
     let isConsumptionsValid = true;
-    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty', 'Season', 'Billing Month', '_rawKvah', 'Current LPSC', 'Arrear Amount', 'Miscellaneous Charges'];
+    const ignoredKeys = ['Start Date', 'End Date', 'Electricity Duty', 'Season', 'Billing Month', '_rawKvah', 'Current LPSC', 'Arrear Amount', 'Miscellaneous Charges', 'Billing Unit', 'Peak Demand (kVA)'];
     Object.values(todConsumptions).forEach(monthData => {
       Object.entries(monthData).forEach(([key, val]) => {
         if (!ignoredKeys.includes(key) && val.trim()) {
