@@ -2213,6 +2213,9 @@ export class TraderPerformanceService {
     let globalTraderMargin = 0;
     let globalTraderMarginGst = 0;
 
+    let globalTraderMarketEnergy = 0;
+    let globalTraderLandedCost = 0;
+
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
     const oaDetailedBreakdown: any[] = [];
 
@@ -2267,12 +2270,26 @@ export class TraderPerformanceService {
       let exactMarketEnergyCost = 0;
       let discomEnergy = 0;
       let consumerBusUnits = 0;
+      let traderMarketEnergy = 0;
+      let traderExactCost = 0;
 
       slotsInGroup.forEach(s => {
         finalMarketEnergy += (s as any).marketEnergy || 0;
         exactMarketEnergyCost += (s as any).exactMarketEnergyCost || 0;
         discomEnergy += ((s as any).discomEnergy || 0);
         consumerBusUnits += ((s as any).consumedMarketEnergy || 0);
+
+        if (traderTradesLookup && s.date && s.timeblock) {
+          const trade = traderTradesLookup[s.date]?.[s.timeblock];
+          if (trade) {
+             const tVolMw = Number(trade.purchase || trade.volume || 0);
+             const tPriceMwh = Number(trade.price || trade.mcp || 0);
+             
+             const tKwh = tVolMw * 1000 * 0.25;
+             traderMarketEnergy += tKwh;
+             traderExactCost += (tKwh * tPriceMwh) / 1000;
+          }
+        }
       });
 
       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
@@ -2352,6 +2369,23 @@ export class TraderPerformanceService {
 
       totalLandedExchangeCost += slabOaBill + proltDiscomBillTotal;
 
+      // TRADER EXACT LANDED COST FOR SLAB
+      const traderLossMultiplier = finalMarketEnergy > 0 ? (consumerBusUnits / finalMarketEnergy) : 1;
+      const traderConsumerBusUnits = traderMarketEnergy * traderLossMultiplier;
+      const traderNonGdamConsumerBusUnits = traderConsumerBusUnits * nonGdamFraction;
+
+      const traderRpoCharge = traderNonGdamConsumerBusUnits * RPO_FLAT_RATE;
+      const traderCssCharge = traderConsumerBusUnits * crossSubsidy;
+      const traderPocCharge = traderMarketEnergy * ctuCharge;
+      const traderStuChargeVal = traderMarketEnergy * stuCharge;
+      const traderDcCharge = traderMarketEnergy * wheelingCharge;
+      const traderIexFeesTotal = traderMarketEnergy * EXCHANGE_FEES;
+
+      const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
+      
+      globalTraderMarketEnergy += traderMarketEnergy;
+      globalTraderLandedCost += traderSlabOaBill;
+
       totalEnergyKwh += slabConsumption;
       totalMarketEnergyKwh += finalMarketEnergy;
       totalConsumerBusEnergyKwh += consumerBusUnits;
@@ -2386,6 +2420,14 @@ export class TraderPerformanceService {
 
     const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
 
+    const actualTraderMarginTotal = globalTraderMarketEnergy * TRADER_MARGIN;
+    const actualTraderMarginGstTotal = globalTraderMarketEnergy * GST_TRADER_MARGIN;
+    
+    // The exact trader landed cost includes daily fixed overheads, application fees, miscellaneous charges, and their own trader margin
+    if (globalTraderMarketEnergy > 0) {
+      globalTraderLandedCost += dailyFixedOverhead + bidApplicationFees + monthMisc + actualTraderMarginTotal + actualTraderMarginGstTotal;
+    }
+
 
 
     // Treat proltMargin as a percentage of gross savings
@@ -2407,6 +2449,8 @@ export class TraderPerformanceService {
       totalEnergyKwh,
       totalMarketEnergyKwh,
       totalConsumerBusEnergyKwh,
+      totalTraderMarketEnergy: globalTraderMarketEnergy,
+      totalTraderLandedCost: globalTraderLandedCost,
       totalBaselineCost,
       fppaPercent,
       fppaCharge: totalFppaCharge,
