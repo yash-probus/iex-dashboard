@@ -649,13 +649,9 @@ export default function SavingsCalculatorPage() {
             if (slab === '_rawKvah') return;
             
             if (monthSlabs.includes(slab) || slab.toUpperCase() === 'FLAT' || slab.toUpperCase() === 'TOTAL') {
-              const kwh = parseFloat(monthData[slab]);
-              if (!isNaN(kwh)) {
-                if (isKvah) {
-                  tc[ym][slab] = (kwh / pf).toFixed(4).replace(/\.?0+$/, '');
-                } else {
-                  tc[ym][slab] = String(kwh);
-                }
+              const val = parseFloat(monthData[slab]);
+              if (!isNaN(val)) {
+                tc[ym][slab] = String(val);
               } else {
                 tc[ym][slab] = String(monthData[slab]);
               }
@@ -806,11 +802,7 @@ export default function SavingsCalculatorPage() {
                 } else if (monthSlabs.includes(k) || k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL') {
                   const inputVal = parseFloat(String(v));
                   if (!isNaN(inputVal)) {
-                    if (isKvah) {
-                      processed[k] = parseFloat((inputVal * pf).toFixed(4));
-                    } else {
-                      processed[k] = parseFloat(inputVal.toFixed(4));
-                    }
+                    processed[k] = parseFloat(inputVal.toFixed(4));
                   }
                 } else {
                   processed[k] = parseFloat(String(v));
