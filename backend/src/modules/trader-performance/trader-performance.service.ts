@@ -2294,7 +2294,20 @@ export class TraderPerformanceService {
         consumerBusUnits += ((s as any).consumedMarketEnergy || 0);
 
         if (traderTradesLookup && s.date && s.timeblock) {
-          const trade = traderTradesLookup[s.date]?.[s.timeblock];
+          let checkDate = String(s.date);
+          if (checkDate.length === 10 && checkDate.charAt(2) === '-' && checkDate.charAt(5) === '-') {
+            const parts = checkDate.split('-');
+            checkDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          } else {
+            try {
+              const d = new Date(checkDate);
+              if (!isNaN(d.getTime())) checkDate = d.toISOString().split('T')[0];
+            } catch (e) {}
+          }
+          let trade = traderTradesLookup[checkDate]?.[s.timeblock];
+          if (!trade) {
+             trade = traderTradesLookup[s.date]?.[s.timeblock];
+          }
           if (trade) {
              const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
              const tPriceMwh = Number(trade.rate_mwh || trade.price || trade.mcp || 0);
