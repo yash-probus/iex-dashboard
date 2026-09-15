@@ -2434,6 +2434,7 @@ export class TraderPerformanceService {
       const traderEDAfterOA = applyED ? traderDiscountedDiscomBill * edRate : 0;
       const traderDiscomBillTotal = traderDiscountedDiscomBill + traderEDAfterOA;
       
+      console.log("MY FIX IS RUNNING", {traderDiscomBillTotal, traderLeftoverDiscomEnergy});
       globalTraderMarketEnergy += traderMarketEnergy;
       globalTraderLandedCost += traderSlabOaBill + traderDiscomBillTotal;
 
