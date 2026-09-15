@@ -168,6 +168,29 @@ export const exportTraderPerformanceExcel = async (id: string, targetMonth?: str
   downloadBlob(blob, filename);
 };
 
+export const exportTraderPerformanceActualTraderExcel = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
+  const queryParams: string[] = [`_t=${Date.now()}`];
+  if (targetMonth) {
+    queryParams.push(`month=${targetMonth}`);
+  }
+  if (version) {
+    queryParams.push(`version=${version}`);
+  }
+  const queryString = `?${queryParams.join('&')}`;
+
+  const response = await apiClient.get(`/trader-performance/${id}/actual-trader/export-excel${queryString}`, {
+    responseType: 'blob'
+  });
+
+  const blob = new Blob([response.data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+  const safeName = (customerName || 'Client').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const filename = `${safeName}_Actual_Trader_Analysis${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
+
+  downloadBlob(blob, filename);
+};
+
 export const exportDemandShiftExcelTraderPerformance = async (id: string, targetMonth?: string, version?: number, customerName?: string): Promise<void> => {
   const queryParams: string[] = [`_t=${Date.now()}`];
   if (targetMonth) {

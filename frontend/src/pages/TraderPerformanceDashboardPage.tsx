@@ -46,6 +46,7 @@ import {
   TraderPerformanceEntry,
   MarketDecisionResult,
   exportTraderPerformanceExcel,
+  exportTraderPerformanceActualTraderExcel,
   exportDemandShiftExcelTraderPerformance,
   fetchEntryHistoryTraderPerformance,
   fetchClientOverviewTraderPerformance
@@ -427,6 +428,31 @@ export default function TraderPerformanceDashboardPage() {
                 onClick={async () => {
                   if (!id) return;
                   try {
+                    await exportTraderPerformanceActualTraderExcel(id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry?.clientName);
+                  } catch (err: any) {
+                    setSnackbar({ open: true, message: err.message || 'Excel export failed', severity: 'error' });
+                  }
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2.5,
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  backgroundColor: '#7C3AED',
+                  color: 'white',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { backgroundColor: '#6D28D9', borderColor: 'divider' }
+                }}
+              >
+                Calculation Sheet (Actual Trader)
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FileDownloadIcon />}
+                onClick={async () => {
+                  if (!id) return;
+                  try {
                     await exportDemandShiftExcelTraderPerformance(id, selectedSimMonth || undefined, selectedCalcVersion || undefined, calcEntry?.clientName);
                   } catch (err: any) {
                     setSnackbar({ open: true, message: err.message || 'Excel export failed', severity: 'error' });
@@ -718,24 +744,27 @@ export default function TraderPerformanceDashboardPage() {
                                 
                                 // We use exact total trader landed cost instead of raw PDF amount
                                 const discomRate = totalEnergy > 0 ? (discomCost / totalEnergy) : 0;
-                                const actualTraderCost = exactTraderLandedCost > 0 
+                                const actualTraderCost = exactTraderMarketEnergy > 0 
                                       ? exactTraderLandedCost 
                                       : (leftoverDiscomEnergy * discomRate) + traderMarketCost; // fallback to raw PDF amount if backend is old
 
-                                return (
-                                  <>
-                                    <TableRow>
-                                      <TableCell>Total Energy (kWh)</TableCell>
-                                      <TableCell align="right">{totalEnergy.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                      <TableCell align="right">{totalEnergy.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                      <TableCell align="right">{totalEnergy.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                      <TableCell>Energy from Market (kWh)</TableCell>
-                                      <TableCell align="right">0</TableCell>
-                                      <TableCell align="right">{probusConsumerBusKwh.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                      <TableCell align="right">{traderConsumerBusKwh.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                    </TableRow>
+                                  const pf = calcEntry?.powerFactor ? Number(calcEntry.powerFactor) : 1;
+                                  const toKvAh = (kwh: number) => kwh / pf;
+                                  
+                                  return (
+                                    <>
+                                      <TableRow>
+                                        <TableCell>Total Energy (kVAh)</TableCell>
+                                        <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>Energy from Market (kVAh)</TableCell>
+                                        <TableCell align="right">0</TableCell>
+                                        <TableCell align="right">{toKvAh(probusConsumerBusKwh).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{toKvAh(traderConsumerBusKwh).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      </TableRow>
                                     <TableRow>
                                       <TableCell>Total Cost (₹)</TableCell>
                                       <TableCell align="right">₹ {discomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>

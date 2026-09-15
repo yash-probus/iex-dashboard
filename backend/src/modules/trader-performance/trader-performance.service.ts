@@ -2426,7 +2426,15 @@ export class TraderPerformanceService {
         proltDiscomBill: proltEnergyBill,
         consumerBusUnits,
         oaBill: slabOaBill,
-        discomRate: slabDiscomRate
+        discomRate: slabDiscomRate,
+        // Trader actuals
+        traderMarketEnergy,
+        traderConsumerBusUnits,
+        traderSlabOaBill,
+        traderLeftoverDiscomEnergy,
+        traderDiscomEnergyBill,
+        traderDiscomBillTotal,
+        traderExactCost
       });
     });
     const nocFee = 7000;

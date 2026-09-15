@@ -31,7 +31,7 @@ const getShortHeaderName = (monthStr: string) => {
 };
 
 export class TraderPerformanceExportService {
-  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any, monthStr?: string): Promise<Record<string, number>> {
+  private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any, monthStr?: string, isActualTrader = false): Promise<Record<string, number>> {
     const { slotsData, todSummaries, oaDetailed } = result;
 
     // Remove invalid characters for worksheet names
@@ -235,20 +235,22 @@ export class TraderPerformanceExportService {
       const fppaMultiplier = fppaPercent > 0 && !((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined) ? (1 + (fppaPercent / 100)) : 1;
       const discomU = Math.round(b.discomUnits);
       const discomB = Math.round(b.discomBill);
-      const oaU = Math.round(b.oaUnits);
-      const consumerU = Math.round(b.consumerBusUnits);
-      let oaB = Math.round(b.oaBill);
+      const oaU = isActualTrader ? Math.round(b.traderMarketEnergy || 0) : Math.round(b.oaUnits);
+      const consumerU = isActualTrader ? Math.round(b.traderConsumerBusUnits || 0) : Math.round(b.consumerBusUnits);
+      let oaB = isActualTrader ? Math.round(b.traderExactCost || b.traderSlabOaBill || 0) : Math.round(b.oaBill);
       
-      if (totalOaBaseCostAllSlabs > 0) {
-        oaB += Math.round((Math.round(b.oaBill) / totalOaBaseCostAllSlabs) * overheadsToDistribute);
-      }
-      if (index === oaDetailed.breakdown.length - 1 && totalOaBaseCostAllSlabs > 0) {
-         oaB = preVisibleTotalOa - runningOaBillAcc;
+      if (!isActualTrader) {
+        if (totalOaBaseCostAllSlabs > 0) {
+          oaB += Math.round((Math.round(b.oaBill) / totalOaBaseCostAllSlabs) * overheadsToDistribute);
+        }
+        if (index === oaDetailed.breakdown.length - 1 && totalOaBaseCostAllSlabs > 0) {
+           oaB = preVisibleTotalOa - runningOaBillAcc;
+        }
       }
       runningOaBillAcc += oaB;
 
-      const discomUnitsAfterOA = Math.max(0, discomU - consumerU);
-      const netB = Math.round(b.proltDiscomBill);
+      const discomUnitsAfterOA = isActualTrader ? Math.round(b.traderLeftoverDiscomEnergy || 0) : Math.max(0, discomU - consumerU);
+      const netB = isActualTrader ? Math.round(b.traderDiscomBillTotal || b.discomBill) : Math.round(b.proltDiscomBill);
 
       const pf = result.powerFactor || 0.99;
       const discomKvah = Math.round(discomU / pf);
@@ -384,7 +386,7 @@ export class TraderPerformanceExportService {
     afterHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
     const electricityDutyAfterOA = (result as any).electricityDutyAfterOA ?? (result.electricityDuty || 0);
-    let energyChargesAfterOA = (result as any).discomEnergyChargesAfterOA ?? (result.totalDiscomAfterProlt || 0);
+    let energyChargesAfterOA = isActualTrader ? totalNetBRounded : ((result as any).discomEnergyChargesAfterOA ?? (result.totalDiscomAfterProlt || 0));
     
     if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;
@@ -673,7 +675,7 @@ export class TraderPerformanceExportService {
     return rowMapping;
   }
 
-  static async exportToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
+  static async exportToExcel(id: string, monthStr?: string, version?: number, isActualTrader = false): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     
     if (monthStr === 'all') {
@@ -697,24 +699,28 @@ export class TraderPerformanceExportService {
             sheetName = `${getShortSheetName(r.monthStr, 'Savings Analysis')} ${idx}`;
             idx++;
           }
-          const rowMapping = await TraderPerformanceExportService.addSavingsSheet(workbook, sheetName, r.result, entry, r.monthStr);
+          const rowMapping = await TraderPerformanceExportService.addSavingsSheet(workbook, sheetName, r.result, entry, r.monthStr, isActualTrader);
           monthRowMap[r.monthStr] = { sheetName, ...rowMapping };
         }
         
-        await TraderPerformanceExportService.populateSummarySheet(summarySheet, entry, allResults, monthRowMap);
+        await TraderPerformanceExportService.populateSummarySheet(summarySheet, entry, allResults, monthRowMap, isActualTrader);
       }
     } else {
       const entry = await TraderPerformanceService.getEntryOrVersion(id, version);
       const result = await TraderPerformanceService.calculateMarketDecision(id, monthStr, version);
       const sheetName = getShortSheetName(monthStr, 'Savings Analysis');
-      await TraderPerformanceExportService.addSavingsSheet(workbook, sheetName, result, entry, monthStr);
+      await TraderPerformanceExportService.addSavingsSheet(workbook, sheetName, result, entry, monthStr, isActualTrader);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
   }
 
-  private static async populateSummarySheet(sheet: ExcelJS.Worksheet, entry: any, allResults: any[], monthRowMap: Record<string, any>) {
+  static async exportActualTraderToExcel(id: string, monthStr?: string, version?: number): Promise<Buffer> {
+    return this.exportToExcel(id, monthStr, version, true);
+  }
+
+  private static async populateSummarySheet(sheet: ExcelJS.Worksheet, entry: any, allResults: any[], monthRowMap: Record<string, any>, isActualTrader = false) {
     // Header
     sheet.addRow([`Industry Name: ${entry.industryName || entry.clientName || ''}`]);
     sheet.addRow([`Location / Address: ${entry.address || ''}`]);

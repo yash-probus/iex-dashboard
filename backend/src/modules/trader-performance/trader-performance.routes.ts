@@ -33,6 +33,7 @@ router.get('/:id/calculate', TraderPerformanceController.calculateSavings);
 router.get('/:id/market-decision', TraderPerformanceController.calculateMarketDecision);
 router.get('/:id/demand-shift-insights', TraderPerformanceController.getDemandShiftInsights);
 router.get('/:id/export-excel', TraderPerformanceController.exportExcel);
+router.get('/:id/actual-trader/export-excel', TraderPerformanceController.exportActualTraderExcel);
 router.get('/:id/demand-shift-insights/export-excel', TraderPerformanceController.exportDemandShiftExcel);
 
 export default router;

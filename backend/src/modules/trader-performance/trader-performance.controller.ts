@@ -174,6 +174,27 @@ export class TraderPerformanceController {
     }
   }
 
+  static async exportActualTraderExcel(req: Request, res: Response) {
+    try {
+      const id = String(req.params.id);
+      const targetMonth = req.query.month as string | undefined;
+      const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
+      
+      const { TraderPerformanceExportService } = await import('./trader-performance.export');
+      const buffer = await TraderPerformanceExportService.exportActualTraderToExcel(id, targetMonth, version);
+      
+      const entry = await TraderPerformanceService.getEntryOrVersion(id, version);
+      const safeName = (entry?.clientName || 'Client').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      const filename = `${safeName}_Actual_Trader_Performance${targetMonth ? `_${targetMonth}` : ''}.xlsx`;
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(buffer);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
   static async exportDemandShiftExcel(req: Request, res: Response) {
     try {
       const id = String(req.params.id);
