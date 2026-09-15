@@ -1286,7 +1286,7 @@ export class TraderPerformanceService {
     const traderReports = (monthConsumptions as any).traderReports || { data: {} };
     const traderTradesLookup: Record<string, Record<number, any>> = {};
     if (traderReports && traderReports.data) {
-      Object.values(traderReports.data).forEach((report: any) => {
+      for (const report of Object.values<any>(traderReports.data)) {
         if (report.delivery_date && report.trades && Array.isArray(report.trades)) {
           let dDate = null;
           if (report.delivery_date.length === 10 && report.delivery_date.charAt(2) === '-' && report.delivery_date.charAt(5) === '-') {
@@ -1318,7 +1318,7 @@ export class TraderPerformanceService {
             });
           }
         }
-      });
+      }
     }
 
 
