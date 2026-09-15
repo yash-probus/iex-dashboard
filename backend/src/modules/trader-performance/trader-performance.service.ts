@@ -1288,21 +1288,35 @@ export class TraderPerformanceService {
     if (traderReports && traderReports.data) {
       Object.values(traderReports.data).forEach((report: any) => {
         if (report.delivery_date && report.trades && Array.isArray(report.trades)) {
-          const dDate = new Date(report.delivery_date).toISOString().split('T')[0];
-          if (!traderTradesLookup[dDate]) traderTradesLookup[dDate] = {};
-          
-          report.trades.forEach((trade: any) => {
-            if (trade.period && typeof trade.period === 'string') {
-              const startStr = trade.period.split('-')[0].trim();
-              const parts = startStr.split(':');
-              if (parts.length === 2) {
-                const hour = parseInt(parts[0], 10);
-                const min = parseInt(parts[1], 10);
-                const tb = hour * 4 + (min / 15) + 1;
-                traderTradesLookup[dDate][tb] = trade;
-              }
+          let dDate = null;
+          if (report.delivery_date.length === 10 && report.delivery_date.charAt(2) === '-' && report.delivery_date.charAt(5) === '-') {
+            const parts = report.delivery_date.split('-');
+            dDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          } else {
+            try {
+              dDate = new Date(report.delivery_date).toISOString().split('T')[0];
+            } catch (e) {
+              dDate = report.delivery_date;
             }
-          });
+          }
+          if (dDate) {
+            if (!traderTradesLookup[dDate]) {
+              traderTradesLookup[dDate] = {};
+            }
+          
+            report.trades.forEach((trade: any) => {
+              if (trade.period && typeof trade.period === 'string') {
+                const startStr = trade.period.split('-')[0].trim();
+                const parts = startStr.split(':');
+                if (parts.length === 2) {
+                  const hour = parseInt(parts[0], 10);
+                  const min = parseInt(parts[1], 10);
+                  const tb = hour * 4 + (min / 15) + 1;
+                  traderTradesLookup[dDate][tb] = trade;
+                }
+              }
+            });
+          }
         }
       });
     }
