@@ -740,9 +740,11 @@ export class SavingsCalculatorExportService {
     sheet.addRow([`Industry Name: ${entry.industryName || entry.clientName || ''}`]);
     sheet.addRow([`Location / Address: ${entry.address || ''}`]);
     sheet.addRow([`Connectivity: ${entry.voltageLevel || ''}`]);
+    sheet.addRow([`Sanctioned Load (kW/kVA): ${entry.sanctionedLoadKw || '-'}`]);
+    sheet.addRow([`Max. Demand Purchased: ${entry.billedDemandKv || '-'}`]);
     
     // Make headers bold
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 5; i++) {
       if (sheet.getCell(`A${i}`)) sheet.getCell(`A${i}`).font = { bold: true };
     }
     sheet.addRow([]);
@@ -758,7 +760,43 @@ export class SavingsCalculatorExportService {
     allResults.forEach(r => {
       r.result.todSummaries.forEach((t: any) => uniqueTods.add(t.slabName));
     });
-    const todSlabs = Array.from(uniqueTods).sort();
+
+    const monthOrder = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const seasonOrder = ['SUMMER', 'MONSOON', 'AUTUMN', 'WINTER', 'SPRING'];
+
+    const getSortWeight = (slab: string) => {
+      const upper = slab.toUpperCase();
+      for (let i = 0; i < monthOrder.length; i++) {
+        if (upper.includes(monthOrder[i])) {
+          const fYIdx = i >= 3 ? i - 3 : i + 9;
+          return { type: 'month', weight: fYIdx };
+        }
+      }
+      for (let i = 0; i < seasonOrder.length; i++) {
+        if (upper.includes(seasonOrder[i])) {
+          return { type: 'season', weight: i };
+        }
+      }
+      return { type: 'none', weight: 999 };
+    };
+
+    const todSlabs = Array.from(uniqueTods).sort((a, b) => {
+      const wA = getSortWeight(a);
+      const wB = getSortWeight(b);
+      
+      if (wA.type !== wB.type) {
+        if (wA.type === 'month') return -1;
+        if (wB.type === 'month') return 1;
+        if (wA.type === 'season') return -1;
+        if (wB.type === 'season') return 1;
+      }
+      
+      if (wA.weight !== wB.weight) {
+        return wA.weight - wB.weight;
+      }
+      
+      return a.localeCompare(b);
+    });
 
     // Savings section
     const savingsHeaderRow = sheet.addRow(['Savings', ...monthHeaders]);

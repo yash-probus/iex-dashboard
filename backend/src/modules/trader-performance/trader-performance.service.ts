@@ -2397,8 +2397,15 @@ export class TraderPerformanceService {
 
       const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
+      const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
+      const traderDiscomEnergyBill = traderLeftoverDiscomEnergy * slabDiscomRate;
+      const traderFppaChargeAfterOA = (traderDiscomEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
+      const traderDiscountedDiscomBill = traderDiscomEnergyBill + demandChargeDiscounted + traderFppaChargeAfterOA;
+      const traderEDAfterOA = applyED ? traderDiscountedDiscomBill * edRate : 0;
+      const traderDiscomBillTotal = traderDiscountedDiscomBill + traderEDAfterOA;
+      
       globalTraderMarketEnergy += traderMarketEnergy;
-      globalTraderLandedCost += traderSlabOaBill;
+      globalTraderLandedCost += traderSlabOaBill + traderDiscomBillTotal;
 
       totalEnergyKwh += slabConsumption;
       totalMarketEnergyKwh += finalMarketEnergy;

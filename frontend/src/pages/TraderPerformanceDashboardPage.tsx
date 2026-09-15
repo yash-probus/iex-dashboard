@@ -719,7 +719,7 @@ export default function TraderPerformanceDashboardPage() {
                                 // We use exact total trader landed cost instead of raw PDF amount
                                 const discomRate = totalEnergy > 0 ? (discomCost / totalEnergy) : 0;
                                 const actualTraderCost = exactTraderLandedCost > 0 
-                                      ? (leftoverDiscomEnergy * discomRate) + exactTraderLandedCost 
+                                      ? exactTraderLandedCost 
                                       : (leftoverDiscomEnergy * discomRate) + traderMarketCost; // fallback to raw PDF amount if backend is old
 
                                 return (
