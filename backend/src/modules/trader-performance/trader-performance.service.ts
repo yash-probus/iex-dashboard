@@ -2217,6 +2217,14 @@ export class TraderPerformanceService {
     let totalDemandAndFixedChargesApplied = 0;
     let totalFppaCharge = 0;
     let totalFppaChargeAfterOA = 0;
+    
+    let globalMonthMarketEnergy = 0;
+    let globalMonthConsumerBusUnits = 0;
+    slotsData.forEach((s: any) => {
+      globalMonthMarketEnergy += (s.marketEnergy || 0);
+      globalMonthConsumerBusUnits += (s.consumedMarketEnergy || 0);
+    });
+    const globalMonthLossMultiplier = globalMonthMarketEnergy > 0 ? (globalMonthConsumerBusUnits / globalMonthMarketEnergy) : 1;
 
     let globalCssCharge = 0;
     let globalRpoCharge = 0;
@@ -2315,6 +2323,7 @@ export class TraderPerformanceService {
              const tKwh = tVolMw * 1000 * 0.25;
              traderMarketEnergy += tKwh;
              traderExactCost += (tKwh * tPriceMwh) / 1000;
+             (s as any).traderMarketEnergyForSlot = tKwh;
           }
         }
       });
@@ -2397,7 +2406,7 @@ export class TraderPerformanceService {
       totalLandedExchangeCost += slabOaBill + proltDiscomBillTotal;
 
       // TRADER EXACT LANDED COST FOR SLAB
-      const traderLossMultiplier = finalMarketEnergy > 0 ? (consumerBusUnits / finalMarketEnergy) : 1;
+      const traderLossMultiplier = finalMarketEnergy > 0 ? (consumerBusUnits / finalMarketEnergy) : globalMonthLossMultiplier;
       const traderConsumerBusUnits = traderMarketEnergy * traderLossMultiplier;
       const traderNonGdamConsumerBusUnits = traderConsumerBusUnits * nonGdamFraction;
 
@@ -2407,10 +2416,18 @@ export class TraderPerformanceService {
       const traderStuChargeVal = traderMarketEnergy * stuCharge;
       const traderDcCharge = traderMarketEnergy * wheelingCharge;
       const traderIexFeesTotal = traderMarketEnergy * EXCHANGE_FEES;
+      const traderMarginTotalSlab = traderMarketEnergy * TRADER_MARGIN;
+      const traderMarginGstTotalSlab = traderMarketEnergy * GST_TRADER_MARGIN;
 
-      const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
+      const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost + traderMarginTotalSlab + traderMarginGstTotalSlab;
       
-      const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
+      let traderLeftoverDiscomEnergy = 0;
+      slotsInGroup.forEach(s => {
+        const slotConsumption = (s as any).consumptionKwh || (s as any).consumption || (slabConsumption / slotsInGroup.length);
+        const slotTraderC = ((s as any).traderMarketEnergyForSlot || 0) * traderLossMultiplier;
+        traderLeftoverDiscomEnergy += Math.max(0, slotConsumption - slotTraderC);
+      });
+
       const traderDiscomEnergyBill = traderLeftoverDiscomEnergy * slabDiscomRate;
       const traderFppaChargeAfterOA = (traderDiscomEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
       const traderDiscountedDiscomBill = traderDiscomEnergyBill + demandChargeDiscounted + traderFppaChargeAfterOA;
