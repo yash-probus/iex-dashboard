@@ -154,12 +154,18 @@ export class TraderPerformanceExportService {
       });
     }
 
-    // Add Total Quantity Row
     const totalRow: any[] = ['Total Quantity (MWh)'];
     days.forEach(day => {
       let dayTotal = 0;
-      slotsData.filter((s: any) => s.date === day && (s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM'))).forEach((s: any) => {
-        dayTotal += (s.marketEnergy ?? s.maxEnergyPerSlot ?? 0);
+      slotsData.filter((s: any) => s.date === day).forEach((s: any) => {
+        if (isActualTrader && s.actualTrades && s.actualTrades.length > 0) {
+           s.actualTrades.forEach((t: any) => {
+              const vol = Number(t.qty_mw || t.purchase || t.volume || 0);
+              dayTotal += (vol * 1000 * 0.25); // kWh
+           });
+        } else if (!isActualTrader && (s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM'))) {
+           dayTotal += (s.marketEnergy ?? s.maxEnergyPerSlot ?? 0);
+        }
       });
       totalRow.push(Number((dayTotal / 1000).toFixed(4)), '-', '-');
     });
