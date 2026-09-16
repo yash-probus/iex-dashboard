@@ -1284,7 +1284,7 @@ export class TraderPerformanceService {
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
 
     const traderReports = (monthConsumptions as any).traderReports || { data: {} };
-    const traderTradesLookup: Record<string, Record<number, any>> = {};
+    const traderTradesLookup: Record<string, Record<number, any[]>> = {};
     if (traderReports && traderReports.data) {
       for (const report of Object.values<any>(traderReports.data)) {
         if (report.delivery_date && report.trades && Array.isArray(report.trades)) {
@@ -1313,7 +1313,10 @@ export class TraderPerformanceService {
                   const hour = parseInt(parts[0], 10);
                   const min = parseInt(parts[1], 10);
                   const tb = hour * 4 + (min / 15) + 1;
-                  traderTradesLookup[dDate][tb] = trade;
+                  if (!traderTradesLookup[dDate][tb]) {
+                    traderTradesLookup[dDate][tb] = [];
+                  }
+                  traderTradesLookup[dDate][tb].push(trade);
                 }
               }
             });
@@ -2228,15 +2231,17 @@ export class TraderPerformanceService {
             if (!isNaN(d.getTime())) checkDate = d.toISOString().split('T')[0];
           } catch (e) {}
         }
-        let trade = traderTradesLookup[checkDate]?.[s.timeblock];
-        if (!trade) {
-           trade = traderTradesLookup[s.date]?.[s.timeblock];
+        let trades = traderTradesLookup[checkDate]?.[s.timeblock];
+        if (!trades) {
+           trades = traderTradesLookup[s.date]?.[s.timeblock];
         }
-        if (trade) {
-           const marketType = trade.oa_market_type || 'RTM';
-           if (marketType === 'DAM') traderTradedDays.DAM.add(checkDate);
-           else if (marketType === 'GDAM') traderTradedDays.GDAM.add(checkDate);
-           else traderTradedDays.RTM.add(checkDate);
+        if (trades && Array.isArray(trades)) {
+           trades.forEach(trade => {
+             const marketType = trade.oa_market_type || 'RTM';
+             if (marketType === 'DAM') traderTradedDays.DAM.add(checkDate);
+             else if (marketType === 'GDAM') traderTradedDays.GDAM.add(checkDate);
+             else traderTradedDays.RTM.add(checkDate);
+           });
         }
       }
     });
@@ -2374,18 +2379,22 @@ export class TraderPerformanceService {
               if (!isNaN(d.getTime())) checkDate = d.toISOString().split('T')[0];
             } catch (e) {}
           }
-          let trade = traderTradesLookup[checkDate]?.[s.timeblock];
-          if (!trade) {
-             trade = traderTradesLookup[s.date]?.[s.timeblock];
+          let trades = traderTradesLookup[checkDate]?.[s.timeblock];
+          if (!trades) {
+             trades = traderTradesLookup[s.date]?.[s.timeblock];
           }
-          if (trade) {
-             const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
-             const tPriceMwh = Number(trade.rate_mwh || trade.price || trade.mcp || 0);
-             
-             const tKwh = tVolMw * 1000 * 0.25;
-             traderMarketEnergy += tKwh;
-             traderExactCost += (tKwh * tPriceMwh) / 1000;
-             (s as any).traderMarketEnergyForSlot = tKwh;
+          if (trades && Array.isArray(trades)) {
+             let slotTraderKwhTotal = 0;
+             trades.forEach(trade => {
+               const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
+               const tPriceMwh = Number(trade.rate_mwh || trade.price || trade.mcp || 0);
+               
+               const tKwh = tVolMw * 1000 * 0.25;
+               traderMarketEnergy += tKwh;
+               traderExactCost += (tKwh * tPriceMwh) / 1000;
+               slotTraderKwhTotal += tKwh;
+             });
+             (s as any).traderMarketEnergyForSlot = ((s as any).traderMarketEnergyForSlot || 0) + slotTraderKwhTotal;
           }
         }
       });
