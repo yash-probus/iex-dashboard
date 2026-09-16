@@ -731,16 +731,17 @@ export default function TraderPerformanceDashboardPage() {
                                 
                                 const probusConsumerBusKwh = marketDecisionResult.totalConsumerBusEnergyKwh || 0;
 
-                                const exactTraderLandedCost = marketDecisionResult.totalTraderLandedCost || 0;
-                                const exactTraderMarketEnergy = marketDecisionResult.totalTraderMarketEnergy || 0;
-                                const traderConsumerBusKwh = marketDecisionResult.totalTraderConsumerBusEnergy || 0;
+                                const actualSettlement = marketDecisionResult.actualTrader;
+                                const exactTraderLandedCost = actualSettlement?.totalCost ?? marketDecisionResult.totalTraderLandedCost ?? 0;
+                                const exactTraderMarketEnergy = actualSettlement?.marketEnergyKwh ?? marketDecisionResult.totalTraderMarketEnergy ?? 0;
+                                const traderConsumerBusKwh = actualSettlement?.consumerBusEnergyKwh ?? marketDecisionResult.totalTraderConsumerBusEnergy ?? 0;
                                 const leftoverDiscomEnergy = Math.max(0, totalEnergy - traderConsumerBusKwh);
                                 const discomRate = totalEnergy > 0 ? (discomCost / totalEnergy) : 0;
                                 const actualTraderCost = exactTraderMarketEnergy > 0 
                                       ? exactTraderLandedCost 
                                       : (leftoverDiscomEnergy * discomRate) + traderMarketCost;
                                 const actualTraderSavings = exactTraderMarketEnergy > 0
-                                      ? (marketDecisionResult.actualTraderSavings ?? (discomCost - actualTraderCost))
+                                    ? (actualSettlement?.savings ?? marketDecisionResult.actualTraderSavings ?? (discomCost - actualTraderCost))
                                       : (discomCost - actualTraderCost);
                                 const hasTraderData = exactTraderMarketEnergy > 0 || traderBoughtKwh > 0;
 
@@ -756,10 +757,34 @@ export default function TraderPerformanceDashboardPage() {
                                         <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       </TableRow>
                                       <TableRow>
-                                        <TableCell>Energy from Market (kVAh)</TableCell>
+                                        <TableCell>OA Energy Bought at Regional Bus (kVAh)</TableCell>
+                                        <TableCell align="right">0</TableCell>
+                                        <TableCell align="right">{toKvAh(marketDecisionResult.totalMarketEnergyKwh || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? toKvAh(exactTraderMarketEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>OA Energy at Consumer Bus (kVAh)</TableCell>
                                         <TableCell align="right">0</TableCell>
                                         <TableCell align="right">{toKvAh(probusConsumerBusKwh).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">{toKvAh(traderConsumerBusKwh).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>Residual Energy from DISCOM (kVAh)</TableCell>
+                                        <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{toKvAh(Math.max(0, totalEnergy - probusConsumerBusKwh)).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? toKvAh(actualSettlement?.residualDiscomEnergyKwh ?? leftoverDiscomEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>Fully Landed OA Cost (₹)</TableCell>
+                                        <TableCell align="right">-</TableCell>
+                                        <TableCell align="right">-</TableCell>
+                                        <TableCell align="right">{hasTraderData ? `₹ ${(actualSettlement?.totalOaCost || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>Residual DISCOM Cost (₹)</TableCell>
+                                        <TableCell align="right">₹ {discomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">-</TableCell>
+                                        <TableCell align="right">{hasTraderData ? `₹ ${(actualSettlement?.residualDiscomCost || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
                                       </TableRow>
                                     <TableRow>
                                       <TableCell>Total Cost (₹)</TableCell>

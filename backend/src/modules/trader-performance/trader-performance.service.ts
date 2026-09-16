@@ -460,6 +460,30 @@ export class TraderPerformanceService {
     let totalTraderLandedCost = 0;
     let actualTraderSavings = 0;
     let demandChargeRate = 0;
+    const actualTrader = {
+      marketEnergyKwh: 0,
+      consumerBusEnergyKwh: 0,
+      residualDiscomEnergyKwh: 0,
+      marketEnergyCost: 0,
+      cssCharge: 0,
+      rpoCharge: 0,
+      pocCharge: 0,
+      stuCharge: 0,
+      wheelingCharge: 0,
+      iexFee: 0,
+      nldcSchedulingCost: 0,
+      sldcSchedulingCost: 0,
+      bidApplicationFees: 0,
+      nocFee: 0,
+      registrationFee: 0,
+      traderMargin: 0,
+      traderMarginGst: 0,
+      totalOaCost: 0,
+      residualDiscomCost: 0,
+      totalCost: 0,
+      baselineDiscomCost: 0,
+      savings: 0
+    };
 
     const aggregatedTotals = {
       cssCharge: 0, cssRate: 0, rpoCharge: 0, pocCharge: 0, stuCharge: 0,
@@ -490,6 +514,11 @@ export class TraderPerformanceService {
           totalTraderConsumerBusEnergy += (res as any).totalTraderConsumerBusEnergy || 0;
           totalTraderLandedCost += (res as any).totalTraderLandedCost || 0;
           actualTraderSavings += (res as any).actualTraderSavings || 0;
+          if ((res as any).actualTrader) {
+            Object.keys(actualTrader).forEach(key => {
+              (actualTrader as any)[key] += Number((res as any).actualTrader[key] || 0);
+            });
+          }
           demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
 
           if (res.oaDetailed) {
@@ -531,6 +560,7 @@ export class TraderPerformanceService {
       totalTraderConsumerBusEnergy,
       totalTraderLandedCost,
       actualTraderSavings,
+      actualTrader,
       totalBaselineCost,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,

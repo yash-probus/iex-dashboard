@@ -110,12 +110,12 @@ export class TraderPerformanceExportService {
             const vol = Number(t.qty_mw || t.purchase || t.volume || 0);
             const rate = Number(t.rate_mwh || t.price || t.mcp || 0);
             const market = t.oa_market_type || 'RTM'; // Default to RTM if missing
-            
+
+            if (vol <= 0) return;
+
             totalQtyMw += vol;
             totalCost += (vol * rate);
-            if (vol > 0) {
-                marketNames.add(market.toUpperCase());
-            }
+            marketNames.add(market.toUpperCase());
           });
           
           const avgRate = totalQtyMw > 0 ? (totalCost / totalQtyMw) : 0;
@@ -161,6 +161,7 @@ export class TraderPerformanceExportService {
         if (isActualTrader && s.actualTrades && s.actualTrades.length > 0) {
            s.actualTrades.forEach((t: any) => {
               const vol = Number(t.qty_mw || t.purchase || t.volume || 0);
+              if (vol <= 0) return;
               dayTotal += (vol * 1000 * 0.25); // kWh
            });
         } else if (!isActualTrader && (s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM'))) {
@@ -268,7 +269,7 @@ export class TraderPerformanceExportService {
       const discomB = Math.round(b.discomBill);
       const oaU = isActualTrader ? Math.round(b.traderMarketEnergy || 0) : Math.round(b.oaUnits);
       const consumerU = isActualTrader ? Math.round(b.traderConsumerBusUnits || 0) : Math.round(b.consumerBusUnits);
-      let oaB = isActualTrader ? Math.round(b.traderExactCost || b.traderSlabOaBill || 0) : Math.round(b.oaBill);
+      let oaB = isActualTrader ? Math.round(b.traderSlabOaBill || 0) : Math.round(b.oaBill);
       
       if (!isActualTrader) {
         if (totalOaBaseCostAllSlabs > 0) {
@@ -402,7 +403,9 @@ export class TraderPerformanceExportService {
     const hasExplicitFppa = ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
     let correctBaseEnergy = (result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0;
     let correctFppa = (result as any).fppaCharge || (result as any).fppaSurcharge || 0;
-    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + demandCharges + (result.electricityDuty || 0) + arrear + lpsc + misc;
+    const totalBaselineWithMisc = isActualTrader
+      ? Number(result.totalBaselineCost || 0)
+      : correctBaseEnergy + correctFppa + demandCharges + (result.electricityDuty || 0) + arrear + lpsc + misc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     rowMapping['totalBaselineBillRow'] = baseTotalRow.number;baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -419,7 +422,10 @@ export class TraderPerformanceExportService {
     const electricityDutyAfterOA = (result as any).electricityDutyAfterOA ?? (result.electricityDuty || 0);
     let energyChargesAfterOA = isActualTrader ? totalNetBRounded : ((result as any).discomEnergyChargesAfterOA ?? (result.totalDiscomAfterProlt || 0));
     
-    if (isNpcl) {
+    if (isActualTrader) {
+      sheet.addRow(['Residual DISCOM Units (kWh)', Math.round((result as any).actualTrader?.residualDiscomEnergyKwh || 0)]);
+      sheet.addRow(['Residual DISCOM Bill (including applicable charges)', Math.round((result as any).actualTrader?.residualDiscomCost || 0)]);
+    } else if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;
       const grossEnergyAfterOA = energyChargesAfterOA / npclMultiplier;
       const grossDemand = demandCharges / npclMultiplier;
@@ -452,15 +458,19 @@ export class TraderPerformanceExportService {
       sheet.addRow(['Demand & Fixed Charges', baseDemandChargesAfterOA]);
     }
     
-    sheet.addRow(['Electricity Duty', Math.round(electricityDutyAfterOA)]);
-    if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
-    if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
-    if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
+    if (!isActualTrader) {
+      sheet.addRow(['Electricity Duty', Math.round(electricityDutyAfterOA)]);
+      if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
+      if (arrear > 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
+      if (lpsc > 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
+    }
     
     let correctFppaAfterOA = (result as any).fppaChargeAfterOA || 0;
     let correctEnergyAfterOA = energyChargesAfterOA;
     
-    const totalDiscomAfterOAWithMisc = (correctEnergyAfterOA + correctFppaAfterOA + (isNpcl ? demandCharges : (result.demandCharge || 0)) + electricityDutyAfterOA + misc) + arrear + lpsc;
+    const totalDiscomAfterOAWithMisc = isActualTrader
+      ? Number((result as any).actualTrader?.residualDiscomCost || 0)
+      : (correctEnergyAfterOA + correctFppaAfterOA + (isNpcl ? demandCharges : (result.demandCharge || 0)) + electricityDutyAfterOA + misc) + arrear + lpsc;
     const afterTotalRow = sheet.addRow(['Total DISCOM Bill After Open Access', Math.round(totalDiscomAfterOAWithMisc)]);
     afterTotalRow.font = { bold: true };
     afterTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
@@ -469,8 +479,11 @@ export class TraderPerformanceExportService {
 
     sheet.addRow([]);
     
-    const totalMarketEnergy = result.totalMarketEnergyKwh;
-    const totalMarketEnergyCost = todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
+    const actualTrader = (result as any).actualTrader;
+    const totalMarketEnergy = isActualTrader ? Number(actualTrader?.marketEnergyKwh || 0) : result.totalMarketEnergyKwh;
+    const totalMarketEnergyCost = isActualTrader
+      ? Number(actualTrader?.marketEnergyCost || 0)
+      : todSummaries.reduce((sum: number, s: any) => sum + (s.marketCostBase || 0), 0);
     const avgMarketPrice = totalMarketEnergy > 0 ? totalMarketEnergyCost / totalMarketEnergy : 0;
 
     // Add charges header with rate/kWh information
@@ -479,7 +492,15 @@ export class TraderPerformanceExportService {
     chargesHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     chargesHeaderRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } });
     
-    const t = oaDetailed.totals;
+    const t = isActualTrader ? {
+      cssCharge: Number(actualTrader?.cssCharge || 0),
+      cssRate: Number(oaDetailed.totals?.cssRate || 0),
+      rpoCharge: Number(actualTrader?.rpoCharge || 0),
+      pocCharge: Number(actualTrader?.pocCharge || 0),
+      stuCharge: Number(actualTrader?.stuCharge || 0),
+      dcCharge: Number(actualTrader?.wheelingCharge || 0),
+      iexFee: Number(actualTrader?.iexFee || 0)
+    } : oaDetailed.totals;
     
     // Calculate and add each charge with rate information
     const addChargeRow = (name: string, amount: number, ratePerKwh: number, basisKwh: number, percentage: number = 0) => {
@@ -497,7 +518,9 @@ export class TraderPerformanceExportService {
 
     // Cross Subsidy (applied to consumer bus units after losses)
     const cssRate = (t as any).cssRate || 0;
-    const consumerBusBasis = result.totalConsumerBusEnergyKwh || totalConsumerURounded;
+    const consumerBusBasis = isActualTrader
+      ? Number(actualTrader?.consumerBusEnergyKwh || 0)
+      : result.totalConsumerBusEnergyKwh || totalConsumerURounded;
     addChargeRow('Cross Subsidy', t.cssCharge, cssRate, consumerBusBasis);
     
     // RPPO (flat rate of ₹0.25/kWh, also applied to consumer bus units)
@@ -522,6 +545,15 @@ export class TraderPerformanceExportService {
     // Calculate SLDC breakdown by market
     const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
     slotsData.forEach((s: any) => {
+      if (isActualTrader) {
+        (s.actualTrades || []).forEach((trade: any) => {
+          const volumeMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
+          if (volumeMw <= 0) return;
+          const market = String(trade.oa_market_type || 'RTM').toUpperCase();
+          if (market === 'DAM' || market === 'GDAM' || market === 'RTM') tradedDays[market].add(s.date);
+        });
+        return;
+      }
       const isMarket = s.shouldBuyFromMarket ?? (s.selectedSource && s.selectedSource !== 'DISCOM');
       const mkt = s.selectedSource || s.marketSource;
       const energy = s.marketEnergy ?? s.maxEnergyPerSlot ?? 0;
@@ -532,7 +564,10 @@ export class TraderPerformanceExportService {
       }
     });
     
-    const sldcFeePerDay = 1500; // Default SLDC fee per market per day
+    const totalMarketDays = tradedDays.DAM.size + tradedDays.GDAM.size + tradedDays.RTM.size;
+    const sldcFeePerDay = isActualTrader && totalMarketDays > 0
+      ? Number(actualTrader?.sldcSchedulingCost || 0) / totalMarketDays
+      : 1500;
     const damSldcCost = tradedDays.DAM.size * sldcFeePerDay;
     const gdamSldcCost = tradedDays.GDAM.size * sldcFeePerDay;
     const rtmSldcCost = tradedDays.RTM.size * sldcFeePerDay;
@@ -544,14 +579,19 @@ export class TraderPerformanceExportService {
     sheet.addRow(['SLDC Operating charges - RTM', Math.round(rtmSldcCost), '-', `${tradedDays.RTM.size} days`, '-']);
     
     // NLDC Scheduling charges (fixed per unique day)
-    const nldcCost = (oaDetailed as any).nldcSchedulingCost || 0;
+    const nldcCost = isActualTrader
+      ? Number(actualTrader?.nldcSchedulingCost || 0)
+      : (oaDetailed as any).nldcSchedulingCost || 0;
     const uniqueDays = new Set([...tradedDays.DAM, ...tradedDays.GDAM, ...tradedDays.RTM]).size;
     sheet.addRow(['NLDC Scheduling charges', Math.round(nldcCost), '-', `${uniqueDays} unique days`, '-']);
     
     // NLDC application charges (fixed per bid)
-    sheet.addRow(['NLDC application charges', Math.round(oaDetailed.bidApplicationFees), '-', '-', '-']);
+    const bidApplicationFees = isActualTrader
+      ? Number(actualTrader?.bidApplicationFees || 0)
+      : Number(oaDetailed.bidApplicationFees || 0);
+    sheet.addRow(['NLDC application charges', Math.round(bidApplicationFees), '-', '-', '-']);
     
-    const visibleTotalOa = Math.round(totalMarketEnergyCost) + 
+    const calculatedVisibleTotalOa = Math.round(totalMarketEnergyCost) +
                            Math.round(t.cssCharge) + 
                            Math.round(t.rpoCharge) + 
                            Math.round(t.pocCharge) + 
@@ -562,23 +602,28 @@ export class TraderPerformanceExportService {
                            Math.round(gdamSldcCost) + 
                            Math.round(rtmSldcCost) + 
                            Math.round(nldcCost) + 
-                           Math.round(oaDetailed.bidApplicationFees);
+                           Math.round(bidApplicationFees);
+    const visibleTotalOa = isActualTrader
+      ? Math.round(actualTrader?.totalOaCost || calculatedVisibleTotalOa)
+      : calculatedVisibleTotalOa;
 
     sheet.addRow([]);
     const totalEstRow = sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', visibleTotalOa]);
     totalEstRow.font = { bold: true };
     totalEstRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     
-    const baselineCostForGross = result.fullBaselineDiscomCost || totalBaselineWithMisc;
-    const grossSavingsVal = result.grossSavings ?? Math.max(0, baselineCostForGross - ((result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees));
+    const baselineCostForGross = isActualTrader ? totalBaselineWithMisc : result.fullBaselineDiscomCost || totalBaselineWithMisc;
+    const grossSavingsVal = isActualTrader
+      ? Number(actualTrader?.savings || 0)
+      : result.grossSavings ?? Math.max(0, baselineCostForGross - ((result.totalLandedExchangeCost || 0) + (result.totalDiscomAfterProlt || 0) + oaDetailed.dailyFixedOverhead + oaDetailed.bidApplicationFees));
     
     // Calculate exact visual values for Discom to prevent any rounding arithmetic mismatch
-    const visibleDiscomBefore = Math.round(totalBaselineWithMisc);
-    const visibleDiscomAfter = Math.round(totalDiscomAfterOAWithMisc);
+    const visibleDiscomBefore = Math.round(isActualTrader ? actualTrader?.baselineDiscomCost || totalBaselineWithMisc : totalBaselineWithMisc);
+    const visibleDiscomAfter = Math.round(isActualTrader ? actualTrader?.residualDiscomCost || 0 : totalDiscomAfterOAWithMisc);
     
     const visibleTotalGrossBill = visibleTotalOa + visibleDiscomAfter;
     
-    const totalGrossRow = sheet.addRow(['Total Bill (OA + DISCOM After PROLT)', visibleTotalGrossBill]);
+    const totalGrossRow = sheet.addRow([isActualTrader ? 'Total Actual Trader Bill (OA + Residual DISCOM)' : 'Total Bill (OA + DISCOM After PROLT)', visibleTotalGrossBill]);
     totalGrossRow.font = { bold: true };
     totalGrossRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
@@ -641,8 +686,12 @@ export class TraderPerformanceExportService {
     grossSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
     rowMapping['grossSavingsRow'] = grossSavingsRow.number;
     
-    const nocFee = (result as any).oaDetailed?.totals?.nocFee !== undefined ? (result as any).oaDetailed.totals.nocFee : (entry.nocFee !== undefined && entry.nocFee !== null ? Number(entry.nocFee) : 0);
-    const regFee = (result as any).oaDetailed?.totals?.regFee !== undefined ? (result as any).oaDetailed.totals.regFee : (entry.iexRegFee !== undefined && entry.iexRegFee !== null ? Number(entry.iexRegFee) : 0);
+    const nocFee = isActualTrader
+      ? Number(actualTrader?.nocFee || 0)
+      : (result as any).oaDetailed?.totals?.nocFee !== undefined ? (result as any).oaDetailed.totals.nocFee : (entry.nocFee !== undefined && entry.nocFee !== null ? Number(entry.nocFee) : 0);
+    const regFee = isActualTrader
+      ? Number(actualTrader?.registrationFee || 0)
+      : (result as any).oaDetailed?.totals?.regFee !== undefined ? (result as any).oaDetailed.totals.regFee : (entry.iexRegFee !== undefined && entry.iexRegFee !== null ? Number(entry.iexRegFee) : 0);
     const consultancyFeeVal = (result as any).oaDetailed?.totals?.consultancyFee !== undefined ? (result as any).oaDetailed.totals.consultancyFee : ((result as any).aggregatedTotals?.consultancyFee || (entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 0));
     const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
     const probusPlatformFee = (result as any).oaDetailed?.totals?.probusPlatformFee !== undefined ? (result as any).oaDetailed.totals.probusPlatformFee : ((result as any).aggregatedTotals?.probusPlatformFee || Math.round(result.totalMarketEnergyKwh * platformFeeRate));
@@ -669,13 +718,15 @@ export class TraderPerformanceExportService {
       rowMapping['valueShareRow'] = valueShareRow.number;
     }
     
-    const traderMarginVal = (result as any).oaDetailed?.totals?.traderMargin || (result as any).aggregatedTotals?.traderMargin || (result as any).traderMarginCost || 0;
+    const traderMarginVal = isActualTrader
+      ? Number(actualTrader?.traderMargin || 0) + Number(actualTrader?.traderMarginGst || 0)
+      : (result as any).oaDetailed?.totals?.traderMargin || (result as any).aggregatedTotals?.traderMargin || (result as any).traderMarginCost || 0;
     const traderMarginSumRow = sheet.addRow(['Trader Margin', Math.round(traderMarginVal)]);
     rowMapping['traderMarginChargeRow'] = traderMarginSumRow.number;
     
     let finalSavings = 0;
     if (isActualTrader) {
-      finalSavings = Math.max(0, grossSavingsVal - (nocFee + regFee + traderMarginVal));
+      finalSavings = Number(actualTrader?.savings || 0);
     } else {
       finalSavings = result.totalSavings ?? Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal + traderMarginVal));
     }
