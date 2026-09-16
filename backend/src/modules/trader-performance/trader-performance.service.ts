@@ -2398,7 +2398,7 @@ export class TraderPerformanceService {
           if (!trades) {
              trades = traderTradesLookup[s.date]?.[s.timeblock];
           }
-          if (trades && Array.isArray(trades)) {
+           if (trades && Array.isArray(trades)) {
              let slotTraderKwhTotal = 0;
              trades.forEach(trade => {
                const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
@@ -2409,6 +2409,7 @@ export class TraderPerformanceService {
                traderExactCost += (tKwh * tPriceMwh) / 1000;
                slotTraderKwhTotal += tKwh;
              });
+             (s as any).actualTrades = trades;
              (s as any).traderMarketEnergyForSlot = ((s as any).traderMarketEnergyForSlot || 0) + slotTraderKwhTotal;
           }
         }
