@@ -1434,18 +1434,26 @@ export class TraderPerformanceService {
       }
     }
 
-    const stateCharges = await prisma.stateCharges.findFirst({
+    let stateCharges = await prisma.stateCharges.findFirst({
       where: {
         state: { in: stateFormats },
         discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         category: parsedCategory,
         fromDate: { lte: new Date(startStr) },
-        toDate: { gte: new Date(startStr) },
-        // StateCharges uses the full string (e.g. '33' or '0.433') so we might need the second part if available
-        // But for now, we will just use voltageLevel since it was '0.433' in DB. Or we can just omit it if it fails.
-        // Let's omit voltageLevel for now to avoid false negatives since StateCharges has different voltage formatting.
+        toDate: { gte: new Date(startStr) }
       }
     });
+
+    if (!stateCharges) {
+      stateCharges = await prisma.stateCharges.findFirst({
+        where: {
+          state: { in: stateFormats },
+          discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+          category: parsedCategory
+        },
+        orderBy: { fromDate: 'desc' }
+      });
+    }
 
     console.log('[StateCharges Query Debug] State Formats:', stateFormats);
     console.log('[StateCharges Query Debug] Category:', category);
@@ -1460,21 +1468,37 @@ export class TraderPerformanceService {
       console.log('[StateCharges Query Debug] ERROR: No matching state charges record found!');
     }
 
-    const ctuCharges = await prisma.ctuCharges.findFirst({
+    let ctuCharges = await prisma.ctuCharges.findFirst({
       where: { month: yyyymmMonth }
     });
+    if (!ctuCharges) {
+      ctuCharges = await prisma.ctuCharges.findFirst({
+        orderBy: { month: 'desc' }
+      });
+    }
 
-    const istsCharges = await prisma.istsCharges.findMany({
+    let istsCharges = await prisma.istsCharges.findMany({
       where: {
         OR: [
           { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
         ]
       }
     });
+    if (!istsCharges || istsCharges.length === 0) {
+      const fallbackIsts = await prisma.istsCharges.findFirst({
+        orderBy: { endDate: 'desc' }
+      });
+      if (fallbackIsts) istsCharges = [fallbackIsts];
+    }
 
-    const iexFees = await prisma.iexFees.findFirst({
+    let iexFees = await prisma.iexFees.findFirst({
       where: { month: yyyymmMonth }
     });
+    if (!iexFees) {
+      iexFees = await prisma.iexFees.findFirst({
+        orderBy: { month: 'desc' }
+      });
+    }
 
     const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
     const monthsInPlay: number[] = [];
