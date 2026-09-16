@@ -100,7 +100,32 @@ export class TraderPerformanceExportService {
       days.forEach(day => {
         const slot = slotsData.find((s: any) => s.date === day && (s.timeblock === b || s.slot === b)) as any;
         const isMarket = slot ? (slot.shouldBuyFromMarket ?? (slot.selectedSource && slot.selectedSource !== 'DISCOM')) : false;
-        if (slot && isMarket) {
+        
+        if (isActualTrader && slot && slot.actualTrades && slot.actualTrades.length > 0) {
+          let totalQtyMw = 0;
+          let totalCost = 0;
+          let marketNames = new Set<string>();
+          
+          slot.actualTrades.forEach((t: any) => {
+            const vol = Number(t.qty_mw || t.purchase || t.volume || 0);
+            const rate = Number(t.rate_mwh || t.price || t.mcp || 0);
+            const market = t.oa_market_type || 'RTM'; // Default to RTM if missing
+            
+            totalQtyMw += vol;
+            totalCost += (vol * rate);
+            if (vol > 0) {
+                marketNames.add(market.toUpperCase());
+            }
+          });
+          
+          const avgRate = totalQtyMw > 0 ? (totalCost / totalQtyMw) : 0;
+          const marketSource = marketNames.size > 0 ? Array.from(marketNames).join('+') : '-';
+          
+          row.push(Number(totalQtyMw.toFixed(2)));
+          row.push(Number((avgRate / 1000).toFixed(2))); // Rate in Rs/kWh
+          row.push(marketSource);
+          
+        } else if (!isActualTrader && slot && isMarket) {
           // If won, show the MCP (base price) of the selected market
           const marketSource = slot.selectedSource || slot.marketSource || 'DISCOM';
           let mcp = 0;
@@ -110,7 +135,7 @@ export class TraderPerformanceExportService {
           
           const energyKwh = slot.marketEnergy ?? slot.maxEnergyPerSlot ?? 0;
           const powerMw = energyKwh > 0 ? (energyKwh / 250) : 0;
-          row.push(Number(powerMw.toFixed(1)));
+          row.push(Number(powerMw.toFixed(2)));
           row.push(Number(mcp.toFixed(2)));
           row.push(marketSource || '-');
         } else {
