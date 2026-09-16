@@ -792,14 +792,7 @@ export default function TraderPerformanceDashboardPage() {
                   </Box>
                 )}
 
-                <Dashboard
-                  calcResult={marketDecisionResult}
-                  calcEntry={calcEntry as any}
-                  clientName={calcEntry?.clientName}
-                  clientOverview={clientOverview}
-                  marketDecisionResult={marketDecisionResult}
-                  selectedMonth={selectedSimMonth}
-                />
+
               </Box>
 
 

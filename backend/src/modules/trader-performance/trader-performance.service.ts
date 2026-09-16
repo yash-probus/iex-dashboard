@@ -1221,8 +1221,17 @@ export class TraderPerformanceService {
     if (targetMonthStr === 'all') {
       return this.calculateMarketDecisionAllMonths(id, version, useShiftedProfile, shiftInsights);
     }
+    let year = new Date().getFullYear();
+    let month = new Date().getMonth() + 1;
+    if (targetMonthStr) {
+      const parts = targetMonthStr.split('-');
+      if (parts.length === 2) {
+        year = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10);
+      }
+    }
     const cacheVersion = version !== undefined ? version : 'live';
-    const cacheKey = `market:${id}:v:${cacheVersion}:m:${targetMonthStr || 'default'}`;
+    const cacheKey = `market-decision-v2-${id}-${month}-${version || 'latest'}:m:${targetMonthStr || 'default'}`;
     const cached = await getCache(cacheKey);
     if (cached && false) {
       return cached;
