@@ -33,6 +33,21 @@ const getShortHeaderName = (monthStr: string) => {
 export class TraderPerformanceExportService {
   private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any, monthStr?: string, isActualTrader = false): Promise<Record<string, number>> {
     const { slotsData, todSummaries, oaDetailed } = result;
+    const actualBreakdown = oaDetailed?.breakdown || [];
+    const hasDetailedActualSettlement = Boolean(result.actualTrader);
+    const actualResidualDiscomCost = actualBreakdown.reduce((sum: number, row: any) => sum + Number(row.traderDiscomBillTotal || 0), 0) + Number(result.miscellaneousCharges || 0);
+    const actualTrader = result.actualTrader || {
+      marketEnergyKwh: Number(result.totalTraderMarketEnergy || 0),
+      consumerBusEnergyKwh: Number(result.totalTraderConsumerBusEnergy || 0),
+      residualDiscomEnergyKwh: actualBreakdown.reduce((sum: number, row: any) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0),
+      marketEnergyCost: actualBreakdown.reduce((sum: number, row: any) => sum + Number(row.traderExactCost || 0), 0),
+      totalOaCost: Math.max(0, Number(result.totalTraderLandedCost || 0) - actualResidualDiscomCost),
+      residualDiscomCost: actualResidualDiscomCost,
+      totalCost: Number(result.totalTraderLandedCost || 0),
+      baselineDiscomCost: Number(result.totalBaselineCost || 0),
+      savings: Number(result.actualTraderSavings || 0),
+      traderMargin: Number(result.totalTraderMarketEnergy || 0) * Number(entry.traderMargin || 0)
+    };
 
     // Remove invalid characters for worksheet names
     const safeSheetName = monthName.replace(/[\/*?\[\]]/g, '').substring(0, 31);
@@ -108,7 +123,7 @@ export class TraderPerformanceExportService {
           
           slot.actualTrades.forEach((t: any) => {
             const vol = Number(t.qty_mw || t.purchase || t.volume || 0);
-            const rate = Number(t.rate_mwh || t.price || t.mcp || 0);
+            const rate = Math.abs(Number(t.rate_mwh || t.price || t.mcp || 0));
             const market = t.oa_market_type || 'RTM'; // Default to RTM if missing
 
             if (vol <= 0) return;
@@ -479,7 +494,6 @@ export class TraderPerformanceExportService {
 
     sheet.addRow([]);
     
-    const actualTrader = (result as any).actualTrader;
     const totalMarketEnergy = isActualTrader ? Number(actualTrader?.marketEnergyKwh || 0) : result.totalMarketEnergyKwh;
     const totalMarketEnergyCost = isActualTrader
       ? Number(actualTrader?.marketEnergyCost || 0)
@@ -515,6 +529,10 @@ export class TraderPerformanceExportService {
     
     // Energy Charges (Market)
     addChargeRow('Energy Charges (Market) (inc losses)', totalMarketEnergyCost, avgMarketPrice, totalMarketEnergy);
+    if (isActualTrader && !hasDetailedActualSettlement) {
+      const consolidatedOaCharges = Math.max(0, Number(actualTrader.totalOaCost || 0) - totalMarketEnergyCost);
+      addChargeRow('All OA Charges and Overheads', consolidatedOaCharges, totalMarketEnergy > 0 ? consolidatedOaCharges / totalMarketEnergy : 0, totalMarketEnergy);
+    }
 
     // Cross Subsidy (applied to consumer bus units after losses)
     const cssRate = (t as any).cssRate || 0;

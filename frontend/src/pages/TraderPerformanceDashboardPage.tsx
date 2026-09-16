@@ -736,6 +736,14 @@ export default function TraderPerformanceDashboardPage() {
                                 const exactTraderMarketEnergy = actualSettlement?.marketEnergyKwh ?? marketDecisionResult.totalTraderMarketEnergy ?? 0;
                                 const traderConsumerBusKwh = actualSettlement?.consumerBusEnergyKwh ?? marketDecisionResult.totalTraderConsumerBusEnergy ?? 0;
                                 const leftoverDiscomEnergy = Math.max(0, totalEnergy - traderConsumerBusKwh);
+                                  const actualBreakdown = marketDecisionResult.oaDetailed?.breakdown || [];
+                                  const miscellaneousCharges = Number((marketDecisionResult as any).miscellaneousCharges || 0);
+                                  const residualDiscomEnergy = actualSettlement?.residualDiscomEnergyKwh
+                                    ?? actualBreakdown.reduce((sum: number, row: any) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
+                                  const residualDiscomCost = actualSettlement?.residualDiscomCost
+                                    ?? actualBreakdown.reduce((sum: number, row: any) => sum + Number(row.traderDiscomBillTotal || 0), 0) + miscellaneousCharges;
+                                  const actualOaCost = actualSettlement?.totalOaCost
+                                    ?? Math.max(0, exactTraderLandedCost - residualDiscomCost);
                                 const discomRate = totalEnergy > 0 ? (discomCost / totalEnergy) : 0;
                                 const actualTraderCost = exactTraderMarketEnergy > 0 
                                       ? exactTraderLandedCost 
@@ -772,19 +780,19 @@ export default function TraderPerformanceDashboardPage() {
                                         <TableCell>Residual Energy from DISCOM (kVAh)</TableCell>
                                         <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">{toKvAh(Math.max(0, totalEnergy - probusConsumerBusKwh)).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                        <TableCell align="right">{hasTraderData ? toKvAh(actualSettlement?.residualDiscomEnergyKwh ?? leftoverDiscomEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? toKvAh(residualDiscomEnergy || leftoverDiscomEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
                                       </TableRow>
                                       <TableRow>
                                         <TableCell>Fully Landed OA Cost (₹)</TableCell>
                                         <TableCell align="right">-</TableCell>
                                         <TableCell align="right">-</TableCell>
-                                        <TableCell align="right">{hasTraderData ? `₹ ${(actualSettlement?.totalOaCost || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? `₹ ${actualOaCost.toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
                                       </TableRow>
                                       <TableRow>
                                         <TableCell>Residual DISCOM Cost (₹)</TableCell>
                                         <TableCell align="right">₹ {discomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">-</TableCell>
-                                        <TableCell align="right">{hasTraderData ? `₹ ${(actualSettlement?.residualDiscomCost || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? `₹ ${residualDiscomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
                                       </TableRow>
                                     <TableRow>
                                       <TableCell>Total Cost (₹)</TableCell>

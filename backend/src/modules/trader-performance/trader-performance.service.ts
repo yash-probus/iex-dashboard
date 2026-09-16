@@ -2394,7 +2394,11 @@ export class TraderPerformanceService {
         }
       }
 
-      if (slabConsumption <= 0) return;
+      const hasActualTraderPurchases = slotsInGroup.some(slot => {
+        const trades = traderTradesLookup[String(slot.date)]?.[slot.timeblock];
+        return Array.isArray(trades) && trades.some(trade => Number(trade.qty_mw || trade.purchase || trade.volume || 0) > 0);
+      });
+      if (slabConsumption <= 0 && !hasActualTraderPurchases) return;
 
       let finalMarketEnergy = 0;
       let exactMarketEnergyCost = 0;
@@ -2436,7 +2440,7 @@ export class TraderPerformanceService {
              let slotTraderConsumerBusTotal = 0;
              trades.forEach(trade => {
                const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
-               const tPriceMwh = Number(trade.rate_mwh || trade.price || trade.mcp || 0);
+               const tPriceMwh = Math.abs(Number(trade.rate_mwh || trade.price || trade.mcp || 0));
 
                if (tVolMw <= 0) return;
 
@@ -2641,7 +2645,7 @@ export class TraderPerformanceService {
       totalTraderMarketEnergy: globalTraderMarketEnergy,
       totalTraderConsumerBusEnergy: globalTraderConsumerBusEnergy,
       totalTraderLandedCost: globalTraderLandedCost,
-      actualTraderSavings: globalTraderMarketEnergy > 0 ? totalBaselineCost - globalTraderLandedCost : 0,
+      actualTraderSavings: globalTraderMarketEnergy > 0 && totalBaselineCost > 0 ? totalBaselineCost - globalTraderLandedCost : 0,
       totalBaselineCost,
       fppaPercent,
       fppaCharge: totalFppaCharge,

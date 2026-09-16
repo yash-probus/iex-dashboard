@@ -88,7 +88,7 @@ def extract_full_iex_report(file_path):
 
             m = re.search(r"Funds Payin\(-\)\s*/\s*Payout\(\+\)\s+(-?[\d,]+\.\d+)", full_text)
             if m:
-                data["funds_payin_payout"] = to_float(m.group(1))
+                data["funds_payin_payout"] = abs(to_float(m.group(1)))
 
             charge_matches = re.findall(r"(?:>\s*|^)([A-Za-z &\-/]+?)\s+(-?[\d,]+\.\d+)", full_text, re.MULTILINE)
             for label, amount in charge_matches:
@@ -96,16 +96,16 @@ def extract_full_iex_report(file_path):
                 if label.lower() in ["total", "funds payin(-) / payout(+)"]:
                     continue
                 key = normalize_key(label)
-                data["charges"][key] = to_float(amount)
+                data["charges"][key] = abs(to_float(amount))
 
             if "fees" not in data["charges"]:
                 m = re.search(r"Fees\s+(-?[\d,]+\.\d+)", full_text)
                 if m:
-                    data["charges"]["fees"] = to_float(m.group(1))
+                    data["charges"]["fees"] = abs(to_float(m.group(1)))
 
             m = re.search(r"Total\s+(-?[\d,]+\.\d+)", full_text)
             if m:
-                data["total_amount"] = to_float(m.group(1))
+                data["total_amount"] = abs(to_float(m.group(1)))
 
             remarks_match = re.search(r"Remarks\s*:(.*?)(\*\* This is a computer generated report|\Z)", full_text, re.S)
             if remarks_match:
@@ -125,8 +125,8 @@ def extract_full_iex_report(file_path):
                 data["trades"].append({
                     "period": period,
                     "qty_mw": q,
-                    "rate_mwh": to_float(rate),
-                    "amount": to_float(amount)
+                    "rate_mwh": abs(to_float(rate)),
+                    "amount": abs(to_float(amount))
                 })
                 if q > 0:
                     sum_qty += q
