@@ -637,7 +637,7 @@ export class TraderPerformanceActualService {
     let totalMarketEnergyKwh = 0;
     let totalConsumerBusEnergyKwh = 0;
 
-    let monthsToProcess = Object.entries(todConsumptions).filter(([ym]) => ym.match(/^\d{4}-\d{2}$/));
+    let monthsToProcess = Object.entries(todConsumptions).filter(([ym]) => /^\d{4}-\d{2}$/.test(ym));
     if (targetMonth) {
       monthsToProcess = monthsToProcess.filter(([ym]) => ym === targetMonth);
       if (monthsToProcess.length === 0) {
