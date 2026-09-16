@@ -1753,10 +1753,7 @@ export class TraderPerformanceService {
       const isNpcl = entry.discom === 'NPCL';
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
-      if (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) {
-        discomBase = Number(matchedCustomSlot.effectivePrice);
-        matchedTariffName = `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`.toUpperCase();
-      } else if (isNpclHv2) {
+      if (isNpclHv2) {
         const slotMonth = deliveryDate.getMonth() + 1;
         const isWinter = slotMonth >= 9 || slotMonth <= 3;
         const baseRate = 6.80;
@@ -2067,6 +2064,35 @@ export class TraderPerformanceService {
       const key = s.tod.toUpperCase();
       if (!slotsByTod[key]) slotsByTod[key] = [];
       slotsByTod[key].push(s);
+    });
+
+    // Allocate each entered monthly TOD-window consumption only to the Resource
+    // Centre tariff slabs covered by that window.
+    const customConsumptionByTod: Record<string, number> = {};
+    customSlots.forEach((customSlot: any) => {
+      const consumptionKwh = Number(customSlot.consumptionKwh || 0);
+      if (consumptionKwh <= 0 || !customSlot.startTime || !customSlot.endTime) return;
+
+      const startHour = parseHourLocal(customSlot.startTime);
+      const endHour = parseHourLocal(customSlot.endTime);
+      const coveredSlots = slotsData.filter(slot => {
+        const slotHour = (slot.timeblock - 1) / 4;
+        return endHour < startHour
+          ? slotHour >= startHour || slotHour < endHour
+          : slotHour >= startHour && slotHour < endHour;
+      });
+      if (coveredSlots.length === 0) return;
+
+      const consumptionPerSlot = consumptionKwh / coveredSlots.length;
+      coveredSlots.forEach(slot => {
+        const tod = slot.tod.toUpperCase();
+        customConsumptionByTod[tod] = (customConsumptionByTod[tod] || 0) + consumptionPerSlot;
+      });
+    });
+
+    Object.entries(customConsumptionByTod).forEach(([tod, consumptionKwh]) => {
+      const hasExplicitTodValue = Object.keys(monthConsumptions).some(key => key.toUpperCase() === tod);
+      if (!hasExplicitTodValue) (monthConsumptions as any)[tod] = consumptionKwh;
     });
 
     
