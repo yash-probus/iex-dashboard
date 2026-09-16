@@ -1739,17 +1739,6 @@ export class TraderPerformanceService {
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
 
-      const timeStrHour = hour + (startMinutes % 60) / 60;
-      const matchedCustomSlot = customSlots.find((cs: any) => {
-        if (!cs.startTime || !cs.endTime) return false;
-        const sHour = parseHourLocal(cs.startTime);
-        const eHour = parseHourLocal(cs.endTime);
-        if (eHour < sHour) {
-          return timeStrHour >= sHour || timeStrHour < eHour;
-        }
-        return timeStrHour >= sHour && timeStrHour < eHour;
-      });
-
       const isNpcl = entry.discom === 'NPCL';
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
@@ -2580,12 +2569,7 @@ export class TraderPerformanceService {
 
       const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
-      let traderLeftoverDiscomEnergy = 0;
-      slotsInGroup.forEach(s => {
-        const slotConsumption = (s as any).consumptionKwh || (s as any).consumption || (slabConsumption / slotsInGroup.length);
-        const slotTraderC = (s as any).traderConsumerBusEnergyForSlot || 0;
-        traderLeftoverDiscomEnergy += Math.max(0, slotConsumption - slotTraderC);
-      });
+      const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
 
       const traderDiscomEnergyBill = traderLeftoverDiscomEnergy * slabDiscomRate;
       const traderFppaChargeAfterOA = (traderDiscomEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
@@ -2621,6 +2605,12 @@ export class TraderPerformanceService {
         traderMarketEnergy,
         traderConsumerBusUnits,
         traderSlabOaBill,
+        traderCssCharge,
+        traderRpoCharge,
+        traderPocCharge,
+        traderStuCharge: traderStuChargeVal,
+        traderWheelingCharge: traderDcCharge,
+        traderIexFee: traderIexFeesTotal,
         traderLeftoverDiscomEnergy,
         traderDiscomEnergyBill,
         traderDiscomBillTotal,
@@ -2641,13 +2631,24 @@ export class TraderPerformanceService {
 
     const actualTraderMarginTotal = globalTraderMarketEnergy * TRADER_MARGIN;
     const actualTraderMarginGstTotal = globalTraderMarketEnergy * GST_TRADER_MARGIN;
-    
-    // The exact trader landed cost includes daily fixed overheads, application fees, miscellaneous charges, and their own trader margin
+
+    const actualTraderMarketEnergyCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderExactCost || 0), 0);
+    const actualTraderCssCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderCssCharge || 0), 0);
+    const actualTraderRpoCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderRpoCharge || 0), 0);
+    const actualTraderPocCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderPocCharge || 0), 0);
+    const actualTraderStuCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderStuCharge || 0), 0);
+    const actualTraderWheelingCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderWheelingCharge || 0), 0);
+    const actualTraderIexFee = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderIexFee || 0), 0);
+    const actualTraderResidualDiscomEnergy = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
+    const actualTraderResidualDiscomCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDiscomBillTotal || 0), 0) + monthMisc;
+
     if (globalTraderMarketEnergy > 0) {
-      globalTraderLandedCost += traderDailyFixedOverhead + traderBidApplicationFees + monthMisc + actualTraderMarginTotal + actualTraderMarginGstTotal;
+      globalTraderLandedCost += traderDailyFixedOverhead + traderBidApplicationFees + monthMisc + nocFee + regFee + actualTraderMarginTotal + actualTraderMarginGstTotal;
     }
 
-
+    const actualTraderSavings = globalTraderMarketEnergy > 0 && totalBaselineCost > 0
+      ? totalBaselineCost - globalTraderLandedCost
+      : 0;
 
     // Treat proltMargin as a percentage of gross savings
     const proltMarginInput = Number(entry.proltMargin || 0);
@@ -2671,7 +2672,31 @@ export class TraderPerformanceService {
       totalTraderMarketEnergy: globalTraderMarketEnergy,
       totalTraderConsumerBusEnergy: globalTraderConsumerBusEnergy,
       totalTraderLandedCost: globalTraderLandedCost,
-      actualTraderSavings: globalTraderMarketEnergy > 0 && totalBaselineCost > 0 ? totalBaselineCost - globalTraderLandedCost : 0,
+      actualTraderSavings,
+      actualTrader: {
+        marketEnergyKwh: globalTraderMarketEnergy,
+        consumerBusEnergyKwh: globalTraderConsumerBusEnergy,
+        residualDiscomEnergyKwh: actualTraderResidualDiscomEnergy,
+        marketEnergyCost: actualTraderMarketEnergyCost,
+        cssCharge: actualTraderCssCharge,
+        rpoCharge: actualTraderRpoCharge,
+        pocCharge: actualTraderPocCharge,
+        stuCharge: actualTraderStuCharge,
+        wheelingCharge: actualTraderWheelingCharge,
+        iexFee: actualTraderIexFee,
+        nldcSchedulingCost: traderNldcSchedulingCost,
+        sldcSchedulingCost: traderSldcSchedulingCost,
+        bidApplicationFees: traderBidApplicationFees,
+        nocFee: globalTraderMarketEnergy > 0 ? nocFee : 0,
+        registrationFee: globalTraderMarketEnergy > 0 ? regFee : 0,
+        traderMargin: actualTraderMarginTotal,
+        traderMarginGst: actualTraderMarginGstTotal,
+        totalOaCost: Math.max(0, globalTraderLandedCost - actualTraderResidualDiscomCost),
+        residualDiscomCost: actualTraderResidualDiscomCost,
+        totalCost: globalTraderLandedCost,
+        baselineDiscomCost: totalBaselineCost,
+        savings: actualTraderSavings
+      },
       totalBaselineCost,
       fppaPercent,
       fppaCharge: totalFppaCharge,
