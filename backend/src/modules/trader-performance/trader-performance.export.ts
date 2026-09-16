@@ -351,7 +351,7 @@ export class TraderPerformanceExportService {
       const hasExplicitFppa = ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
       let fppaCharges = Math.round((result as any).fppaCharge || (result as any).fppaSurcharge || 0);
       let baseEnergyCharges = Math.round((result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0);
-      const baseDemandCharges = Math.round(result.demandCharge || 0);
+      const baseDemandCharges = Math.round(demandCharges || 0);
 
       const energyRow = sheet.addRow(['Energy Charges', baseEnergyCharges]);
       rowMapping['energyChargesRow'] = energyRow.number;
@@ -371,9 +371,9 @@ export class TraderPerformanceExportService {
     const hasExplicitFppa = ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
     let correctBaseEnergy = (result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0;
     let correctFppa = (result as any).fppaCharge || (result as any).fppaSurcharge || 0;
-    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + (isNpcl ? demandCharges : (result.demandCharge || 0)) + (result.electricityDuty || 0) + arrear + lpsc + misc;
+    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + demandCharges + (result.electricityDuty || 0) + arrear + lpsc + misc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
-    baseTotalRow.font = { bold: true };
+    rowMapping['totalBaselineBillRow'] = baseTotalRow.number;baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
     rowMapping['discomBaselineTotal'] = baseTotalRow.number;
