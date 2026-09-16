@@ -726,6 +726,8 @@ export default function TraderPerformanceDashboardPage() {
                                 const totalEnergy = marketDecisionResult.totalEnergyKwh || 0;
                                 const discomCost = marketDecisionResult.totalBaselineCost || 0;
                                 const probusCost = discomCost - (marketDecisionResult.totalSavings || 0);
+                                const probusResidualDiscomCost = marketDecisionResult.totalDiscomAfterProlt || 0;
+                                const probusFullyLandedOaCost = Math.max(0, probusCost - probusResidualDiscomCost);
                                 
                                 const probusConsumerBusKwh = marketDecisionResult.totalConsumerBusEnergyKwh || 0;
 
@@ -783,13 +785,13 @@ export default function TraderPerformanceDashboardPage() {
                                       <TableRow>
                                         <TableCell>Fully Landed OA Cost (₹)</TableCell>
                                         <TableCell align="right">-</TableCell>
-                                        <TableCell align="right">-</TableCell>
+                                        <TableCell align="right">₹ {probusFullyLandedOaCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">{hasTraderData ? `₹ ${actualOaCost.toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
                                       </TableRow>
                                       <TableRow>
                                         <TableCell>Residual DISCOM Cost (₹)</TableCell>
                                         <TableCell align="right">₹ {discomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                        <TableCell align="right">-</TableCell>
+                                        <TableCell align="right">₹ {probusResidualDiscomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">{hasTraderData ? `₹ ${residualDiscomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}</TableCell>
                                       </TableRow>
                                     <TableRow>
