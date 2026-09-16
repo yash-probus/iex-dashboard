@@ -36,6 +36,7 @@ const SavingsCalculatorViewPage = lazy(() => import('../pages/SavingsCalculatorV
 const SavingsCalculatorAnalysisPage = lazy(() => import('../pages/SavingsCalculatorAnalysisPage'));
 const SavingsCalculatorNewPage = lazy(() => import('../pages/SavingsCalculatorNewPage'));
 const SavingsCalculatorNewAnalysisPage = lazy(() => import('../pages/SavingsCalculatorNewAnalysisPage'));
+const TraderPerformanceActualPage = lazy(() => import('../pages/TraderPerformanceActualPage'));
 const TraderPerformanceDashboardPage = lazy(() => import('../pages/TraderPerformanceDashboardPage'));
 const ForecastPage = lazy(() => import('../pages/ForecastPage'));
 const MarketRecommendationPage = lazy(() => import('../pages/MarketRecommendationPage'));
@@ -64,6 +65,9 @@ export default function AppRoutes() {
             <Route path="savings-calculator-new/:id/analysis" element={<SavingsCalculatorNewAnalysisPage />} />
             <Route path="trader-performance" element={<TraderPerformancePage />} />
             <Route path="trader-performance/:id/dashboard" element={<TraderPerformanceDashboardPage />} />
+
+            {/* Trader Performance Actual */}
+            <Route path="trader-performance-actual" element={<TraderPerformanceActualPage />} />
 
             {/* Module Layout wrapping all module sub-pages */}
             <Route element={<ModuleLayout />}>

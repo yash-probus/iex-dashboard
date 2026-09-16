@@ -56,6 +56,7 @@ import forecastRoutes from './modules/forecast/forecast.routes';
 import usersRoutes from './modules/users/users.routes';
 import proposalRoutes from './modules/proposal/proposal.routes';
 import traderPerformanceRoutes from './modules/trader-performance/trader-performance.routes';
+import traderPerformanceActualRoutes from './modules/trader-performance-actual/trader-performance-actual.routes';
 
 // Initialize scheduled background jobs
 CronService.init();
@@ -79,6 +80,7 @@ app.use('/forecast', forecastRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/trader-performance', traderPerformanceRoutes);
+app.use('/api/trader-performance-actual', traderPerformanceActualRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({

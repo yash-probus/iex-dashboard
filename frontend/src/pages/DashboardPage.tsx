@@ -101,6 +101,14 @@ const MODULES = [
     path: '/trader-performance',
     icon: <ChartIcon sx={{ fontSize: 24 }} />,
     color: '#F59E0B'
+  },
+  {
+    key: 'trader-performance-actual',
+    title: 'Trader Performance Actual',
+    description: 'Compare platform savings with actual trader savings.',
+    path: '/trader-performance-actual',
+    icon: <ChartIcon sx={{ fontSize: 24 }} />,
+    color: '#10B981'
   }
 ];
 
