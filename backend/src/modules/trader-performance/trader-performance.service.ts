@@ -1286,17 +1286,22 @@ export class TraderPerformanceService {
     const traderReports = (monthConsumptions as any).traderReports || { data: {} };
     const traderTradesLookup: Record<string, Record<number, any[]>> = {};
     if (traderReports && traderReports.data) {
-      for (const report of Object.values<any>(traderReports.data)) {
-        if (report.delivery_date && report.trades && Array.isArray(report.trades)) {
+      for (const [key, report] of Object.entries<any>(traderReports.data)) {
+        const rawDate = report.delivery_date || key;
+        if (rawDate && report.trades && Array.isArray(report.trades)) {
           let dDate = null;
-          if (report.delivery_date.length === 10 && report.delivery_date.charAt(2) === '-' && report.delivery_date.charAt(5) === '-') {
-            const parts = report.delivery_date.split('-');
+          if (rawDate.length === 10 && rawDate.charAt(2) === '-' && rawDate.charAt(5) === '-') {
+            const parts = rawDate.split('-');
             dDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
           } else {
             try {
-              dDate = new Date(report.delivery_date).toISOString().split('T')[0];
+              const d = new Date(rawDate);
+              const year = d.getFullYear();
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const day = String(d.getDate()).padStart(2, '0');
+              dDate = `${year}-${month}-${day}`;
             } catch (e) {
-              dDate = report.delivery_date;
+              dDate = rawDate;
             }
           }
           if (dDate) {
@@ -2228,7 +2233,12 @@ export class TraderPerformanceService {
         } else {
           try {
             const d = new Date(checkDate);
-            if (!isNaN(d.getTime())) checkDate = d.toISOString().split('T')[0];
+            if (!isNaN(d.getTime())) {
+              const year = d.getFullYear();
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const day = String(d.getDate()).padStart(2, '0');
+              checkDate = `${year}-${month}-${day}`;
+            }
           } catch (e) {}
         }
         let trades = traderTradesLookup[checkDate]?.[s.timeblock];
@@ -2376,7 +2386,12 @@ export class TraderPerformanceService {
           } else {
             try {
               const d = new Date(checkDate);
-              if (!isNaN(d.getTime())) checkDate = d.toISOString().split('T')[0];
+              if (!isNaN(d.getTime())) {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                checkDate = `${year}-${month}-${day}`;
+              }
             } catch (e) {}
           }
           let trades = traderTradesLookup[checkDate]?.[s.timeblock];
