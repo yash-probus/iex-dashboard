@@ -152,10 +152,10 @@ export const calculateTraderPerformance = async (id: string, month?: string, ver
 
 export const calculateMarketDecisionTraderPerformance = async (id: string, month?: string, version?: number): Promise<MarketDecisionResult> => {
   let url = `/trader-performance/${id}/market-decision`;
-  const params: string[] = [];
+  const params: string[] = [`_t=${Date.now()}`];
   if (month) params.push(`monthStr=${month}`);
   if (version) params.push(`version=${version}`);
-  if (params.length > 0) url += `?${params.join('&')}`;
+  url += `?${params.join('&')}`;
 
   const response = await apiClient.get(url);
   return response.data.data;

@@ -137,10 +137,8 @@ export default function TraderPerformanceDashboardPage() {
 
       // Lazy load only the currently selected month
       const resultsMap: Record<string, MarketDecisionResult> = { ...cachedResults };
-      if (!resultsMap[selectedSimMonth]) {
-        const resSelected = await calculateMarketDecisionTraderPerformance(id, selectedSimMonth, selectedCalcVersion || undefined);
-        resultsMap[selectedSimMonth] = resSelected;
-      }
+      const resSelected = await calculateMarketDecisionTraderPerformance(id, selectedSimMonth, selectedCalcVersion || undefined);
+      resultsMap[selectedSimMonth] = resSelected;
 
       setCachedResults(resultsMap);
     } catch (err: any) {

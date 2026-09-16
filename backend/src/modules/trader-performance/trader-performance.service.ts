@@ -1739,10 +1739,24 @@ export class TraderPerformanceService {
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
 
+      const timeStrHour = hour + (startMinutes % 60) / 60;
+      const matchedCustomSlot = customSlots.find((cs: any) => {
+        if (!cs.startTime || !cs.endTime) return false;
+        const startHour = parseHourLocal(cs.startTime);
+        const endHour = parseHourLocal(cs.endTime);
+        if (endHour < startHour) {
+          return timeStrHour >= startHour || timeStrHour < endHour;
+        }
+        return timeStrHour >= startHour && timeStrHour < endHour;
+      });
+
       const isNpcl = entry.discom === 'NPCL';
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
-      if (isNpclHv2) {
+      if (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) {
+        discomBase = Number(matchedCustomSlot.effectivePrice);
+        matchedTariffName = `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`.toUpperCase();
+      } else if (isNpclHv2) {
         const slotMonth = deliveryDate.getMonth() + 1;
         const isWinter = slotMonth >= 9 || slotMonth <= 3;
         const baseRate = 6.80;
@@ -2055,35 +2069,6 @@ export class TraderPerformanceService {
       slotsByTod[key].push(s);
     });
 
-    // Allocate each entered monthly TOD-window consumption only to the Resource
-    // Centre tariff slabs covered by that window.
-    const customConsumptionByTod: Record<string, number> = {};
-    customSlots.forEach((customSlot: any) => {
-      const consumptionKwh = Number(customSlot.consumptionKwh || 0);
-      if (consumptionKwh <= 0 || !customSlot.startTime || !customSlot.endTime) return;
-
-      const startHour = parseHourLocal(customSlot.startTime);
-      const endHour = parseHourLocal(customSlot.endTime);
-      const coveredSlots = slotsData.filter(slot => {
-        const slotHour = (slot.timeblock - 1) / 4;
-        return endHour < startHour
-          ? slotHour >= startHour || slotHour < endHour
-          : slotHour >= startHour && slotHour < endHour;
-      });
-      if (coveredSlots.length === 0) return;
-
-      const consumptionPerSlot = consumptionKwh / coveredSlots.length;
-      coveredSlots.forEach(slot => {
-        const tod = slot.tod.toUpperCase();
-        customConsumptionByTod[tod] = (customConsumptionByTod[tod] || 0) + consumptionPerSlot;
-      });
-    });
-
-    Object.entries(customConsumptionByTod).forEach(([tod, consumptionKwh]) => {
-      const hasExplicitTodValue = Object.keys(monthConsumptions).some(key => key.toUpperCase() === tod);
-      if (!hasExplicitTodValue) (monthConsumptions as any)[tod] = consumptionKwh;
-    });
-
     
     // Determine if billing is kVAh based on the first tariff
     const entryMonth = new Date(startStr).getMonth() + 1;
@@ -2155,7 +2140,7 @@ export class TraderPerformanceService {
           const shiftSlot = shiftInsights.slotsData.find((ss: any) => ss.date === s.date && ss.timeblock === s.timeblock);
           if (shiftSlot) {
             (s as any).marketEnergy = shiftSlot.marketEnergy || 0;
-            (s as any).consumedMarketEnergy = shiftSlot.marketEnergy || 0;
+            (s as any).consumedMarketEnergy = shiftSlot.consumedMarketEnergy || 0;
             (s as any).discomEnergy = shiftSlot.discomEnergy || 0;
             let basePrice = 0;
             if (s.marketSource === 'DAM') basePrice = s.damMcp || 0;
@@ -2518,16 +2503,30 @@ export class TraderPerformanceService {
       const slabTotalDiscomBill = discountedSlabBill + slabED;
       totalBaselineCost += slabTotalDiscomBill;
 
-      const proltEnergyBill = discomEnergy * slabDiscomRate;
+      const calculateResidualDiscomBill = (residualEnergyKwh: number) => {
+        const energyBill = residualEnergyKwh * slabDiscomRate;
+        const fppaCharge = (energyBill + demandChargeDiscounted) * (fppaPercent / 100);
+        const billBeforeDuty = energyBill + demandChargeDiscounted + fppaCharge;
+        const electricityDuty = applyED ? billBeforeDuty * edRate : 0;
+
+        return {
+          energyBill,
+          fppaCharge,
+          electricityDuty,
+          totalBill: billBeforeDuty + electricityDuty
+        };
+      };
+
+      const proltDiscomBill = calculateResidualDiscomBill(discomEnergy);
+      const proltEnergyBill = proltDiscomBill.energyBill;
       totalDiscomEnergyChargesAfterOA += proltEnergyBill;
-      
-      const slabFppaChargeAfterOA = (proltEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
+
+      const slabFppaChargeAfterOA = proltDiscomBill.fppaCharge;
       totalFppaChargeAfterOA += slabFppaChargeAfterOA;
 
-      const discountedProltBill = proltEnergyBill + demandChargeDiscounted + slabFppaChargeAfterOA;
-      const slabEDAfterOA = applyED ? discountedProltBill * edRate : 0;
+      const slabEDAfterOA = proltDiscomBill.electricityDuty;
       totalElectricityDutyAfterOA += slabEDAfterOA;
-      const proltDiscomBillTotal = discountedProltBill + slabEDAfterOA;
+      const proltDiscomBillTotal = proltDiscomBill.totalBill;
       totalDiscomAfterProlt += proltDiscomBillTotal;
 
       const nonGdamMarketEnergy = marketSlots.filter(s => s.marketSource !== 'GDAM').reduce((sum, s: any) => sum + (s.marketEnergy || 0), 0);
@@ -2570,12 +2569,11 @@ export class TraderPerformanceService {
       const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
       const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
-
-      const traderDiscomEnergyBill = traderLeftoverDiscomEnergy * slabDiscomRate;
-      const traderFppaChargeAfterOA = (traderDiscomEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
-      const traderDiscountedDiscomBill = traderDiscomEnergyBill + demandChargeDiscounted + traderFppaChargeAfterOA;
-      const traderEDAfterOA = applyED ? traderDiscountedDiscomBill * edRate : 0;
-      const traderDiscomBillTotal = traderDiscountedDiscomBill + traderEDAfterOA;
+      const traderDiscomBill = calculateResidualDiscomBill(traderLeftoverDiscomEnergy);
+      const traderDiscomEnergyBill = traderDiscomBill.energyBill;
+      const traderFppaChargeAfterOA = traderDiscomBill.fppaCharge;
+      const traderEDAfterOA = traderDiscomBill.electricityDuty;
+      const traderDiscomBillTotal = traderDiscomBill.totalBill;
       
       globalTraderMarketEnergy += traderMarketEnergy;
       globalTraderConsumerBusEnergy += traderConsumerBusUnits;
@@ -2613,6 +2611,8 @@ export class TraderPerformanceService {
         traderIexFee: traderIexFeesTotal,
         traderLeftoverDiscomEnergy,
         traderDiscomEnergyBill,
+        traderFppaChargeAfterOA,
+        traderElectricityDutyAfterOA: traderEDAfterOA,
         traderDiscomBillTotal,
         traderExactCost
       });
