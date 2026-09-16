@@ -1249,15 +1249,6 @@ export class TraderPerformanceService {
       shiftInsights = await this.calculateDemandShiftInsights(id, targetMonthStr, version);
     }
 
-    let year = new Date().getFullYear();
-    let month = new Date().getMonth() + 1;
-    if (targetMonthStr) {
-      const parts = targetMonthStr.split('-');
-      if (parts.length === 2) {
-        year = parseInt(parts[0], 10);
-        month = parseInt(parts[1], 10);
-      }
-    }
 
     // Bill month is the next calendar month
     const nextMonthDate = new Date(year, month, 1);
