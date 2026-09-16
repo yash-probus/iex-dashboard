@@ -778,7 +778,7 @@ export default function TraderPerformanceDashboardPage() {
                                         <TableCell>Residual Energy from DISCOM (kVAh)</TableCell>
                                         <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">{toKvAh(Math.max(0, totalEnergy - probusConsumerBusKwh)).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                        <TableCell align="right">{hasTraderData ? toKvAh(residualDiscomEnergy || leftoverDiscomEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? toKvAh(residualDiscomEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
                                       </TableRow>
                                       <TableRow>
                                         <TableCell>Fully Landed OA Cost (₹)</TableCell>

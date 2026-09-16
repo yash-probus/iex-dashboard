@@ -2349,6 +2349,27 @@ export class TraderPerformanceService {
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
     const oaDetailedBreakdown: any[] = [];
 
+    const calculateResidualDiscomBill = (
+      residualEnergyKwh: number,
+      discomRate: number,
+      demandChargeForSlab: number,
+      fppaRatePercent: number,
+      applyElectricityDuty: boolean,
+      electricityDutyRate: number
+    ) => {
+      const energyBill = residualEnergyKwh * discomRate;
+      const fppaCharge = (energyBill + demandChargeForSlab) * (fppaRatePercent / 100);
+      const billBeforeDuty = energyBill + demandChargeForSlab + fppaCharge;
+      const electricityDuty = applyElectricityDuty ? billBeforeDuty * electricityDutyRate : 0;
+
+      return {
+        energyBill,
+        fppaCharge,
+        electricityDuty,
+        totalBill: billBeforeDuty + electricityDuty
+      };
+    };
+
     const sortedTodKeys = Object.keys(slotsByTod).sort((a, b) => {
       const numA = parseInt(a.replace(/\D/g, ''), 10) || 0;
       const numB = parseInt(b.replace(/\D/g, ''), 10) || 0;
@@ -2503,21 +2524,14 @@ export class TraderPerformanceService {
       const slabTotalDiscomBill = discountedSlabBill + slabED;
       totalBaselineCost += slabTotalDiscomBill;
 
-      const calculateResidualDiscomBill = (residualEnergyKwh: number) => {
-        const energyBill = residualEnergyKwh * slabDiscomRate;
-        const fppaCharge = (energyBill + demandChargeDiscounted) * (fppaPercent / 100);
-        const billBeforeDuty = energyBill + demandChargeDiscounted + fppaCharge;
-        const electricityDuty = applyED ? billBeforeDuty * edRate : 0;
-
-        return {
-          energyBill,
-          fppaCharge,
-          electricityDuty,
-          totalBill: billBeforeDuty + electricityDuty
-        };
-      };
-
-      const proltDiscomBill = calculateResidualDiscomBill(discomEnergy);
+      const proltDiscomBill = calculateResidualDiscomBill(
+        discomEnergy,
+        slabDiscomRate,
+        demandChargeDiscounted,
+        fppaPercent,
+        applyED,
+        edRate
+      );
       const proltEnergyBill = proltDiscomBill.energyBill;
       totalDiscomEnergyChargesAfterOA += proltEnergyBill;
 
@@ -2569,7 +2583,14 @@ export class TraderPerformanceService {
       const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
       const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
-      const traderDiscomBill = calculateResidualDiscomBill(traderLeftoverDiscomEnergy);
+      const traderDiscomBill = calculateResidualDiscomBill(
+        traderLeftoverDiscomEnergy,
+        slabDiscomRate,
+        demandChargeDiscounted,
+        fppaPercent,
+        applyED,
+        edRate
+      );
       const traderDiscomEnergyBill = traderDiscomBill.energyBill;
       const traderFppaChargeAfterOA = traderDiscomBill.fppaCharge;
       const traderEDAfterOA = traderDiscomBill.electricityDuty;
@@ -2614,9 +2635,43 @@ export class TraderPerformanceService {
         traderFppaChargeAfterOA,
         traderElectricityDutyAfterOA: traderEDAfterOA,
         traderDiscomBillTotal,
-        traderExactCost
+        traderExactCost,
+        traderDemandCharge: demandChargeDiscounted,
+        traderApplyElectricityDuty: applyED,
+        traderElectricityDutyRate: edRate,
+        traderFppaPercent: fppaPercent
       });
     });
+
+    const globalTraderResidualEnergy = Math.max(0, totalEnergyKwh - globalTraderConsumerBusEnergy);
+    const summedTodTraderResidual = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
+    const residualReconciliationFactor = summedTodTraderResidual > 0
+      ? globalTraderResidualEnergy / summedTodTraderResidual
+      : 0;
+
+    oaDetailedBreakdown.forEach(row => {
+      const reconciledResidualEnergy = Number(row.traderLeftoverDiscomEnergy || 0) * residualReconciliationFactor;
+      const reconciledBill = calculateResidualDiscomBill(
+        reconciledResidualEnergy,
+        Number(row.discomRate || 0),
+        Number(row.traderDemandCharge || 0),
+        Number(row.traderFppaPercent || 0),
+        Boolean(row.traderApplyElectricityDuty),
+        Number(row.traderElectricityDutyRate || 0)
+      );
+
+      row.traderLeftoverDiscomEnergy = reconciledResidualEnergy;
+      row.traderDiscomEnergyBill = reconciledBill.energyBill;
+      row.traderFppaChargeAfterOA = reconciledBill.fppaCharge;
+      row.traderElectricityDutyAfterOA = reconciledBill.electricityDuty;
+      row.traderDiscomBillTotal = reconciledBill.totalBill;
+    });
+
+    globalTraderLandedCost = oaDetailedBreakdown.reduce(
+      (sum, row) => sum + Number(row.traderSlabOaBill || 0) + Number(row.traderDiscomBillTotal || 0),
+      0
+    );
+
     const nocFee = 7000;
     const regFee = 8333;
     const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
