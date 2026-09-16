@@ -5,9 +5,7 @@ import {
   TableHead, TableRow, Grid, Divider
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
-import apiClient from '../utils/apiClient';
-import Layout from '../components/Layout';
-import { useSnackbar } from 'notistack';
+import { apiClient } from '../api/client';
 
 const TraderPerformanceActualPage: React.FC = () => {
   const [entries, setEntries] = useState<any[]>([]);
@@ -15,7 +13,6 @@ const TraderPerformanceActualPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [comparing, setComparing] = useState(false);
   const [comparisonData, setComparisonData] = useState<any>(null);
-  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     fetchEntries();
@@ -26,7 +23,7 @@ const TraderPerformanceActualPage: React.FC = () => {
       const res = await apiClient.get('/trader-performance-actual');
       setEntries(res.data.data || []);
     } catch (err: any) {
-      enqueueSnackbar('Failed to fetch entries: ' + err.message, { variant: 'error' });
+      alert('Failed to fetch entries: ' + err.message);
     }
   };
 
@@ -57,11 +54,11 @@ const TraderPerformanceActualPage: React.FC = () => {
         todConsumptions[ym] = { ...cur, traderReports: mergedReports };
 
         await apiClient.put(`/trader-performance-actual/${entryId}`, { todConsumptions });
-        enqueueSnackbar('PDFs uploaded and data merged successfully!', { variant: 'success' });
+        alert('PDFs uploaded and data merged successfully!');
         fetchEntries();
       }
     } catch (err: any) {
-      enqueueSnackbar('Upload failed: ' + err.message, { variant: 'error' });
+      alert('Upload failed: ' + err.message);
     } finally {
       setUploading(false);
     }
@@ -73,9 +70,9 @@ const TraderPerformanceActualPage: React.FC = () => {
     try {
       const res = await apiClient.get(`/trader-performance-actual/${id}/compare`);
       setComparisonData(res.data.data);
-      enqueueSnackbar('Comparison loaded successfully', { variant: 'success' });
+      alert('Comparison loaded successfully');
     } catch (err: any) {
-      enqueueSnackbar('Comparison failed: ' + err.message, { variant: 'error' });
+      alert('Comparison failed: ' + err.message);
     } finally {
       setComparing(false);
     }
@@ -97,14 +94,14 @@ const TraderPerformanceActualPage: React.FC = () => {
       };
       await apiClient.post('/trader-performance-actual', payload);
       fetchEntries();
-      enqueueSnackbar('Test entry created', { variant: 'success' });
+      alert('Test entry created');
     } catch (err: any) {
-      enqueueSnackbar('Failed to create test entry: ' + err.message, { variant: 'error' });
+      alert('Failed to create test entry: ' + err.message);
     }
   };
 
   return (
-    <Layout>
+    <>
       <Box sx={{ p: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4" fontWeight="bold">Trader Performance Actual</Typography>
@@ -231,7 +228,7 @@ const TraderPerformanceActualPage: React.FC = () => {
           </Grid>
         </Grid>
       </Box>
-    </Layout>
+    </>
   );
 };
 
