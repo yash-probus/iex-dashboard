@@ -1305,6 +1305,7 @@ export class TraderPerformanceService {
             }
           
             report.trades.forEach((trade: any) => {
+              trade.oa_market_type = report.oa_market_type || 'RTM';
               if (trade.period && typeof trade.period === 'string') {
                 const startStr = trade.period.split('-')[0].trim();
                 const parts = startStr.split(':');
@@ -2208,11 +2209,35 @@ export class TraderPerformanceService {
 
     // === PASS 2: Calculate Final Overheads & Aggregates ===
     const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
+    const traderTradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
     slotsData.forEach(s => {
       if (((s as any).marketEnergy || 0) > 0 && s.marketSource) {
         if (s.marketSource === 'DAM') tradedDays.DAM.add(s.date);
         else if (s.marketSource === 'GDAM') tradedDays.GDAM.add(s.date);
         else if (s.marketSource === 'RTM') tradedDays.RTM.add(s.date);
+      }
+
+      if (traderTradesLookup && s.date && s.timeblock) {
+        let checkDate = String(s.date);
+        if (checkDate.length === 10 && checkDate.charAt(2) === '-' && checkDate.charAt(5) === '-') {
+          const parts = checkDate.split('-');
+          checkDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        } else {
+          try {
+            const d = new Date(checkDate);
+            if (!isNaN(d.getTime())) checkDate = d.toISOString().split('T')[0];
+          } catch (e) {}
+        }
+        let trade = traderTradesLookup[checkDate]?.[s.timeblock];
+        if (!trade) {
+           trade = traderTradesLookup[s.date]?.[s.timeblock];
+        }
+        if (trade) {
+           const marketType = trade.oa_market_type || 'RTM';
+           if (marketType === 'DAM') traderTradedDays.DAM.add(checkDate);
+           else if (marketType === 'GDAM') traderTradedDays.GDAM.add(checkDate);
+           else traderTradedDays.RTM.add(checkDate);
+        }
       }
     });
 
@@ -2227,6 +2252,19 @@ export class TraderPerformanceService {
     const sldcSchedulingCost = sldcSchedulingFees * (totalDamDays + totalGdamDays + totalRtmDays);
     const dailyFixedOverhead = nldcSchedulingCost + sldcSchedulingCost;
     const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
+
+    // Trader Overhead Calculation
+    const totalTraderDamDays = traderTradedDays.DAM.size;
+    const totalTraderGdamDays = traderTradedDays.GDAM.size;
+    const totalTraderRtmDays = traderTradedDays.RTM.size;
+    
+    const allTraderTradedDates = new Set([...traderTradedDays.DAM, ...traderTradedDays.GDAM, ...traderTradedDays.RTM]);
+    const totalTraderDaysTraded = allTraderTradedDates.size;
+    
+    const traderNldcSchedulingCost = nldcSchedulingFees * totalTraderDaysTraded;
+    const traderSldcSchedulingCost = sldcSchedulingFees * (totalTraderDamDays + totalTraderGdamDays + totalTraderRtmDays);
+    const traderDailyFixedOverhead = traderNldcSchedulingCost + traderSldcSchedulingCost;
+    const traderBidApplicationFees = (totalTraderDamDays + totalTraderGdamDays + totalTraderRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
 
     let totalBaselineCost = 0;
     let totalElectricityDuty = 0;
@@ -2440,10 +2478,8 @@ export class TraderPerformanceService {
       const traderStuChargeVal = traderMarketEnergy * stuCharge;
       const traderDcCharge = traderMarketEnergy * wheelingCharge;
       const traderIexFeesTotal = traderMarketEnergy * EXCHANGE_FEES;
-      const traderMarginTotalSlab = traderMarketEnergy * TRADER_MARGIN;
-      const traderMarginGstTotalSlab = traderMarketEnergy * GST_TRADER_MARGIN;
 
-      const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost + traderMarginTotalSlab + traderMarginGstTotalSlab;
+      const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
       let traderLeftoverDiscomEnergy = 0;
       slotsInGroup.forEach(s => {
@@ -2509,7 +2545,7 @@ export class TraderPerformanceService {
     
     // The exact trader landed cost includes daily fixed overheads, application fees, miscellaneous charges, and their own trader margin
     if (globalTraderMarketEnergy > 0) {
-      globalTraderLandedCost += dailyFixedOverhead + bidApplicationFees + monthMisc + actualTraderMarginTotal + actualTraderMarginGstTotal;
+      globalTraderLandedCost += traderDailyFixedOverhead + traderBidApplicationFees + monthMisc + actualTraderMarginTotal + actualTraderMarginGstTotal;
     }
 
 
