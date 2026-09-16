@@ -456,7 +456,9 @@ export class TraderPerformanceService {
     let peakDemand = 0;
     let totalConsumerBusEnergyKwh = 0;
     let totalTraderMarketEnergy = 0;
+    let totalTraderConsumerBusEnergy = 0;
     let totalTraderLandedCost = 0;
+    let actualTraderSavings = 0;
     let demandChargeRate = 0;
 
     const aggregatedTotals = {
@@ -485,7 +487,9 @@ export class TraderPerformanceService {
           peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
           totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
           totalTraderMarketEnergy += (res as any).totalTraderMarketEnergy || 0;
+          totalTraderConsumerBusEnergy += (res as any).totalTraderConsumerBusEnergy || 0;
           totalTraderLandedCost += (res as any).totalTraderLandedCost || 0;
+          actualTraderSavings += (res as any).actualTraderSavings || 0;
           demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
 
           if (res.oaDetailed) {
@@ -524,7 +528,9 @@ export class TraderPerformanceService {
       totalMarketEnergyKwh,
       totalConsumerBusEnergyKwh,
       totalTraderMarketEnergy,
+      totalTraderConsumerBusEnergy,
       totalTraderLandedCost,
+      actualTraderSavings,
       totalBaselineCost,
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
@@ -2247,6 +2253,8 @@ export class TraderPerformanceService {
         }
         if (trades && Array.isArray(trades)) {
            trades.forEach(trade => {
+             const purchasedMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
+             if (purchasedMw <= 0) return;
              const marketType = trade.oa_market_type || 'RTM';
              if (marketType === 'DAM') traderTradedDays.DAM.add(checkDate);
              else if (marketType === 'GDAM') traderTradedDays.GDAM.add(checkDate);
@@ -2295,14 +2303,6 @@ export class TraderPerformanceService {
     let totalFppaCharge = 0;
     let totalFppaChargeAfterOA = 0;
     
-    let globalMonthMarketEnergy = 0;
-    let globalMonthConsumerBusUnits = 0;
-    slotsData.forEach((s: any) => {
-      globalMonthMarketEnergy += (s.marketEnergy || 0);
-      globalMonthConsumerBusUnits += (s.consumedMarketEnergy || 0);
-    });
-    const globalMonthLossMultiplier = globalMonthMarketEnergy > 0 ? (globalMonthConsumerBusUnits / globalMonthMarketEnergy) : 1;
-
     let globalCssCharge = 0;
     let globalRpoCharge = 0;
     let globalPocCharge = 0;
@@ -2313,6 +2313,7 @@ export class TraderPerformanceService {
     let globalTraderMarginGst = 0;
 
     let globalTraderMarketEnergy = 0;
+    let globalTraderConsumerBusEnergy = 0;
     let globalTraderLandedCost = 0;
 
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
@@ -2370,6 +2371,8 @@ export class TraderPerformanceService {
       let discomEnergy = 0;
       let consumerBusUnits = 0;
       let traderMarketEnergy = 0;
+      let traderConsumerBusUnits = 0;
+      let traderNonGdamConsumerBusUnits = 0;
       let traderExactCost = 0;
 
       slotsInGroup.forEach(s => {
@@ -2400,17 +2403,32 @@ export class TraderPerformanceService {
           }
            if (trades && Array.isArray(trades)) {
              let slotTraderKwhTotal = 0;
+             let slotTraderConsumerBusTotal = 0;
              trades.forEach(trade => {
                const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
                const tPriceMwh = Number(trade.rate_mwh || trade.price || trade.mcp || 0);
-               
+
+               if (tVolMw <= 0) return;
+
                const tKwh = tVolMw * 1000 * 0.25;
+               const slotLossMultiplier = Math.max(0,
+                 (1 - (Number((s as any).istsLoss) || 0) / 100) *
+                 (1 - (Number(stuLoss) || 0) / 100) *
+                 (1 - (Number(wheelingLoss) || 0) / 100)
+               );
+               const deliveredKwh = tKwh * slotLossMultiplier;
+               const marketType = String(trade.oa_market_type || 'RTM').toUpperCase();
+
                traderMarketEnergy += tKwh;
+               traderConsumerBusUnits += deliveredKwh;
+               if (marketType !== 'GDAM') traderNonGdamConsumerBusUnits += deliveredKwh;
                traderExactCost += (tKwh * tPriceMwh) / 1000;
                slotTraderKwhTotal += tKwh;
+               slotTraderConsumerBusTotal += deliveredKwh;
              });
              (s as any).actualTrades = trades;
-             (s as any).traderMarketEnergyForSlot = ((s as any).traderMarketEnergyForSlot || 0) + slotTraderKwhTotal;
+             (s as any).traderMarketEnergyForSlot = slotTraderKwhTotal;
+             (s as any).traderConsumerBusEnergyForSlot = slotTraderConsumerBusTotal;
           }
         }
       });
@@ -2493,10 +2511,6 @@ export class TraderPerformanceService {
       totalLandedExchangeCost += slabOaBill + proltDiscomBillTotal;
 
       // TRADER EXACT LANDED COST FOR SLAB
-      const traderLossMultiplier = finalMarketEnergy > 0 ? (consumerBusUnits / finalMarketEnergy) : globalMonthLossMultiplier;
-      const traderConsumerBusUnits = traderMarketEnergy * traderLossMultiplier;
-      const traderNonGdamConsumerBusUnits = traderConsumerBusUnits * nonGdamFraction;
-
       const traderRpoCharge = traderNonGdamConsumerBusUnits * RPO_FLAT_RATE;
       const traderCssCharge = traderConsumerBusUnits * crossSubsidy;
       const traderPocCharge = traderMarketEnergy * ctuCharge;
@@ -2509,7 +2523,7 @@ export class TraderPerformanceService {
       let traderLeftoverDiscomEnergy = 0;
       slotsInGroup.forEach(s => {
         const slotConsumption = (s as any).consumptionKwh || (s as any).consumption || (slabConsumption / slotsInGroup.length);
-        const slotTraderC = ((s as any).traderMarketEnergyForSlot || 0) * traderLossMultiplier;
+        const slotTraderC = (s as any).traderConsumerBusEnergyForSlot || 0;
         traderLeftoverDiscomEnergy += Math.max(0, slotConsumption - slotTraderC);
       });
 
@@ -2519,8 +2533,8 @@ export class TraderPerformanceService {
       const traderEDAfterOA = applyED ? traderDiscountedDiscomBill * edRate : 0;
       const traderDiscomBillTotal = traderDiscountedDiscomBill + traderEDAfterOA;
       
-      console.log("MY FIX IS RUNNING", {traderDiscomBillTotal, traderLeftoverDiscomEnergy});
       globalTraderMarketEnergy += traderMarketEnergy;
+      globalTraderConsumerBusEnergy += traderConsumerBusUnits;
       globalTraderLandedCost += traderSlabOaBill + traderDiscomBillTotal;
 
       totalEnergyKwh += slabConsumption;
@@ -2595,7 +2609,9 @@ export class TraderPerformanceService {
       totalMarketEnergyKwh,
       totalConsumerBusEnergyKwh,
       totalTraderMarketEnergy: globalTraderMarketEnergy,
+      totalTraderConsumerBusEnergy: globalTraderConsumerBusEnergy,
       totalTraderLandedCost: globalTraderLandedCost,
+      actualTraderSavings: globalTraderMarketEnergy > 0 ? totalBaselineCost - globalTraderLandedCost : 0,
       totalBaselineCost,
       fppaPercent,
       fppaCharge: totalFppaCharge,

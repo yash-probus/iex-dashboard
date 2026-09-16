@@ -62,7 +62,9 @@ export interface MarketDecisionResult {
   totalMarketEnergyKwh: number;
   totalConsumerBusEnergyKwh?: number;
   totalTraderMarketEnergy?: number;
+  totalTraderConsumerBusEnergy?: number;
   totalTraderLandedCost?: number;
+  actualTraderSavings?: number;
   totalBaselineCost: number;
   fullBaselineDiscomCost: number;
   totalLandedExchangeCost: number;

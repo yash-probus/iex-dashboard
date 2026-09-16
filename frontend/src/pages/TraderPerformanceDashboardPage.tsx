@@ -730,23 +730,19 @@ export default function TraderPerformanceDashboardPage() {
                                 const probusCost = discomCost - (marketDecisionResult.totalSavings || 0);
                                 
                                 const probusConsumerBusKwh = marketDecisionResult.totalConsumerBusEnergyKwh || 0;
-                                const probusMarketKwh = marketDecisionResult.totalMarketEnergyKwh || 0;
-                                const lossMultiplier = probusMarketKwh > 0 ? (probusConsumerBusKwh / probusMarketKwh) : 1;
 
-                                // --- CONTINUOUS FULLY-LANDED TRADER COST ---
-                                // Backend now supplies totalTraderMarketEnergy and totalTraderLandedCost computed slot-by-slot exactly like Probus
                                 const exactTraderLandedCost = marketDecisionResult.totalTraderLandedCost || 0;
                                 const exactTraderMarketEnergy = marketDecisionResult.totalTraderMarketEnergy || 0;
-                                
-                                // We still map market energy to consumer bus using the loss multiplier
-                                const traderConsumerBusKwh = exactTraderMarketEnergy > 0 ? (exactTraderMarketEnergy * lossMultiplier) : (traderBoughtKwh * lossMultiplier);
+                                const traderConsumerBusKwh = marketDecisionResult.totalTraderConsumerBusEnergy || 0;
                                 const leftoverDiscomEnergy = Math.max(0, totalEnergy - traderConsumerBusKwh);
-                                
-                                // We use exact total trader landed cost instead of raw PDF amount
                                 const discomRate = totalEnergy > 0 ? (discomCost / totalEnergy) : 0;
                                 const actualTraderCost = exactTraderMarketEnergy > 0 
                                       ? exactTraderLandedCost 
-                                      : (leftoverDiscomEnergy * discomRate) + traderMarketCost; // fallback to raw PDF amount if backend is old
+                                      : (leftoverDiscomEnergy * discomRate) + traderMarketCost;
+                                const actualTraderSavings = exactTraderMarketEnergy > 0
+                                      ? (marketDecisionResult.actualTraderSavings ?? (discomCost - actualTraderCost))
+                                      : (discomCost - actualTraderCost);
+                                const hasTraderData = exactTraderMarketEnergy > 0 || traderBoughtKwh > 0;
 
                                   const pf = calcEntry?.powerFactor ? Number(calcEntry.powerFactor) : 1;
                                   const toKvAh = (kwh: number) => kwh / pf;
@@ -769,8 +765,8 @@ export default function TraderPerformanceDashboardPage() {
                                       <TableCell>Total Cost (₹)</TableCell>
                                       <TableCell align="right">₹ {discomCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       <TableCell align="right" sx={{ color: 'success.main' }}>₹ {probusCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                      <TableCell align="right" sx={{ color: traderBoughtKwh > 0 ? 'primary.main' : 'text.secondary' }}>
-                                        {traderBoughtKwh > 0 ? `₹ ${actualTraderCost.toLocaleString(undefined, {maximumFractionDigits: 0})}` : 'No PDF Data'}
+                                      <TableCell align="right" sx={{ color: hasTraderData ? 'primary.main' : 'text.secondary' }}>
+                                        {hasTraderData ? `₹ ${actualTraderCost.toLocaleString(undefined, {maximumFractionDigits: 0})}` : 'No PDF Data'}
                                       </TableCell>
                                     </TableRow>
                                     <TableRow>
@@ -778,7 +774,7 @@ export default function TraderPerformanceDashboardPage() {
                                       <TableCell align="right">-</TableCell>
                                       <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>₹ {(discomCost - probusCost).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       <TableCell align="right" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                                        {traderBoughtKwh > 0 ? `₹ ${(discomCost - actualTraderCost).toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}
+                                        {hasTraderData ? `₹ ${actualTraderSavings.toLocaleString(undefined, {maximumFractionDigits: 0})}` : '-'}
                                       </TableCell>
                                     </TableRow>
                                   </>
