@@ -598,9 +598,9 @@ export class TraderPerformanceExportService {
     }
 
     
-    const discomBeforeRow = sheet.addRow(['DISCOM Bill Before PROLT', visibleDiscomBefore]);
+    const discomBeforeRow = sheet.addRow([isActualTrader ? 'DISCOM Bill Before OA' : 'DISCOM Bill Before PROLT', visibleDiscomBefore]);
     sheet.addRow(['Total Estimated OA Bill (Inc. Overheads)', visibleTotalOa]);
-    sheet.addRow(['DISCOM Bill After PROLT', visibleDiscomAfter]);
+    sheet.addRow([isActualTrader ? 'DISCOM Bill After OA' : 'DISCOM Bill After PROLT', visibleDiscomAfter]);
     
     // Instead of using Math.round(grossSavingsVal) which might be off by 1 or 2 due to rounding individual parts,
     // we use the exact visual difference to ensure the math always looks perfect on the sheet.
@@ -622,25 +622,33 @@ export class TraderPerformanceExportService {
     const regRow = sheet.addRow(['IEX Registration Fee', regFee]);
     rowMapping['iexRegFeeRow'] = regRow.number;
 
-    const consultancyRow = sheet.addRow(['Consultancy Fee', consultancyFeeVal]);
-    rowMapping['consultancyFeeRow'] = consultancyRow.number;
+    if (!isActualTrader) {
+      const consultancyRow = sheet.addRow(['Consultancy Fee', consultancyFeeVal]);
+      rowMapping['consultancyFeeRow'] = consultancyRow.number;
 
-    const savingsAfterFixedFees = Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal));
-    const savingsAfterFixedFeesRow = sheet.addRow(['Saving after Fixed Fees', Math.round(savingsAfterFixedFees)]);
-    savingsAfterFixedFeesRow.font = { bold: true };
-    savingsAfterFixedFeesRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
+      const savingsAfterFixedFees = Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal));
+      const savingsAfterFixedFeesRow = sheet.addRow(['Saving after Fixed Fees', Math.round(savingsAfterFixedFees)]);
+      savingsAfterFixedFeesRow.font = { bold: true };
+      savingsAfterFixedFeesRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });
 
-    const platformRow = sheet.addRow(['Platform Fee', probusPlatformFee]);
-    rowMapping['platformFeeRow'] = platformRow.number;
+      const platformRow = sheet.addRow(['Platform Fee', probusPlatformFee]);
+      rowMapping['platformFeeRow'] = platformRow.number;
 
-    const valueShareRow = sheet.addRow(['Value-Share for Energy Platform', Math.round(proltMarginVal)]);
-    rowMapping['valueShareRow'] = valueShareRow.number;
+      const valueShareRow = sheet.addRow(['Value-Share for Energy Platform', Math.round(proltMarginVal)]);
+      rowMapping['valueShareRow'] = valueShareRow.number;
+    }
     
     const traderMarginVal = (result as any).oaDetailed?.totals?.traderMargin || (result as any).aggregatedTotals?.traderMargin || (result as any).traderMarginCost || 0;
     const traderMarginSumRow = sheet.addRow(['Trader Margin', Math.round(traderMarginVal)]);
     rowMapping['traderMarginChargeRow'] = traderMarginSumRow.number;
     
-    const finalSavings = result.totalSavings ?? Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal + traderMarginVal));
+    let finalSavings = 0;
+    if (isActualTrader) {
+      finalSavings = Math.max(0, grossSavingsVal - (nocFee + regFee + traderMarginVal));
+    } else {
+      finalSavings = result.totalSavings ?? Math.max(0, grossSavingsVal - (nocFee + regFee + consultancyFeeVal + probusPlatformFee + proltMarginVal + traderMarginVal));
+    }
+    
     const finalSavingsRow = sheet.addRow(['Final Client Savings (Saving for your business)', Math.round(finalSavings)]);
     finalSavingsRow.font = { bold: true };
     finalSavingsRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } });
@@ -885,7 +893,7 @@ export class TraderPerformanceExportService {
     ppcDiscomRow.font = { bold: true };
     for (let i = 2; i <= numMonths + 1; i++) ppcDiscomRow.getCell(i).numFmt = '"₹"0.00';
 
-    const ppcProltRowData: any[] = ['Blended Cost per Unit (With Prolt) [Inc. Fixed Charges]'];
+    const ppcProltRowData: any[] = [isActualTrader ? 'Blended Cost per Unit (With OA) [Inc. Fixed Charges]' : 'Blended Cost per Unit (With Prolt) [Inc. Fixed Charges]'];
     allResults.forEach((r, idx) => {
       const colChar = getColLetter(idx + 2);
       const formula = `${colChar}${totalPowerCostOARowNumber}/${colChar}${totalConsumptionRowNumber}`;
@@ -939,15 +947,18 @@ export class TraderPerformanceExportService {
     for (let i = 2; i <= numMonths + 1; i++) iexRegRow.getCell(i).numFmt = '"₹"#,##,##0';
     const iexRegRowNumber = iexRegRow.number;
 
-    const consultancyRowData: any[] = ['Consultancy Fee'];
-    allResults.forEach((r, idx) => {
-      const mMapping = monthRowMap[r.monthStr];
-      const formula = `'${mMapping.sheetName}'!B${mMapping.consultancyFeeRow}`;
-      consultancyRowData.push({ formula });
-    });
-    const consultancyRow = sheet.addRow(consultancyRowData);
-    for (let i = 2; i <= numMonths + 1; i++) consultancyRow.getCell(i).numFmt = '"₹"#,##,##0';
-    const consultancyRowNumber = consultancyRow.number;
+    let consultancyRowNumber = 0;
+    if (!isActualTrader) {
+      const consultancyRowData: any[] = ['Consultancy Fee'];
+      allResults.forEach((r, idx) => {
+        const mMapping = monthRowMap[r.monthStr];
+        const formula = `'${mMapping.sheetName}'!B${mMapping.consultancyFeeRow}`;
+        consultancyRowData.push({ formula });
+      });
+      const consultancyRow = sheet.addRow(consultancyRowData);
+      for (let i = 2; i <= numMonths + 1; i++) consultancyRow.getCell(i).numFmt = '"₹"#,##,##0';
+      consultancyRowNumber = consultancyRow.number;
+    }
 
     sheet.addRow([]);
 
@@ -969,47 +980,49 @@ export class TraderPerformanceExportService {
     for (let i = 2; i <= numMonths + 1; i++) traderMarginRow.getCell(i).numFmt = '"₹"#,##,##0';
     const traderMarginRowNumber = traderMarginRow.number;
 
-    const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
-    const platformFeeRowData: any[] = [`Platform Fee (Rs ${platformFeeRate}/kWh)`];
-    allResults.forEach((r, idx) => {
-      const mMapping = monthRowMap[r.monthStr];
-      const formula = `'${mMapping.sheetName}'!B${mMapping.platformFeeRow}`;
-      platformFeeRowData.push({ formula });
-    });
-    const platformFeeRow = sheet.addRow(platformFeeRowData);
-    for (let i = 2; i <= numMonths + 1; i++) platformFeeRow.getCell(i).numFmt = '"₹"#,##,##0';
-    const platformFeeRowNumber = platformFeeRow.number;
+    if (!isActualTrader) {
+      const platformFeeRate = entry.probusPlatformFee !== null && entry.probusPlatformFee !== undefined ? Number(entry.probusPlatformFee) : 0.02;
+      const platformFeeRowData: any[] = [`Platform Fee (Rs ${platformFeeRate}/kWh)`];
+      allResults.forEach((r, idx) => {
+        const mMapping = monthRowMap[r.monthStr];
+        const formula = `'${mMapping.sheetName}'!B${mMapping.platformFeeRow}`;
+        platformFeeRowData.push({ formula });
+      });
+      const platformFeeRow = sheet.addRow(platformFeeRowData);
+      for (let i = 2; i <= numMonths + 1; i++) platformFeeRow.getCell(i).numFmt = '"₹"#,##,##0';
+      const platformFeeRowNumber = platformFeeRow.number;
 
-    const valueShareRowData: any[] = ['Value-Share for Energy Platform (15% of Saving)'];
-    allResults.forEach((r, idx) => {
-      const mMapping = monthRowMap[r.monthStr];
-      const formula = `'${mMapping.sheetName}'!B${mMapping.valueShareRow}`;
-      valueShareRowData.push({ formula });
-    });
-    const valueShareRow = sheet.addRow(valueShareRowData);
-    for (let i = 2; i <= numMonths + 1; i++) valueShareRow.getCell(i).numFmt = '"₹"#,##,##0';
-    const valueShareRowNumber = valueShareRow.number;
+      const valueShareRowData: any[] = ['Value-Share for Energy Platform (15% of Saving)'];
+      allResults.forEach((r, idx) => {
+        const mMapping = monthRowMap[r.monthStr];
+        const formula = `'${mMapping.sheetName}'!B${mMapping.valueShareRow}`;
+        valueShareRowData.push({ formula });
+      });
+      const valueShareRow = sheet.addRow(valueShareRowData);
+      for (let i = 2; i <= numMonths + 1; i++) valueShareRow.getCell(i).numFmt = '"₹"#,##,##0';
+      const valueShareRowNumber = valueShareRow.number;
 
-    const totalAmountRowData: any[] = ['Total Margin Amount'];
-    allResults.forEach((r, idx) => {
-      const colChar = getColLetter(idx + 2);
-      const formula = `${colChar}${traderMarginRowNumber}+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
-      totalAmountRowData.push({ formula });
-    });
-    const totalAmountRow = sheet.addRow(totalAmountRowData);
-    totalAmountRow.font = { bold: true };
-    for (let i = 2; i <= numMonths + 1; i++) totalAmountRow.getCell(i).numFmt = '"₹"#,##,##0';
-    totalAmountRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
-    const totalAmountRowNumber = totalAmountRow.number;
+      const totalAmountRowData: any[] = ['Total Margin Amount'];
+      allResults.forEach((r, idx) => {
+        const colChar = getColLetter(idx + 2);
+        const formula = `${colChar}${traderMarginRowNumber}+${colChar}${platformFeeRowNumber}+${colChar}${valueShareRowNumber}`;
+        totalAmountRowData.push({ formula });
+      });
+      const totalAmountRow = sheet.addRow(totalAmountRowData);
+      totalAmountRow.font = { bold: true };
+      for (let i = 2; i <= numMonths + 1; i++) totalAmountRow.getCell(i).numFmt = '"₹"#,##,##0';
+      totalAmountRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } });
+      const totalAmountRowNumber = totalAmountRow.number;
 
-    const probusRevUnitRowData: any[] = ['Probus Revenue /Unit'];
-    allResults.forEach((r, idx) => {
-      const colChar = getColLetter(idx + 2);
-      const formula = `${colChar}${totalAmountRowNumber}/${colChar}${totalConsumptionRowNumber}`;
-      probusRevUnitRowData.push({ formula });
-    });
-    const probusRevUnitRow = sheet.addRow(probusRevUnitRowData);
-    for (let i = 2; i <= numMonths + 1; i++) probusRevUnitRow.getCell(i).numFmt = '"₹"0.00';
+      const probusRevUnitRowData: any[] = ['Probus Revenue /Unit'];
+      allResults.forEach((r, idx) => {
+        const colChar = getColLetter(idx + 2);
+        const formula = `${colChar}${totalAmountRowNumber}/${colChar}${totalConsumptionRowNumber}`;
+        probusRevUnitRowData.push({ formula });
+      });
+      const probusRevUnitRow = sheet.addRow(probusRevUnitRowData);
+      for (let i = 2; i <= numMonths + 1; i++) probusRevUnitRow.getCell(i).numFmt = '"₹"0.00';
+    }
 
     sheet.addRow([]);
 
