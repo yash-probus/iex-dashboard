@@ -1092,3 +1092,21 @@ model TraderPerformanceActualEntryHistory {
   @@map("trader_performance_actual_entry_histories")
   @@schema("public")
 }
+
+model HistoricalWeather {
+  id             Int      @id @default(autoincrement())
+  timestamp      DateTime @db.Timestamptz
+  intervalNumber Int      @map("interval_number")
+  temperature    Decimal? @db.Decimal(10, 4)
+  humidity       Decimal? @db.Decimal(10, 4)
+  windSpeed      Decimal? @map("wind_speed") @db.Decimal(10, 4)
+  solarRadiation Decimal? @map("solar_radiation") @db.Decimal(10, 4)
+  precipitation  Decimal? @db.Decimal(10, 4)
+  cloudCover     Decimal? @map("cloud_cover") @db.Decimal(10, 4)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([timestamp])
+  @@index([timestamp])
+  @@map("historical_weather")
+  @@schema("public")
+}
