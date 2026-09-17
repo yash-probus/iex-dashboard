@@ -2655,7 +2655,7 @@ export class TraderPerformanceService {
       });
     });
 
-    const globalTraderResidualEnergy = Math.max(0, totalEnergyKwh - globalTraderConsumerBusEnergy);
+    const globalTraderResidualEnergy = Math.max(0, totalEnergyKwh - (globalTraderConsumerBusEnergy - globalTraderLapsedEnergy));
     const summedTodTraderResidual = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
     const residualReconciliationFactor = summedTodTraderResidual > 0
       ? globalTraderResidualEnergy / summedTodTraderResidual
