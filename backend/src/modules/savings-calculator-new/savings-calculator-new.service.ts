@@ -1928,7 +1928,7 @@ export class SavingsCalculatorNewService {
     let peakDemand = entry.billedDemandKv ? Number(entry.billedDemandKv) : 0;
     if (peakDemand === 0) {
       Object.keys(monthConsumptions).forEach(k => {
-        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) {
+        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('peakdemand') || k.toLowerCase().includes('sanctioned')) {
           peakDemand = Math.max(peakDemand, Number(monthConsumptions[k]) || 0);
         }
       });
