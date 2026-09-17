@@ -1274,6 +1274,14 @@ export class SavingsCalculatorNewService {
     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
 
+    let globalApplyED = entry.applyElectricityDuty !== false;
+    let globalEDPercent = 7.5;
+    if (monthConsumptions && (monthConsumptions as any)._meta && (monthConsumptions as any)._meta.electricityDutyPercent !== undefined) {
+      globalEDPercent = Number((monthConsumptions as any)._meta.electricityDutyPercent) || 7.5;
+    } else if ((entry as any).electricityDutyPercent !== undefined) {
+      globalEDPercent = Number((entry as any).electricityDutyPercent) || 7.5;
+    }
+
     const customSlots: any[] = [];
     if (monthConsumptions.slots && Array.isArray(monthConsumptions.slots)) {
       monthConsumptions.slots.forEach((s: any) => {

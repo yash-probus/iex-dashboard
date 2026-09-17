@@ -1265,6 +1265,14 @@ export class TraderPerformanceActualService {
       throw new Error('State is required to calculate savings. Please edit this entry to select a state.');
     }
 
+    let globalApplyED = entry.applyElectricityDuty !== false;
+    let globalEDPercent = 7.5;
+    if (entry.todConsumptions && (entry.todConsumptions as any)._meta && (entry.todConsumptions as any)._meta.electricityDutyPercent !== undefined) {
+      globalEDPercent = Number((entry.todConsumptions as any)._meta.electricityDutyPercent) || 7.5;
+    } else if ((entry as any).electricityDutyPercent !== undefined) {
+      globalEDPercent = Number((entry as any).electricityDutyPercent) || 7.5;
+    }
+
     if (useShiftedProfile && !shiftInsights) {
       shiftInsights = await this.calculateDemandShiftInsights(id, targetMonthStr, version);
     }

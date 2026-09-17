@@ -2349,6 +2349,8 @@ export class TraderPerformanceService {
     let globalTraderMarketEnergy = 0;
     let globalTraderConsumerBusEnergy = 0;
     let globalTraderLandedCost = 0;
+    let globalTraderLapsedEnergy = 0;
+
 
     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
     const oaDetailedBreakdown: any[] = [];
@@ -2433,6 +2435,8 @@ export class TraderPerformanceService {
       let traderConsumerBusUnits = 0;
       let traderNonGdamConsumerBusUnits = 0;
       let traderExactCost = 0;
+      let traderLapsedEnergy = 0;
+
 
       slotsInGroup.forEach(s => {
         finalMarketEnergy += (s as any).marketEnergy || 0;
@@ -2587,6 +2591,8 @@ export class TraderPerformanceService {
       const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
       const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
+      traderLapsedEnergy = Math.max(0, traderConsumerBusUnits - slabConsumption);
+
       const traderDiscomBill = calculateResidualDiscomBill(
         traderLeftoverDiscomEnergy,
         slabDiscomRate,
@@ -2603,6 +2609,7 @@ export class TraderPerformanceService {
       globalTraderMarketEnergy += traderMarketEnergy;
       globalTraderConsumerBusEnergy += traderConsumerBusUnits;
       globalTraderLandedCost += traderSlabOaBill + traderDiscomBillTotal;
+      globalTraderLapsedEnergy += traderLapsedEnergy;
 
       totalEnergyKwh += slabConsumption;
       totalMarketEnergyKwh += finalMarketEnergy;
@@ -2640,6 +2647,7 @@ export class TraderPerformanceService {
         traderElectricityDutyAfterOA: traderEDAfterOA,
         traderDiscomBillTotal,
         traderExactCost,
+        traderLapsedEnergy,
         traderDemandCharge: demandChargeDiscounted,
         traderApplyElectricityDuty: applyED,
         traderElectricityDutyRate: edRate,
@@ -2759,6 +2767,7 @@ export class TraderPerformanceService {
         residualDemandCharge: actualTraderResidualDemandCharge,
         residualFppaCharge: actualTraderResidualFppaCharge,
         residualElectricityDuty: actualTraderResidualElectricityDuty,
+        lapsedEnergyKwh: globalTraderLapsedEnergy,
         residualDiscomCost: actualTraderResidualDiscomCost,
         totalCost: globalTraderLandedCost,
         baselineDiscomCost: totalBaselineCost,

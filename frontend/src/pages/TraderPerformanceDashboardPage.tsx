@@ -765,6 +765,12 @@ export default function TraderPerformanceDashboardPage() {
                                         <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       </TableRow>
                                       <TableRow>
+                                        <TableCell>OA Energy Bought at Regional Bus (kWh)</TableCell>
+                                        <TableCell align="right">0</TableCell>
+                                        <TableCell align="right">{(marketDecisionResult.totalMarketEnergyKwh || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? (exactTraderMarketEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
                                         <TableCell>OA Energy Bought at Regional Bus (kVAh)</TableCell>
                                         <TableCell align="right">0</TableCell>
                                         <TableCell align="right">{toKvAh(marketDecisionResult.totalMarketEnergyKwh || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
@@ -781,6 +787,12 @@ export default function TraderPerformanceDashboardPage() {
                                         <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">{toKvAh(Math.max(0, totalEnergy - probusConsumerBusKwh)).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                         <TableCell align="right">{hasTraderData ? toKvAh(residualDiscomEnergy).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell>Lapsed Banking Energy (kVAh)</TableCell>
+                                        <TableCell align="right">0</TableCell>
+                                        <TableCell align="right">0</TableCell>
+                                        <TableCell align="right">{hasTraderData ? toKvAh(actualSettlement?.lapsedEnergyKwh || 0).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
                                       </TableRow>
                                       <TableRow>
                                         <TableCell>Fully Landed OA Cost (₹)</TableCell>
@@ -818,6 +830,42 @@ export default function TraderPerformanceDashboardPage() {
                         </MuiTableContainer>
                       </CardContent>
                     </Card>
+
+                    {marketDecisionResult.oaDetailed?.breakdown && marketDecisionResult.oaDetailed.breakdown.length > 0 && (
+                      <Card sx={{ mt: 4, borderRadius: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                        <CardContent>
+                          <Typography variant="h6" gutterBottom color="primary">Actual Trader - TOD Breakdown</Typography>
+                          <MuiTableContainer component={Paper}>
+                            <Table size="small">
+                              <TableHead sx={{ bgcolor: '#F8FAFC' }}>
+                                <TableRow>
+                                  <TableCell><strong>TOD Slab</strong></TableCell>
+                                  <TableCell align="right"><strong>Discom Consumption (kVAh)</strong></TableCell>
+                                  <TableCell align="right"><strong>Trader Delivered (kVAh)</strong></TableCell>
+                                  <TableCell align="right"><strong>Lapsed Banking Energy (kVAh)</strong></TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {marketDecisionResult.oaDetailed.breakdown.map((row: any, idx: number) => {
+                                  const pf = calcEntry?.powerFactor ? Number(calcEntry.powerFactor) : 1;
+                                  const toKvAh = (kwh: number) => kwh / pf;
+                                  return (
+                                    <TableRow key={idx}>
+                                      <TableCell>{row.slabName}</TableCell>
+                                      <TableCell align="right">{toKvAh(row.discomUnits || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      <TableCell align="right">{toKvAh(row.traderConsumerBusUnits || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      <TableCell align="right" sx={{ color: row.traderLapsedEnergy > 0 ? 'error.main' : 'inherit' }}>
+                                        {toKvAh(row.traderLapsedEnergy || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </MuiTableContainer>
+                        </CardContent>
+                      </Card>
+                    )}
                   </Box>
                 )}
 

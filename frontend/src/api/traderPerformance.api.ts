@@ -88,6 +88,7 @@ export interface MarketDecisionResult {
     residualDemandCharge: number;
     residualFppaCharge: number;
     residualElectricityDuty: number;
+    lapsedEnergyKwh?: number;
     residualDiscomCost: number;
     totalCost: number;
     baselineDiscomCost: number;
