@@ -638,6 +638,14 @@ export class TraderPerformanceActualService {
     let totalConsumerBusEnergyKwh = 0;
 
     let monthsToProcess = Object.entries(todConsumptions).filter(([ym]) => /^\d{4}-\d{2}$/.test(ym));
+
+    let globalApplyED = entry.applyElectricityDuty !== false;
+    let globalEDPercent = 7.5;
+    if (todConsumptions._meta && (todConsumptions._meta as any).electricityDutyPercent !== undefined) {
+      globalEDPercent = Number((todConsumptions._meta as any).electricityDutyPercent) || 7.5;
+    } else if (entry.electricityDutyPercent !== undefined) {
+      globalEDPercent = Number(entry.electricityDutyPercent) || 7.5;
+    }
     if (targetMonth) {
       monthsToProcess = monthsToProcess.filter(([ym]) => ym === targetMonth);
       if (monthsToProcess.length === 0) {
@@ -2293,13 +2301,13 @@ export class TraderPerformanceActualService {
       const discountedSlabBill = slabEnergyBill + demandChargeDiscounted + slabFppaCharge;
       totalBaselineEnergyCharges += slabEnergyBill;
       
-      const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
-      let applyED = true;
+      const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty' || k.toLowerCase() === 'apply electricity duty');
+      let applyED = globalApplyED;
       if (edKey && monthConsumptions[edKey] !== undefined && monthConsumptions[edKey] !== null) {
-        applyED = String(monthConsumptions[edKey]).trim().toLowerCase() !== 'no';
+        applyED = String(monthConsumptions[edKey]).trim().toLowerCase() !== 'no' && String(monthConsumptions[edKey]).trim().toLowerCase() !== 'false';
       }
 
-      const edRate = 0.075;
+      const edRate = globalEDPercent / 100;
       const slabED = applyED ? discountedSlabBill * edRate : 0;
       totalElectricityDuty += slabED;
 
