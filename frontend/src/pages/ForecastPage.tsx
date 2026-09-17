@@ -264,13 +264,22 @@ export default function ForecastPage() {
       return rtmColumns;
     }
 
-    return [
-      ...baseColumns,
+    const priceColumns: ColumnDefinition[] = [...baseColumns];
+    if (subType !== 'gdam') {
+      priceColumns.push(
+        { field: 'purchaseBid', headerName: 'Purchase Bid (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? v.toLocaleString('en-IN') : v },
+        { field: 'sellBid', headerName: 'Sell Bid (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? v.toLocaleString('en-IN') : v },
+        { field: 'mcv', headerName: 'MCV (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? v.toLocaleString('en-IN') : v },
+        { field: 'fsv', headerName: 'FSV (MW)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? v.toLocaleString('en-IN') : v }
+      );
+    }
+    priceColumns.push(
       { field: 'mcp', headerName: 'Forecasted MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : v },
       { field: 'actualMcp', headerName: 'Actual MCP (₹/kWh)', align: 'center', valueFormatter: (v: any) => typeof v === 'number' ? `₹${v.toFixed(2)}` : (v !== undefined && v !== null ? v : '-') },
       { field: 'priceRange', headerName: 'Price Range', align: 'center' },
-      { field: 'confidence', headerName: 'Confidence', align: 'center' },
-    ];
+      { field: 'confidence', headerName: 'Confidence', align: 'center' }
+    );
+    return priceColumns;
   };
 
   const columns = getColumns();
