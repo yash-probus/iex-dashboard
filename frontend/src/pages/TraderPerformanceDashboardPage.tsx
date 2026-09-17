@@ -841,6 +841,7 @@ export default function TraderPerformanceDashboardPage() {
                                 <TableRow>
                                   <TableCell><strong>TOD Slab</strong></TableCell>
                                   <TableCell align="right"><strong>Discom Consumption (kVAh)</strong></TableCell>
+                                  <TableCell align="right"><strong>OA Bought (Regional Bus) (kWh)</strong></TableCell>
                                   <TableCell align="right"><strong>Trader Delivered (kVAh)</strong></TableCell>
                                   <TableCell align="right"><strong>Lapsed Banking Energy (kVAh)</strong></TableCell>
                                 </TableRow>
@@ -853,6 +854,7 @@ export default function TraderPerformanceDashboardPage() {
                                     <TableRow key={idx}>
                                       <TableCell>{row.slabName}</TableCell>
                                       <TableCell align="right">{toKvAh(row.discomUnits || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                      <TableCell align="right">{(row.traderMarketEnergy || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       <TableCell align="right">{toKvAh(row.traderConsumerBusUnits || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       <TableCell align="right" sx={{ color: row.traderLapsedEnergy > 0 ? 'error.main' : 'inherit' }}>
                                         {toKvAh(row.traderLapsedEnergy || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}
