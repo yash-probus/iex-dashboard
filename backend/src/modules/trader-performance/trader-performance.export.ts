@@ -439,7 +439,11 @@ export class TraderPerformanceExportService {
     
     if (isActualTrader) {
       sheet.addRow(['Residual DISCOM Units (kWh)', Math.round((result as any).actualTrader?.residualDiscomEnergyKwh || 0)]);
-      sheet.addRow(['Residual DISCOM Bill (including applicable charges)', Math.round((result as any).actualTrader?.residualDiscomCost || 0)]);
+      sheet.addRow(['Energy Charges', Math.round((result as any).actualTrader?.residualEnergyCost || 0)]);
+      sheet.addRow(['FPPA Surcharge', Math.round((result as any).actualTrader?.residualFppaCharge || 0)]);
+      sheet.addRow(['Demand & Fixed Charges', Math.round((result as any).actualTrader?.residualDemandCharge || 0)]);
+      sheet.addRow(['Electricity Duty', Math.round((result as any).actualTrader?.residualElectricityDuty || 0)]);
+      if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
     } else if (isNpcl) {
       const npclMultiplier = 0.90 * 0.99;
       const grossEnergyAfterOA = energyChargesAfterOA / npclMultiplier;

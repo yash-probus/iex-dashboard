@@ -359,30 +359,64 @@ export class ForecastService {
 
         // Fetch forecast
         if (isGdam) {
-          const dateFormats: string[] = [];
-          for (const dStr of dates) {
-            dateFormats.push(dStr);
-            const parts = dStr.split('-');
-            if (parts.length === 3) {
-              dateFormats.push(`${parts[2]}-${parts[1]}-${parts[0]}`); // DD-MM-YYYY
+          const modelNumber = model === 'Model2' ? 2 : 1;
+          let mcpForecastRows: any[] = [];
+
+          for (const schema of ['forecasting', 'public']) {
+            try {
+              mcpForecastRows = await prisma.$queryRawUnsafe(
+                `SELECT DISTINCT ON (COALESCE(forecasting_for, date), interval_number)
+                    COALESCE(forecasting_for, date)::text AS date,
+                    interval_number AS "intervalNumber",
+                    interval_time AS "intervalTime",
+                    forecast_mcp AS "forecastMcp",
+                    confidence,
+                    price_range AS "priceRange"
+                 FROM "${schema}"."GdamMcpForecast"
+                 WHERE COALESCE(forecasting_for, date) >= $1::date
+                   AND COALESCE(forecasting_for, date) <= $2::date
+                   AND COALESCE(model_number, 1) = $3
+                 ORDER BY COALESCE(forecasting_for, date), interval_number, created_at DESC`,
+                startDateStr,
+                endDateStr,
+                modelNumber
+              );
+              if (mcpForecastRows.length > 0) break;
+            } catch (error) {
+              console.error(`[ForecastService] Error querying ${schema}.GdamMcpForecast:`, error);
             }
           }
 
-          const forecastRows = await prisma.forecastGdam.findMany({
-            where: { date: { in: dateFormats } },
-            orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
-          });
-          
           const forecastMap = new Map();
-          for (const r of forecastRows) {
-            let normDate = r.date;
-            if (r.date && r.date.includes('-')) {
-              const parts = r.date.split('-');
-              if (parts[0].length === 2 && parts[2].length === 4) {
-                normDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          if (mcpForecastRows.length > 0) {
+            for (const row of mcpForecastRows) {
+              forecastMap.set(`${String(row.date).split('T')[0]}_${row.intervalNumber}`, row);
+            }
+          } else {
+            const dateFormats: string[] = [];
+            for (const date of dates) {
+              dateFormats.push(date);
+              const parts = date.split('-');
+              if (parts.length === 3) {
+                dateFormats.push(`${parts[2]}-${parts[1]}-${parts[0]}`);
               }
             }
-            forecastMap.set(`${normDate}_${r.intervalNumber}`, r);
+
+            const legacyRows = await prisma.forecastGdam.findMany({
+              where: { date: { in: dateFormats } },
+              orderBy: [{ date: 'asc' }, { intervalNumber: 'asc' }]
+            });
+
+            for (const row of legacyRows) {
+              let normalizedDate = row.date;
+              if (row.date && row.date.includes('-')) {
+                const parts = row.date.split('-');
+                if (parts[0].length === 2 && parts[2].length === 4) {
+                  normalizedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+              }
+              forecastMap.set(`${normalizedDate}_${row.intervalNumber}`, row);
+            }
           }
           
           const rawFormatted = [];
@@ -401,20 +435,22 @@ export class ForecastService {
               const hour = hourNum.toString().padStart(2, '0');
               const timeBlock = this.getIntervalTime(t);
               
-              const mcp = fRow?.predictedMcp !== null && fRow?.predictedMcp !== undefined ? parseFloat((Number(fRow.predictedMcp) / 1000.0).toFixed(2)) : null;
+              const forecastMcp = fRow?.forecastMcp ?? fRow?.predictedMcp;
+              const mcp = forecastMcp !== null && forecastMcp !== undefined ? parseFloat((Number(forecastMcp) / 1000.0).toFixed(2)) : null;
               
               rawFormatted.push({
                 date: dStr,
                 hour,
                 timeBlock,
                 intervalNumber: t,
-                purchaseBid: fRow ? Number(fRow.purchaseBid) : 0,
-                sellBid: fRow ? Number(fRow.sellBidTotal || fRow.sellBid || 0) : 0,
-                mcv: fRow ? Number(fRow.mcvTotal || fRow.mcv || 0) : 0,
-                fsv: fRow ? Number(fRow.fsvTotal || fRow.fsv || 0) : 0,
+                purchaseBid: Number(fRow?.purchaseBid || 0),
+                sellBid: Number(fRow?.sellBidTotal || fRow?.sellBid || 0),
+                mcv: Number(fRow?.mcvTotal || fRow?.mcv || 0),
+                fsv: Number(fRow?.fsvTotal || fRow?.fsv || 0),
                 mcp,
                 actualMcp: actMcp,
-                confidence: 'N/A'
+                confidence: fRow?.confidence !== null && fRow?.confidence !== undefined ? String(fRow.confidence) : 'N/A',
+                priceRange: fRow?.priceRange || fRow?.price_range || 'N/A'
               });
             }
           }
@@ -1056,7 +1092,22 @@ export class ForecastService {
       }
     } else if (market.toUpperCase() === 'GDAM') {
       try {
-        const [forecastRows, actualRows] = await Promise.all([
+        let mcpForecastDateRows: Array<{ date: string }> = [];
+        for (const schema of ['forecasting', 'public']) {
+          try {
+            mcpForecastDateRows = await prisma.$queryRawUnsafe(
+              `SELECT DISTINCT COALESCE(forecasting_for, date)::text AS date
+               FROM "${schema}"."GdamMcpForecast"
+               WHERE COALESCE(forecasting_for, date) IS NOT NULL
+               ORDER BY date DESC`
+            );
+            if (mcpForecastDateRows.length > 0) break;
+          } catch (error) {
+            console.error(`[ForecastService] Error querying ${schema}.GdamMcpForecast dates:`, error);
+          }
+        }
+
+        const [legacyForecastRows, actualRows] = await Promise.all([
           prisma.forecastGdam.findMany({
             select: { date: true },
             distinct: ['date']
@@ -1068,7 +1119,10 @@ export class ForecastService {
           })
         ]);
         const allDates = new Set<string>();
-        forecastRows.forEach(r => {
+        mcpForecastDateRows.forEach(row => {
+          if (row.date) allDates.add(String(row.date).split('T')[0]);
+        });
+        legacyForecastRows.forEach(r => {
           if (r.date) {
             let dStr = r.date;
             if (dStr.includes('-')) {

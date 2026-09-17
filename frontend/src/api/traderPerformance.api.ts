@@ -84,6 +84,10 @@ export interface MarketDecisionResult {
     traderMargin: number;
     traderMarginGst: number;
     totalOaCost: number;
+    residualEnergyCost: number;
+    residualDemandCharge: number;
+    residualFppaCharge: number;
+    residualElectricityDuty: number;
     residualDiscomCost: number;
     totalCost: number;
     baselineDiscomCost: number;

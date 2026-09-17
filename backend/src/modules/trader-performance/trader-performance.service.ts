@@ -479,6 +479,10 @@ export class TraderPerformanceService {
       traderMargin: 0,
       traderMarginGst: 0,
       totalOaCost: 0,
+      residualEnergyCost: 0,
+      residualDemandCharge: 0,
+      residualFppaCharge: 0,
+      residualElectricityDuty: 0,
       residualDiscomCost: 0,
       totalCost: 0,
       baselineDiscomCost: 0,
@@ -2695,6 +2699,10 @@ export class TraderPerformanceService {
     const actualTraderWheelingCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderWheelingCharge || 0), 0);
     const actualTraderIexFee = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderIexFee || 0), 0);
     const actualTraderResidualDiscomEnergy = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
+    const actualTraderResidualEnergyCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDiscomEnergyBill || 0), 0);
+    const actualTraderResidualDemandCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDemandCharge || 0), 0);
+    const actualTraderResidualFppaCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderFppaChargeAfterOA || 0), 0);
+    const actualTraderResidualElectricityDuty = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderElectricityDutyAfterOA || 0), 0);
     const actualTraderResidualDiscomCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDiscomBillTotal || 0), 0) + monthMisc;
 
     if (globalTraderMarketEnergy > 0) {
@@ -2747,6 +2755,10 @@ export class TraderPerformanceService {
         traderMargin: actualTraderMarginTotal,
         traderMarginGst: actualTraderMarginGstTotal,
         totalOaCost: Math.max(0, globalTraderLandedCost - actualTraderResidualDiscomCost),
+        residualEnergyCost: actualTraderResidualEnergyCost,
+        residualDemandCharge: actualTraderResidualDemandCharge,
+        residualFppaCharge: actualTraderResidualFppaCharge,
+        residualElectricityDuty: actualTraderResidualElectricityDuty,
         residualDiscomCost: actualTraderResidualDiscomCost,
         totalCost: globalTraderLandedCost,
         baselineDiscomCost: totalBaselineCost,
