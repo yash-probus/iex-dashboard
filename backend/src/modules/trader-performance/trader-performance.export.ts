@@ -361,9 +361,9 @@ export class TraderPerformanceExportService {
     const isNpcl = result.discom === 'NPCL';
     
     const misc = result.miscellaneousCharges || 0;
-    let energyCharges = (result as any).baselineEnergyCharges ?? ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc);
-    let demandCharges = (result as any).demandAndFixedChargesApplied ?? (result.demandCharge || 0);
-    const ed = result.electricityDuty || 0;
+    let energyCharges = isActualTrader && result.actualTrader ? (result.actualTrader.residualEnergyCost || 0) : ((result as any).baselineEnergyCharges ?? ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc));
+    let demandCharges = isActualTrader && result.actualTrader ? (result.actualTrader.residualDemandCharge || 0) : ((result as any).demandAndFixedChargesApplied ?? (result.demandCharge || 0));
+    const ed = isActualTrader && result.actualTrader ? (result.actualTrader.residualElectricityDuty || 0) : (result.electricityDuty || 0);
     const arrear = result.arrearAmount || 0;
     const lpsc = result.currentLpsc || 0;
     
@@ -395,9 +395,9 @@ export class TraderPerformanceExportService {
       sheet.addRow(['NPCL Prompt Payment Rebate (1%)', -Math.round(energyRebate1 + demandRebate1)]);
       sheet.addRow(['Net Energy & Demand Charges', Math.round(energyCharges + demandCharges)]);
     } else {
-      const hasExplicitFppa = ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
-      let fppaCharges = Math.round((result as any).fppaCharge || (result as any).fppaSurcharge || 0);
-      let baseEnergyCharges = Math.round((result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0);
+      const hasExplicitFppa = (isActualTrader && result.actualTrader) ? (result.actualTrader.residualFppaCharge !== undefined) : ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
+      let fppaCharges = Math.round((isActualTrader && result.actualTrader) ? (result.actualTrader.residualFppaCharge || 0) : ((result as any).fppaCharge || (result as any).fppaSurcharge || 0));
+      let baseEnergyCharges = Math.round(energyCharges);
       const baseDemandCharges = Math.round(demandCharges || 0);
 
       const energyRow = sheet.addRow(['Energy Charges', baseEnergyCharges]);
@@ -407,7 +407,7 @@ export class TraderPerformanceExportService {
       sheet.addRow(['Demand & Fixed Charges', baseDemandCharges]);
     }
     
-    sheet.addRow(['Electricity Duty', Math.round(result.electricityDuty || 0)]);
+    sheet.addRow(['Electricity Duty', Math.round(ed)]);
     if (misc !== 0) {
       const miscRow = sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
       rowMapping['miscellaneousChargesRow'] = miscRow.number;
@@ -415,12 +415,10 @@ export class TraderPerformanceExportService {
     if (arrear !== 0) sheet.addRow(['Arrear Amount', Math.round(arrear)]);
     if (lpsc !== 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     
-    const hasExplicitFppa = ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
-    let correctBaseEnergy = (result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0;
-    let correctFppa = (result as any).fppaCharge || (result as any).fppaSurcharge || 0;
-    const totalBaselineWithMisc = isActualTrader
-      ? Number(result.totalBaselineCost || 0)
-      : correctBaseEnergy + correctFppa + demandCharges + (result.electricityDuty || 0) + arrear + lpsc + misc;
+    const hasExplicitFppa = (isActualTrader && result.actualTrader) ? (result.actualTrader.residualFppaCharge !== undefined) : ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
+    let correctBaseEnergy = (isActualTrader && result.actualTrader) ? (result.actualTrader.residualEnergyCost || 0) : ((result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0);
+    let correctFppa = (isActualTrader && result.actualTrader) ? (result.actualTrader.residualFppaCharge || 0) : ((result as any).fppaCharge || (result as any).fppaSurcharge || 0);
+    const totalBaselineWithMisc = correctBaseEnergy + correctFppa + demandCharges + ed + arrear + lpsc + misc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     rowMapping['totalBaselineBillRow'] = baseTotalRow.number;baseTotalRow.font = { bold: true };
     baseTotalRow.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } });

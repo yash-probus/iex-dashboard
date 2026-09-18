@@ -817,7 +817,7 @@ export class TraderPerformanceService {
       let endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
 
       // Fetch stateCharges for losses
-      const stateCharges = await prisma.stateCharges.findFirst({
+      let stateCharges = await prisma.stateCharges.findFirst({
         where: {
           state: { in: stateFormats },
           discom: entry.discom === 'NPCL' ? 'NPCL' : null,
@@ -826,6 +826,16 @@ export class TraderPerformanceService {
           toDate: { gte: new Date(startStr) }
         }
       });
+      if (!stateCharges) {
+        stateCharges = await prisma.stateCharges.findFirst({
+          where: {
+            state: { in: stateFormats },
+            discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+            category: parsedCategory
+          },
+          orderBy: { fromDate: 'desc' }
+        });
+      }
       const stuLoss = stateCharges?.stuLossPercent ? Number(stateCharges.stuLossPercent) : 0;
       const wheelingLoss = stateCharges?.wheelingLossPercent ? Number(stateCharges.wheelingLossPercent) : 0;
 

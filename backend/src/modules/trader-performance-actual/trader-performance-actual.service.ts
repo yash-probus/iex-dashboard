@@ -771,7 +771,7 @@ export class TraderPerformanceActualService {
       let endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
 
       // Fetch stateCharges for losses
-      const stateCharges = await prisma.stateCharges.findFirst({
+      let stateCharges = await prisma.stateCharges.findFirst({
         where: {
           state: { in: stateFormats },
           discom: entry.discom === 'NPCL' ? 'NPCL' : null,
@@ -780,6 +780,16 @@ export class TraderPerformanceActualService {
           toDate: { gte: new Date(startStr) }
         }
       });
+      if (!stateCharges) {
+        stateCharges = await prisma.stateCharges.findFirst({
+          where: {
+            state: { in: stateFormats },
+            discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+            category: parsedCategory
+          },
+          orderBy: { fromDate: 'desc' }
+        });
+      }
       const stuLoss = stateCharges?.stuLossPercent ? Number(stateCharges.stuLossPercent) : 0;
       const wheelingLoss = stateCharges?.wheelingLossPercent ? Number(stateCharges.wheelingLossPercent) : 0;
 
@@ -1431,18 +1441,26 @@ export class TraderPerformanceActualService {
       }
     }
 
-    const stateCharges = await prisma.stateCharges.findFirst({
+    let stateCharges = await prisma.stateCharges.findFirst({
       where: {
         state: { in: stateFormats },
         discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         category: parsedCategory,
         fromDate: { lte: new Date(startStr) },
-        toDate: { gte: new Date(startStr) },
-        // StateCharges uses the full string (e.g. '33' or '0.433') so we might need the second part if available
-        // But for now, we will just use voltageLevel since it was '0.433' in DB. Or we can just omit it if it fails.
-        // Let's omit voltageLevel for now to avoid false negatives since StateCharges has different voltage formatting.
+        toDate: { gte: new Date(startStr) }
       }
     });
+
+    if (!stateCharges) {
+      stateCharges = await prisma.stateCharges.findFirst({
+        where: {
+          state: { in: stateFormats },
+          discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+          category: parsedCategory
+        },
+        orderBy: { fromDate: 'desc' }
+      });
+    }
 
     console.log('[StateCharges Query Debug] State Formats:', stateFormats);
     console.log('[StateCharges Query Debug] Category:', category);
