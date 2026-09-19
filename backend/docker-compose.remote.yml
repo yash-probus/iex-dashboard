@@ -17,22 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  iex-migrator:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: builder
-    container_name: iex-migrator
-    depends_on:
-      iex-postgres:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      - PRISMA_HIDE_UPDATE_MESSAGE=true
-      - TZ=Asia/Kolkata
-      - DATABASE_URL=postgresql://postgres:iex_sec_k9P2mX_2026@iex-postgres:5432/Prolt_Operations?schema=public
-    command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
 
   iex-backend:
     build:
@@ -45,8 +29,6 @@ services:
     depends_on:
       iex-postgres:
         condition: service_healthy
-      iex-migrator:
-        condition: service_completed_successfully
     env_file:
       - .env
     environment:
