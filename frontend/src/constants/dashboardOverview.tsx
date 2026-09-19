@@ -221,3 +221,20 @@ export const FORECAST_ITEMS: OverviewItemConfig[] = [
     ]
   }
 ];
+
+export const UP_MARKET_ITEMS: OverviewItemConfig[] = [
+  { 
+    key: 'dam-up', 
+    title: 'Day Ahead Market', 
+    description: 'UP specific DAM data from API.',
+    path: '/up-market/dam', 
+    icon: <ShowChart sx={{ fontSize: 24, color: '#3B8FF3' }} /> 
+  },
+  { 
+    key: 'rtm-up', 
+    title: 'Real Time Market', 
+    description: 'UP specific RTM data from API.',
+    path: '/up-market/rtm', 
+    icon: <TimerIcon sx={{ fontSize: 24, color: '#E0B50F' }} /> 
+  }
+];

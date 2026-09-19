@@ -31,6 +31,14 @@ const MODULES = [
     color: '#00BFA5'
   },
   {
+    key: 'up-market',
+    title: 'IEX Market UP',
+    description: 'Explore UP specific Day Ahead and Real Time Market analytics synchronized directly from API.',
+    path: '/up-market',
+    icon: <ChartIcon sx={{ fontSize: 24 }} />,
+    color: '#00BFA5'
+  },
+  {
     key: 'resource-center',
     title: 'Resource Center',
     description: 'Manage master configurations, tariffs, margins, and charge structures.',
@@ -101,14 +109,6 @@ const MODULES = [
     path: '/trader-performance',
     icon: <ChartIcon sx={{ fontSize: 24 }} />,
     color: '#F59E0B'
-  },
-  {
-    key: 'trader-performance-actual',
-    title: 'Trader Performance Actual',
-    description: 'Compare platform savings with actual trader savings.',
-    path: '/trader-performance-actual',
-    icon: <ChartIcon sx={{ fontSize: 24 }} />,
-    color: '#10B981'
   }
 ];
 

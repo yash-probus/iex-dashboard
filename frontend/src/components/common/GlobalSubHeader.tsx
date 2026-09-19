@@ -3,7 +3,7 @@ import { Box, Typography, Breadcrumbs, Link as MuiLink } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import { NavigateNext } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, FORECAST_ITEMS } from '../../constants/dashboardOverview';
+import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, FORECAST_ITEMS, UP_MARKET_ITEMS } from '../../constants/dashboardOverview';
 
 export default function GlobalSubHeader() {
   const location = useLocation();
@@ -28,6 +28,9 @@ export default function GlobalSubHeader() {
   } else if (location.pathname.startsWith('/dam') || location.pathname.startsWith('/gdam') || location.pathname.startsWith('/rtm') || location.pathname.startsWith('/rec') || location.pathname.startsWith('/markets')) {
     activeItems = MARKET_ITEMS;
     activeModuleTitle = 'IEX Market';
+  } else if (location.pathname.startsWith('/up-market')) {
+    activeItems = UP_MARKET_ITEMS;
+    activeModuleTitle = 'IEX Market UP';
   } else if (location.pathname.startsWith('/resource-center')) {
     activeItems = RESOURCE_CENTER_ITEMS;
     activeModuleTitle = 'Resource Center';

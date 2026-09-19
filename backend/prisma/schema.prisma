@@ -1155,3 +1155,35 @@ enum state_ut_enum {
 
   @@schema("public")
 }
+
+model ExchangeDamRate {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @db.Date
+  intervalTime DateTime @db.Time
+  mcp          Decimal? @db.Decimal(10, 2)
+  mcv          Decimal? @db.Decimal(15, 2)
+  purchaseBid  Decimal? @db.Decimal(15, 2)
+  sellBid      Decimal? @db.Decimal(15, 2)
+  state        String   @db.VarChar(50)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@unique([date, intervalTime, state])
+  @@map("exchange_dam_rate")
+  @@schema("public")
+}
+
+model ExchangeRtmRate {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @db.Date
+  intervalTime DateTime @db.Time
+  mcp          Decimal? @db.Decimal(10, 2)
+  mcv          Decimal? @db.Decimal(15, 2)
+  purchaseBid  Decimal? @db.Decimal(15, 2)
+  sellBid      Decimal? @db.Decimal(15, 2)
+  state        String   @db.VarChar(50)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@unique([date, intervalTime, state])
+  @@map("exchange_rtm_rate")
+  @@schema("public")
+}
