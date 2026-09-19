@@ -27,8 +27,7 @@ git pull origin main
 
 echo "-> Rebuilding backend..."
 cd backend
-docker compose build iex-backend iex-migrator
-docker compose up -d iex-migrator
+docker compose build iex-backend
 docker compose up -d iex-backend
 
 echo "-> Rebuilding frontend..."
