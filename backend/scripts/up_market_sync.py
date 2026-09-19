@@ -4,6 +4,7 @@ from datetime import datetime, date, time
 from decimal import Decimal
 from calendar import monthrange
 
+import argparse
 import requests
 import psycopg2
 from psycopg2.extras import execute_values
@@ -430,6 +431,10 @@ def main():
         logger.info(
             "PostgreSQL connection established"
         )
+        
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'RTM'], default='ALL')
+        args = parser.parse_args()
 
         for year, month in months:
 
@@ -446,50 +451,50 @@ def main():
             # ------------------------------------------------
             # DAM
             # ------------------------------------------------
+            if args.market in ['ALL', 'DAM']:
+                try:
 
-            try:
+                    rows = process_market_month(
+                        connection=connection,
+                        product_code=DAM_PRODUCT_CODE,
+                        table_name="exchange_dam_rate",
+                        year=year,
+                        month=month
+                    )
 
-                rows = process_market_month(
-                    connection=connection,
-                    product_code=DAM_PRODUCT_CODE,
-                    table_name="exchange_dam_rate",
-                    year=year,
-                    month=month
-                )
+                    total_dam_rows += rows
 
-                total_dam_rows += rows
+                except Exception:
 
-            except Exception:
-
-                logger.exception(
-                    "DAM processing failed for %04d-%02d",
-                    year,
-                    month
-                )
+                    logger.exception(
+                        "DAM processing failed for %04d-%02d",
+                        year,
+                        month
+                    )
 
             # ------------------------------------------------
             # RTM
             # ------------------------------------------------
+            if args.market in ['ALL', 'RTM']:
+                try:
 
-            try:
+                    rows = process_market_month(
+                        connection=connection,
+                        product_code=RTM_PRODUCT_CODE,
+                        table_name="exchange_rtm_rate",
+                        year=year,
+                        month=month
+                    )
 
-                rows = process_market_month(
-                    connection=connection,
-                    product_code=RTM_PRODUCT_CODE,
-                    table_name="exchange_rtm_rate",
-                    year=year,
-                    month=month
-                )
+                    total_rtm_rows += rows
 
-                total_rtm_rows += rows
+                except Exception:
 
-            except Exception:
-
-                logger.exception(
-                    "RTM processing failed for %04d-%02d",
-                    year,
-                    month
-                )
+                    logger.exception(
+                        "RTM processing failed for %04d-%02d",
+                        year,
+                        month
+                    )
 
         logger.info(
             "================================================"

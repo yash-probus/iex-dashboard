@@ -349,12 +349,12 @@ export class CronService {
     // External Scripts Cron Jobs
     // ----------------------------------------------------------------------
     
-    // 1. UP Market Python Scraper - Runs every 30 minutes
+    // 1. UP Market Python Scraper (RTM) - Runs every 30 minutes
     cron.schedule('*/30 * * * *', () => {
-      console.log('[Cron] Running half-hourly UP Market Python scraper');
+      console.log('[Cron] Running half-hourly UP Market Python scraper for RTM');
       const scriptPath = path.resolve(__dirname, '../../scripts/up_market_sync.py');
       
-      exec(`python3 ${scriptPath}`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+      exec(`python3 ${scriptPath} --market RTM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
         if (error) {
           console.error(`[Cron] UP Market Scraper Error: ${error.message}`);
           return;
@@ -368,7 +368,26 @@ export class CronService {
       timezone: 'Asia/Kolkata'
     });
 
-    // 2. Database Backup - Runs daily at 2:00 AM
+    // 2. UP Market Python Scraper (DAM) - Runs once a day at 7:00 AM
+    cron.schedule('0 7 * * *', () => {
+      console.log('[Cron] Running daily UP Market Python scraper for DAM');
+      const scriptPath = path.resolve(__dirname, '../../scripts/up_market_sync.py');
+      
+      exec(`python3 ${scriptPath} --market DAM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`[Cron] UP Market Scraper DAM Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`[Cron] UP Market Scraper DAM Stderr: ${stderr}`);
+        }
+        console.log(`[Cron] UP Market Scraper DAM Output:\n${stdout}`);
+      });
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
+    // 3. Database Backup - Runs daily at 2:00 AM
     cron.schedule('0 2 * * *', () => {
       console.log('[Cron] Running daily database backup script');
       const scriptPath = path.resolve(__dirname, '../../scripts/db_backup.sh');
