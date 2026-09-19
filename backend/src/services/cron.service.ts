@@ -1,4 +1,6 @@
 import cron from 'node-cron';
+import { exec } from 'child_process';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { VidyutPravahScraper } from './scraper.service';
 import { WeatherEngine } from './weather.service';
@@ -339,6 +341,48 @@ export class CronService {
       } catch (error) {
         console.error('[Cron] Error in daily market selection forecast update:', error);
       }
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
+    // ----------------------------------------------------------------------
+    // External Scripts Cron Jobs
+    // ----------------------------------------------------------------------
+    
+    // 1. UP Market Python Scraper - Runs every 30 minutes
+    cron.schedule('*/30 * * * *', () => {
+      console.log('[Cron] Running half-hourly UP Market Python scraper');
+      const scriptPath = path.resolve(__dirname, '../../scripts/up_market_sync.py');
+      
+      exec(`python3 ${scriptPath}`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`[Cron] UP Market Scraper Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`[Cron] UP Market Scraper Stderr: ${stderr}`);
+        }
+        console.log(`[Cron] UP Market Scraper Output:\n${stdout}`);
+      });
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
+    // 2. Database Backup - Runs daily at 2:00 AM
+    cron.schedule('0 2 * * *', () => {
+      console.log('[Cron] Running daily database backup script');
+      const scriptPath = path.resolve(__dirname, '../../scripts/db_backup.sh');
+      
+      exec(`bash ${scriptPath}`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`[Cron] DB Backup Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`[Cron] DB Backup Stderr: ${stderr}`);
+        }
+        console.log(`[Cron] DB Backup Output:\n${stdout}`);
+      });
     }, {
       timezone: 'Asia/Kolkata'
     });

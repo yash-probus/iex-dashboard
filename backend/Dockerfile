@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y \
     openssl \
     ca-certificates \
     chromium \
+    postgresql-client \
     python3 \
     python3-pip \
     python3-numpy \
@@ -50,7 +51,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python-docx and lightgbm (pre-compiled binary wheels)
-RUN pip3 install --break-system-packages lightgbm python-docx SQLAlchemy psycopg2-binary python-dotenv pdfplumber
+RUN pip3 install --break-system-packages lightgbm python-docx SQLAlchemy psycopg2-binary python-dotenv pdfplumber requests python-dateutil
 
 # Copy package configurations and prisma files
 COPY package*.json ./
