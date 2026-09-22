@@ -387,6 +387,25 @@ export class CronService {
       timezone: 'Asia/Kolkata'
     });
 
+    // 2b. UP Market Python Scraper (GDAM) - Runs once a day at 7:15 AM
+    cron.schedule('15 7 * * *', () => {
+      console.log('[Cron] Running daily UP Market Python scraper for GDAM');
+      const scriptPath = path.resolve(__dirname, '../../scripts/up_market_sync.py');
+      
+      exec(`python3 ${scriptPath} --market GDAM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`[Cron] UP Market Scraper GDAM Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`[Cron] UP Market Scraper GDAM Stderr: ${stderr}`);
+        }
+        console.log(`[Cron] UP Market Scraper GDAM Output:\n${stdout}`);
+      });
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
     // 3. Database Backup - Runs daily at 2:00 AM
     cron.schedule('0 2 * * *', () => {
       console.log('[Cron] Running daily database backup script');

@@ -27,6 +27,7 @@ POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
 DAM_PRODUCT_CODE = int(os.getenv("DAM_PRODUCT_CODE", "1"))
+GDAM_PRODUCT_CODE = int(os.getenv("GDAM_PRODUCT_CODE", "6"))
 RTM_PRODUCT_CODE = int(os.getenv("RTM_PRODUCT_CODE", "3"))
 
 FROM_TOKEN = int(os.getenv("FROM_TOKEN", "1"))
@@ -244,10 +245,7 @@ def transform_response(api_response):
             "%d/%m/%Y"
         ).date()
 
-        token_wise = delivery.get(
-            "Token_Wise",
-            []
-        )
+        token_wise = delivery.get("Token_Wise") or []
 
         for token_data in token_wise:
 
@@ -433,7 +431,7 @@ def main():
         )
         
         parser = argparse.ArgumentParser()
-        parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'RTM'], default='ALL')
+        parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'GDAM', 'RTM'], default='ALL')
         args = parser.parse_args()
 
         for year, month in months:
@@ -468,6 +466,28 @@ def main():
 
                     logger.exception(
                         "DAM processing failed for %04d-%02d",
+                        year,
+                        month
+                    )
+
+            # ------------------------------------------------
+            # GDAM
+            # ------------------------------------------------
+            if args.market in ['ALL', 'GDAM']:
+                try:
+
+                    rows = process_market_month(
+                        connection=connection,
+                        product_code=GDAM_PRODUCT_CODE,
+                        table_name="exchange_gdam_rate",
+                        year=year,
+                        month=month
+                    )
+
+                except Exception:
+
+                    logger.exception(
+                        "GDAM processing failed for %04d-%02d",
                         year,
                         month
                     )

@@ -20,7 +20,7 @@ export class WeatherEngine {
    * Runs every hour.
    */
   public static async updateHourlyForecast(): Promise<void> {
-    console.log('[WeatherEngine] Starting 30-day hourly weather forecast sync...');
+    console.log('[WeatherEngine] Starting 30-day 15-minute weather forecast sync using Open-Meteo...');
     try {
       const cities = await prisma.cityStateData.findMany();
       if (cities.length === 0) {
@@ -28,168 +28,146 @@ export class WeatherEngine {
         return;
       }
 
-      const API_KEY = process.env.ACCUWEATHER_API_KEY;
-
       for (const city of cities) {
-        // 1. Fetch Location Key
-        let locationKey: string;
+        // Fetch 16 days of 15-minute data + daily data from Open-Meteo
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&minutely_15=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,precipitation_probability&daily=sunrise,sunset,sunshine_duration&forecast_days=16&timezone=auto`;
+        
+        let forecastData: any;
         try {
-          const geoUrl = `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${API_KEY}&q=${city.latitude},${city.longitude}`;
-          const geoRes = await axiosClient.get(geoUrl);
-          locationKey = geoRes.data.Key;
-          if (!locationKey) throw new Error('No Location Key found');
+          const response = await axiosClient.get(url);
+          forecastData = response.data;
+          if (!forecastData?.minutely_15?.time) throw new Error('No 15-minute data returned');
         } catch (e: any) {
-          console.error(`[WeatherEngine] Failed to get location key for ${city.cityName}`, e.message);
+          console.error(`[WeatherEngine] Failed to get 15-min forecast for ${city.cityName}`, e.message);
           continue;
         }
 
-        // 2. Fetch Hourly Forecast (12-hour)
-        const hourlyUrl = `http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/${locationKey}?apikey=${API_KEY}&details=true&metric=true`;
-        let hourlyData: any[];
-        try {
-          const response = await axiosClient.get(hourlyUrl);
-          hourlyData = response.data;
-          if (!hourlyData || hourlyData.length === 0) throw new Error('No hourly data returned');
-        } catch (e: any) {
-          console.error(`[WeatherEngine] Failed to get hourly forecast for ${city.cityName}`, e.message);
-          continue;
+        const now = new Date();
+        const currentIsoStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        // Map daily values for quick lookup
+        const dailyMap = new Map();
+        if (forecastData.daily?.time) {
+          for (let i = 0; i < forecastData.daily.time.length; i++) {
+            const date = forecastData.daily.time[i];
+            const rawSunrise = forecastData.daily.sunrise?.[i] ?? '';
+            const rawSunset = forecastData.daily.sunset?.[i] ?? '';
+            dailyMap.set(date, {
+              sunrise: rawSunrise.includes('T') ? rawSunrise.split('T')[1] : rawSunrise || '05:30',
+              sunset: rawSunset.includes('T') ? rawSunset.split('T')[1] : rawSunset || '19:00',
+              sunshineDuration: Number(((forecastData.daily.sunshine_duration?.[i] ?? 0) / 3600).toFixed(2))
+            });
+          }
         }
 
+        // Process Open-Meteo 16 days data
+        const parsedSlots = [];
+        const minutely = forecastData.minutely_15;
+        for (let i = 0; i < minutely.time.length; i++) {
+          const datetimeStr = minutely.time[i]; // "2026-08-24T05:00"
+          const [date, timeStr] = datetimeStr.split('T');
+          
+          const temp = minutely.temperature_2m?.[i] ?? 30;
+          const windSpeed = minutely.wind_speed_10m?.[i] ?? 10;
+          const relativeHumidity = minutely.relative_humidity_2m?.[i] ?? 50;
+          const precipProb = minutely.precipitation_probability?.[i] ?? 0;
+          const precipSum = minutely.precipitation?.[i] ?? 0;
+          
+          parsedSlots.push({
+            date, timeStr, temp, windSpeed, relativeHumidity, precipProb, precipSum
+          });
+
+          const isActual = datetimeStr <= currentIsoStr;
+          const dailyInfo = dailyMap.get(date) || { sunrise: "05:30", sunset: "19:00", sunshineDuration: 8.0 };
+
+          await prisma.weatherForecastHourly.upsert({
+            where: {
+              date_timeStr_cityId: { date, timeStr, cityId: city.id }
+            },
+            update: {
+              maxTemp: temp, minTemp: temp, windSpeed, relativeHumidity, precipitationProb: precipProb,
+              precipitationSum: precipSum, sunshineDuration: dailyInfo.sunshineDuration, sunrise: dailyInfo.sunrise,
+              sunset: dailyInfo.sunset, isActual
+            },
+            create: {
+              date, timeStr, cityId: city.id,
+              maxTemp: temp, minTemp: temp, windSpeed, relativeHumidity, precipitationProb: precipProb,
+              precipitationSum: precipSum, sunshineDuration: dailyInfo.sunshineDuration, sunrise: dailyInfo.sunrise,
+              sunset: dailyInfo.sunset, isActual
+            }
+          });
+        }
+
+        // Extrapolate up to day 30
         const addDays = (dateStr: string, days: number) => {
           const d = new Date(dateStr);
           d.setDate(d.getDate() + days);
           return d.toISOString().split('T')[0];
         };
 
-        const now = new Date();
-        const currentHourStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:00`;
-
-        let lastDailySunrise = "05:30";
-        let lastDailySunset = "19:00";
-        let lastDailySunshine = 8.0;
-
-        // Process the 12 hours we got from AccuWeather
-        const parsedHours = [];
-        for (let i = 0; i < hourlyData.length; i++) {
-          const h = hourlyData[i];
-          const datetimeStr = h.DateTime.substring(0, 16); // "2026-08-24T05:00"
-          const [date, timeStr] = datetimeStr.split('T');
-          
-          const temp = h.Temperature?.Value || 30;
-          const windSpeed = h.Wind?.Speed?.Value || 10;
-          const relativeHumidity = h.RelativeHumidity || 50;
-          const precipProb = h.PrecipitationProbability || 0;
-          const precipSum = h.TotalLiquid?.Value || 0;
-          
-          parsedHours.push({
-            date, timeStr, temp, windSpeed, relativeHumidity, precipProb, precipSum
-          });
-
-          const isActual = datetimeStr <= currentHourStr;
-          const minutes = ['00', '15', '30', '45'];
-          
-          for (const minute of minutes) {
-            const timeStrSlot = `${timeStr.split(':')[0]}:${minute}`;
-            await prisma.weatherForecastHourly.upsert({
-              where: {
-                date_timeStr_cityId: { date, timeStr: timeStrSlot, cityId: city.id }
-              },
-              update: {
-                maxTemp: temp, minTemp: temp, windSpeed, relativeHumidity, precipitationProb: precipProb,
-                precipitationSum: precipSum, sunshineDuration: lastDailySunshine, sunrise: lastDailySunrise,
-                sunset: lastDailySunset, isActual
-              },
-              create: {
-                date, timeStr: timeStrSlot, cityId: city.id,
-                maxTemp: temp, minTemp: temp, windSpeed, relativeHumidity, precipitationProb: precipProb,
-                precipitationSum: precipSum, sunshineDuration: lastDailySunshine, sunrise: lastDailySunrise,
-                sunset: lastDailySunset, isActual
-              }
-            });
-          }
-        }
-
-        // Extrapolate remaining ~30 days
-        console.log(`[WeatherEngine] Extrapolating 30 days of hourly forecast for ${city.cityName}...`);
-        const lastApiRecord = parsedHours[parsedHours.length - 1];
+        const lastApiRecord = parsedSlots[parsedSlots.length - 1];
         const lastApiDateStr = lastApiRecord.date;
+        const lastDailyInfo = dailyMap.get(lastApiDateStr) || { sunrise: "05:30", sunset: "19:00", sunshineDuration: 8.0 };
 
-        for (let dayOffset = 0; dayOffset <= 30; dayOffset++) {
-          const extrapolatedDate = dayOffset === 0 ? lastApiDateStr : addDays(lastApiDateStr, dayOffset);
-          const startHour = dayOffset === 0 ? Number(lastApiRecord.timeStr.split(':')[0]) + 1 : 0;
+        console.log(`[WeatherEngine] Extrapolating remaining days (17-30) of 15-min forecast for ${city.cityName}...`);
+
+        for (let dayOffset = 1; dayOffset <= 14; dayOffset++) {
+          const extrapolatedDate = addDays(lastApiDateStr, dayOffset);
           
-          if (startHour >= 24) continue;
+          for (let hour = 0; hour < 24; hour++) {
+            const minutes = ['00', '15', '30', '45'];
+            for (const minute of minutes) {
+              const timeStrSlot = `${String(hour).padStart(2, '0')}:${minute}`;
+              
+              // Find a similar time slot from the last API day (which is at the end of parsedSlots)
+              const slotIndex = hour * 4 + minutes.indexOf(minute);
+              const sourceIndex = Math.max(0, parsedSlots.length - 96 + slotIndex);
+              const source = parsedSlots[sourceIndex];
+              
+              if (!source) continue;
 
-          for (let hour = startHour; hour < 24; hour++) {
-            const timeStr = `${String(hour).padStart(2, '0')}:00`;
-            const sourceIndex = hour % parsedHours.length;
-            const source = parsedHours[sourceIndex];
-            
-            const sourceTemp = source.temp;
-            const sourceWind = source.windSpeed;
-            const sourceHumidity = source.relativeHumidity;
-            const sourcePrecipProb = source.precipProb;
-            const sourcePrecipSum = source.precipSum;
+              const randomNoise = () => (Math.random() - 0.5) * 1.5;
+              const randomNoiseSmall = () => (Math.random() - 0.5) * 0.5;
+              const randomNoiseLarge = () => (Math.random() - 0.5) * 5;
 
-          const randomNoise = () => (Math.random() - 0.5) * 1.5;
-          const randomNoiseSmall = () => (Math.random() - 0.5) * 0.5;
-          const randomNoiseLarge = () => (Math.random() - 0.5) * 5;
+              const extraTemp = Number((source.temp + randomNoise()).toFixed(1));
+              const extraWind = Number(Math.max(0, source.windSpeed + randomNoise()).toFixed(1));
+              const extraHumidity = Number(Math.min(100, Math.max(0, source.relativeHumidity + randomNoiseLarge())).toFixed(1));
+              const extraPrecipProb = Number(Math.min(100, Math.max(0, source.precipProb + randomNoiseLarge())).toFixed(1));
+              const extraPrecip = Number(Math.max(0, source.precipSum + randomNoiseSmall()).toFixed(2));
 
-          const extraTemp = Number((sourceTemp + randomNoise()).toFixed(1));
-          const extraWind = Number(Math.max(0, sourceWind + randomNoise()).toFixed(1));
-          const extraHumidity = Number(Math.min(100, Math.max(0, sourceHumidity + randomNoiseLarge())).toFixed(1));
-          const extraPrecipProb = Number(Math.min(100, Math.max(0, sourcePrecipProb + randomNoiseLarge())).toFixed(1));
-          const extraPrecip = Number(Math.max(0, sourcePrecipSum + randomNoiseSmall()).toFixed(2));
-
-          const minutes = ['00', '15', '30', '45'];
-          for (const minute of minutes) {
-            const timeStrSlot = `${String(hour).padStart(2, '0')}:${minute}`;
-            await prisma.weatherForecastHourly.upsert({
-              where: {
-                date_timeStr_cityId: {
-                  date: extrapolatedDate,
-                  timeStr: timeStrSlot,
-                  cityId: city.id
+              await prisma.weatherForecastHourly.upsert({
+                where: {
+                  date_timeStr_cityId: {
+                    date: extrapolatedDate,
+                    timeStr: timeStrSlot,
+                    cityId: city.id
+                  }
+                },
+                update: {
+                  maxTemp: extraTemp, minTemp: extraTemp, windSpeed: extraWind, relativeHumidity: extraHumidity,
+                  precipitationProb: extraPrecipProb, precipitationSum: extraPrecip,
+                  sunshineDuration: lastDailyInfo.sunshineDuration, sunrise: lastDailyInfo.sunrise,
+                  sunset: lastDailyInfo.sunset, isActual: false
+                },
+                create: {
+                  date: extrapolatedDate, timeStr: timeStrSlot, cityId: city.id,
+                  maxTemp: extraTemp, minTemp: extraTemp, windSpeed: extraWind, relativeHumidity: extraHumidity,
+                  precipitationProb: extraPrecipProb, precipitationSum: extraPrecip,
+                  sunshineDuration: lastDailyInfo.sunshineDuration, sunrise: lastDailyInfo.sunrise,
+                  sunset: lastDailyInfo.sunset, isActual: false
                 }
-              },
-              update: {
-                maxTemp: extraTemp,
-                minTemp: extraTemp,
-                windSpeed: extraWind,
-                relativeHumidity: extraHumidity,
-                precipitationProb: extraPrecipProb,
-                precipitationSum: extraPrecip,
-                sunshineDuration: lastDailySunshine,
-                sunrise: lastDailySunrise,
-                sunset: lastDailySunset,
-                isActual: false
-              },
-              create: {
-                date: extrapolatedDate,
-                timeStr: timeStrSlot,
-                cityId: city.id,
-                maxTemp: extraTemp,
-                minTemp: extraTemp,
-                windSpeed: extraWind,
-                relativeHumidity: extraHumidity,
-                precipitationProb: extraPrecipProb,
-                precipitationSum: extraPrecip,
-                sunshineDuration: lastDailySunshine,
-                sunrise: lastDailySunrise,
-                sunset: lastDailySunset,
-                isActual: false
-              }
-            });
+              });
+            }
           }
         }
-      }
       } // End of city loop
 
-      console.log('[WeatherEngine] Hourly weather forecast sync complete.');
-      await ApiLogService.createLog('Weather Hourly API', "Dynamic City API", 'SUCCESS', 'Fetched and stored 30-day hourly forecast for all cities');
+      console.log('[WeatherEngine] 15-minute weather forecast sync complete.');
+      await ApiLogService.createLog('Weather Minutely API', "Open-Meteo Minutely", 'SUCCESS', 'Fetched and stored 30-day 15-min forecast for all cities');
     } catch (error: any) {
-      console.error('[WeatherEngine] Failed to sync hourly weather forecast:', error);
-      await ApiLogService.createLog('Weather Hourly API', "https://api.open-meteo.com/v1/forecast", 'ERROR', error.message);
+      console.error('[WeatherEngine] Failed to sync 15-minute weather forecast:', error);
+      await ApiLogService.createLog('Weather Minutely API', "https://api.open-meteo.com/v1/forecast", 'ERROR', error.message);
     }
   }
 
