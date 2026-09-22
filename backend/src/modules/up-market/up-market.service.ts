@@ -48,14 +48,38 @@ export class UpMarketService {
       // Format intervals
       const intervals = records.map(r => {
         // extract time string from datetime field (intervalTime)
-        const timeStr = r.intervalTime instanceof Date 
-            ? r.intervalTime.toISOString().substring(11, 16)
-            : r.intervalTime;
+        let timeStr = '';
+        if (r.intervalTime instanceof Date) {
+          timeStr = r.intervalTime.toISOString().substring(11, 16);
+        } else {
+          timeStr = typeof r.intervalTime === 'string' ? r.intervalTime.substring(0, 5) : String(r.intervalTime);
+        }
+
+        const hh = parseInt(timeStr.substring(0, 2), 10) || 0;
+        const mm = parseInt(timeStr.substring(3, 5), 10) || 0;
+
+        let endMm = mm + 15;
+        let endHh = hh;
+        if (endMm >= 60) {
+          endMm -= 60;
+          endHh += 1;
+        }
+        
+        let startHourStr = String(hh).padStart(2, '0');
+        let startMinStr = String(mm).padStart(2, '0');
+        let endHourStr = String(endHh).padStart(2, '0');
+        let endMinStr = String(endMm).padStart(2, '0');
+        if (endHh === 24) endHourStr = '24';
+        
+        const timeBlockStr = `${startHourStr}:${startMinStr}-${endHourStr}:${endMinStr}`;
+        const hourStr = `${startHourStr}:00-${String(hh+1).padStart(2, '0')}:00`;
 
         return {
           id: r.id.toString(),
           date: r.date.toISOString(),
           timeblock: timeStr,
+          hour: hourStr,
+          timeBlock: timeBlockStr,
           mcp: r.mcp ? Number(r.mcp) : 0,
           mcv: r.mcv ? Number(r.mcv) : 0,
           purchaseBid: r.purchaseBid ? Number(r.purchaseBid) : 0,
