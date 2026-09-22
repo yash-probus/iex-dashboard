@@ -6,7 +6,7 @@
   "scripts": {
     "swagger": "ts-node src/generate_swagger.ts",
     "dev": "npm run swagger && nodemon --watch src --ext ts,json --exec ts-node src/server.ts",
-    "build": "npm run swagger && tsc",
+    "build": "npm run swagger && tsc && cp src/swagger_output.json dist/swagger_output.json",
     "start": "node dist/server.js",
     "lint": "echo \"Linting not yet configured\"",
     "seed:npp": "ts-node scripts/seed2YearsNppDemand.ts",
