@@ -23,6 +23,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https:"],
       imgSrc: ["'self'", "data:", "validator.swagger.io", "https:"],
+      upgradeInsecureRequests: null,
     },
   },
 }));
