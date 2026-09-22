@@ -13,7 +13,8 @@ import {
   Timeline as TimelineIcon,
   Map as MapIcon,
   Cloud as CloudIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  ShowChart
 } from '@mui/icons-material';
 
 export type OverviewItemType = 'market' | 'resource' | 'database';
@@ -228,13 +229,15 @@ export const UP_MARKET_ITEMS: OverviewItemConfig[] = [
     title: 'Day Ahead Market', 
     description: 'UP specific DAM data from API.',
     path: '/up-market/dam', 
-    icon: <ShowChart sx={{ fontSize: 24, color: '#3B8FF3' }} /> 
+    icon: <ShowChart sx={{ fontSize: 24, color: '#3B8FF3' }} />,
+    color: '#3B8FF3'
   },
   { 
     key: 'rtm-up', 
     title: 'Real Time Market', 
     description: 'UP specific RTM data from API.',
     path: '/up-market/rtm', 
-    icon: <TimerIcon sx={{ fontSize: 24, color: '#E0B50F' }} /> 
+    icon: <TimerIcon sx={{ fontSize: 24, color: '#E0B50F' }} />,
+    color: '#E0B50F'
   }
 ];
