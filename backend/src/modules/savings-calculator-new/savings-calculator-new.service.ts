@@ -871,21 +871,18 @@ export class SavingsCalculatorNewService {
             rtm.mcp AS "rtmMcp",
             gdam.mcp AS "gdamMcp"
         FROM
-            (SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
-             FROM "DamRecord" dr 
-             JOIN "Dataset" d ON dr."datasetId" = d.id 
-             WHERE d.market = 'DAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) dam
+            (SELECT date, CAST((EXTRACT(HOUR FROM "intervalTime") * 60 + EXTRACT(MINUTE FROM "intervalTime")) / 15 + 1 AS INTEGER) as timeblock, mcp 
+             FROM "ExchangeDamRate"
+             WHERE state = 'UP' AND date >= '${startStr}'::date AND date <= '${endStr}'::date) dam
         FULL OUTER JOIN
-            (SELECT d."deliveryDate" as date, rr."intervalNumber" as timeblock, rr.mcp 
-             FROM "RtmRecord" rr 
-             JOIN "Dataset" d ON rr."datasetId" = d.id 
-             WHERE d.market = 'RTM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) rtm
+            (SELECT date, CAST((EXTRACT(HOUR FROM "intervalTime") * 60 + EXTRACT(MINUTE FROM "intervalTime")) / 15 + 1 AS INTEGER) as timeblock, mcp 
+             FROM "ExchangeRtmRate"
+             WHERE state = 'UP' AND date >= '${startStr}'::date AND date <= '${endStr}'::date) rtm
             ON dam.date = rtm.date AND dam.timeblock = rtm.timeblock
         FULL OUTER JOIN
-            (SELECT d."deliveryDate" as date, gr."intervalNumber" as timeblock, gr.mcp 
-             FROM "GdamRecord" gr 
-             JOIN "Dataset" d ON gr."datasetId" = d.id 
-             WHERE d.market = 'GDAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) gdam
+            (SELECT date, CAST((EXTRACT(HOUR FROM "intervalTime") * 60 + EXTRACT(MINUTE FROM "intervalTime")) / 15 + 1 AS INTEGER) as timeblock, mcp 
+             FROM "ExchangeGdamRate"
+             WHERE state = 'UP' AND date >= '${startStr}'::date AND date <= '${endStr}'::date) gdam
             ON COALESCE(dam.date, rtm.date) = gdam.date AND COALESCE(dam.timeblock, rtm.timeblock) = gdam.timeblock
         ORDER BY date ASC, timeblock ASC;
       `;
@@ -1551,21 +1548,18 @@ export class SavingsCalculatorNewService {
           rtm.mcp AS "rtmMcp",
           gdam.mcp AS "gdamMcp"
       FROM
-          (SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
-           FROM "DamRecord" dr 
-           JOIN "Dataset" d ON dr."datasetId" = d.id 
-           WHERE d.market = 'DAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) dam
+          (SELECT date, CAST((EXTRACT(HOUR FROM "intervalTime") * 60 + EXTRACT(MINUTE FROM "intervalTime")) / 15 + 1 AS INTEGER) as timeblock, mcp 
+           FROM "ExchangeDamRate"
+           WHERE state = 'UP' AND date >= '${startStr}'::date AND date <= '${endStr}'::date) dam
       FULL OUTER JOIN
-          (SELECT d."deliveryDate" as date, rr."intervalNumber" as timeblock, rr.mcp 
-           FROM "RtmRecord" rr 
-           JOIN "Dataset" d ON rr."datasetId" = d.id 
-           WHERE d.market = 'RTM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) rtm
+          (SELECT date, CAST((EXTRACT(HOUR FROM "intervalTime") * 60 + EXTRACT(MINUTE FROM "intervalTime")) / 15 + 1 AS INTEGER) as timeblock, mcp 
+           FROM "ExchangeRtmRate"
+           WHERE state = 'UP' AND date >= '${startStr}'::date AND date <= '${endStr}'::date) rtm
           ON dam.date = rtm.date AND dam.timeblock = rtm.timeblock
       FULL OUTER JOIN
-          (SELECT d."deliveryDate" as date, gr."intervalNumber" as timeblock, gr.mcp 
-           FROM "GdamRecord" gr 
-           JOIN "Dataset" d ON gr."datasetId" = d.id 
-           WHERE d.market = 'GDAM' AND d.status = 'ACTIVE' AND d."deliveryDate" >= '${startStr}'::date AND d."deliveryDate" <= '${endStr}'::date) gdam
+          (SELECT date, CAST((EXTRACT(HOUR FROM "intervalTime") * 60 + EXTRACT(MINUTE FROM "intervalTime")) / 15 + 1 AS INTEGER) as timeblock, mcp 
+           FROM "ExchangeGdamRate"
+           WHERE state = 'UP' AND date >= '${startStr}'::date AND date <= '${endStr}'::date) gdam
           ON COALESCE(dam.date, rtm.date) = gdam.date AND COALESCE(dam.timeblock, rtm.timeblock) = gdam.timeblock
       ORDER BY date ASC, timeblock ASC;
     `;
