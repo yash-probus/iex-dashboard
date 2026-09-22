@@ -7,51 +7,68 @@ import app from './app';
 import listEndpoints from 'express-list-endpoints';
 import fs from 'fs';
 import path from 'path';
+import swaggerJsdoc from 'swagger-jsdoc';
 
-// Get all endpoints
-const endpoints = listEndpoints(app as any);
-
-const swaggerDoc: any = {
-  openapi: '3.0.0',
-  info: {
-    title: 'IEX Dashboard API',
-    description: 'API documentation for the IEX Dashboard platform generated automatically.',
-    version: '1.0.0',
-  },
-  servers: [
-    {
-      url: 'http://localhost:5000',
-      description: 'Local Development Server',
+// Initialize swagger-jsdoc to parse JSDoc comments from route files
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'IEX Dashboard API',
+      description: 'API documentation for the IEX Dashboard platform. Documented routes show exact schemas; auto-discovered routes show a generic success response.',
+      version: '1.0.0',
     },
-    {
-      url: 'http://13.206.77.155:5000',
-      description: 'Production Server',
-    },
-  ],
-  components: {
-    securitySchemes: {
-      bearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
+    servers: [
+      {
+        url: 'http://localhost:5000',
+        description: 'Local Development Server',
+      },
+      {
+        url: 'http://13.206.77.155:5002',
+        description: 'Production Server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
       },
     },
+    security: [{ bearerAuth: [] }],
   },
-  security: [{ bearerAuth: [] }],
-  paths: {}
+  // Paths to files containing OpenAPI definitions
+  apis: ['./src/modules/**/*.ts', './src/routes/**/*.ts'],
 };
+
+// Generate base swagger doc from JSDoc
+const swaggerDoc = swaggerJsdoc(options) as any;
+if (!swaggerDoc.paths) {
+  swaggerDoc.paths = {};
+}
+
+// Get all endpoints from express router
+const endpoints = listEndpoints(app as any);
 
 endpoints.forEach((endpoint) => {
   const pathParts = endpoint.path.replace(/:([a-zA-Z0-9_]+)/g, '{$1}'); // convert express /:id to OpenAPI /{id}
+  
   if (!swaggerDoc.paths[pathParts]) {
     swaggerDoc.paths[pathParts] = {};
   }
   
   endpoint.methods.forEach((method) => {
     const lowerMethod = method.toLowerCase();
-    if(lowerMethod === 'middleware') return;
+    if (lowerMethod === 'middleware') return;
 
-    // extract parameters
+    // If swagger-jsdoc already parsed this path and method, keep the detailed schema
+    if (swaggerDoc.paths[pathParts][lowerMethod]) {
+      return;
+    }
+
+    // Otherwise, generate a generic fallback response
     const pathParams = (pathParts.match(/\{[a-zA-Z0-9_]+\}/g) || []).map(p => p.replace(/[{}]/g, ''));
     const parameters = pathParams.map(param => ({
       in: 'path',
@@ -60,9 +77,18 @@ endpoints.forEach((endpoint) => {
       schema: { type: 'string' }
     }));
 
+    // Auto-assign a tag based on the first part of the URL (e.g. /api/auth -> Auth)
+    const segments = pathParts.split('/').filter(Boolean);
+    let tag = 'General';
+    if (segments.length >= 2 && segments[0] === 'api') {
+      // Convert 'trader-performance' to 'Trader Performance'
+      tag = segments[1].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
+
     swaggerDoc.paths[pathParts][lowerMethod] = {
       summary: `Auto-generated ${method} for ${pathParts}`,
-      description: 'This endpoint was automatically generated.',
+      description: 'This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.',
+      tags: [tag],
       parameters: parameters,
       responses: {
         '200': {

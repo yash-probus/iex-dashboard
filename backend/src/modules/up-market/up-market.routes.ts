@@ -63,6 +63,15 @@ const upMarketController = new UpMarketController();
  *                       mcp:
  *                         type: number
  *                         example: 3.45
+ *                       mcv:
+ *                         type: number
+ *                         example: 100.50
+ *                       purchaseBid:
+ *                         type: number
+ *                         example: 150.25
+ *                       sellBid:
+ *                         type: number
+ *                         example: 120.00
  *       400:
  *         description: Bad request (Invalid parameters or date range).
  *       500:
