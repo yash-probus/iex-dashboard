@@ -62,6 +62,10 @@ import upMarketRoutes from './modules/up-market/up-market.routes';
 // Initialize scheduled background jobs
 CronService.init();
 
+import { setupSwagger } from './swagger';
+// Initialize Swagger Docs
+setupSwagger(app);
+
 // 2. ROUTES
 app.use('/api/auth', authRoutes);
 app.use('/api/uploads', uploadRoutes);
