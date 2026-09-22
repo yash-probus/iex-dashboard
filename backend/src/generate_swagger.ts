@@ -1,3 +1,8 @@
+// Inject dummy env variables for Docker build where .env is missing
+process.env.JWT_SECRET = 'dummy_secret_for_swagger_generation';
+process.env.PORT = '5000';
+process.env.NODE_ENV = 'development';
+
 import app from './app';
 import listEndpoints from 'express-list-endpoints';
 import fs from 'fs';
