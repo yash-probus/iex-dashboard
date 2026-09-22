@@ -183,14 +183,14 @@ export default function DashboardPage() {
                 
                 {/* Text and Action Container */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#0A1128', fontSize: '1.15rem', letterSpacing: '-0.3px', textAlign: 'left', lineHeight: 1.2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#0A1128', fontSize: '1.05rem', letterSpacing: '-0.2px', textAlign: 'left', lineHeight: 1.2 }}>
                       {mod.title}
                     </Typography>
-                    <OpenInNewIcon sx={{ fontSize: 20, color: 'text.secondary', opacity: 0.6 }} />
+                    <OpenInNewIcon sx={{ fontSize: 18, color: 'text.secondary', opacity: 0.6 }} />
                   </Box>
                   
-                  <Typography variant="body2" sx={{ color: '#4A5568', lineHeight: 1.5, fontSize: '0.95rem', textAlign: 'left' }}>
+                  <Typography variant="body2" sx={{ color: '#4A5568', lineHeight: 1.5, fontSize: '0.85rem', textAlign: 'left' }}>
                     {mod.description}
                   </Typography>
                 </Box>
