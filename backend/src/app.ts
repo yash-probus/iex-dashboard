@@ -16,7 +16,16 @@ const app: Application = express();
 app.set('trust proxy', 1);
 
 // Security HTTP headers
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      imgSrc: ["'self'", "data:", "validator.swagger.io", "https:"],
+    },
+  },
+}));
 
 // Compress JSON payloads
 app.use(compression());
