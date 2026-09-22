@@ -12,6 +12,7 @@ const RTMPage = lazy(() => import('../pages/RTMPage'));
 const RECPage = lazy(() => import('../pages/RECPage'));
 const DAMPageUP = lazy(() => import('../pages/up-market/DAMPageUP'));
 const RTMPageUP = lazy(() => import('../pages/up-market/RTMPageUP'));
+const GDAMPageUP = lazy(() => import('../pages/up-market/GDAMPageUP'));
 const RegionStatePage = lazy(() => import('../pages/resource-center/RegionStatePage'));
 const DiscomListPage = lazy(() => import('../pages/resource-center/DiscomListPage'));
 const IstsChargesPage = lazy(() => import('../pages/resource-center/IstsChargesPage'));
@@ -94,6 +95,7 @@ export default function AppRoutes() {
               {/* UP Market Sub-pages */}
               <Route path="up-market/dam" element={<DAMPageUP />} />
               <Route path="up-market/rtm" element={<RTMPageUP />} />
+              <Route path="up-market/gdam" element={<GDAMPageUP />} />
               <Route path="up-market" element={<Navigate to="/up-market/dam" replace />} />
               <Route path="market-operations" element={<Navigate to="/market-operations/trend" replace />} />
               <Route path="market-operations/trend" element={<MarketOperationsPage />} />

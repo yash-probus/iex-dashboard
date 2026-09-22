@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Paper, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, alpha, useTheme, Collapse } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, OverviewItemConfig, FORECAST_ITEMS } from '../constants/dashboardOverview';
+import { MARKET_ITEMS, DATABASE_ITEMS, RESOURCE_CENTER_ITEMS, MARKET_OPERATIONS_ITEMS, OverviewItemConfig, FORECAST_ITEMS, UP_MARKET_ITEMS } from '../constants/dashboardOverview';
 
 
 export default function ModuleLayout() {
@@ -37,6 +37,10 @@ export default function ModuleLayout() {
     activeItems = MARKET_OPERATIONS_ITEMS;
     activeModuleTitle = 'Market Trend';
     activeModuleColor = '#FF7043';
+  } else if (location.pathname.startsWith('/up-market')) {
+    activeItems = UP_MARKET_ITEMS;
+    activeModuleTitle = 'IEX Market UP';
+    activeModuleColor = '#3B8FF3';
   }
 
   // Automatically open parent if a child is active

@@ -239,5 +239,13 @@ export const UP_MARKET_ITEMS: OverviewItemConfig[] = [
     path: '/up-market/rtm', 
     icon: <TimerIcon sx={{ fontSize: 24, color: '#E0B50F' }} />,
     color: '#E0B50F'
+  },
+  { 
+    key: 'gdam-up', 
+    title: 'Green Day Ahead Market', 
+    description: 'UP specific GDAM data from API.',
+    path: '/up-market/gdam', 
+    icon: <PublicIcon sx={{ fontSize: 24, color: '#10B981' }} />,
+    color: '#10B981'
   }
 ];
