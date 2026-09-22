@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "swagger": "ts-node generate_swagger.ts",
+    "swagger": "ts-node src/generate_swagger.ts",
     "dev": "npm run swagger && nodemon --watch src --ext ts,json --exec ts-node src/server.ts",
     "build": "npm run swagger && tsc",
     "start": "node dist/server.js",

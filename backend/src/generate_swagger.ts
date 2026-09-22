@@ -1,4 +1,4 @@
-import app from './src/app';
+import app from './app';
 import listEndpoints from 'express-list-endpoints';
 import fs from 'fs';
 import path from 'path';
@@ -68,6 +68,6 @@ endpoints.forEach((endpoint) => {
   });
 });
 
-const outputPath = path.join(__dirname, 'src', 'swagger_output.json');
+const outputPath = path.join(__dirname, 'swagger_output.json');
 fs.writeFileSync(outputPath, JSON.stringify(swaggerDoc, null, 2));
 console.log(`Successfully generated swagger documentation with ${endpoints.length} routes at ${outputPath}`);
