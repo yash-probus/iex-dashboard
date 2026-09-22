@@ -3,7 +3,7 @@ import { upMarketApi } from '../api/upMarket.api';
 import { MarketFilters } from './useMarketFilters';
 
 export function useUpMarketData(
-  marketType: 'DAM' | 'RTM',
+  marketType: 'DAM' | 'RTM' | 'GDAM',
   filters: MarketFilters
 ) {
   const [data, setData] = useState<any[]>([]);
