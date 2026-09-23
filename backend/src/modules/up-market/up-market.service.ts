@@ -4,7 +4,7 @@ import { logger } from '../../logger';
 const prisma = new PrismaClient();
 
 export class UpMarketService {
-  async getMarketData(market: 'DAM' | 'RTM', startDate: string, endDate: string) {
+  async getMarketData(market: 'DAM' | 'RTM' | 'GDAM', startDate: string, endDate: string) {
     try {
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -27,6 +27,20 @@ export class UpMarketService {
         });
       } else if (market === 'RTM') {
         records = await prisma.exchangeRtmRate.findMany({
+          where: {
+            date: {
+              gte: start,
+              lte: end
+            },
+            state: 'UP'
+          },
+          orderBy: [
+            { date: 'asc' },
+            { intervalTime: 'asc' }
+          ]
+        });
+      } else if (market === 'GDAM') {
+        records = await prisma.exchangeGdamRate.findMany({
           where: {
             date: {
               gte: start,

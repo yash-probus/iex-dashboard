@@ -14,11 +14,13 @@ export class UpMarketController {
         return res.status(400).json({ success: false, message: 'startDate and endDate are required' });
       }
 
-      if (market !== 'dam' && market !== 'rtm') {
+      const marketStr = market as string;
+      const marketLower = marketStr.toLowerCase();
+      if (marketLower !== 'dam' && marketLower !== 'rtm' && marketLower !== 'gdam') {
         return res.status(400).json({ success: false, message: 'Invalid market type' });
       }
 
-      const marketType = market.toUpperCase() as 'DAM' | 'RTM';
+      const marketType = marketStr.toUpperCase() as 'DAM' | 'RTM' | 'GDAM';
       const data = await upMarketService.getMarketData(marketType, startDate, endDate);
       
       if (data.intervals.length === 0) {

@@ -20,12 +20,12 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000',
-        description: 'Local Development Server',
-      },
-      {
         url: 'http://13.206.77.155:5002',
         description: 'Production Server',
+      },
+      {
+        url: 'http://localhost:5000',
+        description: 'Local Development Server',
       },
     ],
     components: {

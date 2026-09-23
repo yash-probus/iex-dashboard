@@ -2,17 +2,17 @@
   "openapi": "3.0.0",
   "info": {
     "title": "IEX Dashboard API",
-    "description": "API documentation for the IEX Dashboard platform generated automatically.",
+    "description": "API documentation for the IEX Dashboard platform. Documented routes show exact schemas; auto-discovered routes show a generic success response.",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://localhost:5000",
-      "description": "Local Development Server"
+      "url": "http://13.206.77.155:5002",
+      "description": "Production Server"
     },
     {
-      "url": "http://13.206.77.155:5000",
-      "description": "Production Server"
+      "url": "http://localhost:5000",
+      "description": "Local Development Server"
     }
   ],
   "components": {
@@ -30,50 +30,1750 @@
     }
   ],
   "paths": {
-    "/api/auth/login": {
-      "post": {
-        "summary": "Auto-generated POST for /api/auth/login",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
+    "/api/users": {
+      "get": {
+        "summary": "Get all users",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "List of users"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "name",
+                  "role"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created user"
+          }
+        }
+      }
+    },
+    "/api/users/audit-logs": {
+      "get": {
+        "summary": "Get audit logs",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs list"
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "put": {
+        "summary": "Update user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/up-market/{market}": {
+      "get": {
+        "summary": "Retrieve Uttar Pradesh (UP) specific market data",
+        "description": "Fetches interval market data for a given market type (DAM, RTM, GDAM) based on the specified date range.",
+        "tags": [
+          "UP Market"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "market",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DAM",
+                "RTM",
+                "GDAM"
+              ]
+            },
+            "description": "The market type to fetch data for."
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-09-22"
+            },
+            "description": "Start date for the data fetch (YYYY-MM-DD). If no `endDate` is provided, fetches only for this day."
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-09-23"
+            },
+            "description": "End date for the data fetch (YYYY-MM-DD)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved market data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "12345"
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-09-22T00:00:00.000Z"
+                          },
+                          "timeblock": {
+                            "type": "string",
+                            "example": "00:00-00:15"
+                          },
+                          "mcp": {
+                            "type": "number",
+                            "example": 3.45
+                          },
+                          "mcv": {
+                            "type": "number",
+                            "example": 100.5
+                          },
+                          "purchaseBid": {
+                            "type": "number",
+                            "example": 150.25
+                          },
+                          "sellBid": {
+                            "type": "number",
+                            "example": 120
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (Invalid parameters or date range)."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/api/trader-performance/upload": {
+      "post": {
+        "summary": "Upload trade reports",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  },
+                  "clientId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Files uploaded and processed"
+          }
+        }
+      }
+    },
+    "/api/trader-performance": {
+      "get": {
+        "summary": "Get all trader performances",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of trader performances"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create trader performance",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created trader performance"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/resource-defaults": {
+      "get": {
+        "summary": "Get resource defaults",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource defaults details"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}": {
+      "get": {
+        "summary": "Get trader performance by ID",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trader performance details"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update trader performance",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated trader performance"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete trader performance",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/client-overview": {
+      "get": {
+        "summary": "Get client overview",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Overview details"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/history": {
+      "get": {
+        "summary": "Get calculation history",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History details"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/calculate": {
+      "get": {
+        "summary": "Calculate savings",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Savings calculation result"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/market-decision": {
+      "get": {
+        "summary": "Calculate market decision",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Market decision result"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/demand-shift-insights": {
+      "get": {
+        "summary": "Get demand shift insights",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Insights result"
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/export-excel": {
+      "get": {
+        "summary": "Export full calculation to Excel",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel file buffer",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/actual-trader/export-excel": {
+      "get": {
+        "summary": "Export actual trader performance to Excel",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel file buffer",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trader-performance/{id}/demand-shift-insights/export-excel": {
+      "get": {
+        "summary": "Export demand shift to Excel",
+        "tags": [
+          "Trader Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel file buffer",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/savings-calculator": {
+      "get": {
+        "summary": "Get all calculations",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of calculations"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new calculation",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created calculation"
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}": {
+      "get": {
+        "summary": "Get calculation by ID",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calculation details"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update calculation",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated calculation"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete calculation",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}/overview": {
+      "get": {
+        "summary": "Get client overview",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Overview details"
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}/history": {
+      "get": {
+        "summary": "Get calculation history",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History details"
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}/calculate": {
+      "post": {
+        "summary": "Run calculation",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calculation result"
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}/calculate-market-decision": {
+      "post": {
+        "summary": "Calculate market decision",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Market decision result"
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}/demand-shift-insights": {
+      "post": {
+        "summary": "Get demand shift insights",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Insights result"
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}/demand-shift-insights/export-excel": {
+      "get": {
+        "summary": "Export demand shift to Excel",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel file buffer",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/savings-calculator/{id}/export-excel": {
+      "get": {
+        "summary": "Export full calculation to Excel",
+        "tags": [
+          "Savings Calculator"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel file buffer",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal/generate": {
+      "post": {
+        "summary": "Generate generic proposal",
+        "tags": [
+          "Proposal"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated proposal Word document",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal/generate-technical": {
+      "post": {
+        "summary": "Generate technical proposal",
+        "tags": [
+          "Proposal"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated technical proposal Word document",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal/generate-commercial": {
+      "post": {
+        "summary": "Generate commercial proposal",
+        "tags": [
+          "Proposal"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated commercial proposal Word document",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forecast/price": {
+      "get": {
+        "summary": "Get price forecast",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price forecast data"
+          }
+        }
+      }
+    },
+    "/api/forecast/demand": {
+      "get": {
+        "summary": "Get demand forecast",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Demand forecast data"
+          }
+        }
+      }
+    },
+    "/api/forecast/generation": {
+      "get": {
+        "summary": "Get generation forecast",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Generation forecast data"
+          }
+        }
+      }
+    },
+    "/api/forecast/dates": {
+      "get": {
+        "summary": "Get available forecast dates",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of dates"
+          }
+        }
+      }
+    },
+    "/api/forecast/market-selection": {
+      "get": {
+        "summary": "Get market selection forecast",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Market selection forecast"
+          }
+        }
+      }
+    },
+    "/api/datasets/summary": {
+      "get": {
+        "summary": "Get dataset summary",
+        "tags": [
+          "Dataset"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dataset summary data"
+          }
+        }
+      }
+    },
+    "/api/datasets": {
+      "get": {
+        "summary": "Get all datasets",
+        "tags": [
+          "Dataset"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of datasets"
+          }
+        }
+      }
+    },
+    "/api/datasets/{datasetId}": {
+      "get": {
+        "summary": "Get dataset by ID",
+        "tags": [
+          "Dataset"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "datasetId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dataset details"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete dataset",
+        "tags": [
+          "Dataset"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "datasetId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/datasets/{datasetId}/history": {
+      "get": {
+        "summary": "Get dataset history",
+        "tags": [
+          "Dataset"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "datasetId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dataset history details"
+          }
+        }
+      }
+    },
+    "/api/upload-history": {
+      "get": {
+        "summary": "Get upload history",
+        "tags": [
+          "Upload History"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of upload histories"
+          }
+        }
+      }
+    },
+    "/api/dashboard/overview": {
+      "get": {
+        "summary": "Get dashboard overview data",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "Overview data"
+          }
+        }
+      }
+    },
+    "/api/dashboard/dam": {
+      "get": {
+        "summary": "Get DAM data",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "DAM data"
+          }
+        }
+      }
+    },
+    "/api/dashboard/gdam": {
+      "get": {
+        "summary": "Get GDAM data",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "GDAM data"
+          }
+        }
+      }
+    },
+    "/api/dashboard/rtm": {
+      "get": {
+        "summary": "Get RTM data",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "RTM data"
+          }
+        }
+      }
+    },
+    "/api/dashboard/rec": {
+      "get": {
+        "summary": "Get REC data",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "REC data"
+          }
+        }
+      }
+    },
+    "/api/dashboard/dam/analytics": {
+      "get": {
+        "summary": "Get DAM analytics",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "DAM analytics"
+          }
+        }
+      }
+    },
+    "/api/dashboard/gdam/analytics": {
+      "get": {
+        "summary": "Get GDAM analytics",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "GDAM analytics"
+          }
+        }
+      }
+    },
+    "/api/dashboard/rtm/analytics": {
+      "get": {
+        "summary": "Get RTM analytics",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "RTM analytics"
+          }
+        }
+      }
+    },
+    "/api/dashboard/rec/analytics": {
+      "get": {
+        "summary": "Get REC analytics",
+        "tags": [
+          "Dataset Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "REC analytics"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "User login",
+        "description": "Authenticate user using email and password.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "admin@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid credentials"
           }
         }
       }
     },
     "/api/auth/send-otp": {
       "post": {
-        "summary": "Auto-generated POST for /api/auth/send-otp",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
+        "summary": "Send OTP",
+        "description": "Send OTP to the provided email address.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "OTP sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OTP sent to email"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/auth/verify-otp": {
       "post": {
-        "summary": "Auto-generated POST for /api/auth/verify-otp",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
+        "summary": "Verify OTP",
+        "description": "Verify the OTP sent to the email address.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "otp"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "OTP verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/auth/me": {
       "get": {
-        "summary": "Auto-generated GET for /api/auth/me",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
+        "summary": "Get current user",
+        "description": "Retrieve details of the currently authenticated user.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -81,7 +1781,10 @@
     "/api/uploads": {
       "post": {
         "summary": "Auto-generated POST for /api/uploads",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Uploads"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -93,212 +1796,10 @@
     "/api/uploads/health": {
       "get": {
         "summary": "Auto-generated GET for /api/uploads/health",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/datasets/summary": {
-      "get": {
-        "summary": "Auto-generated GET for /api/datasets/summary",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/datasets": {
-      "get": {
-        "summary": "Auto-generated GET for /api/datasets",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/datasets/{datasetId}": {
-      "get": {
-        "summary": "Auto-generated GET for /api/datasets/{datasetId}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "datasetId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Uploads"
         ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Auto-generated DELETE for /api/datasets/{datasetId}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "datasetId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/datasets/{datasetId}/history": {
-      "get": {
-        "summary": "Auto-generated GET for /api/datasets/{datasetId}/history",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "datasetId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/upload-history": {
-      "get": {
-        "summary": "Auto-generated GET for /api/upload-history",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/overview": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/overview",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/dam": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/dam",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/gdam": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/gdam",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/rtm": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/rtm",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/rec": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/rec",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/dam/analytics": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/dam/analytics",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/gdam/analytics": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/gdam/analytics",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/rtm/analytics": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/rtm/analytics",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/dashboard/rec/analytics": {
-      "get": {
-        "summary": "Auto-generated GET for /api/dashboard/rec/analytics",
-        "description": "This endpoint was automatically generated.",
         "parameters": [],
         "responses": {
           "200": {
@@ -310,7 +1811,10 @@
     "/api/resource-center/{resourceType}": {
       "get": {
         "summary": "Auto-generated GET for /api/resource-center/{resourceType}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Resource Center"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -329,7 +1833,10 @@
       },
       "post": {
         "summary": "Auto-generated POST for /api/resource-center/{resourceType}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Resource Center"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -350,7 +1857,10 @@
     "/api/resource-center/{resourceType}/bulk": {
       "post": {
         "summary": "Auto-generated POST for /api/resource-center/{resourceType}/bulk",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Resource Center"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -371,7 +1881,10 @@
     "/api/resource-center/{resourceType}/{id}": {
       "put": {
         "summary": "Auto-generated PUT for /api/resource-center/{resourceType}/{id}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Resource Center"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -398,7 +1911,10 @@
       },
       "delete": {
         "summary": "Auto-generated DELETE for /api/resource-center/{resourceType}/{id}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Resource Center"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -427,7 +1943,10 @@
     "/api/scraper/sync": {
       "post": {
         "summary": "Auto-generated POST for /api/scraper/sync",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Scraper"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -439,7 +1958,10 @@
     "/api/scraper/import": {
       "post": {
         "summary": "Auto-generated POST for /api/scraper/import",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Scraper"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -451,7 +1973,10 @@
     "/api/database/demand": {
       "get": {
         "summary": "Auto-generated GET for /api/database/demand",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -463,7 +1988,10 @@
     "/api/database/generation": {
       "get": {
         "summary": "Auto-generated GET for /api/database/generation",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -475,7 +2003,10 @@
     "/api/database/weather": {
       "get": {
         "summary": "Auto-generated GET for /api/database/weather",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -487,7 +2018,10 @@
     "/api/database/export/csv": {
       "get": {
         "summary": "Auto-generated GET for /api/database/export/csv",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -499,7 +2033,10 @@
     "/api/database/holidays": {
       "get": {
         "summary": "Auto-generated GET for /api/database/holidays",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -509,7 +2046,10 @@
       },
       "post": {
         "summary": "Auto-generated POST for /api/database/holidays",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -521,7 +2061,10 @@
     "/api/database/holidays/upload": {
       "post": {
         "summary": "Auto-generated POST for /api/database/holidays/upload",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -533,7 +2076,10 @@
     "/api/database/holidays/{id}": {
       "put": {
         "summary": "Auto-generated PUT for /api/database/holidays/{id}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -554,7 +2100,10 @@
     "/api/database/holidays/{id}/toggle": {
       "patch": {
         "summary": "Auto-generated PATCH for /api/database/holidays/{id}/toggle",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -575,7 +2124,10 @@
     "/api/database/city-state": {
       "get": {
         "summary": "Auto-generated GET for /api/database/city-state",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -585,7 +2137,10 @@
       },
       "post": {
         "summary": "Auto-generated POST for /api/database/city-state",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Database"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -597,7 +2152,10 @@
     "/api/logs/api-names": {
       "get": {
         "summary": "Auto-generated GET for /api/logs/api-names",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Logs"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -609,7 +2167,10 @@
     "/api/logs/stats": {
       "get": {
         "summary": "Auto-generated GET for /api/logs/stats",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Logs"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -621,7 +2182,10 @@
     "/api/logs": {
       "get": {
         "summary": "Auto-generated GET for /api/logs",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Logs"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -633,236 +2197,11 @@
     "/api/market-operations": {
       "get": {
         "summary": "Auto-generated GET for /api/market-operations",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Market Operations"
+        ],
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator": {
-      "get": {
-        "summary": "Auto-generated GET for /api/savings-calculator",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "post": {
-        "summary": "Auto-generated POST for /api/savings-calculator",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}": {
-      "get": {
-        "summary": "Auto-generated GET for /api/savings-calculator/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "put": {
-        "summary": "Auto-generated PUT for /api/savings-calculator/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Auto-generated DELETE for /api/savings-calculator/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}/overview": {
-      "get": {
-        "summary": "Auto-generated GET for /api/savings-calculator/{id}/overview",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}/history": {
-      "get": {
-        "summary": "Auto-generated GET for /api/savings-calculator/{id}/history",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}/calculate": {
-      "post": {
-        "summary": "Auto-generated POST for /api/savings-calculator/{id}/calculate",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}/calculate-market-decision": {
-      "post": {
-        "summary": "Auto-generated POST for /api/savings-calculator/{id}/calculate-market-decision",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}/demand-shift-insights": {
-      "post": {
-        "summary": "Auto-generated POST for /api/savings-calculator/{id}/demand-shift-insights",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}/demand-shift-insights/export-excel": {
-      "get": {
-        "summary": "Auto-generated GET for /api/savings-calculator/{id}/demand-shift-insights/export-excel",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/savings-calculator/{id}/export-excel": {
-      "get": {
-        "summary": "Auto-generated GET for /api/savings-calculator/{id}/export-excel",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -873,7 +2212,10 @@
     "/api/savings-calculator-new/entries": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -883,7 +2225,10 @@
       },
       "post": {
         "summary": "Auto-generated POST for /api/savings-calculator-new/entries",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -895,7 +2240,10 @@
     "/api/savings-calculator-new/entries/resource-defaults": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/resource-defaults",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -907,7 +2255,10 @@
     "/api/savings-calculator-new/entries/{id}": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/{id}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -926,7 +2277,10 @@
       },
       "put": {
         "summary": "Auto-generated PUT for /api/savings-calculator-new/entries/{id}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -945,7 +2299,10 @@
       },
       "delete": {
         "summary": "Auto-generated DELETE for /api/savings-calculator-new/entries/{id}",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -966,7 +2323,10 @@
     "/api/savings-calculator-new/entries/{id}/history": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/{id}/history",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -987,7 +2347,10 @@
     "/api/savings-calculator-new/entries/{id}/client-overview": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/{id}/client-overview",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1008,7 +2371,10 @@
     "/api/savings-calculator-new/entries/{id}/calculate": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/{id}/calculate",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1029,7 +2395,10 @@
     "/api/savings-calculator-new/entries/{id}/market-decision": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/{id}/market-decision",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1050,7 +2419,10 @@
     "/api/savings-calculator-new/entries/{id}/demand-shift-insights": {
       "post": {
         "summary": "Auto-generated POST for /api/savings-calculator-new/entries/{id}/demand-shift-insights",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1071,7 +2443,10 @@
     "/api/savings-calculator-new/entries/{id}/export-excel": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/{id}/export-excel",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1092,7 +2467,10 @@
     "/api/savings-calculator-new/entries/{id}/demand-shift-insights/export-excel": {
       "get": {
         "summary": "Auto-generated GET for /api/savings-calculator-new/entries/{id}/demand-shift-insights/export-excel",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Savings Calculator New"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1110,70 +2488,13 @@
         }
       }
     },
-    "/api/forecast/price": {
-      "get": {
-        "summary": "Auto-generated GET for /api/forecast/price",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/forecast/demand": {
-      "get": {
-        "summary": "Auto-generated GET for /api/forecast/demand",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/forecast/generation": {
-      "get": {
-        "summary": "Auto-generated GET for /api/forecast/generation",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/forecast/dates": {
-      "get": {
-        "summary": "Auto-generated GET for /api/forecast/dates",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/forecast/market-selection": {
-      "get": {
-        "summary": "Auto-generated GET for /api/forecast/market-selection",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
     "/forecast/price": {
       "get": {
         "summary": "Auto-generated GET for /forecast/price",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1185,7 +2506,10 @@
     "/forecast/demand": {
       "get": {
         "summary": "Auto-generated GET for /forecast/demand",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1197,7 +2521,10 @@
     "/forecast/generation": {
       "get": {
         "summary": "Auto-generated GET for /forecast/generation",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1209,7 +2536,10 @@
     "/forecast/dates": {
       "get": {
         "summary": "Auto-generated GET for /forecast/dates",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1221,82 +2551,11 @@
     "/forecast/market-selection": {
       "get": {
         "summary": "Auto-generated GET for /forecast/market-selection",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/users": {
-      "get": {
-        "summary": "Auto-generated GET for /api/users",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "post": {
-        "summary": "Auto-generated POST for /api/users",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/users/audit-logs": {
-      "get": {
-        "summary": "Auto-generated GET for /api/users/audit-logs",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/users/{id}": {
-      "put": {
-        "summary": "Auto-generated PUT for /api/users/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
         ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Auto-generated DELETE for /api/users/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -1307,7 +2566,10 @@
     "/api/proposals/generate": {
       "post": {
         "summary": "Auto-generated POST for /api/proposals/generate",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Proposals"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1319,7 +2581,10 @@
     "/api/proposals/generate-technical": {
       "post": {
         "summary": "Auto-generated POST for /api/proposals/generate-technical",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Proposals"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1331,302 +2596,11 @@
     "/api/proposals/generate-commercial": {
       "post": {
         "summary": "Auto-generated POST for /api/proposals/generate-commercial",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Proposals"
+        ],
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/upload": {
-      "post": {
-        "summary": "Auto-generated POST for /api/trader-performance/upload",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "post": {
-        "summary": "Auto-generated POST for /api/trader-performance",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/resource-defaults": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/resource-defaults",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "put": {
-        "summary": "Auto-generated PUT for /api/trader-performance/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Auto-generated DELETE for /api/trader-performance/{id}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/client-overview": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/client-overview",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/history": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/history",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/calculate": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/calculate",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/market-decision": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/market-decision",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/demand-shift-insights": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/demand-shift-insights",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/export-excel": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/export-excel",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/actual-trader/export-excel": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/actual-trader/export-excel",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/trader-performance/{id}/demand-shift-insights/export-excel": {
-      "get": {
-        "summary": "Auto-generated GET for /api/trader-performance/{id}/demand-shift-insights/export-excel",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/up-market/{market}": {
-      "get": {
-        "summary": "Auto-generated GET for /api/up-market/{market}",
-        "description": "This endpoint was automatically generated.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "market",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -1637,7 +2611,10 @@
     "/health": {
       "get": {
         "summary": "Auto-generated GET for /health",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1649,7 +2626,10 @@
     "/health/database": {
       "get": {
         "summary": "Auto-generated GET for /health/database",
-        "description": "This endpoint was automatically generated.",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -1658,5 +2638,35 @@
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Users",
+      "description": "User management endpoints (Super Admin only)"
+    },
+    {
+      "name": "Trader Performance",
+      "description": "Trader Performance endpoints"
+    },
+    {
+      "name": "Savings Calculator",
+      "description": "Savings Calculator endpoints"
+    },
+    {
+      "name": "Proposal",
+      "description": "Proposal generation endpoints"
+    },
+    {
+      "name": "Forecast",
+      "description": "Price and Demand Forecast endpoints"
+    },
+    {
+      "name": "Dataset",
+      "description": "Dataset endpoints"
+    },
+    {
+      "name": "Dataset Dashboard",
+      "description": "Dashboard dataset endpoints (Public)"
+    }
+  ]
 }
