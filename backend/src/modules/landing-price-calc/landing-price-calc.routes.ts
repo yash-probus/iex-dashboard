@@ -59,4 +59,9 @@ router.use(authMiddleware);
  */
 router.get('/calculate', LandingPriceCalcController.calculate);
 
+router.get('/consumer-category', LandingPriceCalcController.getConsumerCategories);
+router.get('/voltage', LandingPriceCalcController.getVoltages);
+router.get('/tod-months', LandingPriceCalcController.getTodMonths);
+router.get('/tod-slots', LandingPriceCalcController.getTodSlots);
+
 export default router;
