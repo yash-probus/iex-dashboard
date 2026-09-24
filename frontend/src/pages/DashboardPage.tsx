@@ -63,6 +63,14 @@ const MODULES = [
     color: '#8B5CF6'
   },
   {
+    key: 'landing-price-calc',
+    title: 'Landing Price Calc',
+    description: 'Calculate landing price using IEX APIs directly.',
+    path: '/landing-price-calc',
+    icon: <CalculateIcon sx={{ fontSize: 24 }} />,
+    color: '#E91E63'
+  },
+  {
     key: 'savings-calculator-new',
     title: 'Savings Calculator (New)',
     description: 'Calculate Open Access savings with state utility tariffs (New layout).',

@@ -24,6 +24,8 @@ const StateTariffPage = lazy(() => import('../pages/resource-center/StateTariffP
 const FppaChargesPage = lazy(() => import('../pages/resource-center/FppaChargesPage'));
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const AdminPage = lazy(() => import('../pages/AdminPage'));
+const LandingPriceCalcPage = lazy(() => import('../pages/LandingPriceCalcPage'));
+
 const MarketDataAdminPage = lazy(() => import('../pages/admin/MarketDataAdminPage'));
 const ResourceCenterAdminPage = lazy(() => import('../pages/admin/ResourceCenterAdminPage'));
 const AdminResourcePage = lazy(() => import('../pages/admin/resource-center/AdminResourcePage'));
@@ -66,6 +68,8 @@ export default function AppRoutes() {
 
             <Route path="savings-calculator-new" element={<SavingsCalculatorNewPage />} />
             <Route path="savings-calculator-new/:id/analysis" element={<SavingsCalculatorNewAnalysisPage />} />
+            <Route path="landing-price-calc" element={<LandingPriceCalcPage />} />
+
             <Route path="trader-performance" element={<TraderPerformancePage />} />
             <Route path="trader-performance/:id/dashboard" element={<TraderPerformanceDashboardPage />} />
 
