@@ -3,7 +3,7 @@ import {
   Box, Typography, Paper, Grid, TextField, 
   MenuItem, Button, CircularProgress, Alert
 } from '@mui/material';
-import apiClient from '../api/apiClient';
+import { apiClient } from '../api/client';
 
 const STATES = [
   "Uttar Pradesh", "Maharashtra", "Gujarat", "Tamil Nadu", "Karnataka"
