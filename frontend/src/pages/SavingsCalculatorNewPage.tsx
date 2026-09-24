@@ -1057,7 +1057,8 @@ export default function SavingsCalculatorNewPage() {
     if (stepIndex === 0) return Boolean(clientName && industryName && address);
     if (stepIndex === 1) return Boolean(stateCode && discom);
     if (stepIndex === 2) return Boolean(consumerCategory && voltageLevel);
-    if (stepIndex === 3) return Boolean(sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw)) && Number(sanctionedLoadKw) > 0);
+    if (stepIndex === 3) return Boolean(powerFactor && !isNaN(Number(powerFactor)) && Number(powerFactor) > 0 && Number(powerFactor) <= 1);
+    if (stepIndex === 4) return Boolean(sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw)) && Number(sanctionedLoadKw) > 0);
     return true;
   };
 
@@ -1140,7 +1141,7 @@ export default function SavingsCalculatorNewPage() {
               disabled={!isStepValid(stepIndex)}
               onClick={() => {
                 if (isStepValid(stepIndex)) {
-                  if (stepIndex < 3) {
+                  if (stepIndex < 4) {
                     setActiveStep(stepIndex + 1);
                   } else {
                     setDialogOpen(false);
@@ -1157,7 +1158,7 @@ export default function SavingsCalculatorNewPage() {
                 '&:hover': { bgcolor: '#7C3AED' }
               }}
             >
-              {stepIndex === 3 ? 'Proceed to ToD' : 'Continue'}
+              {stepIndex === 4 ? 'Proceed to ToD' : 'Continue'}
             </Button>
           </Box>
         </Card>
@@ -1448,8 +1449,49 @@ export default function SavingsCalculatorNewPage() {
             )
           })}
 
-          {/* Step 3: Sanctioned Load */}
+          {/* Step 3: Power Factor */}
           {renderStep(3, {
+            icon: <BoltIcon />,
+            title: 'Power Factor',
+            question: 'What is your operational Power Factor?',
+            summary: `Power Factor: ${powerFactor}`,
+            content: (
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Power Factor *"
+                    type="number"
+                    inputProps={{ min: 0.1, max: 1.0, step: 0.01 }}
+                    value={powerFactor}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val !== '') {
+                        if (Number(val) > 1) val = '1';
+                        else if (Number(val) < 0) val = '';
+                      }
+                      setPowerFactor(val);
+                      if (val && !isNaN(Number(val)) && sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
+                        setSanctionedLoadKva((Number(sanctionedLoadKw) / Number(val)).toFixed(2).replace(/\.00$/, ''));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === '' || Number(e.target.value) <= 0) {
+                        setPowerFactor('0.99');
+                        if (sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
+                          setSanctionedLoadKva((Number(sanctionedLoadKw) / 0.99).toFixed(2).replace(/\.00$/, ''));
+                        }
+                      }
+                    }}
+                    fullWidth
+                    size="small"
+                  />
+                </Grid>
+              </Grid>
+            )
+          })}
+
+          {/* Step 4: Sanctioned Load */}
+          {renderStep(4, {
             icon: <SpeedIcon />,
             title: 'Sanctioned Load',
             question: 'What is your sanctioned load capacity?',
@@ -1465,7 +1507,8 @@ export default function SavingsCalculatorNewPage() {
                       const val = e.target.value;
                       setSanctionedLoadKw(val);
                       if (val && !isNaN(Number(val))) {
-                        setSanctionedLoadKva((Number(val) / 0.99).toFixed(2).replace(/\.00$/, ''));
+                        const pf = powerFactor && !isNaN(Number(powerFactor)) ? Number(powerFactor) : 0.99;
+                        setSanctionedLoadKva((Number(val) / pf).toFixed(2).replace(/\.00$/, ''));
                       } else {
                         setSanctionedLoadKva('');
                       }
@@ -1483,7 +1526,8 @@ export default function SavingsCalculatorNewPage() {
                       const val = e.target.value;
                       setSanctionedLoadKva(val);
                       if (val && !isNaN(Number(val))) {
-                        setSanctionedLoadKw((Number(val) * 0.99).toFixed(2).replace(/\.00$/, ''));
+                        const pf = powerFactor && !isNaN(Number(powerFactor)) ? Number(powerFactor) : 0.99;
+                        setSanctionedLoadKw((Number(val) * pf).toFixed(2).replace(/\.00$/, ''));
                       } else {
                         setSanctionedLoadKw('');
                       }
@@ -1838,31 +1882,6 @@ export default function SavingsCalculatorNewPage() {
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6} md={3}>
-                        <TextField
-                          label="Power Factor"
-                          value={monthData['Power Factor'] || ''}
-                          onChange={(e) => {
-                            let val = e.target.value;
-                            if (val !== '') {
-                              if (Number(val) > 1) val = '1';
-                              else if (Number(val) < 0) val = '';
-                            }
-                            const updated = { ...todConsumptions };
-                            if (!updated[ym]) updated[ym] = { startDate: '', endDate: '', peakDemandKw: 1000, slots: [] };
-                            updated[ym]['Power Factor'] = val;
-                            setTodConsumptions(updated);
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value === '' || Number(e.target.value) <= 0) {
-                              const updated = { ...todConsumptions };
-                              if (!updated[ym]) updated[ym] = { startDate: '', endDate: '', peakDemandKw: 1000, slots: [] };
-                              updated[ym]['Power Factor'] = '0.99';
-                              setTodConsumptions(updated);
-                            }
-                          }}
-                          fullWidth variant="outlined" size="small" type="number" placeholder="0.99" sx={{ bgcolor: '#FFF' }}
-                        />
-                      </Grid>
                       <Grid item xs={12} sm={6} md={3}>
                         <TextField
                           label="Current LPSC (₹)"
