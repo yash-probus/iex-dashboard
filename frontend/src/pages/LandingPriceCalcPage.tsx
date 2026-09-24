@@ -1,37 +1,27 @@
 import React, { useState } from 'react';
 import { 
   Box, Typography, Paper, Grid, TextField, 
-  MenuItem, Button, CircularProgress, Alert,
-  Table, TableBody, TableCell, TableContainer, TableRow, TableHead
+  MenuItem, Button, CircularProgress, Alert
 } from '@mui/material';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiClient } from '../api/client';
 
-const STATES = [
-  "Uttar Pradesh", "Maharashtra", "Gujarat", "Tamil Nadu", "Karnataka"
-];
-
-const CATEGORIES = [
-  "Industrial General", "Commercial", "Agriculture"
-];
-
+const STATES = ["Uttar Pradesh", "Maharashtra", "Gujarat", "Tamil Nadu", "Karnataka"];
+const CATEGORIES = ["Industrial General", "Commercial", "Agriculture"];
 const VOLTAGES = ["11", "33", "132", "220"];
-
 const TOD_MONTHS = ["Apr - Sept", "Oct - Mar", "All Months"];
-const TOD_SLOTS = [
-  "RTC (24 Hrs)", 
-  "Morning (06:00-10:00)", 
-  "Evening (18:00-22:00)",
-  "Normal (1000 - 1900 Hrs)"
-];
+const TOD_SLOTS = ["RTC (24 Hrs)", "Morning (06:00-10:00)", "Evening (18:00-22:00)", "Normal (1000 - 1900 Hrs)"];
+
+const COLORS = ['#007FFF', '#00C49F', '#FFBB28', '#FF8042', '#FF4444', '#8884d8'];
 
 export default function LandingPriceCalcPage() {
   const [formData, setFormData] = useState({
     state: 'Uttar Pradesh',
-    consumerCategory: 'Industrial General',
-    voltage: '11',
+    consumerCategory: 'Commercial',
+    voltage: '33',
     todMonth: 'Apr - Sept',
-    todSlot: 'RTC (24 Hrs)',
-    iexPrice: '4.5'
+    todSlot: 'Normal (1000 - 1900 Hrs)',
+    iexPrice: '4'
   });
 
   const [loading, setLoading] = useState(false);
@@ -41,6 +31,19 @@ export default function LandingPriceCalcPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleClear = () => {
+    setFormData({
+      state: '',
+      consumerCategory: '',
+      voltage: '',
+      todMonth: '',
+      todSlot: '',
+      iexPrice: ''
+    });
+    setResult(null);
+    setError('');
   };
 
   const handleCalculate = async () => {
@@ -64,180 +67,221 @@ export default function LandingPriceCalcPage() {
     }
   };
 
+  const pieData = result ? [
+    { name: 'ISTS Charges', value: Number(result.istsCharge) || 0 },
+    { name: 'STU Charges', value: Number(result.stuCharge) || 0 },
+    { name: 'Wheeling Charges', value: Number(result.wheelingCharge) || 0 },
+    { name: 'Cross Subsidy Surcharge', value: Number(result.crossSubsidyCharge) || 0 },
+    { name: 'Additional Surcharge', value: Number(result.additionalSurcharge) || 0 },
+    { name: 'Other Charges*', value: Number(result.otherCharges) || 0 },
+  ].filter(item => item.value > 0) : [];
+
   return (
-    <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: '#27447f' }}>
-        Landing Price Calculator
-      </Typography>
-
-      <Paper sx={{ p: 4, mb: 4, borderRadius: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField select fullWidth label="State" name="state" value={formData.state} onChange={handleChange}>
-              {STATES.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField select fullWidth label="Consumer Category" name="consumerCategory" value={formData.consumerCategory} onChange={handleChange}>
-              {CATEGORIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField select fullWidth label="Voltage (kV)" name="voltage" value={formData.voltage} onChange={handleChange}>
-              {VOLTAGES.map(v => <MenuItem key={v} value={v}>{v}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField select fullWidth label="TOD Month" name="todMonth" value={formData.todMonth} onChange={handleChange}>
-              {TOD_MONTHS.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField select fullWidth label="TOD Slot" name="todSlot" value={formData.todSlot} onChange={handleChange}>
-              {TOD_SLOTS.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField fullWidth label="IEX Price (Rs/kWh)" name="iexPrice" type="number" inputProps={{ step: 0.1 }} value={formData.iexPrice} onChange={handleChange} />
-          </Grid>
-          
-          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button 
-              variant="contained" 
-              size="large"
-              onClick={handleCalculate}
-              disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-              sx={{ 
-                backgroundColor: '#27447f', 
-                '&:hover': { backgroundColor: '#1a305e' },
-                px: 4, py: 1.5, fontWeight: 'bold'
-              }}
-            >
-              Calculate
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 4, borderRadius: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {result && (
-        <Grid container spacing={4}>
-          {/* Left Column: Open Access Charges */}
-          <Grid item xs={12} md={7}>
-            <Paper sx={{ p: 3, borderRadius: 2, height: '100%', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-              <Typography variant="h6" sx={{ mb: 2, color: '#27447f', fontWeight: 'bold' }}>
-                Open Access Charges (Rs./kWh)
-              </Typography>
-              <TableContainer>
-                <Table size="small">
-                  <TableBody>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>ISTS Charges</TableCell>
-                      <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.istsCharge ?? '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>STU Charges</TableCell>
-                      <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.stuCharge ?? '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Wheeling Charges</TableCell>
-                      <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.wheelingCharge ?? '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Cross Subsidy Surcharge</TableCell>
-                      <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.crossSubsidyCharge ?? '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Additional Surcharge</TableCell>
-                      <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.additionalSurcharge ?? '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Other Charges*</TableCell>
-                      <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.otherCharges ?? '-'}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              
-              <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Landed Cost (Rs./KWh):</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>{result.landCost}</Typography>
-              </Box>
-              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Savings (Rs./KWh):</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>{result.savings}</Typography>
-              </Box>
-            </Paper>
-          </Grid>
-
-          {/* Right Column: Losses & Discom Tariff */}
-          <Grid item xs={12} md={5}>
+    <Box sx={{ 
+      p: 4, 
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'flex-start'
+    }}>
+      <Grid container spacing={3} sx={{ maxWidth: 1200 }}>
+        
+        {/* Left Column - Input Form */}
+        <Grid item xs={12} md={5}>
+          <Paper sx={{ 
+            p: 4, 
+            borderRadius: 3, 
+            boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+            height: '100%'
+          }}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                  <Typography variant="subtitle1" sx={{ mb: 2, color: '#27447f', fontWeight: 'bold' }}>
-                    OPEN ACCESS LOSSES (%)
-                  </Typography>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableBody>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>ISTS Losses :</TableCell>
-                          <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.istsLoss}%</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>STU Losses :</TableCell>
-                          <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.stuLoss}%</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Wheeling Losses :</TableCell>
-                          <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.wheelingLoss}%</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Paper>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>State (Discom)</Typography>
+                <TextField select fullWidth size="small" name="state" value={formData.state} onChange={handleChange}>
+                  {STATES.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                </TextField>
               </Grid>
-
-              <Grid item xs={12}>
-                <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                  <Typography variant="subtitle1" sx={{ mb: 2, color: '#27447f', fontWeight: 'bold' }}>
-                    DISCOM TARIFF** (RS./KWH)
-                  </Typography>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableBody>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Energy Charge :</TableCell>
-                          <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.energyCharge}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>TOD Charge :</TableCell>
-                          <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.todCharge}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Fuel Surcharge :</TableCell>
-                          <TableCell align="right" sx={{ borderBottom: 'none' }}>{result.fsaCharge || 0}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Total Charges :</TableCell>
-                          <TableCell align="right" sx={{ borderBottom: 'none', fontWeight: 'bold' }}>{result.totalCharge}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Paper>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>Consumer Category</Typography>
+                <TextField select fullWidth size="small" name="consumerCategory" value={formData.consumerCategory} onChange={handleChange}>
+                  {CATEGORIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>Voltage Level (kV)</Typography>
+                <TextField select fullWidth size="small" name="voltage" value={formData.voltage} onChange={handleChange}>
+                  {VOLTAGES.map(v => <MenuItem key={v} value={v}>{v}</MenuItem>)}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>TOD Month</Typography>
+                <TextField select fullWidth size="small" name="todMonth" value={formData.todMonth} onChange={handleChange}>
+                  {TOD_MONTHS.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>TOD Slot</Typography>
+                <TextField select fullWidth size="small" name="todSlot" value={formData.todSlot} onChange={handleChange}>
+                  {TOD_SLOTS.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>IEX Price (Rs./unit)</Typography>
+                <TextField fullWidth size="small" name="iexPrice" type="number" inputProps={{ step: 0.1 }} value={formData.iexPrice} onChange={handleChange} />
+              </Grid>
+              
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={handleClear}
+                  sx={{ 
+                    borderColor: '#27447f', 
+                    color: '#27447f',
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3
+                  }}
+                >
+                  Clear
+                </Button>
+                <Button 
+                  variant="contained" 
+                  onClick={handleCalculate}
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+                  sx={{ 
+                    backgroundColor: '#27447f', 
+                    '&:hover': { backgroundColor: '#1a305e' },
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3
+                  }}
+                >
+                  Submit
+                </Button>
               </Grid>
             </Grid>
-          </Grid>
+          </Paper>
         </Grid>
-      )}
+
+        {/* Right Column - Results */}
+        <Grid item xs={12} md={7}>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>
+          )}
+
+          {result && (
+            <Paper sx={{ p: 4, borderRadius: 3, boxShadow: '0 8px 24px rgba(0,0,0,0.05)', height: '100%' }}>
+              <Typography variant="h5" sx={{ color: '#27447f', fontWeight: 'bold', mb: 4 }}>
+                Open Access Charges (Rs./kWh)
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, mb: 4 }}>
+                <Box sx={{ flex: 1 }}>
+                  {[
+                    { label: 'ISTS Charges', value: result.istsCharge },
+                    { label: 'STU Charges', value: result.stuCharge },
+                    { label: 'Wheeling Charges', value: result.wheelingCharge },
+                    { label: 'Cross Subsidy Surcharge', value: result.crossSubsidyCharge },
+                    { label: 'Additional Surcharge', value: result.additionalSurcharge },
+                    { label: 'Other Charges*', value: result.otherCharges }
+                  ].map((item, i) => (
+                    <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, pr: 4 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>{item.label}</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{item.value ?? 0}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+                
+                <Box sx={{ flex: 1, height: 200 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                        label={({value}) => value}
+                        labelLine={true}
+                        isAnimationActive={false}
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              </Box>
+
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, height: '100%' }}>
+                    <Typography sx={{ color: '#27447f', fontWeight: 'bold', mb: 2, fontSize: '14px' }}>
+                      OPEN ACCESS LOSSES (%)
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>ISTS Losses :</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{result.istsLoss}%</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>STU Losses :</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{result.stuLoss}%</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>Wheeling Losses :</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{result.wheelingLoss}%</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, height: '100%' }}>
+                    <Typography sx={{ color: '#27447f', fontWeight: 'bold', mb: 2, fontSize: '14px' }}>
+                      DISCOM TARIFF** (RS./KWH)
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>Energy Charge :</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{result.energyCharge}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>TOD Charge :</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{result.todCharge}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>Fuel Surcharge :</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{result.fsaCharge || 0}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>Total Charges :</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>{result.totalCharge}</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>Landed Cost (Rs./KWh) :</Typography>
+                    <Typography sx={{ fontSize: '14px' }}>{result.landCost}</Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>Savings (Rs./KWh) :</Typography>
+                    <Typography sx={{ fontSize: '14px' }}>{result.savings}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
+        </Grid>
+      </Grid>
     </Box>
   );
 }
