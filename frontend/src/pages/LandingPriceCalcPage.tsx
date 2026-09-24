@@ -366,6 +366,24 @@ export default function LandingPriceCalcPage() {
             </Paper>
           )}
         </Grid>
+
+        {/* Disclaimer Area */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 8px 24px rgba(0,0,0,0.05)', backgroundColor: 'white' }}>
+            <Typography variant="body2" sx={{ mb: 2, color: '#4b5563', fontSize: '0.85rem' }}>
+              * Other Charges has been assumed at 10 paise/unit comprising of NLDC charges, SLDC charges and exchange fee.
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 3, color: '#4b5563', fontSize: '0.85rem' }}>
+              ** Discom Tariff is the energy charge applicable on consumer purchasing power from the distribution licensee.
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#374151', mb: 1, fontSize: '0.9rem' }}>
+              Disclaimer
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#4b5563', fontSize: '0.85rem', lineHeight: 1.6 }}>
+              The Landed Cost Calculator (LCC) helps in assessing the indicative actual cost of electricity purchased from the IEX at a particular price point, considering overhead charges and losses applicable in an Open Access transaction. The LCC also provides an indicative per unit saving/ loss compared to discom tariff of the respective state. Open Access charges and losses at Inter-state and Intra-state level are as per the orders of CERC and respective SERCs, notified from time to time. IEX does not guaranty accuracy of the data used in LCC and shall not be liable for any loss arising out of decision based on LCC outcome.
+            </Typography>
+          </Paper>
+        </Grid>
       </Grid>
     </Box>
   );
