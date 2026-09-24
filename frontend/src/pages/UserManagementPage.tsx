@@ -337,23 +337,27 @@ export default function UserManagementPage() {
         </div>
 
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
+          <DialogContent className="bg-white sm:max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
+            <DialogHeader className="px-8 pt-8 pb-4 bg-gray-50/80 border-b border-gray-100">
+              <DialogTitle className="text-2xl font-semibold text-[#0B2149]">
+                {editingUser ? 'Edit User' : 'Add New User'}
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" value={username} onChange={e => setUsername(e.target.value)} />
+            <div className="space-y-6 p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-[#0B2149] font-medium">Username</Label>
+                  <Input id="username" className="border-gray-200 focus-visible:ring-blue-500 rounded-lg shadow-sm" value={username} onChange={e => setUsername(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-[#0B2149] font-medium">Email</Label>
+                  <Input id="email" type="email" className="border-gray-200 focus-visible:ring-blue-500 rounded-lg shadow-sm" value={email} onChange={e => setEmail(e.target.value)} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role" className="text-[#0B2149] font-medium">Role</Label>
                 <Select value={role} onValueChange={(v: 'SUPER_ADMIN'|'ADMIN'|'CLIENT') => setRole(v)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-gray-200 focus:ring-blue-500 rounded-lg shadow-sm">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -366,9 +370,9 @@ export default function UserManagementPage() {
                 </Select>
               </div>
               {role !== 'SUPER_ADMIN' && (
-                <div className="space-y-3">
-                  <Label>Allowed Services (Modules)</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-md p-4 bg-muted/20 max-h-[300px] overflow-y-auto">
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <Label className="text-[#0B2149] font-semibold text-base">Allowed Services (Modules)</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {AVAILABLE_MODULES.map((mod) => {
                       let currentAccess = 'none';
                       if (!hiddenModules.includes(mod.id)) {
@@ -381,9 +385,11 @@ export default function UserManagementPage() {
                         }
                       }
                       
+                      const isNone = currentAccess === 'none';
+                      
                       return (
-                        <div key={mod.id} className="flex flex-col space-y-1.5 p-2 rounded border bg-background">
-                          <Label className="font-medium text-sm">{mod.label}</Label>
+                        <div key={mod.id} className={`flex flex-col space-y-2 p-4 rounded-xl border transition-colors ${isNone ? 'bg-gray-50 border-gray-200' : 'bg-blue-50/50 border-blue-200 shadow-sm'}`}>
+                          <Label className={`font-medium text-sm ${isNone ? 'text-gray-500' : 'text-[#0B2149]'}`}>{mod.label}</Label>
                           <Select
                             value={currentAccess}
                             onValueChange={(val: 'none' | 'view' | 'edit' | 'edit_no_delete') => {
@@ -405,7 +411,7 @@ export default function UserManagementPage() {
                               setReadOnlyModules(newReadOnly);
                             }}
                           >
-                            <SelectTrigger className="h-8 text-xs">
+                            <SelectTrigger className={`h-9 text-xs rounded-lg ${isNone ? 'bg-white text-gray-500' : 'bg-white text-[#4379EE] font-medium border-blue-200'}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -424,9 +430,9 @@ export default function UserManagementPage() {
                 </div>
               )}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Cancel</Button>
-              <Button onClick={handleSubmit} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
+            <DialogFooter className="px-8 py-5 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0">
+              <Button variant="outline" className="rounded-lg text-gray-600 border-gray-300 hover:bg-gray-100 px-6" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Cancel</Button>
+              <Button className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-8 shadow-sm" onClick={handleSubmit} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
