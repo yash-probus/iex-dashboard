@@ -370,8 +370,7 @@ export class TraderPerformanceExportService {
     
 
     if (isNpcl) {
-      const pf = result.powerFactor || 0.99;
-      const npclMultiplier = 0.90 * pf;
+      const npclMultiplier = 0.90 * 0.99;
       const grossEnergy = energyCharges / npclMultiplier;
       const grossDemand = demandCharges / npclMultiplier;
       const grossTotal = grossEnergy + grossDemand;
@@ -444,8 +443,7 @@ export class TraderPerformanceExportService {
       sheet.addRow(['Electricity Duty', Math.round((result as any).actualTrader?.residualElectricityDuty || 0)]);
       if (misc > 0) sheet.addRow(['Miscellaneous Charges', Math.round(misc)]);
     } else if (isNpcl) {
-      const pf = result.powerFactor || 0.99;
-      const npclMultiplier = 0.90 * pf;
+      const npclMultiplier = 0.90 * 0.99;
       const grossEnergyAfterOA = energyChargesAfterOA / npclMultiplier;
       const grossDemand = demandCharges / npclMultiplier;
       const grossTotalAfterOA = grossEnergyAfterOA + grossDemand;
