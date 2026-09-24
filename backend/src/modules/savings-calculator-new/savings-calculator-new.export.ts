@@ -321,7 +321,8 @@ export class SavingsCalculatorNewExportService {
     
 
     if (isNpcl) {
-      const npclMultiplier = 0.90 * 0.99;
+      const pf = result.powerFactor || 0.99;
+      const npclMultiplier = 0.90 * pf;
       const grossEnergy = energyCharges / npclMultiplier;
       const grossDemand = demandCharges / npclMultiplier;
       const grossTotal = grossEnergy + grossDemand;
@@ -387,7 +388,8 @@ export class SavingsCalculatorNewExportService {
     let energyChargesAfterOA = (result as any).discomEnergyChargesAfterOA ?? (result.totalDiscomAfterProlt || 0);
     
     if (isNpcl) {
-      const npclMultiplier = 0.90 * 0.99;
+      const pf = result.powerFactor || 0.99;
+      const npclMultiplier = 0.90 * pf;
       const grossEnergyAfterOA = energyChargesAfterOA / npclMultiplier;
       const grossDemand = demandCharges / npclMultiplier;
       const grossTotalAfterOA = grossEnergyAfterOA + grossDemand;
