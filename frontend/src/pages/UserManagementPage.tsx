@@ -130,27 +130,16 @@ export default function UserManagementPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#E6F0F9] text-[#0B2149] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
-      {/* Top Navbar / Breadcrumb area */}
-      <div className="flex items-center gap-4 px-6 py-4 mb-4">
-        <div className="flex items-center font-bold text-xl text-red-600 italic tracking-tighter">
-          <span className="text-black">Prolt</span> <span className="text-blue-900 ml-1">Energy</span>
-        </div>
-        <div className="text-xs text-gray-500 mt-2 mr-4">By Probus</div>
-        <div className="text-sm font-medium text-gray-500 border-l border-gray-300 pl-4">
-          Home &nbsp;&gt;&nbsp; <span className="text-[#0B2149] font-bold">Admin</span>
-        </div>
-      </div>
-
-      <div className="container mx-auto max-w-6xl space-y-4">
+    <div className="min-h-screen bg-[#F4F7FA] text-[#0B2149] p-6 sm:p-8 md:p-10">
+      <div className="container mx-auto max-w-7xl space-y-6">
         {/* Title Box */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-[#EAF3FF] text-[#4379EE] p-3 rounded-xl flex items-center justify-center w-14 h-14">
-              <GroupIcon fontSize="medium" />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="bg-blue-50 text-blue-600 p-4 rounded-xl flex items-center justify-center w-16 h-16 shadow-inner">
+              <GroupIcon fontSize="large" />
             </div>
             <div>
-              <Typography variant="h1" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '20px', letterSpacing: '-0.5px', mb: 0.5 }}>
+              <Typography variant="h1" sx={{ color: '#0F172A', fontWeight: 600, fontSize: '22px', letterSpacing: '-0.5px', mb: 0.5 }}>
                 User Management
               </Typography>
               <Typography variant="body2" sx={{ color: '#64748B' }}>
@@ -163,7 +152,7 @@ export default function UserManagementPage() {
             {activeTab === 'users' && (
               <button 
                 onClick={openAddModal}
-                className="bg-[#4379EE] hover:bg-[#3261cf] text-white rounded-full px-5 py-2.5 text-sm font-medium flex items-center transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center transition-all shadow-sm hover:shadow whitespace-nowrap"
               >
                 <span className="mr-2 text-lg leading-none">+</span> Add New User
               </button>
