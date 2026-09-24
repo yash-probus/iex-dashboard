@@ -17,17 +17,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-IEX_API_URL = os.getenv("IEX_API_URL")
-IEX_API_TOKEN = os.getenv("IEX_API_TOKEN")
+IEX_API_URL = os.getenv("IEX_API_URL", "https://www.iexindia.com/IEXPublish/AppServices.svc/IEXGetTradeData/")
+IEX_API_TOKEN = os.getenv("IEX_API_TOKEN", "NCLIEXHkl7900@8Uyhkj")
 
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "iex-postgres")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
-POSTGRES_DATABASE = os.getenv("POSTGRES_DATABASE")
+POSTGRES_DATABASE = os.getenv("POSTGRES_DATABASE", "Prolt_Operations")
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
 DAM_PRODUCT_CODE = int(os.getenv("DAM_PRODUCT_CODE", "1"))
-GDAM_PRODUCT_CODE = int(os.getenv("GDAM_PRODUCT_CODE", "6"))
+GDAM_PRODUCT_CODE = int(os.getenv("GDAM_PRODUCT_CODE", "2"))
 RTM_PRODUCT_CODE = int(os.getenv("RTM_PRODUCT_CODE", "3"))
 
 FROM_TOKEN = int(os.getenv("FROM_TOKEN", "1"))

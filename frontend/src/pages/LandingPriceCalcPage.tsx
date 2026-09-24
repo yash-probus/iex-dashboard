@@ -158,10 +158,17 @@ export default function LandingPriceCalcPage() {
     <Box sx={{ 
       p: 4, 
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+      background: 'linear-gradient(-45deg, #e0eafc, #cfdef3, #e3f2fd, #bbdefb)',
+      backgroundSize: '400% 400%',
+      animation: 'gradientBG 15s ease infinite',
       display: 'flex',
       justifyContent: 'center',
-      alignItems: 'flex-start'
+      alignItems: 'flex-start',
+      '@keyframes gradientBG': {
+        '0%': { backgroundPosition: '0% 50%' },
+        '50%': { backgroundPosition: '100% 50%' },
+        '100%': { backgroundPosition: '0% 50%' }
+      }
     }}>
       <Grid container spacing={3} sx={{ maxWidth: 1200 }}>
         
