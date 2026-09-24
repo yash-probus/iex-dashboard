@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, Typography, Paper, Grid, TextField, 
   MenuItem, Button, CircularProgress, Alert
@@ -7,10 +7,6 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiClient } from '../api/client';
 
 const STATES = ["Daman & Diu","Uttar Pradesh","Arunachal Pradesh","Dadar Nagar Haveli","Maharashtra (MSEDCL)","Delhi (BRPL)","Telangana (NPDCL)","Maharashtra (BEST)","Andhra Pradesh (EPDCL)","Uttarakhand","Rajasthan","Jharkhand","Odisha (TPCODL)","Maharashtra (AEML)","Bihar","Gujarat","Punjab","Odisha (TPWODL)","Karnataka (BESCOM)","Himachal Pradesh","Telangana (SPDCL)","Odisha (TPSODL)","Delhi (TPDDL)","Kerala","Assam","Tamilnadu","West Bengal","Pondicherry","Delhi (BYPL)","Haryana","Madhya Pradesh","Maharashtra (TPC-D)","Chhattisgarh","Andhra Pradesh (CPDCL)","Andhra Pradesh (SPDCL)","Chandigarh","Goa","Odisha (TPNODL)","Meghalaya"];
-const CATEGORIES = ["Energy Intensive","Commercial","Industrial General"];
-const VOLTAGES = ["11","33","132","110","220","66","22"];
-const TOD_MONTHS = ["All Months","Apr - Sept","Apr - Oct","Oct - Mar","Jul - Aug","Feb-May","Nov-Jan","Sep-Oct","Sept - Jun","Nov - Mar","Apr - May","Jun - Sept","May-Jun"];
-const TOD_SLOTS = ["Normal (0700 - 1800 hrs)","Off-Peak (2300 - 0500 hrs)","RTC (24 Hrs)","Off-Peak (2300 -0700 hrs)","Peak (1730 - 2100 hrs)","Normal (1100 - 1700 Hrs & 2300 - 0500 Hrs)","Peak (1400 - 1700 hrs)","Peak (1830 - 2200 Hrs)","Normal (0600 - 0700 hrs)","Normal (1200  - 1800 Hrs)","Normal (0500 - 1700 hrs)","Off-Peak (0000 - 0600 Hrs)","Normal (0600 - 1400 Hrs) & (1800 - 0000 Hrs)","Off-Peak (2200 - 0600 hrs)","Off-Peak (2200 - 0600 Hrs)","Normal (0600 - 1700 Hrs)","Peak (1700 - 2300 Hrs)","Off-Peak (0200 - 0600 Hrs)","Normal (0600 - 1830 Hrs)","Peak (0600 - 1000 Hrs & 1800 - 2200 Hrs)","Morning Peak (0600 - 1000 Hrs)","Normal (0600 - 1800 Hrs & 1800 - 2200 Hrs)","Peak (1800 - 2300 hrs)","Normal (1000 - 1800 Hrs)","Peak (0700 - 1100 hrs)","Morning Peak (0600 - 1000 hrs)","RTC (24 hrs)","Afternoon Off-Peak (1000 - 1500 hrs)","Off-Peak (2200 - 0500 Hrs)","Night Normal (22 - 24 hrs)","Peak (0900 - 1200 Hrs)","Afternoon Normal (1500 - 1800 hrs)","Normal (0500 - 1800 hrs)","Normal (0900 - 1800 Hrs)","Peak (1700 - 2200 hrs)","Off-Peak (0500 - 1100 Hrs)","Normal (0600 - 1000 Hrs)","Night Off-Peak (0000 - 0600 hrs)","Normal (1000 - 2400 Hrs & 2400 - 0200 Hrs)","Off-Peak (2100 - 0530 hrs)","Peak (1800 - 2200 Hrs)","Normal (0600 - 1800 hrs)","Normal (0700 - 1800 Hrs)","Off-Peak (2300 - 0600 Hrs)","Normal (0600 - 1700 hrs)","Night Normal (2200 - 2400 hrs)","Evening Peak (1800 - 2200 hrs)","Normal (0600 - 1800 Hrs & 2200 - 0600 Hrs)","Normal (1100 - 1700 Hrs & 0500 - 1100 Hrs)","Peak (2200 - 0100 hrs)","Off-Peak (1400 - 1800 Hrs)","Peak (0600 - 0900 Hrs)","Morning Peak (0600 - 0900 Hrs)","Evening Peak (1800 - 2300 Hrs)","Normal (0530 - 1730 hrs)","Normal (0900 - 1700 Hrs)","Peak (1800 - 2200 hrs)","Evening Peak (1800 - 2200 Hrs)","Peak (0600 - 1000 Hrs)","Normal (0500 - 0600 Hrs & 1000 - 1800 Hrs)","Normal (0600  - 0900 Hrs)","Off-Peak (2300 - 0500 Hrs)","Normal (1000 - 1400 hrs), (1700 - 2200 hrs) & (0100 - 0400 hrs)","Normal (1100 - 1800 hrs)","Peak (1700 - 2300 hrs)","Normal (0600 - 1800 Hrs)","Off-Peak (0400 -1000 hrs)"];
 
 const COLORS = ['#007FFF', '#00C49F', '#FFBB28', '#FF8042', '#FF4444', '#8884d8'];
 
@@ -24,9 +20,91 @@ export default function LandingPriceCalcPage() {
     iexPrice: '4'
   });
 
+  const [categories, setCategories] = useState<string[]>([]);
+  const [voltages, setVoltages] = useState<string[]>([]);
+  const [todMonths, setTodMonths] = useState<string[]>([]);
+  const [todSlots, setTodSlots] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+
+  // 1. Fetch Categories based on State
+  useEffect(() => {
+    if (formData.state) {
+      apiClient.get('/landing-price-calc/consumer-category', { params: { state: formData.state } })
+        .then(res => {
+          const data = res.data?.data || {};
+          const vals = Object.values(data).map(String);
+          setCategories(vals);
+          if (!vals.includes(formData.consumerCategory)) {
+            setFormData(prev => ({ ...prev, consumerCategory: vals[0] || '' }));
+          }
+        })
+        .catch(console.error);
+    } else {
+      setCategories([]);
+    }
+  }, [formData.state]);
+
+  // 2. Fetch Voltages based on State & Category
+  useEffect(() => {
+    if (formData.state && formData.consumerCategory) {
+      apiClient.get('/landing-price-calc/voltage', { params: { state: formData.state, consumerCategory: formData.consumerCategory } })
+        .then(res => {
+          const data = res.data?.data || {};
+          const vals = Object.values(data).map(String);
+          setVoltages(vals);
+          if (!vals.includes(formData.voltage)) {
+            setFormData(prev => ({ ...prev, voltage: vals[0] || '' }));
+          }
+        })
+        .catch(console.error);
+    } else {
+      setVoltages([]);
+    }
+  }, [formData.state, formData.consumerCategory]);
+
+  // 3. Fetch TOD Months based on State, Category, Voltage
+  useEffect(() => {
+    if (formData.state && formData.consumerCategory && formData.voltage) {
+      apiClient.get('/landing-price-calc/tod-months', { 
+        params: { state: formData.state, consumerCategory: formData.consumerCategory, voltage: formData.voltage } 
+      })
+        .then(res => {
+          const data = res.data?.data || {};
+          const vals = Object.values(data).map(String);
+          setTodMonths(vals);
+          if (!vals.includes(formData.todMonth)) {
+            setFormData(prev => ({ ...prev, todMonth: vals[0] || '' }));
+          }
+        })
+        .catch(console.error);
+    } else {
+      setTodMonths([]);
+    }
+  }, [formData.state, formData.consumerCategory, formData.voltage]);
+
+  // 4. Fetch TOD Slots based on State, Category, Voltage, Month
+  useEffect(() => {
+    if (formData.state && formData.consumerCategory && formData.voltage && formData.todMonth) {
+      apiClient.get('/landing-price-calc/tod-slots', { 
+        params: { state: formData.state, consumerCategory: formData.consumerCategory, voltage: formData.voltage, month: formData.todMonth } 
+      })
+        .then(res => {
+          const data = res.data?.data || {};
+          const vals = Object.values(data).map(String);
+          setTodSlots(vals);
+          if (!vals.includes(formData.todSlot)) {
+            setFormData(prev => ({ ...prev, todSlot: vals[0] || '' }));
+          }
+        })
+        .catch(console.error);
+    } else {
+      setTodSlots([]);
+    }
+  }, [formData.state, formData.consumerCategory, formData.voltage, formData.todMonth]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,11 +113,11 @@ export default function LandingPriceCalcPage() {
 
   const handleClear = () => {
     setFormData({
-      state: '',
-      consumerCategory: '',
-      voltage: '',
-      todMonth: '',
-      todSlot: '',
+      state: 'Uttar Pradesh',
+      consumerCategory: 'Commercial',
+      voltage: '33',
+      todMonth: 'Apr - Sept',
+      todSlot: 'Normal (1000 - 1900 Hrs)',
       iexPrice: ''
     });
     setResult(null);
@@ -105,25 +183,25 @@ export default function LandingPriceCalcPage() {
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>Consumer Category</Typography>
                 <TextField select fullWidth size="small" name="consumerCategory" value={formData.consumerCategory} onChange={handleChange}>
-                  {CATEGORIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                  {categories.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>Voltage Level (kV)</Typography>
                 <TextField select fullWidth size="small" name="voltage" value={formData.voltage} onChange={handleChange}>
-                  {VOLTAGES.map(v => <MenuItem key={v} value={v}>{v}</MenuItem>)}
+                  {voltages.map(v => <MenuItem key={v} value={v}>{v}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>TOD Month</Typography>
                 <TextField select fullWidth size="small" name="todMonth" value={formData.todMonth} onChange={handleChange}>
-                  {TOD_MONTHS.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
+                  {todMonths.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" color="textSecondary" sx={{ mb: 1, fontWeight: 500 }}>TOD Slot</Typography>
                 <TextField select fullWidth size="small" name="todSlot" value={formData.todSlot} onChange={handleChange}>
-                  {TOD_SLOTS.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                  {todSlots.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
