@@ -8,9 +8,9 @@ export class LandingPriceCalcService {
   static async calculate(query: any) {
     const { voltage, state, consumerCategory, todMonth, todSlot, iexPrice } = query;
 
-    // According to the screenshot, the IEX API endpoint is /calculator
+    // According to the correct API discovered, the endpoint is /api/v1/calculator
     const baseUrl = process.env.IEX_CALCULATOR_API_URL || 'https://www.iexindia.com';
-    const endpoint = `${baseUrl}/calculator`;
+    const endpoint = `${baseUrl}/api/v1/calculator`;
 
     try {
       const response = await axios.get(endpoint, {
@@ -23,9 +23,8 @@ export class LandingPriceCalcService {
           iexPrice
         },
         headers: {
-          'Accept': 'application/json, text/x-component',
-          // Including RSC header as it appears to be a Next.js App Router endpoint
-          'RSC': '1'
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
         }
       });
       
