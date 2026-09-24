@@ -43,7 +43,7 @@ export default function ModuleLayout() {
     activeModuleColor = '#3B8FF3';
   }
 
-  // Automatically open parent if a child is active
+  // Automatically open parent if a child is active, and close others
   useEffect(() => {
     const newOpenStates = { ...openStates };
     let stateChanged = false;
@@ -51,9 +51,17 @@ export default function ModuleLayout() {
     activeItems.forEach(item => {
       if (item.subItems) {
         const hasActiveChild = item.subItems.some((sub: any) => location.pathname.includes(sub.path));
-        if (hasActiveChild && !openStates[item.key]) {
-          newOpenStates[item.key] = true;
-          stateChanged = true;
+        if (hasActiveChild) {
+          if (!openStates[item.key]) {
+            newOpenStates[item.key] = true;
+            stateChanged = true;
+          }
+        } else {
+          // Close if it was open but no longer has an active child
+          if (openStates[item.key]) {
+            newOpenStates[item.key] = false;
+            stateChanged = true;
+          }
         }
       }
     });
