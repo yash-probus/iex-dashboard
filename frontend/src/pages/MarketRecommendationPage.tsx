@@ -287,10 +287,10 @@ export default function MarketRecommendationPage() {
               disabled={currentPageIndex === 0}
               sx={{ 
                 color: 'text.primary', 
-                borderColor: 'rgba(255,255,255,0.12)', 
+                borderColor: 'rgba(0,0,0,0.12)', 
                 textTransform: 'none',
                 borderRadius: '10px',
-                '&:hover': { borderColor: 'rgba(255,255,255,0.25)', bgcolor: 'rgba(255,255,255,0.05)' }
+                '&:hover': { borderColor: 'rgba(0,0,0,0.25)', bgcolor: 'rgba(0,0,0,0.02)' }
               }}
             >
               Previous Day
@@ -307,10 +307,10 @@ export default function MarketRecommendationPage() {
               disabled={currentPageIndex === results.length - 1}
               sx={{ 
                 color: 'text.primary', 
-                borderColor: 'rgba(255,255,255,0.12)', 
+                borderColor: 'rgba(0,0,0,0.12)', 
                 textTransform: 'none',
                 borderRadius: '10px',
-                '&:hover': { borderColor: 'rgba(255,255,255,0.25)', bgcolor: 'rgba(255,255,255,0.05)' }
+                '&:hover': { borderColor: 'rgba(0,0,0,0.25)', bgcolor: 'rgba(0,0,0,0.02)' }
               }}
             >
               Next Day
@@ -335,7 +335,7 @@ export default function MarketRecommendationPage() {
                 </Grid>
 
                 <Grid item xs={12} md={1} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
-                  <Box sx={{ width: '1px', height: '60px', bgcolor: 'rgba(255,255,255,0.1)' }} />
+                  <Box sx={{ width: '1px', height: '60px', bgcolor: 'rgba(0,0,0,0.1)' }} />
                 </Grid>
 
                 <Grid item xs={12} md={3} sx={{ textAlign: 'center' }}>
@@ -348,7 +348,7 @@ export default function MarketRecommendationPage() {
                 </Grid>
 
                 <Grid item xs={12} md={1} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
-                  <Box sx={{ width: '1px', height: '60px', bgcolor: 'rgba(255,255,255,0.1)' }} />
+                  <Box sx={{ width: '1px', height: '60px', bgcolor: 'rgba(0,0,0,0.1)' }} />
                 </Grid>
 
                 <Grid item xs={12} md={3} sx={{ textAlign: 'center' }}>
@@ -378,7 +378,7 @@ export default function MarketRecommendationPage() {
                     const details = todDetails[slot.tod] || { time: '', type: '', color: '#94a3b8' };
                     return (
                       <th key={slot.tod}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#fff', mb: 0.2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#0F172A', mb: 0.2 }}>
                           {slot.tod}
                         </Typography>
                         <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 500 }}>
