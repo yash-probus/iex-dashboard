@@ -2614,8 +2614,8 @@ export class TraderPerformanceService {
 
       const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
-      const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
-      traderLapsedEnergy = Math.max(0, traderConsumerBusUnits - slabConsumption);
+      const traderLeftoverDiscomEnergy = 0;
+      traderLapsedEnergy = 0;
 
       const traderDiscomBill = calculateResidualDiscomBill(
         traderLeftoverDiscomEnergy,
@@ -2679,14 +2679,12 @@ export class TraderPerformanceService {
       });
     });
 
-    const globalTraderResidualEnergy = Math.max(0, totalEnergyKwh - (globalTraderConsumerBusEnergy - globalTraderLapsedEnergy));
-    const summedTodTraderResidual = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
-    const residualReconciliationFactor = summedTodTraderResidual > 0
-      ? globalTraderResidualEnergy / summedTodTraderResidual
-      : 0;
-
+    let bankedTraderConsumerEnergy = globalTraderConsumerBusEnergy;
     oaDetailedBreakdown.forEach(row => {
-      const reconciledResidualEnergy = Number(row.traderLeftoverDiscomEnergy || 0) * residualReconciliationFactor;
+      const slabConsumption = Number(row.discomUnits || 0);
+      const usedFromBank = Math.min(slabConsumption, bankedTraderConsumerEnergy);
+      const reconciledResidualEnergy = Math.max(0, slabConsumption - usedFromBank);
+      bankedTraderConsumerEnergy -= usedFromBank;
       const reconciledBill = calculateResidualDiscomBill(
         reconciledResidualEnergy,
         Number(row.discomRate || 0),
@@ -2702,6 +2700,11 @@ export class TraderPerformanceService {
       row.traderElectricityDutyAfterOA = reconciledBill.electricityDuty;
       row.traderDiscomBillTotal = reconciledBill.totalBill;
     });
+
+    globalTraderLapsedEnergy = Math.max(0, bankedTraderConsumerEnergy);
+    if (globalTraderLapsedEnergy > 0 && oaDetailedBreakdown.length > 0) {
+      oaDetailedBreakdown[oaDetailedBreakdown.length - 1].traderLapsedEnergy = globalTraderLapsedEnergy;
+    }
 
     globalTraderLandedCost = oaDetailedBreakdown.reduce(
       (sum, row) => sum + Number(row.traderSlabOaBill || 0) + Number(row.traderDiscomBillTotal || 0),
