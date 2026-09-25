@@ -1339,6 +1339,10 @@ export class TraderPerformanceService {
     );
 
     const traderReports = (monthConsumptions as any).traderReports || { data: {} };
+    const pdfMarketSettlementCost = Object.values<any>(traderReports.data || {}).reduce(
+      (sum, report) => sum + Number(report.total_amount || 0),
+      0
+    );
     const traderTradesLookup: Record<string, Record<number, any[]>> = {};
     if (traderReports && traderReports.data) {
       for (const [key, report] of Object.entries<any>(traderReports.data)) {
@@ -2485,7 +2489,6 @@ export class TraderPerformanceService {
            if (trades && Array.isArray(trades)) {
              let slotTraderKwhTotal = 0;
              let slotTraderConsumerBusTotal = 0;
-             let remainingSlotCapacity = maxEnergyPerSlot;
              trades.forEach(trade => {
                const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
                const tPriceMwh = Math.abs(Number(trade.rate_mwh || trade.price || trade.mcp || 0));
@@ -2493,7 +2496,7 @@ export class TraderPerformanceService {
                if (tVolMw <= 0) return;
 
                const reportedKwh = tVolMw * 1000 * 0.25;
-               const tKwh = Math.min(reportedKwh, remainingSlotCapacity);
+               const tKwh = reportedKwh;
                if (tKwh <= 0) return;
                const slotLossMultiplier = Math.max(0,
                  (1 - (Number((s as any).istsLoss) || 0) / 100) *
@@ -2509,7 +2512,6 @@ export class TraderPerformanceService {
                traderExactCost += (tKwh * tPriceMwh) / 1000;
                slotTraderKwhTotal += tKwh;
                slotTraderConsumerBusTotal += deliveredKwh;
-               remainingSlotCapacity -= tKwh;
              });
              (s as any).actualTrades = trades;
              (s as any).traderMarketEnergyForSlot = slotTraderKwhTotal;
@@ -2735,12 +2737,14 @@ export class TraderPerformanceService {
     const actualTraderResidualElectricityDuty = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderElectricityDutyAfterOA || 0), 0);
     const actualTraderResidualDiscomCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDiscomBillTotal || 0), 0) + monthMisc;
 
-    if (globalTraderMarketEnergy > 0) {
-      globalTraderLandedCost += traderDailyFixedOverhead + traderBidApplicationFees + monthMisc + nocFee + regFee + actualTraderMarginTotal + actualTraderMarginGstTotal;
-    }
+    const actualTraderMarketSettlementCost = pdfMarketSettlementCost > 0
+      ? pdfMarketSettlementCost
+      : oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderSlabOaBill || 0), 0);
+    const actualTraderCost = actualTraderMarketSettlementCost + actualTraderResidualDiscomCost;
+    globalTraderLandedCost = actualTraderCost;
 
     const actualTraderSavings = globalTraderMarketEnergy > 0 && totalBaselineCost > 0
-      ? totalBaselineCost - globalTraderLandedCost
+      ? totalBaselineCost - actualTraderCost
       : 0;
 
     // Treat proltMargin as a percentage of gross savings
@@ -2771,6 +2775,7 @@ export class TraderPerformanceService {
         consumerBusEnergyKwh: globalTraderConsumerBusEnergy,
         residualDiscomEnergyKwh: actualTraderResidualDiscomEnergy,
         marketEnergyCost: actualTraderMarketEnergyCost,
+        marketSettlementCost: actualTraderMarketSettlementCost,
         cssCharge: actualTraderCssCharge,
         rpoCharge: actualTraderRpoCharge,
         pocCharge: actualTraderPocCharge,
@@ -2784,14 +2789,14 @@ export class TraderPerformanceService {
         registrationFee: globalTraderMarketEnergy > 0 ? regFee : 0,
         traderMargin: actualTraderMarginTotal,
         traderMarginGst: actualTraderMarginGstTotal,
-        totalOaCost: Math.max(0, globalTraderLandedCost - actualTraderResidualDiscomCost),
+        totalOaCost: actualTraderMarketSettlementCost,
         residualEnergyCost: actualTraderResidualEnergyCost,
         residualDemandCharge: actualTraderResidualDemandCharge,
         residualFppaCharge: actualTraderResidualFppaCharge,
         residualElectricityDuty: actualTraderResidualElectricityDuty,
         lapsedEnergyKwh: globalTraderLapsedEnergy,
         residualDiscomCost: actualTraderResidualDiscomCost,
-        totalCost: globalTraderLandedCost,
+        totalCost: actualTraderCost,
         baselineDiscomCost: totalBaselineCost,
         savings: actualTraderSavings
       },
