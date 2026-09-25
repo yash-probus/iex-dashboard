@@ -440,6 +440,7 @@ export class SavingsCalculatorService {
       currentLpsc: entry.currentLpsc ? Number(entry.currentLpsc) : 0,
       discom: entry.discom,
       peakDemand,
+      powerFactor: Number(entry.powerFactor) || 0.99,
       demandChargeRate,
       todSummaries: [],
       oaDetailed: {
@@ -2236,6 +2237,7 @@ export class SavingsCalculatorService {
       miscellaneousCharges: monthMisc,
       discom: entry.discom,
       peakDemand,
+      powerFactor: Number(entry.powerFactor) || 0.99,
       demandChargeRate,
       todSummaries,
       oaDetailed: {
