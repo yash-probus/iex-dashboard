@@ -1331,6 +1331,12 @@ export class TraderPerformanceService {
     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
     
     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+    const applyElectricityDuty = entry.applyElectricityDuty !== false;
+    const electricityDutyPercent = Number(
+      (monthConsumptions as any)?._meta?.electricityDutyPercent
+      ?? (entry as any).electricityDutyPercent
+      ?? 7.5
+    );
 
     const traderReports = (monthConsumptions as any).traderReports || { data: {} };
     const traderTradesLookup: Record<string, Record<number, any[]>> = {};
@@ -1840,7 +1846,10 @@ export class TraderPerformanceService {
       }
 
       const discomLandingWithFppa = discomBase * (1 + fppaPercent / 100);
-      let discomLanding = discomLandingWithFppa;
+      const discomLandingWithCharges = applyElectricityDuty
+        ? discomLandingWithFppa * (1 + electricityDutyPercent / 100)
+        : discomLandingWithFppa;
+      let discomLanding = discomLandingWithCharges;
       
       if (isNpcl) {
         discomLanding = discomLanding * 0.90 * 0.99;
@@ -2091,6 +2100,7 @@ export class TraderPerformanceService {
     }
     const isKvahBilling = baseTariff && String(baseTariff.baseEnergyUnit || '').toLowerCase() === 'kvah';
     const globalPf = Number(entry.powerFactor) || 0.99;
+    const consumptionValuesAreKwh = Array.isArray((monthConsumptions as any).slots);
     
     
     let preTotalEnergyKwh = 0;
@@ -2110,7 +2120,7 @@ export class TraderPerformanceService {
         
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
-          if (isKvahBilling) slabConsumption *= globalPf;
+          if (isKvahBilling && !consumptionValuesAreKwh) slabConsumption *= globalPf;
         } else {
           const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
@@ -2130,7 +2140,7 @@ export class TraderPerformanceService {
           if (flatTotal > 0) {
             const totalSlotsInMonth = slotsData.length;
             slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
-            if (isKvahBilling) slabConsumption *= globalPf;
+            if (isKvahBilling && !consumptionValuesAreKwh) slabConsumption *= globalPf;
           }
         }
       }
@@ -2168,7 +2178,7 @@ export class TraderPerformanceService {
         
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
-          if (isKvahBilling) slabConsumption *= globalPf;
+          if (isKvahBilling && !consumptionValuesAreKwh) slabConsumption *= globalPf;
         } else {
           const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
@@ -2188,7 +2198,7 @@ export class TraderPerformanceService {
           if (flatTotal > 0) {
             const totalSlotsInMonth = slotsData.length;
             slabConsumption = flatTotal * (slotsInGroup.length / totalSlotsInMonth);
-            if (isKvahBilling) slabConsumption *= globalPf;
+            if (isKvahBilling && !consumptionValuesAreKwh) slabConsumption *= globalPf;
           }
         }
 
@@ -2403,7 +2413,7 @@ export class TraderPerformanceService {
         });
         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
           slabConsumption = Number(monthConsumptions[matchedKey]);
-          if (isKvahBilling) slabConsumption *= globalPf;
+          if (isKvahBilling && !consumptionValuesAreKwh) slabConsumption *= globalPf;
         } else {
           const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
