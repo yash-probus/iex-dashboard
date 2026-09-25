@@ -1839,7 +1839,8 @@ export class TraderPerformanceService {
         }
       }
 
-      let discomLanding = discomBase;
+      const discomLandingWithFppa = discomBase * (1 + fppaPercent / 100);
+      let discomLanding = discomLandingWithFppa;
       
       if (isNpcl) {
         discomLanding = discomLanding * 0.90 * 0.99;
