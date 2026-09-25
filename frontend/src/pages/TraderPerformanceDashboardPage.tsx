@@ -758,14 +758,28 @@ export default function TraderPerformanceDashboardPage() {
                                     : undefined;
                                   const pf = Number(selectedMonthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
                                   const toKvAh = (kwh: number) => kwh / pf;
+                                  const monthKvah = (monthData: any) => {
+                                    const monthPf = Number(monthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
+                                    if (!Array.isArray(monthData?.slots)) return 0;
+                                    return monthData.slots.reduce(
+                                      (sum: number, slot: any) => sum + (Number(slot.consumptionKwh) || 0) / monthPf,
+                                      0
+                                    );
+                                  };
+                                  const totalEnergyKvah = selectedSimMonth !== 'all'
+                                    ? monthKvah(selectedMonthData)
+                                    : Object.entries((calcEntry?.todConsumptions || {}) as Record<string, any>)
+                                        .filter(([month]) => /^\d{4}-\d{2}$/.test(month))
+                                        .reduce((sum, [, monthData]) => sum + monthKvah(monthData), 0);
+                                  const displayedTotalKvah = totalEnergyKvah > 0 ? totalEnergyKvah : toKvAh(totalEnergy);
                                   
                                   return (
                                     <>
                                       <TableRow>
                                         <TableCell>Total Energy (kVAh)</TableCell>
-                                        <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                        <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                        <TableCell align="right">{toKvAh(totalEnergy).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{displayedTotalKvah.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{displayedTotalKvah.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell align="right">{displayedTotalKvah.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       </TableRow>
                                       <TableRow>
                                         <TableCell>OA Energy Bought at Regional Bus (kWh)</TableCell>
