@@ -642,9 +642,6 @@ export default function SavingsCalculatorPage() {
           const billingUnit = monthData['Billing Unit'] || 'kVAh';
           const isKvah = billingUnit === 'kVAh';
           
-          const monthPf = monthData['Power Factor'];
-          const pf = (monthPf && String(monthPf).trim() !== '') ? Number(monthPf) : (entry.powerFactor || (isKvah ? 0.99 : 1));
-          
           Object.keys(monthData).forEach(slab => {
             if (slab === '_rawKvah') return;
             
@@ -660,9 +657,8 @@ export default function SavingsCalculatorPage() {
             }
           });
           
-          // Ensure Billing Unit and Power Factor are set in state
+          // Ensure Billing Unit is set in state
           tc[ym]['Billing Unit'] = billingUnit;
-          tc[ym]['Power Factor'] = String(pf);
         });
       }
       setTodConsumptions(tc);
@@ -719,6 +715,7 @@ export default function SavingsCalculatorPage() {
         if (availableSupplyVoltageValues.length > 0 && !supplyVoltageValue.trim()) return false;
         return true;
       case 5:
+        if (!powerFactor.trim() || isNaN(parseFloat(powerFactor)) || parseFloat(powerFactor) <= 0 || parseFloat(powerFactor) > 1) return false;
         if (!sanctionedLoadKw.trim()) return false;
         const parsed = parseFloat(sanctionedLoadKw);
         return !isNaN(parsed) && parsed > 0;
@@ -773,6 +770,7 @@ export default function SavingsCalculatorPage() {
         industryName: industryName.trim(),
         address: address.trim(),
         sanctionedLoadKw: sanctionedLoadKw.trim() ? parseFloat(sanctionedLoadKw) : undefined,
+        powerFactor: powerFactor ? parseFloat(powerFactor) : undefined,
         stateCode: stateCode.trim() || undefined,
         discom: discom.trim() || undefined,
         consumerCategory: consumerCategory.trim() || undefined,
@@ -785,26 +783,22 @@ export default function SavingsCalculatorPage() {
         todConsumptions: Object.keys(todConsumptions).length > 0 ?
           Object.fromEntries(
             Object.entries(todConsumptions).map(([ym, data]) => {
-              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month', 'Billing Unit', 'Power Factor'];
+              const stringFields = ['Start Date', 'End Date', 'Electricity Duty', 'Bill Date', 'Season', 'Billing Month', 'Billing Unit'];
               const monthSlabs = getTodSlabsForMonth(ym);
               
               const billingUnit = data['Billing Unit'] || 'kVAh';
               const isKvah = billingUnit === 'kVAh';
-              
-              const pfInput = data['Power Factor'];
-              const pf = pfInput && String(pfInput).trim() !== '' ? Number(pfInput) : (isKvah ? 0.99 : 1);
 
               const processed: Record<string, any> = {};
 
               // Explicitly set these default fields so they are never lost
               processed['Billing Unit'] = billingUnit;
-              processed['Power Factor'] = pf;
 
               Object.entries(data).forEach(([k, v]) => {
                 if (!v || String(v).trim() === '') return;
                 
                 // Skip if we already explicitly set it
-                if (k === 'Billing Unit' || k === 'Power Factor') return;
+                if (k === 'Billing Unit') return;
 
                 if (stringFields.includes(k)) {
                   processed[k] = v;
@@ -1687,13 +1681,42 @@ export default function SavingsCalculatorPage() {
                   content: (
                     <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                       <TextField
+                        label="Power Factor *"
+                        type="number"
+                        inputProps={{ min: 0.1, max: 1.0, step: 0.01 }}
+                        value={powerFactor}
+                        onChange={(e) => {
+                          let val = e.target.value;
+                          if (val !== '') {
+                            if (Number(val) > 1) val = '1';
+                            else if (Number(val) < 0) val = '';
+                          }
+                          setPowerFactor(val);
+                          if (val && !isNaN(Number(val)) && sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
+                            setSanctionedLoadKva((Number(sanctionedLoadKw) / Number(val)).toFixed(2).replace(/\.00$/, ''));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || Number(e.target.value) <= 0) {
+                            setPowerFactor('0.99');
+                            if (sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
+                              setSanctionedLoadKva((Number(sanctionedLoadKw) / 0.99).toFixed(2).replace(/\.00$/, ''));
+                            }
+                          }
+                        }}
+                        sx={{ flex: 1, minWidth: '200px' }}
+                        variant="outlined"
+                        size="small"
+                      />
+                      <TextField
                         label="Sanctioned Load (kW)"
                         value={sanctionedLoadKw}
                         onChange={(e) => {
                           const val = e.target.value;
                           setSanctionedLoadKw(val);
                           if (val && !isNaN(Number(val))) {
-                            setSanctionedLoadKva((Number(val) / 0.99).toFixed(2).replace(/\.00$/, ''));
+                            const pf = powerFactor && !isNaN(Number(powerFactor)) ? Number(powerFactor) : 0.99;
+                            setSanctionedLoadKva((Number(val) / pf).toFixed(2).replace(/\.00$/, ''));
                           } else {
                             setSanctionedLoadKva('');
                           }
@@ -1721,7 +1744,8 @@ export default function SavingsCalculatorPage() {
                           const val = e.target.value;
                           setSanctionedLoadKva(val);
                           if (val && !isNaN(Number(val))) {
-                            setSanctionedLoadKw((Number(val) * 0.99).toFixed(2).replace(/\.00$/, ''));
+                            const pf = powerFactor && !isNaN(Number(powerFactor)) ? Number(powerFactor) : 0.99;
+                            setSanctionedLoadKw((Number(val) * pf).toFixed(2).replace(/\.00$/, ''));
                           } else {
                             setSanctionedLoadKw('');
                           }
@@ -1932,8 +1956,7 @@ export default function SavingsCalculatorPage() {
                         {monthSlabs.map(slab => {
                           const unit = todConsumptions[ym]['Billing Unit'] || 'kVAh';
                           const inputVal = Number(todConsumptions[ym][slab]) || 0;
-                          const pfInput = todConsumptions[ym]['Power Factor'];
-                          const pf = pfInput && pfInput.trim() ? Number(pfInput) : 0.99;
+                          const pf = powerFactor && !isNaN(Number(powerFactor)) ? Number(powerFactor) : 0.99;
                           let calculatedVal = '';
                           if (inputVal > 0) {
                             if (unit === 'kVAh') {
@@ -1964,26 +1987,7 @@ export default function SavingsCalculatorPage() {
                       Other Info <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span>
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6} md={3}>
-                        <TextField
-                          label="Power Factor"
-                          value={todConsumptions[ym]['Power Factor'] || ''}
-                          onChange={(e) => {
-                            let val = e.target.value;
-                            if (val !== '') {
-                              if (Number(val) > 1) val = '1';
-                              else if (Number(val) < 0) val = '';
-                            }
-                            setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': val } }))
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value === '' || Number(e.target.value) <= 0) {
-                              setTodConsumptions(prev => ({ ...prev, [ym]: { ...prev[ym], 'Power Factor': '0.99' } }))
-                            }
-                          }}
-                          fullWidth variant="outlined" size="small" type="number" placeholder="0.99" sx={{ bgcolor: '#FFF' }}
-                        />
-                      </Grid>
+
                       <Grid item xs={12} sm={6} md={3}>
                         <TextField
                           label="Current LPSC (₹)"
