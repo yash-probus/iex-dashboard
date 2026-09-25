@@ -2688,17 +2688,8 @@ export class TraderPerformanceService {
       (sum, row) => sum + Math.max(0, Number(row.traderConsumerBusUnits || 0) - Number(row.discomUnits || 0)),
       0
     );
-    const globalTraderResidualEnergy = Math.max(
-      0,
-      totalEnergyKwh - (globalTraderConsumerBusEnergy - globalTraderLapsedEnergy)
-    );
-    const summedTodTraderResidual = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
-    const residualReconciliationFactor = summedTodTraderResidual > 0
-      ? globalTraderResidualEnergy / summedTodTraderResidual
-      : 0;
-
     oaDetailedBreakdown.forEach(row => {
-      const reconciledResidualEnergy = Number(row.traderLeftoverDiscomEnergy || 0) * residualReconciliationFactor;
+      const reconciledResidualEnergy = Math.max(0, Number(row.traderLeftoverDiscomEnergy || 0));
       const reconciledBill = calculateResidualDiscomBill(
         reconciledResidualEnergy,
         Number(row.discomRate || 0),
