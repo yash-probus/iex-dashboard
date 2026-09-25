@@ -2756,7 +2756,7 @@ export class TraderPerformanceService {
     globalTraderLandedCost = actualTraderCost;
 
     const actualTraderSavings = globalTraderMarketEnergy > 0 && totalBaselineCost > 0
-      ? totalBaselineCost - actualTraderCost
+      ? totalBaselineCost - (actualTraderMarketSettlementCost + actualTraderResidualDiscomCost)
       : 0;
 
     // Treat proltMargin as a percentage of gross savings
@@ -2788,6 +2788,7 @@ export class TraderPerformanceService {
         residualDiscomEnergyKwh: actualTraderResidualDiscomEnergy,
         marketEnergyCost: actualTraderMarketEnergyCost,
         marketSettlementCost: actualTraderMarketSettlementCost,
+        actualMarketCost: actualTraderMarketSettlementCost,
         cssCharge: actualTraderCssCharge,
         rpoCharge: actualTraderRpoCharge,
         pocCharge: actualTraderPocCharge,
@@ -2808,8 +2809,11 @@ export class TraderPerformanceService {
         residualElectricityDuty: actualTraderResidualElectricityDuty,
         lapsedEnergyKwh: globalTraderLapsedEnergy,
         residualDiscomCost: actualTraderResidualDiscomCost,
+        actualDiscomCost: actualTraderResidualDiscomCost,
         totalCost: actualTraderCost,
+        totalActualCost: actualTraderCost,
         baselineDiscomCost: totalBaselineCost,
+        discomOnlyCost: totalBaselineCost,
         savings: actualTraderSavings
       },
       totalBaselineCost,
