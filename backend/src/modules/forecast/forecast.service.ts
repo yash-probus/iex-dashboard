@@ -235,16 +235,23 @@ export class ForecastService {
         let modelNum = 1;
         if (model === 'Model2') modelNum = 2;
 
-        // Fetch actuals for mapping
-        const actualRows: any[] = await prisma.$queryRawUnsafe(
-          `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
-           FROM "DamRecord" dr 
-           JOIN "Dataset" d ON dr."datasetId" = d.id 
-           WHERE d.market = 'DAM' AND d.status = 'ACTIVE'
-           AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
-          startDateStr,
-          endDateStr
-        );
+        // Fetch actuals for mapping from UP market table
+        const actuals = await prisma.exchangeDamRate.findMany({
+          where: {
+            state: 'UP',
+            date: {
+              gte: new Date(startDateStr),
+              lte: new Date(endDateStr)
+            }
+          },
+          select: { date: true, intervalTime: true, mcp: true }
+        });
+
+        const actualRows = actuals.map(a => {
+          const d = new Date(a.intervalTime);
+          const timeblock = Math.floor((d.getUTCHours() * 60 + d.getUTCMinutes()) / 15) + 1;
+          return { date: a.date, timeblock, mcp: a.mcp };
+        });
 
         for (const act of actualRows) {
           const dateStr = act.date instanceof Date 
@@ -305,49 +312,31 @@ export class ForecastService {
       try {
         const isGdam = market.toUpperCase() === 'GDAM';
         
-        // Fetch actuals for mapping
-        let actualRows: any[] = [];
+        // Fetch actuals for mapping from UP market tables
+        let actuals = [];
         if (isGdam) {
-          try {
-            actualRows = await prisma.$queryRawUnsafe(
-              `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
-               FROM "GdamNewRecord" dr 
-               JOIN "Dataset" d ON dr."datasetId" = d.id 
-               WHERE d.market = 'GDAM' AND d.status = 'ACTIVE'
-               AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
-              startDateStr,
-              endDateStr
-            );
-          } catch (eGdamNew) {
-            console.error('[ForecastService] Error querying GdamNewRecord:', eGdamNew);
-          }
-
-          if (!actualRows || actualRows.length === 0) {
-            try {
-              actualRows = await prisma.$queryRawUnsafe(
-                `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
-                 FROM "GdamRecord" dr 
-                 JOIN "Dataset" d ON dr."datasetId" = d.id 
-                 WHERE d.market = 'GDAM' AND d.status = 'ACTIVE'
-                 AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
-                startDateStr,
-                endDateStr
-              );
-            } catch (eGdamOld) {
-              console.error('[ForecastService] Error querying GdamRecord:', eGdamOld);
-            }
-          }
+          actuals = await prisma.exchangeGdamRate.findMany({
+            where: {
+              state: 'UP',
+              date: { gte: new Date(startDateStr), lte: new Date(endDateStr) }
+            },
+            select: { date: true, intervalTime: true, mcp: true }
+          });
         } else {
-          actualRows = await prisma.$queryRawUnsafe(
-            `SELECT d."deliveryDate" as date, dr."intervalNumber" as timeblock, dr.mcp 
-             FROM "RtmRecord" dr 
-             JOIN "Dataset" d ON dr."datasetId" = d.id 
-             WHERE d.market = 'RTM' AND d.status = 'ACTIVE'
-             AND d."deliveryDate" >= $1::date AND d."deliveryDate" <= $2::date;`,
-            startDateStr,
-            endDateStr
-          );
+          actuals = await prisma.exchangeRtmRate.findMany({
+            where: {
+              state: 'UP',
+              date: { gte: new Date(startDateStr), lte: new Date(endDateStr) }
+            },
+            select: { date: true, intervalTime: true, mcp: true }
+          });
         }
+
+        const actualRows = actuals.map(a => {
+          const d = new Date(a.intervalTime);
+          const timeblock = Math.floor((d.getUTCHours() * 60 + d.getUTCMinutes()) / 15) + 1;
+          return { date: a.date, timeblock, mcp: a.mcp };
+        });
 
         for (const act of actualRows) {
           const dateStr = act.date instanceof Date 
