@@ -63,12 +63,7 @@ endpoints.forEach((endpoint) => {
     const lowerMethod = method.toLowerCase();
     if (lowerMethod === 'middleware') return;
 
-    // If swagger-jsdoc already parsed this path and method, keep the detailed schema
-    if (swaggerDoc.paths[pathParts][lowerMethod]) {
-      return;
-    }
-
-    // Otherwise, generate a generic fallback response
+    // Generate a generic fallback response structure
     const pathParams = (pathParts.match(/\{[a-zA-Z0-9_]+\}/g) || []).map(p => p.replace(/[{}]/g, ''));
     const parameters = pathParams.map(param => ({
       in: 'path',
@@ -85,14 +80,40 @@ endpoints.forEach((endpoint) => {
       tag = segments[1].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
 
-    swaggerDoc.paths[pathParts][lowerMethod] = {
-      summary: `Auto-generated ${method} for ${pathParts}`,
-      description: 'This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.',
-      tags: [tag],
-      parameters: parameters,
-      responses: {
-        '200': {
-          description: 'Successful response'
+    if (!swaggerDoc.paths[pathParts][lowerMethod]) {
+      swaggerDoc.paths[pathParts][lowerMethod] = {
+        summary: `Auto-generated ${method} for ${pathParts}`,
+        description: 'This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.',
+        tags: [tag],
+        parameters: parameters,
+        responses: {
+          '200': {
+            description: 'Successful response'
+          }
+        }
+      };
+    }
+
+    // Force add security requirement if not present
+    if (!swaggerDoc.paths[pathParts][lowerMethod].security) {
+      swaggerDoc.paths[pathParts][lowerMethod].security = [{ bearerAuth: [] }];
+    }
+
+    // Force add 401 Unauthorized response
+    swaggerDoc.paths[pathParts][lowerMethod].responses = {
+      ...swaggerDoc.paths[pathParts][lowerMethod].responses,
+      '401': {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                success: { type: 'boolean', example: false },
+                message: { type: 'string', example: 'Unauthorized' }
+              }
+            }
+          }
         }
       }
     };
