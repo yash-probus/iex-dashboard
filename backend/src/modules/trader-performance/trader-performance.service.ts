@@ -1619,10 +1619,11 @@ export class TraderPerformanceService {
     }
 
     const EXCHANGE_FEES = 0.02;
-    const GST_EXCHANGE = 0;
+    const GST_RATE = 0.18;
+    const GST_EXCHANGE = EXCHANGE_FEES * GST_RATE;
     const OTHER_CHARGES = 0.1;
     const TRADER_MARGIN = traderMargin;
-    const GST_TRADER_MARGIN = 0;
+    const GST_TRADER_MARGIN = TRADER_MARGIN * GST_RATE;
     const RPO_FLAT_RATE = 0.25;
     const NLDC_APPLICATION_FEE_PER_BID = 5;
 
@@ -1722,9 +1723,9 @@ export class TraderPerformanceService {
         const safeStu = Math.min(stuLoss, 99.9);
         const safeWheeling = Math.min(wheelingLoss, 99.9);
         const lossCoefficient = (1 - (safeIsts / 100)) * (1 - (safeStu / 100)) * (1 - (safeWheeling / 100));
-        const regionalCharges = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + additionalSurcharge;
+        const regionalCharges = mcp + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
         const lossAdjustedRegional = regionalCharges / lossCoefficient;
-        return lossAdjustedRegional + crossSubsidy;
+        return lossAdjustedRegional;
       };
 
       const damLanding = calcExchangeLanding(damMcp);
