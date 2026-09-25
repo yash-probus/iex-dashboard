@@ -2473,13 +2473,16 @@ export class TraderPerformanceService {
            if (trades && Array.isArray(trades)) {
              let slotTraderKwhTotal = 0;
              let slotTraderConsumerBusTotal = 0;
+             let remainingSlotCapacity = maxEnergyPerSlot;
              trades.forEach(trade => {
                const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
                const tPriceMwh = Math.abs(Number(trade.rate_mwh || trade.price || trade.mcp || 0));
 
                if (tVolMw <= 0) return;
 
-               const tKwh = tVolMw * 1000 * 0.25;
+               const reportedKwh = tVolMw * 1000 * 0.25;
+               const tKwh = Math.min(reportedKwh, remainingSlotCapacity);
+               if (tKwh <= 0) return;
                const slotLossMultiplier = Math.max(0,
                  (1 - (Number((s as any).istsLoss) || 0) / 100) *
                  (1 - (Number(stuLoss) || 0) / 100) *
@@ -2494,6 +2497,7 @@ export class TraderPerformanceService {
                traderExactCost += (tKwh * tPriceMwh) / 1000;
                slotTraderKwhTotal += tKwh;
                slotTraderConsumerBusTotal += deliveredKwh;
+               remainingSlotCapacity -= tKwh;
              });
              (s as any).actualTrades = trades;
              (s as any).traderMarketEnergyForSlot = slotTraderKwhTotal;
