@@ -2079,7 +2079,7 @@ export class SavingsCalculatorService {
           if (flatTotal > 0) {
             const totalSlotsInMonth = slotsData.length;
             slabConsumption = flatTotal * (slotsByTod[groupKey].length / totalSlotsInMonth);
-            if (isKvahBilling) slabConsumption *= globalPf;
+            if (isKvahBilling && !consumptionValuesAreKwh) slabConsumption *= globalPf;
           }
         }
       }
