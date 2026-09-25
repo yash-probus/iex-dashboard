@@ -2614,8 +2614,11 @@ export class TraderPerformanceService {
 
       const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
       
-      const traderLeftoverDiscomEnergy = 0;
-      traderLapsedEnergy = 0;
+      // Actual trader energy is banked by TOD across the full billing period.
+      // Date does not restrict usage, but energy cannot move between TOD slabs.
+      const traderTodNetEnergy = traderConsumerBusUnits - slabConsumption;
+      const traderLeftoverDiscomEnergy = Math.max(0, -traderTodNetEnergy);
+      traderLapsedEnergy = Math.max(0, traderTodNetEnergy);
 
       const traderDiscomBill = calculateResidualDiscomBill(
         traderLeftoverDiscomEnergy,
@@ -2679,12 +2682,23 @@ export class TraderPerformanceService {
       });
     });
 
-    let bankedTraderConsumerEnergy = globalTraderConsumerBusEnergy;
+    // Reconcile residual DISCOM energy from the pooled same-TOD balances.
+    // A later-date purchase can satisfy an earlier-date demand in the same TOD.
+    globalTraderLapsedEnergy = oaDetailedBreakdown.reduce(
+      (sum, row) => sum + Math.max(0, Number(row.traderConsumerBusUnits || 0) - Number(row.discomUnits || 0)),
+      0
+    );
+    const globalTraderResidualEnergy = Math.max(
+      0,
+      totalEnergyKwh - (globalTraderConsumerBusEnergy - globalTraderLapsedEnergy)
+    );
+    const summedTodTraderResidual = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
+    const residualReconciliationFactor = summedTodTraderResidual > 0
+      ? globalTraderResidualEnergy / summedTodTraderResidual
+      : 0;
+
     oaDetailedBreakdown.forEach(row => {
-      const slabConsumption = Number(row.discomUnits || 0);
-      const usedFromBank = Math.min(slabConsumption, bankedTraderConsumerEnergy);
-      const reconciledResidualEnergy = Math.max(0, slabConsumption - usedFromBank);
-      bankedTraderConsumerEnergy -= usedFromBank;
+      const reconciledResidualEnergy = Number(row.traderLeftoverDiscomEnergy || 0) * residualReconciliationFactor;
       const reconciledBill = calculateResidualDiscomBill(
         reconciledResidualEnergy,
         Number(row.discomRate || 0),
@@ -2700,11 +2714,6 @@ export class TraderPerformanceService {
       row.traderElectricityDutyAfterOA = reconciledBill.electricityDuty;
       row.traderDiscomBillTotal = reconciledBill.totalBill;
     });
-
-    globalTraderLapsedEnergy = Math.max(0, bankedTraderConsumerEnergy);
-    if (globalTraderLapsedEnergy > 0 && oaDetailedBreakdown.length > 0) {
-      oaDetailedBreakdown[oaDetailedBreakdown.length - 1].traderLapsedEnergy = globalTraderLapsedEnergy;
-    }
 
     globalTraderLandedCost = oaDetailedBreakdown.reduce(
       (sum, row) => sum + Number(row.traderSlabOaBill || 0) + Number(row.traderDiscomBillTotal || 0),
