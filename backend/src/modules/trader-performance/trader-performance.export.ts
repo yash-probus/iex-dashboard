@@ -361,9 +361,9 @@ export class TraderPerformanceExportService {
     const isNpcl = result.discom === 'NPCL';
     
     const misc = result.miscellaneousCharges || 0;
-    let energyCharges = isActualTrader && result.actualTrader ? (result.actualTrader.residualEnergyCost || 0) : ((result as any).baselineEnergyCharges ?? ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc));
-    let demandCharges = isActualTrader && result.actualTrader ? (result.actualTrader.residualDemandCharge || 0) : ((result as any).demandAndFixedChargesApplied ?? (result.demandCharge || 0));
-    const ed = isActualTrader && result.actualTrader ? (result.actualTrader.residualElectricityDuty || 0) : (result.electricityDuty || 0);
+    let energyCharges = (result as any).baselineEnergyCharges ?? ((result.totalBaselineCost || 0) - (result.demandCharge || 0) - (result.electricityDuty || 0) - misc);
+    let demandCharges = (result as any).demandAndFixedChargesApplied ?? (result.demandCharge || 0);
+    const ed = result.electricityDuty || 0;
     const arrear = result.arrearAmount || 0;
     const lpsc = result.currentLpsc || 0;
     
@@ -416,8 +416,8 @@ export class TraderPerformanceExportService {
     if (lpsc !== 0) sheet.addRow(['Current LPSC', Math.round(lpsc)]);
     
     const hasExplicitFppa = (isActualTrader && result.actualTrader) ? (result.actualTrader.residualFppaCharge !== undefined) : ((result as any).fppaCharge !== undefined || (result as any).fppaSurcharge !== undefined);
-    let correctBaseEnergy = (isActualTrader && result.actualTrader) ? (result.actualTrader.residualEnergyCost || 0) : ((result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0);
-    let correctFppa = (isActualTrader && result.actualTrader) ? (result.actualTrader.residualFppaCharge || 0) : ((result as any).fppaCharge || (result as any).fppaSurcharge || 0);
+    let correctBaseEnergy = (result as any).pureEnergyCost || (result as any).baselineEnergyCharges || result.totalBaselineCost || 0;
+    let correctFppa = (result as any).fppaCharge || (result as any).fppaSurcharge || 0;
     const totalBaselineWithMisc = correctBaseEnergy + correctFppa + demandCharges + ed + arrear + lpsc + misc;
     const baseTotalRow = sheet.addRow(['Total DISCOM Baseline Bill', Math.round(totalBaselineWithMisc)]);
     rowMapping['totalBaselineBillRow'] = baseTotalRow.number;baseTotalRow.font = { bold: true };
