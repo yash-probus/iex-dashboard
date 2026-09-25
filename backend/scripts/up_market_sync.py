@@ -21,7 +21,7 @@ IEX_API_URL = os.getenv("IEX_API_URL", "https://www.iexindia.com/IEXPublish/AppS
 IEX_API_TOKEN = os.getenv("IEX_API_TOKEN", "NCLIEXHkl7900@8Uyhkj")
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "iex-postgres")
-POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
+POSTGRES_PORT = int(os.getenv("POSTGRES_INTERNAL_PORT", "5432"))
 POSTGRES_DATABASE = os.getenv("POSTGRES_DATABASE", "Prolt_Operations")
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
