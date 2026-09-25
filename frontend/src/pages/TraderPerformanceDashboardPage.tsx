@@ -753,7 +753,10 @@ export default function TraderPerformanceDashboardPage() {
                                       : (discomCost - actualTraderCost);
                                 const hasTraderData = exactTraderMarketEnergy > 0 || traderBoughtKwh > 0;
 
-                                  const pf = calcEntry?.powerFactor ? Number(calcEntry.powerFactor) : 1;
+                                  const selectedMonthData = selectedSimMonth !== 'all'
+                                    ? (calcEntry?.todConsumptions as any)?.[selectedSimMonth]
+                                    : undefined;
+                                  const pf = Number(selectedMonthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
                                   const toKvAh = (kwh: number) => kwh / pf;
                                   
                                   return (
@@ -848,7 +851,10 @@ export default function TraderPerformanceDashboardPage() {
                               </TableHead>
                               <TableBody>
                                 {marketDecisionResult.oaDetailed.breakdown.map((row: any, idx: number) => {
-                                  const pf = calcEntry?.powerFactor ? Number(calcEntry.powerFactor) : 1;
+                                  const selectedMonthData = selectedSimMonth !== 'all'
+                                    ? (calcEntry?.todConsumptions as any)?.[selectedSimMonth]
+                                    : undefined;
+                                  const pf = Number(selectedMonthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
                                   const toKvAh = (kwh: number) => kwh / pf;
                                   return (
                                     <TableRow key={idx}>
