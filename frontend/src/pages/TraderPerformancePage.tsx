@@ -1896,6 +1896,21 @@ export default function TraderPerformancePage() {
                             const updated = { ...todConsumptions };
                             if (!updated[ym]) updated[ym] = { startDate: '', endDate: '', peakDemandKw: 1000, slots: [] };
                             updated[ym]['Power Factor'] = val;
+                            
+                            const currentPf = val && !isNaN(Number(val)) && Number(val) > 0 ? Number(val) : 0.99;
+                            if (updated[ym].slots && Array.isArray(updated[ym].slots)) {
+                              updated[ym].slots = updated[ym].slots.map((slot: any) => {
+                                const newSlot = { ...slot };
+                                if (newSlot._kvahInput !== undefined && newSlot._kvahInput !== '') {
+                                  newSlot.consumptionKwh = parseFloat((Number(newSlot._kvahInput) * currentPf).toFixed(4));
+                                }
+                                if (newSlot._effPriceKvahInput !== undefined && newSlot._effPriceKvahInput !== '') {
+                                  newSlot.effectivePrice = Number((Number(newSlot._effPriceKvahInput) / currentPf).toFixed(4));
+                                }
+                                return newSlot;
+                              });
+                            }
+                            
                             setTodConsumptions(updated);
                           }}
                           onBlur={(e) => {
@@ -1903,6 +1918,21 @@ export default function TraderPerformancePage() {
                               const updated = { ...todConsumptions };
                               if (!updated[ym]) updated[ym] = { startDate: '', endDate: '', peakDemandKw: 1000, slots: [] };
                               updated[ym]['Power Factor'] = '0.99';
+                              
+                              const currentPf = 0.99;
+                              if (updated[ym].slots && Array.isArray(updated[ym].slots)) {
+                                updated[ym].slots = updated[ym].slots.map((slot: any) => {
+                                  const newSlot = { ...slot };
+                                  if (newSlot._kvahInput !== undefined && newSlot._kvahInput !== '') {
+                                    newSlot.consumptionKwh = parseFloat((Number(newSlot._kvahInput) * currentPf).toFixed(4));
+                                  }
+                                  if (newSlot._effPriceKvahInput !== undefined && newSlot._effPriceKvahInput !== '') {
+                                    newSlot.effectivePrice = Number((Number(newSlot._effPriceKvahInput) / currentPf).toFixed(4));
+                                  }
+                                  return newSlot;
+                                });
+                              }
+                              
                               setTodConsumptions(updated);
                             }
                           }}

@@ -1473,6 +1473,32 @@ export default function SavingsCalculatorNewPage() {
                       if (val && !isNaN(Number(val)) && sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
                         setSanctionedLoadKva((Number(sanctionedLoadKw) / Number(val)).toFixed(2).replace(/\.00$/, ''));
                       }
+                      
+                      const newGlobalPf = val && !isNaN(Number(val)) && Number(val) > 0 ? Number(val) : 0.99;
+                      const updated = { ...todConsumptions };
+                      let hasChanges = false;
+                      Object.keys(updated).forEach(ym => {
+                        const monthPf = updated[ym]['Power Factor'];
+                        const currentPf = monthPf && !isNaN(Number(monthPf)) && Number(monthPf) > 0 ? Number(monthPf) : newGlobalPf;
+                        
+                        if (updated[ym].slots && Array.isArray(updated[ym].slots)) {
+                          updated[ym].slots = updated[ym].slots.map((slot: any) => {
+                            const newSlot = { ...slot };
+                            let changed = false;
+                            if (newSlot._kvahInput !== undefined && newSlot._kvahInput !== '') {
+                              newSlot.consumptionKwh = parseFloat((Number(newSlot._kvahInput) * currentPf).toFixed(4));
+                              changed = true;
+                            }
+                            if (newSlot._effPriceKvahInput !== undefined && newSlot._effPriceKvahInput !== '') {
+                              newSlot.effectivePrice = Number((Number(newSlot._effPriceKvahInput) / currentPf).toFixed(4));
+                              changed = true;
+                            }
+                            if (changed) hasChanges = true;
+                            return newSlot;
+                          });
+                        }
+                      });
+                      if (hasChanges) setTodConsumptions(updated);
                     }}
                     onBlur={(e) => {
                       if (e.target.value === '' || Number(e.target.value) <= 0) {
@@ -1480,6 +1506,32 @@ export default function SavingsCalculatorNewPage() {
                         if (sanctionedLoadKw && !isNaN(Number(sanctionedLoadKw))) {
                           setSanctionedLoadKva((Number(sanctionedLoadKw) / 0.99).toFixed(2).replace(/\.00$/, ''));
                         }
+                        
+                        const newGlobalPf = 0.99;
+                        const updated = { ...todConsumptions };
+                        let hasChanges = false;
+                        Object.keys(updated).forEach(ym => {
+                          const monthPf = updated[ym]['Power Factor'];
+                          const currentPf = monthPf && !isNaN(Number(monthPf)) && Number(monthPf) > 0 ? Number(monthPf) : newGlobalPf;
+                          
+                          if (updated[ym].slots && Array.isArray(updated[ym].slots)) {
+                            updated[ym].slots = updated[ym].slots.map((slot: any) => {
+                              const newSlot = { ...slot };
+                              let changed = false;
+                              if (newSlot._kvahInput !== undefined && newSlot._kvahInput !== '') {
+                                newSlot.consumptionKwh = parseFloat((Number(newSlot._kvahInput) * currentPf).toFixed(4));
+                                changed = true;
+                              }
+                              if (newSlot._effPriceKvahInput !== undefined && newSlot._effPriceKvahInput !== '') {
+                                newSlot.effectivePrice = Number((Number(newSlot._effPriceKvahInput) / currentPf).toFixed(4));
+                                changed = true;
+                              }
+                              if (changed) hasChanges = true;
+                              return newSlot;
+                            });
+                          }
+                        });
+                        if (hasChanges) setTodConsumptions(updated);
                       }
                     }}
                     fullWidth
