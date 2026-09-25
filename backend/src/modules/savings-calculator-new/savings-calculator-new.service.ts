@@ -1049,7 +1049,7 @@ export class SavingsCalculatorNewService {
         // FPPA is now calculated explicitly later, so we do not bake it into discomLandingPrice
 
         if (entry.discom === 'NPCL' && (!matchedCustomSlot || Number(matchedCustomSlot.effectivePrice) === 0)) {
-          discomLandingPrice = (entry.powerFactor ? discomLandingPrice * 0.90 * Number(entry.powerFactor) : discomLandingPrice * 0.90 * 0.99);
+          discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
         }
 
         let comparedLowestPrice = discomLandingPrice;
@@ -2254,7 +2254,7 @@ export class SavingsCalculatorNewService {
       const slabEnergyBill = slabConsumption * slabDiscomRate;
 
       const getDiscountedDemandCharge = (dc: number) => {
-        return entry.discom === 'NPCL' ? dc * 0.90 * globalPf : dc;
+        return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
       };
 
       const demandChargeDiscounted = getDiscountedDemandCharge(slabDemandCharge);
