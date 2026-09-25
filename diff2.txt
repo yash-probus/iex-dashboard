@@ -1,0 +1,1285 @@
+--- /Users/yashgupta/IEX-Dashboard/backend/src/modules/savings-calculator/savings-calculator.service.ts	2026-09-22 11:59:51
++++ /Users/yashgupta/IEX-Dashboard/backend/src/modules/trader-performance/trader-performance.service.ts	2026-09-24 14:37:04
+@@ -2,8 +2,8 @@
+ import { getCache, setCache, invalidateCache } from '../../config/redis';
+ 
+ export function getFlooredMaxEnergyPerSlot(sanctionedLoadKw: any): number {
+-  const load = (sanctionedLoadKw && typeof sanctionedLoadKw.toNumber === 'function')
+-    ? sanctionedLoadKw.toNumber()
++  const load = (sanctionedLoadKw && typeof sanctionedLoadKw.toNumber === 'function') 
++    ? sanctionedLoadKw.toNumber() 
+     : (Number(sanctionedLoadKw) || 0);
+   if (load <= 0) return 0;
+   // The frontend already passes sanctionedLoadKw as (kVA * 0.9), so we just convert to MW.
+@@ -14,15 +14,105 @@
+   return flooredMw * 1000 * 0.25;
+ }
+ 
+-export class SavingsCalculatorService {
++export class TraderPerformanceService {
++  static async getResourceDefaults(params: {
++    stateCode?: string;
++    discom?: string;
++    consumerCategory?: string;
++    voltageLevel?: string;
++    monthStr?: string;
++  }) {
++    let fppaChargePercent = 10.0;
++    let demandChargeKwRate = 250.0;
++    let electricityDutyPercent = 7.5;
++
++    try {
++      if (params.stateCode) {
++        let parsedCategory = params.consumerCategory || 'Industrial';
++        let parsedSubCategory = undefined;
++        if (parsedCategory.includes(' | ')) {
++          const parts = parsedCategory.split(' | ');
++          parsedCategory = parts[0];
++          parsedSubCategory = parts[1];
++        } else {
++          if (parsedCategory === 'HV-1 A') {
++            parsedCategory = 'HV-1';
++            parsedSubCategory = 'Commercial, Private Inst';
++          } else if (parsedCategory === 'HV-1 B') {
++            parsedCategory = 'HV-1';
++            parsedSubCategory = 'Public Inst., Societies';
++          } else if (parsedCategory === 'LMV-11 (Multistoried Buildings)') {
++            parsedCategory = 'LMV-11';
++            parsedSubCategory = 'Multistoried Buildings';
++          } else if (parsedCategory === 'LMV-11 (Public Charging)') {
++            parsedCategory = 'LMV-11';
++            parsedSubCategory = 'Public Charging';
++          }
++        }
++        
++        let stateName = params.stateCode;
++        const rs = await prisma.regionState.findFirst({ where: { stateCode: stateName } });
++        if (rs && rs.stateName) {
++          stateName = rs.stateName;
++        }
++
++        const stateFormats = [stateName, stateName.toUpperCase(), stateName.toUpperCase().replace(/\s+/g, '_'), stateName.charAt(0).toUpperCase() + stateName.slice(1).toLowerCase()];
++
++        const today = new Date();
++        const yyyymmMonth = params.monthStr 
++          ? parseInt(params.monthStr.replace('-', ''), 10) 
++          : today.getFullYear() * 100 + (today.getMonth() + 1);
++        
++        const fppaDataList = await prisma.fppaCharges.findMany({
++          where: {
++            state: { in: stateFormats },
++            month: yyyymmMonth
++          }
++        });
++        let fppaData: any = undefined;
++        if (params.discom) {
++          fppaData = fppaDataList.find((f: any) => f.discom === params.discom);
++        }
++        if (!fppaData) {
++          fppaData = fppaDataList.find((f: any) => !f.discom || f.discom === '');
++        }
++        if (fppaData && fppaData.fppaChargePercent) {
++          fppaChargePercent = Number(fppaData.fppaChargePercent);
++        }
++
++        const stateCharges = await prisma.stateCharges.findFirst({
++          where: {
++            state: { in: stateFormats },
++            discom: params.discom === 'NPCL' ? 'NPCL' : null,
++            category: parsedCategory
++          },
++          orderBy: {
++            fromDate: 'desc'
++          }
++        });
++        if (stateCharges && stateCharges.demandFixedChargeKvaPerMonthRs) {
++          demandChargeKwRate = Number(stateCharges.demandFixedChargeKvaPerMonthRs);
++        }
++      }
++    } catch (e) {
++      console.error('Error fetching resource defaults in service:', e);
++    }
++
++    return {
++      fppaChargePercent,
++      demandChargeKwRate,
++      electricityDutyPercent
++    };
++  }
++
+   static async getAll() {
+-    return prisma.savingsCalculatorEntry.findMany({
++    return prisma.traderPerformanceEntry.findMany({
+       orderBy: { createdAt: 'desc' }
+     });
+   }
+ 
+   static async getById(id: string) {
+-    return prisma.savingsCalculatorEntry.findUnique({
++    return prisma.traderPerformanceEntry.findUnique({
+       where: { id }
+     });
+   }
+@@ -30,7 +120,7 @@
+ 
+   static async getEntryOrVersion(id: string, version?: number) {
+     if (version !== undefined) {
+-      const historyEntry = await prisma.savingsCalculatorEntryHistory.findFirst({
++      const historyEntry = await prisma.traderPerformanceEntryHistory.findFirst({
+         where: { entryId: id, version }
+       });
+       if (historyEntry) {
+@@ -69,7 +159,7 @@
+     updatedBy?: string;
+   }) {
+     return prisma.$transaction(async (tx) => {
+-      const entry = await tx.savingsCalculatorEntry.create({
++      const entry = await tx.traderPerformanceEntry.create({
+         data: {
+           clientName: data.clientName,
+           industryName: data.industryName,
+@@ -96,7 +186,7 @@
+         }
+       });
+ 
+-      await tx.savingsCalculatorEntryHistory.create({
++      await tx.traderPerformanceEntryHistory.create({
+         data: {
+           entryId: entry.id,
+           version: 1,
+@@ -153,7 +243,7 @@
+     updatedBy?: string;
+   }) {
+     return prisma.$transaction(async (tx) => {
+-      const entry = await tx.savingsCalculatorEntry.update({
++      const entry = await tx.traderPerformanceEntry.update({
+         where: { id },
+         data: {
+           clientName: data.clientName,
+@@ -181,13 +271,13 @@
+       });
+ 
+       // Find highest version
+-      const lastHistory = await tx.savingsCalculatorEntryHistory.findFirst({
++      const lastHistory = await tx.traderPerformanceEntryHistory.findFirst({
+         where: { entryId: id },
+         orderBy: { version: 'desc' }
+       });
+       const nextVersion = lastHistory ? lastHistory.version + 1 : 1;
+ 
+-      await tx.savingsCalculatorEntryHistory.create({
++      await tx.traderPerformanceEntryHistory.create({
+         data: {
+           entryId: entry.id,
+           version: nextVersion,
+@@ -225,7 +315,7 @@
+   }
+ 
+   static async delete(id: string) {
+-    const res = await prisma.savingsCalculatorEntry.delete({
++    const res = await prisma.traderPerformanceEntry.delete({
+       where: { id }
+     });
+     await invalidateCache(`market:${id}:*`);
+@@ -235,14 +325,14 @@
+   }
+ 
+   static async getHistory(id: string) {
+-    return prisma.savingsCalculatorEntryHistory.findMany({
++    return prisma.traderPerformanceEntryHistory.findMany({
+       where: { entryId: id },
+       orderBy: { version: 'desc' }
+     });
+   }
+ 
+   static async getClientOverview(id: string) {
+-    const entry = await prisma.savingsCalculatorEntry.findUnique({
++    const entry = await prisma.traderPerformanceEntry.findUnique({
+       where: { id }
+     });
+ 
+@@ -260,7 +350,7 @@
+       };
+     }
+ 
+-    const months = Object.keys(todConsumptions).sort();
++    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+     let totalSavings = 0;
+     const monthsData = [];
+     const aggregatedCosts = {
+@@ -287,7 +377,7 @@
+ 
+     for (const month of months) {
+       try {
+-        const result = await SavingsCalculatorService.calculateMarketDecision(id, month);
++        const result = await TraderPerformanceService.calculateMarketDecision(id, month);
+         const netSavings = result.totalSavings;
+         const grossSavings = netSavings + (result.oaDetailed?.totals?.proltMarginCost || 0);
+ 
+@@ -354,7 +444,7 @@
+     const todConsumptions = entry.todConsumptions as any;
+     if (!todConsumptions) throw new Error('No consumption data found');
+ 
+-    const months = Object.keys(todConsumptions).sort();
++    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+     let totalSavings = 0;
+     let totalBaselineCost = 0;
+     let totalEnergyKwh = 0;
+@@ -365,7 +455,39 @@
+     let electricityDuty = 0;
+     let peakDemand = 0;
+     let totalConsumerBusEnergyKwh = 0;
++    let totalTraderMarketEnergy = 0;
++    let totalTraderConsumerBusEnergy = 0;
++    let totalTraderLandedCost = 0;
++    let actualTraderSavings = 0;
+     let demandChargeRate = 0;
++    const actualTrader = {
++      marketEnergyKwh: 0,
++      consumerBusEnergyKwh: 0,
++      residualDiscomEnergyKwh: 0,
++      marketEnergyCost: 0,
++      cssCharge: 0,
++      rpoCharge: 0,
++      pocCharge: 0,
++      stuCharge: 0,
++      wheelingCharge: 0,
++      iexFee: 0,
++      nldcSchedulingCost: 0,
++      sldcSchedulingCost: 0,
++      bidApplicationFees: 0,
++      nocFee: 0,
++      registrationFee: 0,
++      traderMargin: 0,
++      traderMarginGst: 0,
++      totalOaCost: 0,
++      residualEnergyCost: 0,
++      residualDemandCharge: 0,
++      residualFppaCharge: 0,
++      residualElectricityDuty: 0,
++      residualDiscomCost: 0,
++      totalCost: 0,
++      baselineDiscomCost: 0,
++      savings: 0
++    };
+ 
+     const aggregatedTotals = {
+       cssCharge: 0, cssRate: 0, rpoCharge: 0, pocCharge: 0, stuCharge: 0,
+@@ -392,6 +514,15 @@
+           electricityDuty += res.electricityDuty;
+           peakDemand = Math.max(peakDemand, (res as any).peakDemand || 0);
+           totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
++          totalTraderMarketEnergy += (res as any).totalTraderMarketEnergy || 0;
++          totalTraderConsumerBusEnergy += (res as any).totalTraderConsumerBusEnergy || 0;
++          totalTraderLandedCost += (res as any).totalTraderLandedCost || 0;
++          actualTraderSavings += (res as any).actualTraderSavings || 0;
++          if ((res as any).actualTrader) {
++            Object.keys(actualTrader).forEach(key => {
++              (actualTrader as any)[key] += Number((res as any).actualTrader[key] || 0);
++            });
++          }
+           demandChargeRate = (res as any).demandChargeRate || demandChargeRate;
+ 
+           if (res.oaDetailed) {
+@@ -429,6 +560,11 @@
+       totalEnergyKwh,
+       totalMarketEnergyKwh,
+       totalConsumerBusEnergyKwh,
++      totalTraderMarketEnergy,
++      totalTraderConsumerBusEnergy,
++      totalTraderLandedCost,
++      actualTraderSavings,
++      actualTrader,
+       totalBaselineCost,
+       totalLandedExchangeCost,
+       totalDiscomAfterProlt,
+@@ -459,13 +595,15 @@
+     const todConsumptions = entry.todConsumptions as any;
+     if (!todConsumptions) throw new Error('No consumption data found');
+ 
+-    const months = Object.keys(todConsumptions).sort();
++    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+     let totalSavings = 0;
+     let totalOptimizedCost = 0;
+     let totalBaselineCost = 0;
+     let totalEnergyKwh = 0;
+     let totalMarketEnergyKwh = 0;
+     let totalConsumerBusEnergyKwh = 0;
++    let totalTraderMarketEnergy = 0;
++    let totalTraderLandedCost = 0;
+ 
+     for (const month of months) {
+       try {
+@@ -477,6 +615,8 @@
+           totalEnergyKwh += res.totalEnergyKwh;
+           totalMarketEnergyKwh += res.totalMarketEnergyKwh;
+           totalConsumerBusEnergyKwh += (res as any).totalConsumerBusEnergyKwh || res.totalMarketEnergyKwh;
++          totalTraderMarketEnergy += (res as any).totalTraderMarketEnergy || 0;
++          totalTraderLandedCost += (res as any).totalTraderLandedCost || 0;
+         }
+       } catch (e) {
+         console.error("Error calculating month", month, e);
+@@ -491,6 +631,8 @@
+       totalEnergyKwh,
+       totalMarketEnergyKwh,
+       totalConsumerBusEnergyKwh,
++      totalTraderMarketEnergy,
++      totalTraderLandedCost,
+       totalBaselineCost,
+       totalOptimizedCost,
+       totalSavings,
+@@ -546,6 +688,8 @@
+     let totalEnergyKwh = 0;
+     let totalMarketEnergyKwh = 0;
+     let totalConsumerBusEnergyKwh = 0;
++    let totalTraderMarketEnergy = 0;
++    let totalTraderLandedCost = 0;
+ 
+     let monthsToProcess = Object.entries(todConsumptions);
+     if (targetMonth) {
+@@ -673,7 +817,7 @@
+       let endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+ 
+       // Fetch stateCharges for losses
+-      const stateCharges = await prisma.stateCharges.findFirst({
++      let stateCharges = await prisma.stateCharges.findFirst({
+         where: {
+           state: { in: stateFormats },
+           discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+@@ -682,6 +826,16 @@
+           toDate: { gte: new Date(startStr) }
+         }
+       });
++      if (!stateCharges) {
++        stateCharges = await prisma.stateCharges.findFirst({
++          where: {
++            state: { in: stateFormats },
++            discom: entry.discom === 'NPCL' ? 'NPCL' : null,
++            category: parsedCategory
++          },
++          orderBy: { fromDate: 'desc' }
++        });
++      }
+       const stuLoss = stateCharges?.stuLossPercent ? Number(stateCharges.stuLossPercent) : 0;
+       const wheelingLoss = stateCharges?.wheelingLossPercent ? Number(stateCharges.wheelingLossPercent) : 0;
+ 
+@@ -747,7 +901,7 @@
+           where: fallbackWhere,
+           orderBy: { month: 'desc' }
+         });
+-        const sameMonthTariff = allTariffs.find(t =>
++        const sameMonthTariff = allTariffs.find(t => 
+           t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+         );
+         const latestTariff = sameMonthTariff || allTariffs[0];
+@@ -800,6 +954,17 @@
+         return parseInt(val, 10);
+       };
+ 
++      const customSlots: any[] = [];
++      if (monthConsumptions.slots && Array.isArray(monthConsumptions.slots)) {
++        (monthConsumptions.slots as any[]).forEach((s: any) => {
++          customSlots.push(s);
++          const slotKey = `${s.startTime}-${s.endTime}`.toUpperCase();
++          monthConsumptions[slotKey] = Number(s.consumptionKwh);
++        });
++      } else if (entry.customSlots && Array.isArray(entry.customSlots)) {
++        customSlots.push(...(entry.customSlots as any[]));
++      }
++
+       // Construct the flat monthly slots array
+       const slotsData = records.map(rec => {
+         const deliveryDate = rec.date ? new Date(rec.date) : new Date(startStr);
+@@ -831,7 +996,21 @@
+         const isNpcl = entry.discom === 'NPCL';
+         const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
+ 
+-        if (isNpclHv2) {
++        const timeStrHour = hour + minute / 60;
++        const matchedCustomSlot = customSlots.find((cs: any) => {
++           if (!cs.startTime || !cs.endTime) return false;
++           const sHour = parseHour(cs.startTime);
++           const eHour = parseHour(cs.endTime);
++           if (eHour < sHour) {
++               return timeStrHour >= sHour || timeStrHour < eHour;
++           }
++           return timeStrHour >= sHour && timeStrHour < eHour;
++        });
++
++        if (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) {
++            discomLandingPrice = Number(matchedCustomSlot.effectivePrice);
++            matchedTariffName = `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`.toUpperCase();
++        } else if (isNpclHv2) {
+           const slotMonth = deliveryDate.getMonth() + 1;
+           const isWinter = slotMonth >= 9 || slotMonth <= 3;
+           const baseRate = 6.80;
+@@ -924,7 +1103,7 @@
+ 
+         // FPPA is now calculated explicitly later, so we do not bake it into discomLandingPrice
+ 
+-        if (entry.discom === 'NPCL') {
++        if (entry.discom === 'NPCL' && (!matchedCustomSlot || Number(matchedCustomSlot.effectivePrice) === 0)) {
+           discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
+         }
+ 
+@@ -985,20 +1164,20 @@
+       Object.keys(slotsByTod).forEach(groupKey => {
+         // Find the total energy requirement for this TOD slab from the input
+         let remainingEnergy = 0;
+-
++        
+         if (shiftInsights) {
+           const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
+           remainingEnergy = todSummary ? todSummary.newEnergy : 0;
+         } else {
+           const matchedKey = Object.keys(monthConsumptions).find(k => {
+-            if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
++            if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+             return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+           });
+ 
+           if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+             remainingEnergy = Number(monthConsumptions[matchedKey]);
+           } else {
+-            const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
++            const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
+             const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+             let flatTotal = 0;
+             if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+@@ -1075,6 +1254,8 @@
+       totalEnergyKwh,
+       totalMarketEnergyKwh,
+       totalConsumerBusEnergyKwh,
++      totalTraderMarketEnergy,
++      totalTraderLandedCost,
+       totalBaselineCost,
+       totalOptimizedCost,
+       totalSavings,
+@@ -1086,9 +1267,18 @@
+   static async calculateMarketDecision(id: string, targetMonthStr?: string, version?: number, useShiftedProfile: boolean = false, shiftInsights?: any) {
+     if (targetMonthStr === 'all') {
+       return this.calculateMarketDecisionAllMonths(id, version, useShiftedProfile, shiftInsights);
++    }
++    let year = new Date().getFullYear();
++    let month = new Date().getMonth() + 1;
++    if (targetMonthStr) {
++      const parts = targetMonthStr.split('-');
++      if (parts.length === 2) {
++        year = parseInt(parts[0], 10);
++        month = parseInt(parts[1], 10);
++      }
+     }
+     const cacheVersion = version !== undefined ? version : 'live';
+-    const cacheKey = `market:${id}:v:${cacheVersion}:m:${targetMonthStr || 'default'}`;
++    const cacheKey = `market-decision-v2-${id}-${month}-${version || 'latest'}:m:${targetMonthStr || 'default'}`;
+     const cached = await getCache(cacheKey);
+     if (cached && false) {
+       return cached;
+@@ -1106,15 +1296,6 @@
+       shiftInsights = await this.calculateDemandShiftInsights(id, targetMonthStr, version);
+     }
+ 
+-    let year = new Date().getFullYear();
+-    let month = new Date().getMonth() + 1;
+-    if (targetMonthStr) {
+-      const parts = targetMonthStr.split('-');
+-      if (parts.length === 2) {
+-        year = parseInt(parts[0], 10);
+-        month = parseInt(parts[1], 10);
+-      }
+-    }
+ 
+     // Bill month is the next calendar month
+     const nextMonthDate = new Date(year, month, 1);
+@@ -1146,8 +1327,75 @@
+     const maxEnergyPerSlot = getFlooredMaxEnergyPerSlot(sanctionedLoad);
+ 
+     const monthKey = targetMonthStr || `${year}-${String(month % 100).padStart(2, '0')}`;
++    
+     const monthConsumptions = (entry.todConsumptions as Record<string, Record<string, number | string>> | null)?.[monthKey] || {};
+ 
++    const traderReports = (monthConsumptions as any).traderReports || { data: {} };
++    const traderTradesLookup: Record<string, Record<number, any[]>> = {};
++    if (traderReports && traderReports.data) {
++      for (const [key, report] of Object.entries<any>(traderReports.data)) {
++        const rawDate = report.delivery_date || key;
++        if (rawDate && report.trades && Array.isArray(report.trades)) {
++          let dDate = null;
++          if (rawDate.length === 10 && rawDate.charAt(2) === '-' && rawDate.charAt(5) === '-') {
++            const parts = rawDate.split('-');
++            dDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
++          } else {
++            try {
++              const d = new Date(rawDate);
++              const year = d.getFullYear();
++              const month = String(d.getMonth() + 1).padStart(2, '0');
++              const day = String(d.getDate()).padStart(2, '0');
++              dDate = `${year}-${month}-${day}`;
++            } catch (e) {
++              dDate = rawDate;
++            }
++          }
++          if (dDate) {
++            if (!traderTradesLookup[dDate]) {
++              traderTradesLookup[dDate] = {};
++            }
++          
++            report.trades.forEach((trade: any) => {
++              trade.oa_market_type = report.oa_market_type || 'RTM';
++              if (trade.period && typeof trade.period === 'string') {
++                const startStr = trade.period.split('-')[0].trim();
++                const parts = startStr.split(':');
++                if (parts.length === 2) {
++                  const hour = parseInt(parts[0], 10);
++                  const min = parseInt(parts[1], 10);
++                  const tb = hour * 4 + (min / 15) + 1;
++                  if (!traderTradesLookup[dDate][tb]) {
++                    traderTradesLookup[dDate][tb] = [];
++                  }
++                  traderTradesLookup[dDate][tb].push(trade);
++                }
++              }
++            });
++          }
++        }
++      }
++    }
++
++
++    const customSlots: any[] = [];
++    if (monthConsumptions.slots && Array.isArray(monthConsumptions.slots)) {
++      monthConsumptions.slots.forEach((s: any) => {
++        customSlots.push(s);
++        const slotKey = `${s.startTime}-${s.endTime}`.toUpperCase();
++        monthConsumptions[slotKey] = Number(s.consumptionKwh);
++      });
++    }
++
++    const parseHourLocal = (val: string | null | undefined): number => {
++      if (!val) return 0;
++      let [time, modifier] = val.split(' ');
++      let [h, m] = time.split(':').map(Number);
++      if (modifier && modifier.toUpperCase().startsWith('P') && h < 12) h += 12;
++      if (modifier && modifier.toUpperCase().startsWith('A') && h === 12) h = 0;
++      return h + (m || 0) / 60;
++    };
++
+     const monthArrear = monthConsumptions['Arrear Amount'] !== undefined && monthConsumptions['Arrear Amount'] !== null
+       ? Number(monthConsumptions['Arrear Amount'])
+       : (entry.arrearAmount ? Number(entry.arrearAmount) : 0);
+@@ -1242,18 +1490,26 @@
+       }
+     }
+ 
+-    const stateCharges = await prisma.stateCharges.findFirst({
++    let stateCharges = await prisma.stateCharges.findFirst({
+       where: {
+         state: { in: stateFormats },
+         discom: entry.discom === 'NPCL' ? 'NPCL' : null,
+         category: parsedCategory,
+         fromDate: { lte: new Date(startStr) },
+-        toDate: { gte: new Date(startStr) },
+-        // StateCharges uses the full string (e.g. '33' or '0.433') so we might need the second part if available
+-        // But for now, we will just use voltageLevel since it was '0.433' in DB. Or we can just omit it if it fails.
+-        // Let's omit voltageLevel for now to avoid false negatives since StateCharges has different voltage formatting.
++        toDate: { gte: new Date(startStr) }
+       }
+     });
++
++    if (!stateCharges) {
++      stateCharges = await prisma.stateCharges.findFirst({
++        where: {
++          state: { in: stateFormats },
++          discom: entry.discom === 'NPCL' ? 'NPCL' : null,
++          category: parsedCategory
++        },
++        orderBy: { fromDate: 'desc' }
++      });
++    }
+ 
+     console.log('[StateCharges Query Debug] State Formats:', stateFormats);
+     console.log('[StateCharges Query Debug] Category:', category);
+@@ -1268,21 +1524,37 @@
+       console.log('[StateCharges Query Debug] ERROR: No matching state charges record found!');
+     }
+ 
+-    const ctuCharges = await prisma.ctuCharges.findFirst({
++    let ctuCharges = await prisma.ctuCharges.findFirst({
+       where: { month: yyyymmMonth }
+     });
++    if (!ctuCharges) {
++      ctuCharges = await prisma.ctuCharges.findFirst({
++        orderBy: { month: 'desc' }
++      });
++    }
+ 
+-    const istsCharges = await prisma.istsCharges.findMany({
++    let istsCharges = await prisma.istsCharges.findMany({
+       where: {
+         OR: [
+           { startDate: { lte: new Date(endStr) }, endDate: { gte: new Date(startStr) } }
+         ]
+       }
+     });
++    if (!istsCharges || istsCharges.length === 0) {
++      const fallbackIsts = await prisma.istsCharges.findFirst({
++        orderBy: { endDate: 'desc' }
++      });
++      if (fallbackIsts) istsCharges = [fallbackIsts];
++    }
+ 
+-    const iexFees = await prisma.iexFees.findFirst({
++    let iexFees = await prisma.iexFees.findFirst({
+       where: { month: yyyymmMonth }
+     });
++    if (!iexFees) {
++      iexFees = await prisma.iexFees.findFirst({
++        orderBy: { month: 'desc' }
++      });
++    }
+ 
+     const effectiveYyyymmMonth = nextYear * 100 + nextMonth;
+     const monthsInPlay: number[] = [];
+@@ -1322,7 +1594,7 @@
+         where: fallbackWhere,
+         orderBy: { month: 'desc' }
+       });
+-      const sameMonthTariff = allTariffs.find(t =>
++      const sameMonthTariff = allTariffs.find(t => 
+         t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+       );
+       const latestTariff = sameMonthTariff || allTariffs[0];
+@@ -1416,14 +1688,8 @@
+     `;
+     const records: any[] = await prisma.$queryRawUnsafe(query);
+ 
+-    const parseHour = (val: string | null | undefined): number => {
+-      if (!val) return 0;
+-      if (val.includes(':')) {
+-        return parseInt(val.split(':')[0], 10);
+-      }
+-      return parseInt(val, 10);
+-    };
+ 
++
+     // monthKey and monthConsumptions are declared earlier
+ 
+     const slotsData = records.map(rec => {
+@@ -1481,10 +1747,24 @@
+       let discomBase = 7.5;
+       let matchedTariffName = 'normal';
+ 
++      const timeStrHour = hour + (startMinutes % 60) / 60;
++      const matchedCustomSlot = customSlots.find((cs: any) => {
++        if (!cs.startTime || !cs.endTime) return false;
++        const startHour = parseHourLocal(cs.startTime);
++        const endHour = parseHourLocal(cs.endTime);
++        if (endHour < startHour) {
++          return timeStrHour >= startHour || timeStrHour < endHour;
++        }
++        return timeStrHour >= startHour && timeStrHour < endHour;
++      });
++
+       const isNpcl = entry.discom === 'NPCL';
+       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
+ 
+-      if (isNpclHv2) {
++      if (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) {
++        discomBase = Number(matchedCustomSlot.effectivePrice);
++        matchedTariffName = `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`.toUpperCase();
++      } else if (isNpclHv2) {
+         const slotMonth = deliveryDate.getMonth() + 1;
+         const isWinter = slotMonth >= 9 || slotMonth <= 3;
+         const baseRate = 6.80;
+@@ -1535,8 +1815,8 @@
+           if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
+             return false;
+           }
+-          const start = parseHour(t.todStartTime);
+-          const end = parseHour(t.todEndTime);
++          const start = parseHourLocal(t.todStartTime);
++          const end = parseHourLocal(t.todEndTime);
+           if (start <= end) return hour >= start && hour < end;
+           return hour >= start || hour < end;
+         });
+@@ -1558,6 +1838,7 @@
+       }
+ 
+       let discomLanding = discomBase;
++      
+       if (isNpcl) {
+         discomLanding = discomLanding * 0.90 * 0.99;
+       }
+@@ -1780,7 +2061,7 @@
+     let peakDemand = entry.billedDemandKv ? Number(entry.billedDemandKv) : 0;
+     if (peakDemand === 0) {
+       Object.keys(monthConsumptions).forEach(k => {
+-        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) {
++        if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('peakdemand') || k.toLowerCase().includes('sanctioned')) {
+           peakDemand = Math.max(peakDemand, Number(monthConsumptions[k]) || 0);
+         }
+       });
+@@ -1805,30 +2086,30 @@
+       if (tariffsForMonth.length === 0) tariffsForMonth = tariffs;
+       baseTariff = tariffsForMonth.find((t: any) => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') || tariffsForMonth[0];
+     }
+-    let isKvahBilling = baseTariff && String(baseTariff.baseEnergyUnit || '').toLowerCase() === 'kvah';
+-    if (monthConsumptions['Billing Unit']) {
+-      isKvahBilling = String(monthConsumptions['Billing Unit']).toLowerCase() === 'kvah';
+-    }
++    const isKvahBilling = baseTariff && String(baseTariff.baseEnergyUnit || '').toLowerCase() === 'kvah';
+     const globalPf = Number(entry.powerFactor) || 0.99;
+     
++    
+     let preTotalEnergyKwh = 0;
++    
++
+     Object.keys(slotsByTod).forEach(groupKey => {
+       let slabConsumption = 0;
+-
++      
+       if (shiftInsights) {
+         const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
+         slabConsumption = todSummary ? todSummary.newEnergy : 0;
+       } else {
+         const matchedKey = Object.keys(monthConsumptions).find(k => {
+-          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
++          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+         });
+-
++        
+         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+           slabConsumption = Number(monthConsumptions[matchedKey]);
+           if (isKvahBilling) slabConsumption *= globalPf;
+         } else {
+-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
++          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
+           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+           let flatTotal = 0;
+           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+@@ -1856,13 +2137,13 @@
+     Object.keys(slotsByTod).forEach(groupKey => {
+       const slotsInGroup = slotsByTod[groupKey];
+       let slabConsumption = 0;
+-
++      
+       if (shiftInsights) {
+         const todSummary = shiftInsights.todShiftSummary.find((t: any) => t.tod === groupKey);
+         slabConsumption = todSummary ? todSummary.newEnergy : 0;
+-
++        
+         if (slabConsumption <= 0) return;
+-
++        
+         slotsInGroup.forEach(s => {
+           const shiftSlot = shiftInsights.slotsData.find((ss: any) => ss.date === s.date && ss.timeblock === s.timeblock);
+           if (shiftSlot) {
+@@ -1878,15 +2159,15 @@
+         });
+       } else {
+         const matchedKey = Object.keys(monthConsumptions).find(k => {
+-          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
++          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+         });
+-
++        
+         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+           slabConsumption = Number(monthConsumptions[matchedKey]);
+           if (isKvahBilling) slabConsumption *= globalPf;
+         } else {
+-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
++          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
+           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+           let flatTotal = 0;
+           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+@@ -1980,11 +2261,44 @@
+ 
+     // === PASS 2: Calculate Final Overheads & Aggregates ===
+     const tradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
++    const traderTradedDays = { DAM: new Set<string>(), GDAM: new Set<string>(), RTM: new Set<string>() };
+     slotsData.forEach(s => {
+       if (((s as any).marketEnergy || 0) > 0 && s.marketSource) {
+         if (s.marketSource === 'DAM') tradedDays.DAM.add(s.date);
+         else if (s.marketSource === 'GDAM') tradedDays.GDAM.add(s.date);
+         else if (s.marketSource === 'RTM') tradedDays.RTM.add(s.date);
++      }
++
++      if (traderTradesLookup && s.date && s.timeblock) {
++        let checkDate = String(s.date);
++        if (checkDate.length === 10 && checkDate.charAt(2) === '-' && checkDate.charAt(5) === '-') {
++          const parts = checkDate.split('-');
++          checkDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
++        } else {
++          try {
++            const d = new Date(checkDate);
++            if (!isNaN(d.getTime())) {
++              const year = d.getFullYear();
++              const month = String(d.getMonth() + 1).padStart(2, '0');
++              const day = String(d.getDate()).padStart(2, '0');
++              checkDate = `${year}-${month}-${day}`;
++            }
++          } catch (e) {}
++        }
++        let trades = traderTradesLookup[checkDate]?.[s.timeblock];
++        if (!trades) {
++           trades = traderTradesLookup[s.date]?.[s.timeblock];
++        }
++        if (trades && Array.isArray(trades)) {
++           trades.forEach(trade => {
++             const purchasedMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
++             if (purchasedMw <= 0) return;
++             const marketType = trade.oa_market_type || 'RTM';
++             if (marketType === 'DAM') traderTradedDays.DAM.add(checkDate);
++             else if (marketType === 'GDAM') traderTradedDays.GDAM.add(checkDate);
++             else traderTradedDays.RTM.add(checkDate);
++           });
++        }
+       }
+     });
+ 
+@@ -2000,6 +2314,19 @@
+     const dailyFixedOverhead = nldcSchedulingCost + sldcSchedulingCost;
+     const bidApplicationFees = (totalDamDays + totalGdamDays + totalRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
+ 
++    // Trader Overhead Calculation
++    const totalTraderDamDays = traderTradedDays.DAM.size;
++    const totalTraderGdamDays = traderTradedDays.GDAM.size;
++    const totalTraderRtmDays = traderTradedDays.RTM.size;
++    
++    const allTraderTradedDates = new Set([...traderTradedDays.DAM, ...traderTradedDays.GDAM, ...traderTradedDays.RTM]);
++    const totalTraderDaysTraded = allTraderTradedDates.size;
++    
++    const traderNldcSchedulingCost = nldcSchedulingFees * totalTraderDaysTraded;
++    const traderSldcSchedulingCost = sldcSchedulingFees * (totalTraderDamDays + totalTraderGdamDays + totalTraderRtmDays);
++    const traderDailyFixedOverhead = traderNldcSchedulingCost + traderSldcSchedulingCost;
++    const traderBidApplicationFees = (totalTraderDamDays + totalTraderGdamDays + totalTraderRtmDays) * NLDC_APPLICATION_FEE_PER_BID;
++
+     let totalBaselineCost = 0;
+     let totalElectricityDuty = 0;
+     let totalElectricityDutyAfterOA = 0;
+@@ -2013,7 +2340,7 @@
+     let totalDemandAndFixedChargesApplied = 0;
+     let totalFppaCharge = 0;
+     let totalFppaChargeAfterOA = 0;
+-
++    
+     let globalCssCharge = 0;
+     let globalRpoCharge = 0;
+     let globalPocCharge = 0;
+@@ -2023,9 +2350,36 @@
+     let globalTraderMargin = 0;
+     let globalTraderMarginGst = 0;
+ 
++    let globalTraderMarketEnergy = 0;
++    let globalTraderConsumerBusEnergy = 0;
++    let globalTraderLandedCost = 0;
++    let globalTraderLapsedEnergy = 0;
++
++
+     const todSummaries: { slabName: string; totalEnergyKwh: number; marketEnergyKwh: number; marketCostBase: number }[] = [];
+     const oaDetailedBreakdown: any[] = [];
+ 
++    const calculateResidualDiscomBill = (
++      residualEnergyKwh: number,
++      discomRate: number,
++      demandChargeForSlab: number,
++      fppaRatePercent: number,
++      applyElectricityDuty: boolean,
++      electricityDutyRate: number
++    ) => {
++      const energyBill = residualEnergyKwh * discomRate;
++      const fppaCharge = (energyBill + demandChargeForSlab) * (fppaRatePercent / 100);
++      const billBeforeDuty = energyBill + demandChargeForSlab + fppaCharge;
++      const electricityDuty = applyElectricityDuty ? billBeforeDuty * electricityDutyRate : 0;
++
++      return {
++        energyBill,
++        fppaCharge,
++        electricityDuty,
++        totalBill: billBeforeDuty + electricityDuty
++      };
++    };
++
+     const sortedTodKeys = Object.keys(slotsByTod).sort((a, b) => {
+       const numA = parseInt(a.replace(/\D/g, ''), 10) || 0;
+       const numB = parseInt(b.replace(/\D/g, ''), 10) || 0;
+@@ -2041,14 +2395,14 @@
+         slabConsumption = todSummary ? todSummary.newEnergy : 0;
+       } else {
+         const matchedKey = Object.keys(monthConsumptions).find(k => {
+-          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned') || k.startsWith('_')) return false;
++          if (k.toLowerCase().includes('peak demand') || k.toLowerCase().includes('sanctioned')) return false;
+           return k.toUpperCase().includes(groupKey) || k.toUpperCase() === groupKey;
+         });
+         if (matchedKey && monthConsumptions[matchedKey] !== undefined && monthConsumptions[matchedKey] !== null && monthConsumptions[matchedKey] !== '') {
+           slabConsumption = Number(monthConsumptions[matchedKey]);
+           if (isKvahBilling) slabConsumption *= globalPf;
+         } else {
+-          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', '_rawkvah'];
++          const metadataKeys = ['power factor', 'electricity duty', 'peak demand (kva)', 'start date', 'end date', 'arrears', 'lpsc', 'miscellaneous charges', 'peakdemandkw', 'slots'];
+           const flatKey = Object.keys(monthConsumptions).find(k => k.toUpperCase() === 'FLAT' || k.toUpperCase() === 'TOTAL');
+           let flatTotal = 0;
+           if (flatKey && monthConsumptions[flatKey] !== undefined && monthConsumptions[flatKey] !== null && monthConsumptions[flatKey] !== '') {
+@@ -2071,18 +2425,79 @@
+         }
+       }
+ 
+-      if (slabConsumption <= 0) return;
++      const hasActualTraderPurchases = slotsInGroup.some(slot => {
++        const trades = traderTradesLookup[String(slot.date)]?.[slot.timeblock];
++        return Array.isArray(trades) && trades.some(trade => Number(trade.qty_mw || trade.purchase || trade.volume || 0) > 0);
++      });
++      if (slabConsumption <= 0 && !hasActualTraderPurchases) return;
+ 
+       let finalMarketEnergy = 0;
+       let exactMarketEnergyCost = 0;
+       let discomEnergy = 0;
+       let consumerBusUnits = 0;
++      let traderMarketEnergy = 0;
++      let traderConsumerBusUnits = 0;
++      let traderNonGdamConsumerBusUnits = 0;
++      let traderExactCost = 0;
++      let traderLapsedEnergy = 0;
+ 
++
+       slotsInGroup.forEach(s => {
+         finalMarketEnergy += (s as any).marketEnergy || 0;
+         exactMarketEnergyCost += (s as any).exactMarketEnergyCost || 0;
+         discomEnergy += ((s as any).discomEnergy || 0);
+         consumerBusUnits += ((s as any).consumedMarketEnergy || 0);
++
++        if (traderTradesLookup && s.date && s.timeblock) {
++          let checkDate = String(s.date);
++          if (checkDate.length === 10 && checkDate.charAt(2) === '-' && checkDate.charAt(5) === '-') {
++            const parts = checkDate.split('-');
++            checkDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
++          } else {
++            try {
++              const d = new Date(checkDate);
++              if (!isNaN(d.getTime())) {
++                const year = d.getFullYear();
++                const month = String(d.getMonth() + 1).padStart(2, '0');
++                const day = String(d.getDate()).padStart(2, '0');
++                checkDate = `${year}-${month}-${day}`;
++              }
++            } catch (e) {}
++          }
++          let trades = traderTradesLookup[checkDate]?.[s.timeblock];
++          if (!trades) {
++             trades = traderTradesLookup[s.date]?.[s.timeblock];
++          }
++           if (trades && Array.isArray(trades)) {
++             let slotTraderKwhTotal = 0;
++             let slotTraderConsumerBusTotal = 0;
++             trades.forEach(trade => {
++               const tVolMw = Number(trade.qty_mw || trade.purchase || trade.volume || 0);
++               const tPriceMwh = Math.abs(Number(trade.rate_mwh || trade.price || trade.mcp || 0));
++
++               if (tVolMw <= 0) return;
++
++               const tKwh = tVolMw * 1000 * 0.25;
++               const slotLossMultiplier = Math.max(0,
++                 (1 - (Number((s as any).istsLoss) || 0) / 100) *
++                 (1 - (Number(stuLoss) || 0) / 100) *
++                 (1 - (Number(wheelingLoss) || 0) / 100)
++               );
++               const deliveredKwh = tKwh * slotLossMultiplier;
++               const marketType = String(trade.oa_market_type || 'RTM').toUpperCase();
++
++               traderMarketEnergy += tKwh;
++               traderConsumerBusUnits += deliveredKwh;
++               if (marketType !== 'GDAM') traderNonGdamConsumerBusUnits += deliveredKwh;
++               traderExactCost += (tKwh * tPriceMwh) / 1000;
++               slotTraderKwhTotal += tKwh;
++               slotTraderConsumerBusTotal += deliveredKwh;
++             });
++             (s as any).actualTrades = trades;
++             (s as any).traderMarketEnergyForSlot = slotTraderKwhTotal;
++             (s as any).traderConsumerBusEnergyForSlot = slotTraderConsumerBusTotal;
++          }
++        }
+       });
+ 
+       const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
+@@ -2107,30 +2522,37 @@
+ 
+       const discountedSlabBill = slabEnergyBill + demandChargeDiscounted + slabFppaCharge;
+       totalBaselineEnergyCharges += slabEnergyBill;
+-
++      
+       const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
+       let applyED = true;
+       if (edKey && monthConsumptions[edKey] !== undefined && monthConsumptions[edKey] !== null) {
+         applyED = String(monthConsumptions[edKey]).trim().toLowerCase() !== 'no';
+       }
+ 
+-      const edRate = entry.consumerCategory === 'HV-1' ? 0.05 : 0.075;
++      const edRate = 0.075;
+       const slabED = applyED ? discountedSlabBill * edRate : 0;
+       totalElectricityDuty += slabED;
+ 
+       const slabTotalDiscomBill = discountedSlabBill + slabED;
+       totalBaselineCost += slabTotalDiscomBill;
+ 
+-      const proltEnergyBill = discomEnergy * slabDiscomRate;
++      const proltDiscomBill = calculateResidualDiscomBill(
++        discomEnergy,
++        slabDiscomRate,
++        demandChargeDiscounted,
++        fppaPercent,
++        applyED,
++        edRate
++      );
++      const proltEnergyBill = proltDiscomBill.energyBill;
+       totalDiscomEnergyChargesAfterOA += proltEnergyBill;
+-      
+-      const slabFppaChargeAfterOA = (proltEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
++
++      const slabFppaChargeAfterOA = proltDiscomBill.fppaCharge;
+       totalFppaChargeAfterOA += slabFppaChargeAfterOA;
+ 
+-      const discountedProltBill = proltEnergyBill + demandChargeDiscounted + slabFppaChargeAfterOA;
+-      const slabEDAfterOA = applyED ? discountedProltBill * edRate : 0;
++      const slabEDAfterOA = proltDiscomBill.electricityDuty;
+       totalElectricityDutyAfterOA += slabEDAfterOA;
+-      const proltDiscomBillTotal = discountedProltBill + slabEDAfterOA;
++      const proltDiscomBillTotal = proltDiscomBill.totalBill;
+       totalDiscomAfterProlt += proltDiscomBillTotal;
+ 
+       const nonGdamMarketEnergy = marketSlots.filter(s => s.marketSource !== 'GDAM').reduce((sum, s: any) => sum + (s.marketEnergy || 0), 0);
+@@ -2162,6 +2584,37 @@
+ 
+       totalLandedExchangeCost += slabOaBill + proltDiscomBillTotal;
+ 
++      // TRADER EXACT LANDED COST FOR SLAB
++      const traderRpoCharge = traderNonGdamConsumerBusUnits * RPO_FLAT_RATE;
++      const traderCssCharge = traderConsumerBusUnits * crossSubsidy;
++      const traderPocCharge = traderMarketEnergy * ctuCharge;
++      const traderStuChargeVal = traderMarketEnergy * stuCharge;
++      const traderDcCharge = traderMarketEnergy * wheelingCharge;
++      const traderIexFeesTotal = traderMarketEnergy * EXCHANGE_FEES;
++
++      const traderSlabOaBill = traderCssCharge + traderRpoCharge + traderPocCharge + traderStuChargeVal + traderDcCharge + traderIexFeesTotal + traderExactCost;
++      
++      const traderLeftoverDiscomEnergy = Math.max(0, slabConsumption - traderConsumerBusUnits);
++      traderLapsedEnergy = Math.max(0, traderConsumerBusUnits - slabConsumption);
++
++      const traderDiscomBill = calculateResidualDiscomBill(
++        traderLeftoverDiscomEnergy,
++        slabDiscomRate,
++        demandChargeDiscounted,
++        fppaPercent,
++        applyED,
++        edRate
++      );
++      const traderDiscomEnergyBill = traderDiscomBill.energyBill;
++      const traderFppaChargeAfterOA = traderDiscomBill.fppaCharge;
++      const traderEDAfterOA = traderDiscomBill.electricityDuty;
++      const traderDiscomBillTotal = traderDiscomBill.totalBill;
++      
++      globalTraderMarketEnergy += traderMarketEnergy;
++      globalTraderConsumerBusEnergy += traderConsumerBusUnits;
++      globalTraderLandedCost += traderSlabOaBill + traderDiscomBillTotal;
++      globalTraderLapsedEnergy += traderLapsedEnergy;
++
+       totalEnergyKwh += slabConsumption;
+       totalMarketEnergyKwh += finalMarketEnergy;
+       totalConsumerBusEnergyKwh += consumerBusUnits;
+@@ -2181,10 +2634,60 @@
+         proltDiscomBill: proltEnergyBill,
+         consumerBusUnits,
+         oaBill: slabOaBill,
+-        discomRate: slabDiscomRate
++        discomRate: slabDiscomRate,
++        // Trader actuals
++        traderMarketEnergy,
++        traderConsumerBusUnits,
++        traderSlabOaBill,
++        traderCssCharge,
++        traderRpoCharge,
++        traderPocCharge,
++        traderStuCharge: traderStuChargeVal,
++        traderWheelingCharge: traderDcCharge,
++        traderIexFee: traderIexFeesTotal,
++        traderLeftoverDiscomEnergy,
++        traderDiscomEnergyBill,
++        traderFppaChargeAfterOA,
++        traderElectricityDutyAfterOA: traderEDAfterOA,
++        traderDiscomBillTotal,
++        traderExactCost,
++        traderLapsedEnergy,
++        traderDemandCharge: demandChargeDiscounted,
++        traderApplyElectricityDuty: applyED,
++        traderElectricityDutyRate: edRate,
++        traderFppaPercent: fppaPercent
+       });
++    });
++
++    const globalTraderResidualEnergy = Math.max(0, totalEnergyKwh - (globalTraderConsumerBusEnergy - globalTraderLapsedEnergy));
++    const summedTodTraderResidual = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
++    const residualReconciliationFactor = summedTodTraderResidual > 0
++      ? globalTraderResidualEnergy / summedTodTraderResidual
++      : 0;
++
++    oaDetailedBreakdown.forEach(row => {
++      const reconciledResidualEnergy = Number(row.traderLeftoverDiscomEnergy || 0) * residualReconciliationFactor;
++      const reconciledBill = calculateResidualDiscomBill(
++        reconciledResidualEnergy,
++        Number(row.discomRate || 0),
++        Number(row.traderDemandCharge || 0),
++        Number(row.traderFppaPercent || 0),
++        Boolean(row.traderApplyElectricityDuty),
++        Number(row.traderElectricityDutyRate || 0)
++      );
++
++      row.traderLeftoverDiscomEnergy = reconciledResidualEnergy;
++      row.traderDiscomEnergyBill = reconciledBill.energyBill;
++      row.traderFppaChargeAfterOA = reconciledBill.fppaCharge;
++      row.traderElectricityDutyAfterOA = reconciledBill.electricityDuty;
++      row.traderDiscomBillTotal = reconciledBill.totalBill;
+     });
+ 
++    globalTraderLandedCost = oaDetailedBreakdown.reduce(
++      (sum, row) => sum + Number(row.traderSlabOaBill || 0) + Number(row.traderDiscomBillTotal || 0),
++      0
++    );
++
+     const nocFee = 7000;
+     const regFee = 8333;
+     const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
+@@ -2197,6 +2700,31 @@
+ 
+     const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
+ 
++    const actualTraderMarginTotal = globalTraderMarketEnergy * TRADER_MARGIN;
++    const actualTraderMarginGstTotal = globalTraderMarketEnergy * GST_TRADER_MARGIN;
++
++    const actualTraderMarketEnergyCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderExactCost || 0), 0);
++    const actualTraderCssCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderCssCharge || 0), 0);
++    const actualTraderRpoCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderRpoCharge || 0), 0);
++    const actualTraderPocCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderPocCharge || 0), 0);
++    const actualTraderStuCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderStuCharge || 0), 0);
++    const actualTraderWheelingCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderWheelingCharge || 0), 0);
++    const actualTraderIexFee = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderIexFee || 0), 0);
++    const actualTraderResidualDiscomEnergy = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderLeftoverDiscomEnergy || 0), 0);
++    const actualTraderResidualEnergyCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDiscomEnergyBill || 0), 0);
++    const actualTraderResidualDemandCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDemandCharge || 0), 0);
++    const actualTraderResidualFppaCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderFppaChargeAfterOA || 0), 0);
++    const actualTraderResidualElectricityDuty = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderElectricityDutyAfterOA || 0), 0);
++    const actualTraderResidualDiscomCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderDiscomBillTotal || 0), 0) + monthMisc;
++
++    if (globalTraderMarketEnergy > 0) {
++      globalTraderLandedCost += traderDailyFixedOverhead + traderBidApplicationFees + monthMisc + nocFee + regFee + actualTraderMarginTotal + actualTraderMarginGstTotal;
++    }
++
++    const actualTraderSavings = globalTraderMarketEnergy > 0 && totalBaselineCost > 0
++      ? totalBaselineCost - globalTraderLandedCost
++      : 0;
++
+     // Treat proltMargin as a percentage of gross savings
+     const proltMarginInput = Number(entry.proltMargin || 0);
+     const grossSavings = Math.max(0, netSavings);
+@@ -2216,6 +2744,39 @@
+       totalEnergyKwh,
+       totalMarketEnergyKwh,
+       totalConsumerBusEnergyKwh,
++      totalTraderMarketEnergy: globalTraderMarketEnergy,
++      totalTraderConsumerBusEnergy: globalTraderConsumerBusEnergy,
++      totalTraderLandedCost: globalTraderLandedCost,
++      actualTraderSavings,
++      actualTrader: {
++        marketEnergyKwh: globalTraderMarketEnergy,
++        consumerBusEnergyKwh: globalTraderConsumerBusEnergy,
++        residualDiscomEnergyKwh: actualTraderResidualDiscomEnergy,
++        marketEnergyCost: actualTraderMarketEnergyCost,
++        cssCharge: actualTraderCssCharge,
++        rpoCharge: actualTraderRpoCharge,
++        pocCharge: actualTraderPocCharge,
++        stuCharge: actualTraderStuCharge,
++        wheelingCharge: actualTraderWheelingCharge,
++        iexFee: actualTraderIexFee,
++        nldcSchedulingCost: traderNldcSchedulingCost,
++        sldcSchedulingCost: traderSldcSchedulingCost,
++        bidApplicationFees: traderBidApplicationFees,
++        nocFee: globalTraderMarketEnergy > 0 ? nocFee : 0,
++        registrationFee: globalTraderMarketEnergy > 0 ? regFee : 0,
++        traderMargin: actualTraderMarginTotal,
++        traderMarginGst: actualTraderMarginGstTotal,
++        totalOaCost: Math.max(0, globalTraderLandedCost - actualTraderResidualDiscomCost),
++        residualEnergyCost: actualTraderResidualEnergyCost,
++        residualDemandCharge: actualTraderResidualDemandCharge,
++        residualFppaCharge: actualTraderResidualFppaCharge,
++        residualElectricityDuty: actualTraderResidualElectricityDuty,
++        lapsedEnergyKwh: globalTraderLapsedEnergy,
++        residualDiscomCost: actualTraderResidualDiscomCost,
++        totalCost: globalTraderLandedCost,
++        baselineDiscomCost: totalBaselineCost,
++        savings: actualTraderSavings
++      },
+       totalBaselineCost,
+       fppaPercent,
+       fppaCharge: totalFppaCharge,
+@@ -2273,7 +2834,7 @@
+     const todConsumptions = entry.todConsumptions as any;
+     if (!todConsumptions) throw new Error('No consumption data found');
+ 
+-    const months = Object.keys(todConsumptions).sort();
++    const months = Object.keys(todConsumptions).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+ 
+     let originalTotalCost = 0;
+     let newTotalCost = 0;
+@@ -2346,16 +2907,11 @@
+     const shiftableSlots = slotsData.map((s: any, index: number) => {
+       const costPerKwh = s.shouldBuyFromMarket ? s.bestMarketLanding : s.discomLanding;
+       const originalMarketEnergy = s.marketEnergy || 0;
+-      const originalConsumedMarketEnergy = s.consumedMarketEnergy || 0;
+       const originalDiscomEnergy = s.discomEnergy || 0;
+-      const currentEnergy = originalConsumedMarketEnergy + originalDiscomEnergy;
+-      
+-      const lossMultiplier = originalMarketEnergy > 0 
+-        ? (originalConsumedMarketEnergy / originalMarketEnergy) 
+-        : 0.90; // Default fallback if no market energy bought
+-        
+-      const regionalHeadroom = Math.max(0, maxEnergyPerSlot - originalMarketEnergy);
+-      const headroom = regionalHeadroom * lossMultiplier;
++      // Use consumedMarketEnergy (consumer bus) instead of marketEnergy (regional bus)
++      // to correctly represent the actual demand in this slot without inflating units
++      const currentEnergy = (s.consumedMarketEnergy || 0) + originalDiscomEnergy;
++      const headroom = Math.max(0, maxEnergyPerSlot - currentEnergy);
+       originalTotalCost += (currentEnergy * costPerKwh);
+ 
+       return {
+@@ -2365,12 +2921,9 @@
+         originalEnergy: currentEnergy,
+         currentMarketEnergy: originalMarketEnergy,
+         originalMarketEnergy,
+-        currentConsumedMarketEnergy: originalConsumedMarketEnergy,
+-        originalConsumedMarketEnergy,
+         currentDiscomEnergy: originalDiscomEnergy,
+         shouldBuyFromMarket: s.shouldBuyFromMarket,
+         headroom,
+-        lossMultiplier,
+         date: s.date,
+         timeblock: s.timeblock,
+         tod: s.tod
+@@ -2417,16 +2970,14 @@
+       } else {
+         const remainingToRemove = amountToShift - expSlot.currentDiscomEnergy;
+         expSlot.currentDiscomEnergy = 0;
+-        expSlot.currentConsumedMarketEnergy -= remainingToRemove;
+-        expSlot.currentMarketEnergy -= (remainingToRemove / expSlot.lossMultiplier);
++        expSlot.currentMarketEnergy -= remainingToRemove;
+       }
+ 
+       cheapSlot.headroom -= amountToShift;
+       cheapSlot.currentEnergy += amountToShift;
+       // Add energy to the cheap slot using its cheapest available source (determined by shouldBuyFromMarket)
+       if (cheapSlot.shouldBuyFromMarket) {
+-        cheapSlot.currentConsumedMarketEnergy += amountToShift;
+-        cheapSlot.currentMarketEnergy += (amountToShift / cheapSlot.lossMultiplier);
++        cheapSlot.currentMarketEnergy += amountToShift;
+       } else {
+         cheapSlot.currentDiscomEnergy += amountToShift;
+       }
