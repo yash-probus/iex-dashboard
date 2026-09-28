@@ -1009,9 +1009,11 @@ export class TraderPerformanceService {
            return timeStrHour >= sHour && timeStrHour < eHour;
         });
 
-        if (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) {
-            discomLandingPrice = Number(matchedCustomSlot.effectivePrice);
+        if (matchedCustomSlot) {
             matchedTariffName = `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`.toUpperCase();
+            if (Number(matchedCustomSlot.effectivePrice) > 0) {
+              discomLandingPrice = Number(matchedCustomSlot.effectivePrice);
+            }
         } else if (isNpclHv2) {
           const slotMonth = deliveryDate.getMonth() + 1;
           const isWinter = slotMonth >= 9 || slotMonth <= 3;
@@ -1774,9 +1776,11 @@ export class TraderPerformanceService {
       const isNpcl = entry.discom === 'NPCL';
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
 
-      if (matchedCustomSlot && Number(matchedCustomSlot.effectivePrice) > 0) {
-        discomBase = Number(matchedCustomSlot.effectivePrice);
+      if (matchedCustomSlot) {
         matchedTariffName = `${matchedCustomSlot.startTime}-${matchedCustomSlot.endTime}`.toUpperCase();
+        if (Number(matchedCustomSlot.effectivePrice) > 0) {
+          discomBase = Number(matchedCustomSlot.effectivePrice);
+        }
       } else if (isNpclHv2) {
         const slotMonth = deliveryDate.getMonth() + 1;
         const isWinter = slotMonth >= 9 || slotMonth <= 3;
