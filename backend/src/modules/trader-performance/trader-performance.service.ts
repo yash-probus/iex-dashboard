@@ -2715,6 +2715,97 @@ export class TraderPerformanceService {
       0
     );
 
+    const dailyTodBankingSummary: any[] = [];
+    const slotsCountByTod: Record<string, number> = {};
+    slotsData.forEach((slot: any) => {
+      const tod = String(slot.tod || 'UNMAPPED').toUpperCase();
+      slotsCountByTod[tod] = (slotsCountByTod[tod] || 0) + 1;
+    });
+
+    const dailyTodGroups: Record<string, any> = {};
+    slotsData.forEach((slot: any) => {
+      const tod = String(slot.tod || 'UNMAPPED').toUpperCase();
+      const key = `${slot.date}|${tod}`;
+      if (!dailyTodGroups[key]) {
+        dailyTodGroups[key] = { date: slot.date, tod, slots: [] };
+      }
+      dailyTodGroups[key].slots.push(slot);
+    });
+
+    const bankedEnergyByTod: Record<string, number> = {};
+    Object.values(dailyTodGroups)
+      .sort((a: any, b: any) => `${a.date}|${a.tod}`.localeCompare(`${b.date}|${b.tod}`))
+      .forEach((group: any) => {
+        const breakdown = oaDetailedBreakdown.find((row: any) => String(row.slabName).toUpperCase() === group.tod);
+        const todSlotCount = slotsCountByTod[group.tod] || 1;
+        const dailyConsumption = Number(breakdown?.discomUnits || 0) * (group.slots.length / todSlotCount);
+        let marketProcured = 0;
+        let marketAvailableAtBus = 0;
+        let marketCost = 0;
+
+        group.slots.forEach((slot: any) => {
+          marketProcured += Number(slot.traderMarketEnergyForSlot || 0);
+          marketAvailableAtBus += Number(slot.traderConsumerBusEnergyForSlot || 0);
+          (slot.actualTrades || []).forEach((trade: any) => {
+            const quantityKwh = Number(trade.qty_mw || trade.purchase || trade.volume || 0) * 1000 * 0.25;
+            const rateMwh = Math.abs(Number(trade.rate_mwh || trade.price || trade.mcp || 0));
+            marketCost += (quantityKwh * rateMwh) / 1000;
+          });
+        });
+
+        const openingBank = Number(bankedEnergyByTod[group.tod] || 0);
+        const energyAvailable = openingBank + marketAvailableAtBus;
+        const discomConsumption = Math.max(0, dailyConsumption - energyAvailable);
+        const marketConsumption = Math.min(dailyConsumption, energyAvailable);
+        const closingBank = Math.max(0, energyAvailable - dailyConsumption);
+        const energyProcuredAfterDate = Math.max(0, marketAvailableAtBus - dailyConsumption + openingBank);
+        const totalConsumptionFromMidnightData = dailyConsumption;
+        const marketRate = marketProcured > 0 ? marketCost / marketProcured : 0;
+
+        dailyTodBankingSummary.push({
+          date: group.date,
+          todName: group.tod,
+          todValue: group.tod,
+          todStartHour: null,
+          todEndHour: null,
+          totalConsumption: dailyConsumption,
+          totalConsumptionFromMidnightData,
+          dayWiseTotalConsumption: dailyConsumption,
+          dayWiseMarketProcurement: marketProcured,
+          dayWiseAverageEnergyCost: marketRate,
+          bankedEnergyTillDate: closingBank,
+          bankedEnergyRate: marketRate,
+          bankedEnergyCost: closingBank * marketRate,
+          energyProcuredAfterDate,
+          priceAfterDate: marketRate,
+          discomConsumption,
+          discomConsumptionPercentage: dailyConsumption > 0 ? (discomConsumption / dailyConsumption) * 100 : 0,
+          actualDiscomCost: discomConsumption * Number(breakdown?.discomRate || 0),
+          actualDiscomCostPercentage: dailyConsumption > 0 ? (discomConsumption / dailyConsumption) * 100 : 0,
+          marketConsumption,
+          marketConsumptionPercentage: dailyConsumption > 0 ? (marketConsumption / dailyConsumption) * 100 : 0,
+          actualMarketCost: marketCost,
+          actualMarketCostPercentage: dailyConsumption > 0 ? (marketConsumption / dailyConsumption) * 100 : 0,
+          marketCostWithoutCharges: marketCost,
+          monthlyDemandCharges: 0,
+          proltCost: 0,
+          discomOnlyCost: dailyConsumption * Number(breakdown?.discomRate || 0),
+          discomOnlyCostForEnergyAvailableAtConsumerBusKvah: dailyConsumption * Number(breakdown?.discomRate || 0),
+          marketProcuredClearedEnergyKwh: marketProcured,
+          marketProcuredEnergyAvailableAtConsumerBusKwh: marketAvailableAtBus,
+          marketProcuredEnergyAvailableAtConsumerBusKvah: marketAvailableAtBus / (Number(entry.powerFactor) || 0.99),
+          marketNonEnergyCost: 0,
+          totalAmountForEnergyProcured: marketCost,
+          aggregateMarketEnergyRateWithoutCharges: marketRate,
+          aggregateMarketEnergyRateWithCharges: marketRate,
+          aggregateDiscomRateWithAllChargesAndDuty: Number(breakdown?.discomRate || 0),
+          averageSavingsRatePerUnit: dailyConsumption > 0 ? (dailyConsumption * Number(breakdown?.discomRate || 0) - marketCost) / dailyConsumption : 0,
+          totalSavings: dailyConsumption * Number(breakdown?.discomRate || 0) - marketCost,
+          savingsPercentage: dailyConsumption > 0 ? ((dailyConsumption * Number(breakdown?.discomRate || 0) - marketCost) / (dailyConsumption * Number(breakdown?.discomRate || 0)) * 100) : 0
+        });
+        bankedEnergyByTod[group.tod] = closingBank;
+      });
+
     const nocFee = 7000;
     const regFee = 8333;
     const consultancyFeeVal = entry.consultancyFee !== null && entry.consultancyFee !== undefined ? Number(entry.consultancyFee) : 20000;
@@ -2833,6 +2924,7 @@ export class TraderPerformanceService {
       powerFactor: Number(entry.powerFactor) || 0.99,
       demandChargeRate,
       todSummaries,
+      dailyTodBankingSummary,
       oaDetailed: {
         breakdown: oaDetailedBreakdown,
         dailyFixedOverhead,

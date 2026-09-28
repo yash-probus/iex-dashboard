@@ -236,6 +236,39 @@ export class TraderPerformanceExportService {
 
     sheet.addRow([]);
 
+    const dailyTodRows = result.dailyTodBankingSummary || [];
+    if (dailyTodRows.length > 0) {
+      const dailyTodColumns = [
+        'date', 'todName', 'todValue', 'todStartHour', 'todEndHour', 'totalConsumption',
+        'totalConsumptionFromMidnightData', 'dayWiseTotalConsumption', 'dayWiseMarketProcurement',
+        'dayWiseAverageEnergyCost', 'bankedEnergyTillDate', 'bankedEnergyRate', 'bankedEnergyCost',
+        'energyProcuredAfterDate', 'priceAfterDate', 'discomConsumption', 'discomConsumptionPercentage',
+        'actualDiscomCost', 'actualDiscomCostPercentage', 'marketConsumption', 'marketConsumptionPercentage',
+        'actualMarketCost', 'actualMarketCostPercentage', 'marketCostWithoutCharges', 'monthlyDemandCharges',
+        'proltCost', 'discomOnlyCost', 'discomOnlyCostForEnergyAvailableAtConsumerBusKvah',
+        'marketProcuredClearedEnergyKwh', 'marketProcuredEnergyAvailableAtConsumerBusKwh',
+        'marketProcuredEnergyAvailableAtConsumerBusKvah', 'marketNonEnergyCost', 'totalAmountForEnergyProcured',
+        'aggregateMarketEnergyRateWithoutCharges', 'aggregateMarketEnergyRateWithCharges',
+        'aggregateDiscomRateWithAllChargesAndDuty', 'averageSavingsRatePerUnit', 'totalSavings', 'savingsPercentage'
+      ];
+      const dailyTodHeader = sheet.addRow(dailyTodColumns);
+      dailyTodHeader.height = 36;
+      dailyTodHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      dailyTodHeader.eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003366' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      });
+
+      dailyTodRows.forEach((dailyRow: any) => {
+        const row = sheet.addRow(dailyTodColumns.map(column => dailyRow[column] ?? 0));
+        row.eachCell(cell => {
+          cell.numFmt = typeof cell.value === 'number' ? '#,##0.00' : '@';
+          cell.alignment = { vertical: 'middle', horizontal: 'right' };
+        });
+      });
+      sheet.addRow([]);
+    }
+
     // Just output the general OA breakdown
     const breakdownHeader = [
       'TOD Slab',
