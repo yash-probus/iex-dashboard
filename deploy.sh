@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Exit on any error
-set -e
+# Exit on any error, unset variable, or failed pipeline.
+set -euo pipefail
 
-ENV=$1
+ENV="${1:-}"
 
 if [ "$ENV" == "prod" ]; then
     DIR="/mnt/storage/iex-dashboard-new"
@@ -20,20 +20,18 @@ echo " Deploying to $ENV environment..."
 echo " Directory: $DIR"
 echo "========================================="
 
-cd $DIR
+cd "$DIR"
 
 echo "-> Pulling latest code from GitHub..."
-git pull origin main
+git pull --ff-only origin main
 
 echo "-> Rebuilding backend..."
 cd backend
-docker compose build iex-backend
-docker compose up -d iex-backend
+docker compose up -d --build iex-backend
 
 echo "-> Rebuilding frontend..."
 cd ../frontend
-docker compose build iex-frontend
-docker compose up -d iex-frontend
+docker compose up -d --build iex-frontend
 
 echo "========================================="
 echo " $ENV deployment complete!"

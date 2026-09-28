@@ -30,6 +30,29 @@ const getShortHeaderName = (monthStr: string) => {
   return `${MONTHS_SHORT[monthIdx]}-${year2Digit}`;
 };
 
+const getCalculationBase = (entry: any) => {
+  const loadMw = (Number(entry?.sanctionedLoadKw) || 0) / 1000;
+  return `${Number(loadMw.toFixed(2))} MW`;
+};
+
+const addExportHeader = (sheet: ExcelJS.Worksheet, entry: any) => {
+  const headerRows = [
+    [`Industry Name: ${entry.industryName || entry.clientName || ''}`],
+    [`Location / Address: ${entry.address || ''}`],
+    [`Connectivity: ${entry.voltageLevel || ''}`],
+    [],
+    [`Calculation Base: ${getCalculationBase(entry)}`]
+  ];
+
+  headerRows.forEach((values, index) => {
+    const row = sheet.addRow(values);
+    row.font = index === 4
+      ? { bold: true, color: { argb: 'FFFF0000' } }
+      : { bold: true };
+  });
+  sheet.addRow([]);
+};
+
 export class TraderPerformanceExportService {
   private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any, monthStr?: string, isActualTrader = false): Promise<Record<string, number>> {
     const { slotsData, todSummaries, oaDetailed } = result;
@@ -56,6 +79,8 @@ export class TraderPerformanceExportService {
     });
 
     const rowMapping: Record<string, number> = {};
+
+    addExportHeader(sheet, entry);
 
     // We need all unique days sorted
     const daysSet = new Set<string>();
@@ -831,16 +856,7 @@ export class TraderPerformanceExportService {
   }
 
   private static async populateSummarySheet(sheet: ExcelJS.Worksheet, entry: any, allResults: any[], monthRowMap: Record<string, any>, isActualTrader = false) {
-    // Header
-    sheet.addRow([`Industry Name: ${entry.industryName || entry.clientName || ''}`]);
-    sheet.addRow([`Location / Address: ${entry.address || ''}`]);
-    sheet.addRow([`Connectivity: ${entry.voltageLevel || ''}`]);
-    
-    // Make headers bold
-    for (let i = 1; i <= 3; i++) {
-      if (sheet.getCell(`A${i}`)) sheet.getCell(`A${i}`).font = { bold: true };
-    }
-    sheet.addRow([]);
+    addExportHeader(sheet, entry);
 
     // Sort results chronologically
     allResults.sort((a, b) => a.monthStr.localeCompare(b.monthStr));
