@@ -2688,10 +2688,6 @@ export class TraderPerformanceService {
 
     // Reconcile residual DISCOM energy from the pooled same-TOD balances.
     // A later-date purchase can satisfy an earlier-date demand in the same TOD.
-    globalTraderLapsedEnergy = oaDetailedBreakdown.reduce(
-      (sum, row) => sum + Math.max(0, Number(row.traderConsumerBusUnits || 0) - Number(row.discomUnits || 0)),
-      0
-    );
     oaDetailedBreakdown.forEach(row => {
       const reconciledResidualEnergy = Math.max(0, Number(row.traderLeftoverDiscomEnergy || 0));
       const reconciledBill = calculateResidualDiscomBill(
@@ -2805,6 +2801,11 @@ export class TraderPerformanceService {
         });
         bankedEnergyByTod[group.tod] = closingBank;
       });
+
+    globalTraderLapsedEnergy = Object.values(bankedEnergyByTod).reduce((sum, energy) => sum + energy, 0);
+    oaDetailedBreakdown.forEach(row => {
+      row.traderLapsedEnergy = Number(bankedEnergyByTod[String(row.slabName).toUpperCase()] || 0);
+    });
 
     const nocFee = 7000;
     const regFee = 8333;
