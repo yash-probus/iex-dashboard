@@ -30,6 +30,80 @@ const getShortHeaderName = (monthStr: string) => {
   return `${MONTHS_SHORT[monthIdx]}-${year2Digit}`;
 };
 
+export const sortTodSlabs = (slabs: string[]): string[] => {
+  const getSeasonWeight = (slab: string): number => {
+    const s = slab.toUpperCase();
+    if (
+      s.includes('SUMMER') ||
+      s.includes('APR-SEP') ||
+      s.includes('APR - SEP') ||
+      s.includes('APRIL-SEPTEMBER') ||
+      s.includes('APR TO SEP') ||
+      s.includes('APRIL TO SEPTEMBER') ||
+      s.includes('APR-OCT')
+    ) {
+      return 100;
+    }
+    if (s.includes('MONSOON')) return 150;
+    if (
+      s.includes('WINTER') ||
+      s.includes('OCT-MAR') ||
+      s.includes('OCT - MAR') ||
+      s.includes('OCTOBER-MARCH') ||
+      s.includes('OCT TO MAR') ||
+      s.includes('OCTOBER TO MARCH') ||
+      s.includes('NOV-FEB')
+    ) {
+      return 200;
+    }
+    const summerMonths = ['APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP'];
+    const winterMonths = ['OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR'];
+    for (const m of summerMonths) {
+      if (new RegExp(`\\b${m}\\b`, 'i').test(s)) return 100;
+    }
+    for (const m of winterMonths) {
+      if (new RegExp(`\\b${m}\\b`, 'i').test(s)) return 200;
+    }
+    return 50;
+  };
+
+  const getTodNumber = (slab: string): number | null => {
+    const match = slab.match(/TOD\s*[-_]?\s*(\d+)/i) || slab.match(/SLAB\s*[-_]?\s*(\d+)/i) || slab.match(/\bT(\d+)\b/i);
+    if (match) return parseInt(match[1], 10);
+    return null;
+  };
+
+  const getStartTimeMinutes = (slab: string): number | null => {
+    const match = slab.match(/(\d{1,2}):(\d{2})/);
+    if (match) {
+      const h = parseInt(match[1], 10);
+      const m = parseInt(match[2], 10);
+      return h * 60 + m;
+    }
+    return null;
+  };
+
+  return slabs.slice().sort((a, b) => {
+    const seasonA = getSeasonWeight(a);
+    const seasonB = getSeasonWeight(b);
+    if (seasonA !== seasonB) return seasonA - seasonB;
+
+    const todNumA = getTodNumber(a);
+    const todNumB = getTodNumber(b);
+    if (todNumA !== null && todNumB !== null && todNumA !== todNumB) {
+      return todNumA - todNumB;
+    }
+
+    const timeA = getStartTimeMinutes(a);
+    const timeB = getStartTimeMinutes(b);
+    if (timeA !== null && timeB !== null && timeA !== timeB) {
+      return timeA - timeB;
+    }
+
+    return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+  });
+};
+
 const getCalculationBase = (entry: any) => {
   const loadMw = (Number(entry?.sanctionedLoadKw) || 0) / 1000;
   return `${Number(loadMw.toFixed(2))} MW`;
@@ -869,7 +943,7 @@ export class TraderPerformanceExportService {
     allResults.forEach(r => {
       r.result.todSummaries.forEach((t: any) => uniqueTods.add(t.slabName));
     });
-    const todSlabs = Array.from(uniqueTods).sort();
+    const todSlabs = sortTodSlabs(Array.from(uniqueTods));
 
     // Savings section
     const savingsHeaderRow = sheet.addRow(['Savings', ...monthHeaders]);
