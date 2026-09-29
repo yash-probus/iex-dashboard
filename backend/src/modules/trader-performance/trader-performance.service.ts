@@ -2826,8 +2826,10 @@ export class TraderPerformanceService {
 
     const netSavings = totalBaselineCost - (totalLandedExchangeCost + dailyFixedOverhead + bidApplicationFees);
 
-    const actualTraderMarginTotal = globalTraderMarketEnergy * TRADER_MARGIN;
-    const actualTraderMarginGstTotal = globalTraderMarketEnergy * GST_TRADER_MARGIN;
+    const lapsedEnergyKwh = globalTraderLapsedEnergy * globalPf;
+    const actualTraderMarginBasisKwh = Math.max(0, globalTraderMarketEnergy - lapsedEnergyKwh);
+    const actualTraderMarginTotal = actualTraderMarginBasisKwh * TRADER_MARGIN;
+    const actualTraderMarginGstTotal = actualTraderMarginBasisKwh * GST_TRADER_MARGIN;
 
     const actualTraderMarketEnergyCost = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderExactCost || 0), 0);
     const actualTraderCssCharge = oaDetailedBreakdown.reduce((sum, row) => sum + Number(row.traderCssCharge || 0), 0);
