@@ -64,7 +64,31 @@ export const sortTodSlabs = (slabs: string[]): string[] => {
     for (const m of winterMonths) {
       if (new RegExp(`\\b${m}\\b`, 'i').test(s)) return 200;
     }
-    return 50;
+
+    // Time signature recognition for Summer vs Winter
+    if (
+      /\b(?:0?5|5):00\s*-\s*10:00\b/.test(s) ||
+      /\b10:00\s*-\s*19:00\b/.test(s) ||
+      /\b19:00\s*-\s*(?:0?3|3):00\b/.test(s) ||
+      /\b(?:0?3|3):00\s*-\s*(?:0?5|5):00\b/.test(s) ||
+      /\b19:00\s*-\s*24:00\b/.test(s) ||
+      /\b00:00\s*-\s*(?:0?3|3):00\b/.test(s)
+    ) {
+      return 100;
+    }
+
+    if (
+      /\b(?:0?5|5):00\s*-\s*11:00\b/.test(s) ||
+      /\b11:00\s*-\s*17:00\b/.test(s) ||
+      /\b17:00\s*-\s*23:00\b/.test(s) ||
+      /\b23:00\s*-\s*(?:0?5|5):00\b/.test(s) ||
+      /\b17:00\s*-\s*24:00\b/.test(s) ||
+      /\b00:00\s*-\s*(?:0?5|5):00\b/.test(s)
+    ) {
+      return 200;
+    }
+
+    return 150;
   };
 
   const getTodNumber = (slab: string): number | null => {

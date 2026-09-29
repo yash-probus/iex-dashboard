@@ -64,7 +64,31 @@ export const sortTodSlabs = (slabs: string[]): string[] => {
     for (const m of winterMonths) {
       if (new RegExp(`\\b${m}\\b`, 'i').test(s)) return 200;
     }
-    return 50;
+
+    // Time signature recognition for Summer vs Winter
+    if (
+      /\b(?:0?5|5):00\s*-\s*10:00\b/.test(s) ||
+      /\b10:00\s*-\s*19:00\b/.test(s) ||
+      /\b19:00\s*-\s*(?:0?3|3):00\b/.test(s) ||
+      /\b(?:0?3|3):00\s*-\s*(?:0?5|5):00\b/.test(s) ||
+      /\b19:00\s*-\s*24:00\b/.test(s) ||
+      /\b00:00\s*-\s*(?:0?3|3):00\b/.test(s)
+    ) {
+      return 100;
+    }
+
+    if (
+      /\b(?:0?5|5):00\s*-\s*11:00\b/.test(s) ||
+      /\b11:00\s*-\s*17:00\b/.test(s) ||
+      /\b17:00\s*-\s*23:00\b/.test(s) ||
+      /\b23:00\s*-\s*(?:0?5|5):00\b/.test(s) ||
+      /\b17:00\s*-\s*24:00\b/.test(s) ||
+      /\b00:00\s*-\s*(?:0?5|5):00\b/.test(s)
+    ) {
+      return 200;
+    }
+
+    return 150;
   };
 
   const getTodNumber = (slab: string): number | null => {
@@ -102,29 +126,6 @@ export const sortTodSlabs = (slabs: string[]): string[] => {
 
     return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
   });
-};
-
-const getCalculationBase = (entry: any) => {
-  const loadMw = (Number(entry?.sanctionedLoadKw) || 0) / 1000;
-  return `${Number(loadMw.toFixed(2))} MW`;
-};
-
-const addExportHeader = (sheet: ExcelJS.Worksheet, entry: any) => {
-  const headerRows = [
-    [`Industry Name: ${entry.industryName || entry.clientName || ''}`],
-    [`Location / Address: ${entry.address || ''}`],
-    [`Connectivity: ${entry.voltageLevel || ''}`],
-    [],
-    [`Calculation Base: ${getCalculationBase(entry)}`]
-  ];
-
-  headerRows.forEach((values, index) => {
-    const row = sheet.addRow(values);
-    row.font = index === 4
-      ? { bold: true, color: { argb: 'FFFF0000' } }
-      : { bold: true };
-  });
-  sheet.addRow([]);
 };
 
 export class TraderPerformanceExportService {
