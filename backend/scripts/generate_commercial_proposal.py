@@ -34,36 +34,11 @@ def generate_proposal(data_json):
     else:
         data = json.loads(data_json)
     
-    template_path = data.get('template_path', '/Users/yashgupta/IEX-Dashboard/backend/assets/templates/COMMERCIAL PROPOSAL_33KV.docx')
-    if not os.path.exists(template_path):
-        fallback_path = '/Users/yashgupta/IEX-Dashboard/commercial_proposal_template.docx'
-        if os.path.exists(fallback_path):
-            template_path = fallback_path
-
+    template_path = data.get('template_path', '/Users/yashgupta/IEX-Dashboard/commercial_proposal_template.docx')
     output_path = data.get('output_path', '/Users/yashgupta/IEX-Dashboard/generated_proposal.docx')
     
     doc = docx.Document(template_path)
     
-    # 0. Ensure default style is Aptos
-    try:
-        doc.styles['Normal'].font.name = 'Aptos'
-    except Exception:
-        pass
-
-    # Helper function to prevent rows from breaking across pages
-    from docx.oxml import parse_xml
-    from docx.oxml.ns import qn
-    from docx.shared import Pt
-
-    def set_cant_split(row):
-        trPr = row._tr.get_or_add_trPr()
-        if trPr.find(qn('w:cantSplit')) is None:
-            trPr.append(parse_xml(r'<w:cantSplit xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-
-    for t in doc.tables:
-        for r in t.rows:
-            set_cant_split(r)
-
     # 1. Update Title Paragraph P2
     client_name = data.get('client_name') or data.get('industry_name') or 'CLIENT'
     connectivity_str = str(data.get('connectivity') or data.get('voltage_level') or '11 kV')
@@ -90,8 +65,6 @@ def generate_proposal(data_json):
     for p in doc.paragraphs:
         for run in p.runs:
             remove_highlight(run)
-            if not run.font.name:
-                run.font.name = 'Aptos'
             if run.text:
                 run.text = replace_in_text(run.text)
         
@@ -101,33 +74,17 @@ def generate_proposal(data_json):
                 for p in c.paragraphs:
                     for run in p.runs:
                         remove_highlight(run)
-                        if not run.font.name:
-                            run.font.name = 'Aptos'
                         if run.text:
                             run.text = replace_in_text(run.text)
 
+
+
     # Helper function to set cell text with centered alignment and bold formatting
-    def set_cell_value(cell, text, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER, font_name='Aptos', font_size_pt=9.5):
-        # Clear existing content from cell
+    def set_cell_value(cell, text, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER):
+        cell.text = ""
         p = cell.paragraphs[0]
-        p.text = "" # Clears all runs
         p.alignment = align
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
-        p.paragraph_format.line_spacing = 1.0
-        
-        # Remove any extra empty runs that p.text = "" might create
-        for r_elem in p._element.xpath('./w:r'):
-            p._element.remove(r_elem)
-            
         run = p.add_run(str(text))
-        run.font.name = font_name
-        rPr = run._element.get_or_add_rPr()
-        rFonts = rPr.get_or_add_rFonts()
-        rFonts.set(qn('w:ascii'), font_name)
-        rFonts.set(qn('w:hAnsi'), font_name)
-        rFonts.set(qn('w:cs'), font_name)
-        run.font.size = Pt(font_size_pt)
         if bold:
             run.bold = True
         if italic:
@@ -141,10 +98,10 @@ def generate_proposal(data_json):
             sanctioned_load = str(data.get('sanctioned_load') or data.get('sanctioned_load_kw') or '1000 kW')
             if not sanctioned_load.lower().endswith('kw') and not sanctioned_load.lower().endswith('kva'):
                 sanctioned_load += ' kW'
-            set_cell_value(r1[0], sanctioned_load, bold=True, font_size_pt=10)
-            set_cell_value(r1[1], str(data.get('connectivity') or data.get('voltage_level') or '11 kV'), bold=True, font_size_pt=10)
-            set_cell_value(r1[2], str(data.get('discom_name') or data.get('discom') or 'DISCOM'), bold=True, font_size_pt=10)
-            set_cell_value(r1[3], str(data.get('feeder_type') or 'Dedicated Feeder'), bold=True, font_size_pt=10)
+            set_cell_value(r1[0], sanctioned_load, bold=True)
+            set_cell_value(r1[1], str(data.get('connectivity') or data.get('voltage_level') or '11 kV'), bold=True)
+            set_cell_value(r1[2], str(data.get('discom_name') or data.get('discom') or 'DISCOM'), bold=True)
+            set_cell_value(r1[3], str(data.get('feeder_type') or 'Dedicated Feeder'), bold=True)
 
     # 3. Update Table 3 (Pricing/BOQ Table)
     if len(doc.tables) > 3:
@@ -170,7 +127,7 @@ def generate_proposal(data_json):
         smart = safe_float(data.get('smart_metering_infra'), 125000)
 
         # Row 1: ABT Metering Total
-        if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(c_total_abt), bold=True, font_size_pt=9.5)
+        if len(t3.rows) > 1: set_cell_value(t3.rows[1].cells[-1], format_rupee(c_total_abt), bold=True)
         
         # Row 2: Supply
         if len(t3.rows) > 2: 
@@ -183,43 +140,43 @@ def generate_proposal(data_json):
                 for p in supply_cell.paragraphs:
                     if 'Outdoor CT/PT' in p.text:
                         p.text = ''
-            set_cell_value(t3.rows[2].cells[-1], format_rupee(c_supply), font_size_pt=9.0)
+            set_cell_value(t3.rows[2].cells[-1], format_rupee(c_supply))
             
         # Row 3: Service
-        if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[-1], format_rupee(c_service), font_size_pt=9.0)
+        if len(t3.rows) > 3: set_cell_value(t3.rows[3].cells[-1], format_rupee(c_service))
         
         # Row 4: Liaisoning
-        if len(t3.rows) > 4: set_cell_value(t3.rows[4].cells[-1], format_rupee(c_liaison), font_size_pt=9.0)
+        if len(t3.rows) > 4: set_cell_value(t3.rows[4].cells[-1], format_rupee(c_liaison))
         
         # Row 5: SLDC Security Deposit Total
-        if len(t3.rows) > 5: set_cell_value(t3.rows[5].cells[-1], format_rupee(c_bg), bold=True, font_size_pt=9.5)
+        if len(t3.rows) > 5: set_cell_value(t3.rows[5].cells[-1], format_rupee(c_bg), bold=True)
         
         # Row 6: UPSLDC Bank Guarantee
-        if len(t3.rows) > 6: set_cell_value(t3.rows[6].cells[-1], format_rupee(c_bg), font_size_pt=9.0)
+        if len(t3.rows) > 6: set_cell_value(t3.rows[6].cells[-1], format_rupee(c_bg))
         
         # Row 7: Fixed Recurring Charges Total
-        if len(t3.rows) > 7: set_cell_value(t3.rows[7].cells[-1], format_rupee(c_total_recurring), bold=True, font_size_pt=9.5)
+        if len(t3.rows) > 7: set_cell_value(t3.rows[7].cells[-1], format_rupee(c_total_recurring), bold=True)
         
         # Row 8: IEX Annual
-        if len(t3.rows) > 8: set_cell_value(t3.rows[8].cells[-1], format_rupee(c_iex), font_size_pt=9.0)
+        if len(t3.rows) > 8: set_cell_value(t3.rows[8].cells[-1], format_rupee(c_iex))
         
         # Row 9: NOC
-        if len(t3.rows) > 9: set_cell_value(t3.rows[9].cells[-1], format_rupee(c_noc), font_size_pt=9.0)
+        if len(t3.rows) > 9: set_cell_value(t3.rows[9].cells[-1], format_rupee(c_noc))
         
         # Row 10: ST-11
-        if len(t3.rows) > 10: set_cell_value(t3.rows[10].cells[-1], format_rupee(c_st11), font_size_pt=9.0)
+        if len(t3.rows) > 10: set_cell_value(t3.rows[10].cells[-1], format_rupee(c_st11))
         
         # Row 12: Trading Margin
-        if len(t3.rows) > 12: set_cell_value(t3.rows[12].cells[-1], tm, font_size_pt=9.0)
+        if len(t3.rows) > 12: set_cell_value(t3.rows[12].cells[-1], tm)
         
         # Row 13: Platform Fee
-        if len(t3.rows) > 13: set_cell_value(t3.rows[13].cells[-1], pf, font_size_pt=9.0)
+        if len(t3.rows) > 13: set_cell_value(t3.rows[13].cells[-1], pf)
         
         # Row 14: Value Share
-        if len(t3.rows) > 14: set_cell_value(t3.rows[14].cells[-1], vs, font_size_pt=9.0)
+        if len(t3.rows) > 14: set_cell_value(t3.rows[14].cells[-1], vs)
         
         # Row 15: Smart Metering
-        if len(t3.rows) > 15: set_cell_value(t3.rows[15].cells[-1], format_rupee(smart), font_size_pt=9.0)
+        if len(t3.rows) > 15: set_cell_value(t3.rows[15].cells[-1], format_rupee(smart))
 
     # 4. Update Table 4 (Terms & Conditions)
     if len(doc.tables) > 4:
@@ -229,7 +186,7 @@ def generate_proposal(data_json):
         # Searching for 'Prolt Energy Smart Metering Infra' in the second column to replace the third column
         for row in t4.rows:
             if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[1].text:
-                set_cell_value(row.cells[2], smart_payment_term, italic=True, align=WD_ALIGN_PARAGRAPH.LEFT, font_size_pt=9.0)
+                set_cell_value(row.cells[2], smart_payment_term, italic=True, align=WD_ALIGN_PARAGRAPH.LEFT)
                 break
 
     # 5. Format the last page (remove header, set 0 margins, stretch image)
