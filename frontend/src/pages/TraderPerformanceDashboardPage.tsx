@@ -758,6 +758,10 @@ export default function TraderPerformanceDashboardPage() {
                                     : undefined;
                                   const pf = Number(selectedMonthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
                                   const toKvAh = (kwh: number) => kwh / pf;
+                                  const lapsedEnergyKvah = actualBreakdown.reduce(
+                                    (sum: number, row: any) => sum + Math.max(0, Number(row.traderMarketEnergy || 0) - toKvAh(Number(row.traderConsumerBusUnits || 0))),
+                                    0
+                                  );
                                   const monthKvah = (monthData: any) => {
                                     const monthPf = Number(monthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
                                     if (!Array.isArray(monthData?.slots)) return 0;
@@ -809,7 +813,7 @@ export default function TraderPerformanceDashboardPage() {
                                         <TableCell>Lapsed Banking Energy (kVAh)</TableCell>
                                         <TableCell align="right">0</TableCell>
                                         <TableCell align="right">0</TableCell>
-                                        <TableCell align="right">{hasTraderData ? toKvAh(actualSettlement?.lapsedEnergyKwh || 0).toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
+                                        <TableCell align="right">{hasTraderData ? lapsedEnergyKvah.toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</TableCell>
                                       </TableRow>
                                       <TableRow>
                                         <TableCell>Fully Landed OA Cost (₹)</TableCell>
@@ -870,14 +874,18 @@ export default function TraderPerformanceDashboardPage() {
                                     : undefined;
                                   const pf = Number(selectedMonthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
                                   const toKvAh = (kwh: number) => kwh / pf;
+                                  const lapsedEnergyKvah = Math.max(
+                                    0,
+                                    Number(row.traderMarketEnergy || 0) - toKvAh(Number(row.traderConsumerBusUnits || 0))
+                                  );
                                   return (
                                     <TableRow key={idx}>
                                       <TableCell>{row.slabName}</TableCell>
                                       <TableCell align="right">{toKvAh(row.discomUnits || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       <TableCell align="right">{(row.traderMarketEnergy || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
                                       <TableCell align="right">{toKvAh(row.traderConsumerBusUnits || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                      <TableCell align="right" sx={{ color: row.traderLapsedEnergy > 0 ? 'error.main' : 'inherit' }}>
-                                        {toKvAh(row.traderLapsedEnergy || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                                      <TableCell align="right" sx={{ color: lapsedEnergyKvah > 0 ? 'error.main' : 'inherit' }}>
+                                        {lapsedEnergyKvah.toLocaleString(undefined, {maximumFractionDigits: 0})}
                                       </TableCell>
                                     </TableRow>
                                   );
