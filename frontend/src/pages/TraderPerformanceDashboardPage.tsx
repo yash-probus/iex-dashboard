@@ -759,7 +759,7 @@ export default function TraderPerformanceDashboardPage() {
                                   const pf = Number(selectedMonthData?.['Power Factor'] || calcEntry?.powerFactor) || 1;
                                   const toKvAh = (kwh: number) => kwh / pf;
                                   const lapsedEnergyKvah = actualBreakdown.reduce(
-                                    (sum: number, row: any) => sum + Math.max(0, Number(row.traderMarketEnergy || 0) - toKvAh(Number(row.traderConsumerBusUnits || 0))),
+                                    (sum: number, row: any) => sum + Math.max(0, toKvAh(Number(row.traderConsumerBusUnits || 0)) - toKvAh(Number(row.discomUnits || 0))),
                                     0
                                   );
                                   const monthKvah = (monthData: any) => {
@@ -876,7 +876,7 @@ export default function TraderPerformanceDashboardPage() {
                                   const toKvAh = (kwh: number) => kwh / pf;
                                   const lapsedEnergyKvah = Math.max(
                                     0,
-                                    Number(row.traderMarketEnergy || 0) - toKvAh(Number(row.traderConsumerBusUnits || 0))
+                                    toKvAh(Number(row.traderConsumerBusUnits || 0)) - toKvAh(Number(row.discomUnits || 0))
                                   );
                                   return (
                                     <TableRow key={idx}>

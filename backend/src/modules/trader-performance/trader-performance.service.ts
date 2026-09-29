@@ -2803,14 +2803,14 @@ export class TraderPerformanceService {
       });
 
     globalTraderLapsedEnergy = oaDetailedBreakdown.reduce((sum, row) => {
-      const boughtRegionalKwh = Number(row.traderMarketEnergy || 0);
       const deliveredConsumerKvah = Number(row.traderConsumerBusUnits || 0) / globalPf;
-      return sum + Math.max(0, boughtRegionalKwh - deliveredConsumerKvah);
+      const discomConsumptionKvah = Number(row.discomUnits || 0) / globalPf;
+      return sum + Math.max(0, deliveredConsumerKvah - discomConsumptionKvah);
     }, 0);
     oaDetailedBreakdown.forEach(row => {
       row.traderLapsedEnergy = Math.max(
         0,
-        Number(row.traderMarketEnergy || 0) - Number(row.traderConsumerBusUnits || 0) / globalPf
+        Number(row.traderConsumerBusUnits || 0) / globalPf - Number(row.discomUnits || 0) / globalPf
       );
     });
 
