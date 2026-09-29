@@ -2802,9 +2802,16 @@ export class TraderPerformanceService {
         bankedEnergyByTod[group.tod] = closingBank;
       });
 
-    globalTraderLapsedEnergy = Object.values(bankedEnergyByTod).reduce((sum, energy) => sum + energy, 0);
+    globalTraderLapsedEnergy = oaDetailedBreakdown.reduce((sum, row) => {
+      const boughtRegionalKwh = Number(row.traderMarketEnergy || 0);
+      const deliveredConsumerKvah = Number(row.traderConsumerBusUnits || 0) / globalPf;
+      return sum + Math.max(0, boughtRegionalKwh - deliveredConsumerKvah);
+    }, 0);
     oaDetailedBreakdown.forEach(row => {
-      row.traderLapsedEnergy = Number(bankedEnergyByTod[String(row.slabName).toUpperCase()] || 0);
+      row.traderLapsedEnergy = Math.max(
+        0,
+        Number(row.traderMarketEnergy || 0) - Number(row.traderConsumerBusUnits || 0) / globalPf
+      );
     });
 
     const nocFee = 7000;
