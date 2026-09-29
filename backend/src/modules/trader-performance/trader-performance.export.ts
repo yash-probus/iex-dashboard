@@ -128,6 +128,30 @@ export const sortTodSlabs = (slabs: string[]): string[] => {
   });
 };
 
+const getCalculationBase = (entry: any) => {
+  const loadMw = (Number(entry?.sanctionedLoadKw) || 0) / 1000;
+  return `${Number(loadMw.toFixed(2))} MW`;
+};
+
+const addExportHeader = (sheet: ExcelJS.Worksheet, entry: any) => {
+  const headerRows = [
+    [`Industry Name: ${entry.industryName || entry.clientName || ''}`],
+    [`Location / Address: ${entry.address || ''}`],
+    [`Connectivity: ${entry.voltageLevel || ''}`],
+    [],
+    [`Calculation Base: ${getCalculationBase(entry)}`]
+  ];
+
+  headerRows.forEach((values, index) => {
+    const row = sheet.addRow(values);
+    row.font = index === 4
+      ? { bold: true, color: { argb: 'FFFF0000' } }
+      : { bold: true };
+  });
+
+  sheet.addRow([]);
+};
+
 export class TraderPerformanceExportService {
   private static async addSavingsSheet(workbook: ExcelJS.Workbook, monthName: string, result: any, entry: any, monthStr?: string, isActualTrader = false): Promise<Record<string, number>> {
     const { slotsData, todSummaries, oaDetailed } = result;
