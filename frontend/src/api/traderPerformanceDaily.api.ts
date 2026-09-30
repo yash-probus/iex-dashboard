@@ -73,12 +73,12 @@ export interface DailyAnalysisResponse {
 }
 
 export const fetchDailyConsumers = async (): Promise<DailyConsumer[]> => {
-  const res = await apiClient.get('/api/trader-performance-daily/consumers');
+  const res = await apiClient.get('/trader-performance-daily/consumers');
   return res.data?.data || [];
 };
 
 export const saveDailyConsumer = async (consumer: Partial<DailyConsumer>): Promise<DailyConsumer> => {
-  const res = await apiClient.post('/api/trader-performance-daily/consumers', consumer);
+  const res = await apiClient.post('/trader-performance-daily/consumers', consumer);
   return res.data?.data;
 };
 
@@ -87,7 +87,7 @@ export const uploadDailyTradeReportPdfs = async (files: File[]): Promise<any> =>
   files.forEach(f => {
     formData.append('files', f);
   });
-  const res = await apiClient.post('/api/trader-performance-daily/upload', formData, {
+  const res = await apiClient.post('/trader-performance-daily/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
   return res.data?.data;
@@ -105,12 +105,12 @@ export const fetchDailyAnalysis = async (params: {
   if (params.targetDate) queryParams.set('targetDate', params.targetDate);
 
   if (params.tradeReports) {
-    const res = await apiClient.post(`/api/trader-performance-daily/analysis?${queryParams.toString()}`, {
+    const res = await apiClient.post(`/trader-performance-daily/analysis?${queryParams.toString()}`, {
       tradeReports: params.tradeReports
     });
     return res.data?.data;
   } else {
-    const res = await apiClient.get(`/api/trader-performance-daily/analysis?${queryParams.toString()}`);
+    const res = await apiClient.get(`/trader-performance-daily/analysis?${queryParams.toString()}`);
     return res.data?.data;
   }
 };
