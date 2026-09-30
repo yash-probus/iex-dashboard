@@ -5026,6 +5026,202 @@
         ]
       }
     },
+    "/api/trader-performance-daily/upload": {
+      "post": {
+        "summary": "Auto-generated POST for /api/trader-performance-daily/upload",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Trader Performance Daily"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/trader-performance-daily/consumers": {
+      "get": {
+        "summary": "Auto-generated GET for /api/trader-performance-daily/consumers",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Trader Performance Daily"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Auto-generated POST for /api/trader-performance-daily/consumers",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Trader Performance Daily"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/trader-performance-daily/analysis": {
+      "get": {
+        "summary": "Auto-generated GET for /api/trader-performance-daily/analysis",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Trader Performance Daily"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Auto-generated POST for /api/trader-performance-daily/analysis",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Trader Performance Daily"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/landing-price-calc/consumer-category": {
       "get": {
         "summary": "Auto-generated GET for /api/landing-price-calc/consumer-category",

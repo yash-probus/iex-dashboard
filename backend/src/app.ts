@@ -66,6 +66,7 @@ import forecastRoutes from './modules/forecast/forecast.routes';
 import usersRoutes from './modules/users/users.routes';
 import proposalRoutes from './modules/proposal/proposal.routes';
 import traderPerformanceRoutes from './modules/trader-performance/trader-performance.routes';
+import traderPerformanceDailyRoutes from './modules/trader-performance-daily/trader-performance-daily.routes';
 import upMarketRoutes from './modules/up-market/up-market.routes';
 import landingPriceCalcRoutes from './modules/landing-price-calc/landing-price-calc.routes';
 
@@ -95,6 +96,7 @@ app.use('/forecast', forecastRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/trader-performance', traderPerformanceRoutes);
+app.use('/api/trader-performance-daily', traderPerformanceDailyRoutes);
 app.use('/api/up-market', upMarketRoutes);
 app.use('/api/landing-price-calc', landingPriceCalcRoutes);
 
