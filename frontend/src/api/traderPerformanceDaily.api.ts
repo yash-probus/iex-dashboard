@@ -55,6 +55,7 @@ export interface IntervalBreakdownRow {
   probusCost: number;
   traderTradedMw: number;
   traderClearedPrice: number | null;
+  traderLandedRate?: number | null;
   traderStatus: string;
   traderCost: number;
   probusSavingsVsDiscom: number;

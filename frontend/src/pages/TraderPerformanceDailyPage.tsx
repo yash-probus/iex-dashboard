@@ -983,8 +983,8 @@ export default function TraderPerformanceDailyPage() {
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#0284C7' }}>Actual Trader Savings (₹)</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#E11D48' }}>Opportunity Missed (₹)</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>Traded Volume (kWh)</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Probus Rate</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Trader Rate</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Probus Landed Rate</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Trader Landed Rate</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -1035,7 +1035,7 @@ export default function TraderPerformanceDailyPage() {
                       <TableCell align="center" sx={{ fontWeight: 600 }}>Probus Optimal Market</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#10B981' }}>Probus Rate</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>Trader Traded (MW)</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Trader Rate</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Trader Landed Rate</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#10B981' }}>Probus Savings (₹)</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#E11D48' }}>Extra Savings Possible (₹)</TableCell>
                     </TableRow>
@@ -1078,7 +1078,18 @@ export default function TraderPerformanceDailyPage() {
                           {slot.traderTradedMw > 0 ? `${slot.traderTradedMw.toFixed(2)} MW` : '-'}
                         </TableCell>
                         <TableCell align="right">
-                          {slot.traderClearedPrice ? `₹ ${slot.traderClearedPrice.toFixed(2)}` : '-'}
+                          {slot.traderLandedRate ? (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: slot.traderLandedRate > slot.discomRate ? '#E11D48' : 'text.primary' }}>
+                                ₹ {slot.traderLandedRate.toFixed(2)}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem' }}>
+                                MCP: ₹{slot.traderClearedPrice?.toFixed(2)}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            '-'
+                          )}
                         </TableCell>
                         <TableCell align="right" sx={{ color: '#10B981', fontWeight: 600 }}>
                           ₹ {slot.probusSavingsVsDiscom}

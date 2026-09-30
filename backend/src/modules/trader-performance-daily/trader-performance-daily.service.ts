@@ -618,6 +618,7 @@ export class TraderPerformanceDailyService {
             probusCost: Math.round(slotProbusCost),
             traderTradedMw,
             traderClearedPrice: traderClearedRate > 0 ? Math.round(traderClearedRate * 100) / 100 : null,
+            traderLandedRate: traderLandedRate > 0 ? Math.round(traderLandedRate * 100) / 100 : null,
             traderStatus,
             traderCost: Math.round(actualSlotCost),
             probusSavingsVsDiscom: Math.round(slotDiscomCost - slotProbusCost),
