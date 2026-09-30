@@ -27,6 +27,7 @@ const AVAILABLE_MODULES = [
   { id: 'api-logs', label: 'API Logs' },
   { id: 'user-management', label: 'User Management' },
   { id: 'trader-performance', label: 'Trader Performance' },
+  { id: 'trader-performance-daily', label: 'Trader Performance Daily' },
 ];
 
 export default function UserManagementPage() {

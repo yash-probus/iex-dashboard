@@ -117,6 +117,14 @@ const MODULES = [
     path: '/trader-performance',
     icon: <ChartIcon sx={{ fontSize: 24 }} />,
     color: '#F59E0B'
+  },
+  {
+    key: 'trader-performance-daily',
+    title: 'Trader Performance Daily',
+    description: 'Track and analyze day-by-day trader performance and daily metrics.',
+    path: '/trader-performance-daily',
+    icon: <ChartIcon sx={{ fontSize: 24 }} />,
+    color: '#D97706'
   }
 ];
 
