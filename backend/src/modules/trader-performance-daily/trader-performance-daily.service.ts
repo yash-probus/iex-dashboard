@@ -583,6 +583,7 @@ export class TraderPerformanceDailyService {
         let actualSlotCost = slotDiscomCost;
         let traderTradedMw = 0;
         let traderClearedRate = 0;
+        let traderLandedRate = 0;
         let traderStatus = 'NO_TRADE';
 
         if (traderTrade && traderTrade.qtyMw > 0) {
@@ -592,7 +593,7 @@ export class TraderPerformanceDailyService {
           const effectiveTradedKwh = Math.min(slotKwh, tradedKwh);
           const leftoverDiscomKwh = Math.max(0, slotKwh - effectiveTradedKwh);
 
-          const traderLandedRate = calcOpenAccessLanding(traderClearedRate, deliveryDateObj);
+          traderLandedRate = calcOpenAccessLanding(traderClearedRate, deliveryDateObj);
           actualSlotCost = (effectiveTradedKwh * traderLandedRate) + (leftoverDiscomKwh * discomLandedRate);
           dayTradedKwh += effectiveTradedKwh;
           traderStatus = 'CLEARED';
