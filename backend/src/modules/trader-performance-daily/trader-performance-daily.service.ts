@@ -3,6 +3,14 @@ import { StarrocksService } from '../../services/starrocks.service';
 import fs from 'fs';
 import path from 'path';
 
+export interface TodSlotConfig {
+  id: string;
+  name: string;
+  startTime: string; // "05:00"
+  endTime: string;   // "08:00"
+  effectivePrice?: number;
+}
+
 export interface DailyConsumerConfig {
   id: string;
   name: string;
@@ -16,8 +24,9 @@ export interface DailyConsumerConfig {
   traderMargin: number;
   applyElectricityDuty: boolean;
   electricityDutyPercent: number;
-  fppaPercent: number;
-  discomBaseTariff: number;
+  fppaPercent?: number;
+  discomBaseTariff?: number;
+  customTodSlots?: TodSlotConfig[];
   tradeReports?: any; // Stored parsed PDF trade data
 }
 
@@ -35,8 +44,11 @@ const DEFAULT_POORVANCHAL_CONSUMER: DailyConsumerConfig = {
   traderMargin: 0.02,
   applyElectricityDuty: true,
   electricityDutyPercent: 5.0,
-  fppaPercent: 10.0,
-  discomBaseTariff: 7.65,
+  customTodSlots: [
+    { id: 'tod-1', name: 'Off-Peak Night', startTime: '22:00', endTime: '06:00' },
+    { id: 'tod-2', name: 'Normal Hours', startTime: '06:00', endTime: '17:00' },
+    { id: 'tod-3', name: 'Peak Evening', startTime: '17:00', endTime: '22:00' }
+  ],
   tradeReports: { data: {} }
 };
 
@@ -120,6 +132,15 @@ function normalizeDeliveryDate(rawDate: string): string | null {
   } catch {}
 
   return str;
+}
+
+function parseHourLocal(val: string | null | undefined): number {
+  if (!val) return 0;
+  let [time, modifier] = val.split(' ');
+  let [h, m] = time.split(':').map(Number);
+  if (modifier && modifier.toUpperCase().startsWith('P') && h < 12) h += 12;
+  if (modifier && modifier.toUpperCase().startsWith('A') && h === 12) h = 0;
+  return (h || 0) + ((m || 0) / 60);
 }
 
 export class TraderPerformanceDailyService {
@@ -227,7 +248,7 @@ export class TraderPerformanceDailyService {
   }
 
   /**
-   * Main calculation engine for Daily Trader Performance
+   * Main calculation engine for Daily Trader Performance with Full TOD Breakdown
    */
   static async calculateDailyAnalysis(params: {
     consumerId: string;
@@ -279,7 +300,83 @@ export class TraderPerformanceDailyService {
       consumer.powerFactor
     );
 
-    // 2. Fetch DAM / GDAM / RTM Market MCPs for dates
+    // 2. Load TOD Tariffs, State Charges, FPPA, CTU, ISTS from DB (matching Trader Performance logic)
+    const stateCode = consumer.stateCode || 'UP';
+    let parsedCategory = consumer.consumerCategory || 'HV-2';
+    let parsedSubCategory = '';
+    if (parsedCategory.includes(' | ')) {
+      const parts = parsedCategory.split(' | ');
+      parsedCategory = parts[0];
+      parsedSubCategory = parts[1];
+    }
+
+    let parsedSupplyVoltageCategory = '11 kV';
+    if (consumer.voltageLevel?.includes('33')) parsedSupplyVoltageCategory = '33 kV';
+    else if (consumer.voltageLevel?.includes('66')) parsedSupplyVoltageCategory = '66 kV';
+    else if (consumer.voltageLevel?.includes('132')) parsedSupplyVoltageCategory = '132 kV';
+
+    const stateFormats = [stateCode, 'Uttar Pradesh', 'UTTAR PRADESH', 'UP'];
+
+    const yyyymmMonth = yearNum * 100 + monthNum;
+
+    const [tariffsFromDb, stateCharges, ctuCharges, istsCharges, fppaDataList, iexFees] = await Promise.all([
+      prisma.stateTariff.findMany({
+        where: {
+          state: { in: stateFormats },
+          consumerCategory: { contains: parsedCategory },
+          supplyVoltageCategory: { contains: parsedSupplyVoltageCategory }
+        },
+        orderBy: { month: 'desc' }
+      }),
+      prisma.stateCharges.findFirst({
+        where: {
+          state: { in: stateFormats },
+          category: { contains: parsedCategory }
+        },
+        orderBy: { fromDate: 'desc' }
+      }),
+      prisma.ctuCharges.findFirst({
+        where: { state: { in: stateFormats } },
+        orderBy: { month: 'desc' }
+      }),
+      prisma.istsCharges.findMany({
+        orderBy: { startDate: 'desc' },
+        take: 10
+      }),
+      prisma.fppaCharges.findMany({
+        where: { state: { in: stateFormats }, month: yyyymmMonth }
+      }),
+      prisma.iexFees.findFirst({ orderBy: { id: 'desc' } })
+    ]);
+
+    // Calculate FPPA & Electricity Duty
+    let fppaPercent = consumer.fppaPercent ?? 10.0;
+    if (fppaDataList && fppaDataList.length > 0) {
+      const match = fppaDataList.find(f => f.discom === consumer.discom) || fppaDataList[0];
+      if (match && match.fppaChargePercent) {
+        fppaPercent = Number(match.fppaChargePercent);
+      }
+    }
+
+    const electricityDutyPercent = consumer.applyElectricityDuty ? (consumer.electricityDutyPercent ?? 5.0) : 0;
+
+    // Open Access Charges & Loss Coefficients (from Master Data / Trader Performance)
+    const ctuCharge = Number(ctuCharges?.ctu_charges_rs_per_kwh || 0.45);
+    const stuCharge = Number(stateCharges?.stuCharges || 0.35);
+    const wheelingCharge = Number(stateCharges?.distributionWheelingCharges || 0.50);
+    const crossSubsidy = Number(stateCharges?.crossSubsidy || 1.20);
+    const additionalSurcharge = Number(stateCharges?.additionalCharge || 0.0);
+    const stuLoss = Number(stateCharges?.stuLossPercent || 3.5);
+    const wheelingLoss = Number(stateCharges?.wheelingLossPercent || 3.5);
+
+    const EXCHANGE_FEES = 0.02;
+    const GST_RATE = 0.18;
+    const GST_EXCHANGE = EXCHANGE_FEES * GST_RATE;
+    const OTHER_CHARGES = 0.10;
+    const TRADER_MARGIN = consumer.traderMargin || 0.02;
+    const GST_TRADER_MARGIN = TRADER_MARGIN * GST_RATE;
+
+    // 3. Fetch DAM / GDAM / RTM Market MCPs for dates
     const [damRecords, rtmRecords, gdamRecords] = await Promise.all([
       prisma.damRecord.findMany({ where: { date: { in: datesInMonth } } }),
       prisma.rtmRecord.findMany({ where: { date: { in: datesInMonth } } }),
@@ -301,7 +398,7 @@ export class TraderPerformanceDailyService {
       if (r.date) gdamMap.set(`${r.date}_${r.intervalNumber}`, Number(r.mcp));
     });
 
-    // 3. Process Trade Reports (Actual Trader trades)
+    // 4. Process Trade Reports (Actual Trader trades)
     // Structure: traderTradesLookup[YYYY-MM-DD][slotNumber] = { qtyMw, rateMwh, amount, market }
     const traderTradesLookup: Record<string, Record<number, any>> = {};
     const tradeReportsData = consumer.tradeReports?.data || {};
@@ -337,11 +434,6 @@ export class TraderPerformanceDailyService {
       }
     });
 
-    // Open Access Charge Add-ons (UP / PUVVNL open access landed calculation)
-    // ISTS loss: ~3.5%, STU loss: ~3.5%, CTU charges: ~0.45 ₹/kWh, STU: ~0.35 ₹/kWh, Cross Subsidy: ~1.20 ₹/kWh, Wheeling: ~0.50 ₹/kWh
-    const openAccessChargesAddon = 2.45 + (consumer.traderMargin || 0.02);
-    const discomRate = consumer.discomBaseTariff || 7.65;
-
     let mtdTotalConsumptionKwh = 0;
     let mtdBaselineDiscomCost = 0;
     let mtdProbusOptimizedCost = 0;
@@ -351,7 +443,96 @@ export class TraderPerformanceDailyService {
     const dailyBreakdown: any[] = [];
     const intervalBreakdown: any[] = [];
 
-    // 4. Compute daily metrics for each date in month
+    // Helper: Compute TOD Discom Rate for a given slot & hour (identical to Trader Performance)
+    const getSlotDiscomRate = (dateStr: string, slot: number): { discomLandedRate: number; todSlotName: string } => {
+      const startMinutes = (slot - 1) * 15;
+      const hour = Math.floor(startMinutes / 60);
+      const timeStrHour = hour + (startMinutes % 60) / 60;
+
+      let discomBase = consumer.discomBaseTariff || 7.65;
+      let matchedTodName = 'Normal';
+
+      // 1. Check custom TOD slots if configured
+      if (consumer.customTodSlots && Array.isArray(consumer.customTodSlots) && consumer.customTodSlots.length > 0) {
+        const matched = consumer.customTodSlots.find(cs => {
+          if (!cs.startTime || !cs.endTime) return false;
+          const s = parseHourLocal(cs.startTime);
+          const e = parseHourLocal(cs.endTime);
+          if (e < s) return timeStrHour >= s || timeStrHour < e;
+          return timeStrHour >= s && timeStrHour < e;
+        });
+        if (matched) {
+          matchedTodName = matched.name || `${matched.startTime}-${matched.endTime}`;
+          if (matched.effectivePrice && Number(matched.effectivePrice) > 0) {
+            discomBase = Number(matched.effectivePrice);
+          }
+        }
+      }
+
+      // 2. Check State Tariffs from DB if no custom price
+      if (tariffsFromDb.length > 0) {
+        const matchedTariff = tariffsFromDb.find(t => {
+          if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') return false;
+          const s = parseHourLocal(t.todStartTime);
+          const e = parseHourLocal(t.todEndTime);
+          if (s <= e) return hour >= s && hour < e;
+          return hour >= s || hour < e;
+        });
+
+        if (matchedTariff) {
+          discomBase = Number(matchedTariff.energyRate || matchedTariff.baseEnergyRate || discomBase);
+          if (String(matchedTariff.baseEnergyUnit || '').toLowerCase() === 'kvah') {
+            discomBase = discomBase / (consumer.powerFactor || 0.99);
+          }
+          matchedTodName = `${matchedTariff.todStartTime}-${matchedTariff.todEndTime}`;
+        } else {
+          // Standard UP HV-2 TOD Schedule (-15% Night rebate 22:00-06:00, +15% Evening Peak 17:00-22:00)
+          if (hour >= 22 || hour < 6) {
+            matchedTodName = 'Off-Peak Night (-15%)';
+            discomBase = (consumer.discomBaseTariff || 7.65) * 0.85;
+          } else if (hour >= 17 && hour < 22) {
+            matchedTodName = 'Peak Evening (+15%)';
+            discomBase = (consumer.discomBaseTariff || 7.65) * 1.15;
+          } else {
+            matchedTodName = 'Normal (06:00-17:00)';
+            discomBase = consumer.discomBaseTariff || 7.65;
+          }
+        }
+      } else {
+        // Fallback TOD schedule for UP
+        if (hour >= 22 || hour < 6) {
+          matchedTodName = 'Off-Peak Night (-15%)';
+          discomBase = 6.50;
+        } else if (hour >= 17 && hour < 22) {
+          matchedTodName = 'Peak Evening (+15%)';
+          discomBase = 8.80;
+        } else {
+          matchedTodName = 'Normal (06:00-17:00)';
+          discomBase = 7.65;
+        }
+      }
+
+      // Add FPPA & Electricity Duty to calculate fully landed Discom rate
+      const withFppa = discomBase * (1 + fppaPercent / 100);
+      const discomLandedRate = consumer.applyElectricityDuty
+        ? withFppa * (1 + electricityDutyPercent / 100)
+        : withFppa;
+
+      return { discomLandedRate, todSlotName: matchedTodName };
+    };
+
+    // Helper: Compute Open Access landed rate from MCP
+    const calcOpenAccessLanding = (mcpPerKwh: number, deliveryDate: Date): number => {
+      let istsLoss = 3.5;
+      const matchingIsts = istsCharges.find(i => deliveryDate >= i.startDate && deliveryDate <= i.endDate);
+      if (matchingIsts) istsLoss = Number(matchingIsts.istsLossPercent || 3.5);
+
+      const lossCoefficient = (1 - (istsLoss / 100)) * (1 - (stuLoss / 100)) * (1 - (wheelingLoss / 100));
+      const regionalCharges = mcpPerKwh + ctuCharge + stuCharge + wheelingCharge + OTHER_CHARGES + EXCHANGE_FEES + GST_EXCHANGE + TRADER_MARGIN + GST_TRADER_MARGIN + crossSubsidy + additionalSurcharge;
+      return regionalCharges / lossCoefficient;
+    };
+
+    // 5. Compute daily metrics for each date in month
     datesInMonth.forEach(dateStr => {
       let dayConsumptionKwh = 0;
       let dayBaselineDiscomCost = 0;
@@ -360,32 +541,34 @@ export class TraderPerformanceDailyService {
       let dayTradedKwh = 0;
 
       const isTargetDate = dateStr === selectedTargetDate;
+      const deliveryDateObj = new Date(dateStr);
 
       for (let slot = 1; slot <= 96; slot++) {
         const consKey = `${dateStr}_${slot}`;
         const slotKwh = consumptionMap.get(consKey) || 0;
         dayConsumptionKwh += slotKwh;
 
-        // Baseline Discom Cost
-        const slotDiscomCost = slotKwh * discomRate;
+        // TOD-wise Baseline Discom Tariff
+        const { discomLandedRate, todSlotName } = getSlotDiscomRate(dateStr, slot);
+        const slotDiscomCost = slotKwh * discomLandedRate;
         dayBaselineDiscomCost += slotDiscomCost;
 
-        // Available market rates (fallback to representative MCP if DB not populated for specific past date)
-        const damMcp = damMap.get(consKey) || 4.25;
-        const rtmMcp = rtmMap.get(consKey) || 4.10;
-        const gdamMcp = gdamMap.get(consKey) || 4.30;
+        // Available market rates (MCP in ₹/kWh)
+        const damMcp = (damMap.get(consKey) || 4250) / 1000;
+        const rtmMcp = (rtmMap.get(consKey) || 4100) / 1000;
+        const gdamMcp = (gdamMap.get(consKey) || 4300) / 1000;
 
-        // Landed costs across markets
-        const damLanded = damMcp + openAccessChargesAddon;
-        const rtmLanded = rtmMcp + openAccessChargesAddon;
-        const gdamLanded = gdamMcp + openAccessChargesAddon;
+        // Landed costs across markets with full loss & charges
+        const damLanded = calcOpenAccessLanding(damMcp, deliveryDateObj);
+        const rtmLanded = calcOpenAccessLanding(rtmMcp, deliveryDateObj);
+        const gdamLanded = calcOpenAccessLanding(gdamMcp, deliveryDateObj);
 
         // Probus Optimal Decision
         const minLanded = Math.min(damLanded, rtmLanded, gdamLanded);
         let probusSelectedSource = 'DISCOM';
-        let probusRate = discomRate;
+        let probusRate = discomLandedRate;
 
-        if (minLanded < discomRate) {
+        if (minLanded < discomLandedRate) {
           probusRate = minLanded;
           if (minLanded === rtmLanded) probusSelectedSource = 'RTM';
           else if (minLanded === damLanded) probusSelectedSource = 'DAM';
@@ -409,8 +592,8 @@ export class TraderPerformanceDailyService {
           const effectiveTradedKwh = Math.min(slotKwh, tradedKwh);
           const leftoverDiscomKwh = Math.max(0, slotKwh - effectiveTradedKwh);
 
-          const traderLandedRate = traderClearedRate + openAccessChargesAddon;
-          actualSlotCost = (effectiveTradedKwh * traderLandedRate) + (leftoverDiscomKwh * discomRate);
+          const traderLandedRate = calcOpenAccessLanding(traderClearedRate, deliveryDateObj);
+          actualSlotCost = (effectiveTradedKwh * traderLandedRate) + (leftoverDiscomKwh * discomLandedRate);
           dayTradedKwh += effectiveTradedKwh;
           traderStatus = 'CLEARED';
         } else {
@@ -424,11 +607,12 @@ export class TraderPerformanceDailyService {
           intervalBreakdown.push({
             intervalNumber: slot,
             timeBlock: this.getTimeBlock(slot),
+            todSlotName,
             consumptionKwh: Math.round(slotKwh * 10) / 10,
-            discomRate,
-            damMcp,
-            rtmMcp,
-            gdamMcp,
+            discomRate: Math.round(discomLandedRate * 100) / 100,
+            damMcp: Math.round(damMcp * 100) / 100,
+            rtmMcp: Math.round(rtmMcp * 100) / 100,
+            gdamMcp: Math.round(gdamMcp * 100) / 100,
             probusSource: probusSelectedSource,
             probusRate: Math.round(probusRate * 100) / 100,
             probusCost: Math.round(slotProbusCost),
@@ -443,9 +627,9 @@ export class TraderPerformanceDailyService {
         }
       }
 
-      const dayProbusSavings = dayBaselineDiscomCost - dayProbusCost;
-      const dayTraderSavings = Math.max(0, dayBaselineDiscomCost - dayActualTraderCost);
-      const dayOpportunityLoss = Math.max(0, dayProbusSavings - dayTraderSavings);
+      const dayProbusSavings = Math.round(dayBaselineDiscomCost - dayProbusCost);
+      const dayTraderSavings = Math.round(Math.max(0, dayBaselineDiscomCost - dayActualTraderCost));
+      const dayOpportunityLoss = Math.round(Math.max(0, dayProbusSavings - dayTraderSavings));
 
       mtdTotalConsumptionKwh += dayConsumptionKwh;
       mtdBaselineDiscomCost += dayBaselineDiscomCost;
@@ -458,13 +642,13 @@ export class TraderPerformanceDailyService {
         consumptionKwh: Math.round(dayConsumptionKwh),
         baselineDiscomCost: Math.round(dayBaselineDiscomCost),
         probusCost: Math.round(dayProbusCost),
-        probusSavings: Math.round(dayProbusSavings),
+        probusSavings: dayProbusSavings,
         actualTraderCost: Math.round(dayActualTraderCost),
-        actualTraderSavings: Math.round(dayTraderSavings),
-        opportunityLoss: Math.round(dayOpportunityLoss),
+        actualTraderSavings: dayTraderSavings,
+        opportunityLoss: dayOpportunityLoss,
         tradedVolumeKwh: Math.round(dayTradedKwh),
-        avgProbusPrice: dayConsumptionKwh > 0 ? Math.round((dayProbusCost / dayConsumptionKwh) * 100) / 100 : discomRate,
-        avgTraderPrice: dayConsumptionKwh > 0 ? Math.round((dayActualTraderCost / dayConsumptionKwh) * 100) / 100 : discomRate
+        avgProbusPrice: dayConsumptionKwh > 0 ? Math.round((dayProbusCost / dayConsumptionKwh) * 100) / 100 : 0,
+        avgTraderPrice: dayConsumptionKwh > 0 ? Math.round((dayActualTraderCost / dayConsumptionKwh) * 100) / 100 : 0
       });
     });
 
@@ -480,7 +664,8 @@ export class TraderPerformanceDailyService {
         stateCode: consumer.stateCode,
         category: consumer.consumerCategory,
         sanctionedLoadKw: consumer.sanctionedLoadKw,
-        discomBaseTariff: consumer.discomBaseTariff
+        discomBaseTariff: consumer.discomBaseTariff,
+        customTodSlots: consumer.customTodSlots
       },
       monthStr: targetMonthStr,
       targetDate: selectedTargetDate,
@@ -492,9 +677,9 @@ export class TraderPerformanceDailyService {
         mtdActualTraderSavings,
         mtdOpportunityLoss,
         mtdTradedVolumeKwh: Math.round(mtdTradedVolumeKwh),
-        avgBaselineTariff: discomRate,
-        avgProbusEffectiveRate: mtdTotalConsumptionKwh > 0 ? Math.round((mtdProbusOptimizedCost / mtdTotalConsumptionKwh) * 100) / 100 : discomRate,
-        avgActualTraderRate: mtdTotalConsumptionKwh > 0 ? Math.round((mtdActualTraderCost / mtdTotalConsumptionKwh) * 100) / 100 : discomRate,
+        avgBaselineTariff: mtdTotalConsumptionKwh > 0 ? Math.round((mtdBaselineDiscomCost / mtdTotalConsumptionKwh) * 100) / 100 : 7.65,
+        avgProbusEffectiveRate: mtdTotalConsumptionKwh > 0 ? Math.round((mtdProbusOptimizedCost / mtdTotalConsumptionKwh) * 100) / 100 : 0,
+        avgActualTraderRate: mtdTotalConsumptionKwh > 0 ? Math.round((mtdActualTraderCost / mtdTotalConsumptionKwh) * 100) / 100 : 0,
         uploadedReportsCount: Object.keys(tradeReportsData).length
       },
       dailyBreakdown,

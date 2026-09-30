@@ -28,7 +28,8 @@ import {
   Alert,
   alpha,
   useTheme,
-  LinearProgress
+  LinearProgress,
+  Divider
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -44,10 +45,14 @@ import {
   ArrowBack as ArrowBackIcon,
   UploadFile as UploadFileIcon,
   Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
   WarningAmber as WarningIcon,
   AccountBalance as AccountBalanceIcon,
   Speed as SpeedIcon,
-  DoneAll as DoneAllIcon
+  DoneAll as DoneAllIcon,
+  AccessTime as AccessTimeIcon,
+  SettingsSuggest as SettingsSuggestIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -58,6 +63,200 @@ import {
   DailyConsumer,
   DailyAnalysisResponse
 } from '../api/traderPerformanceDaily.api';
+
+// Master Data for Indian States & Discoms
+export const STATE_DISCOM_MASTER: Record<string, { name: string; discoms: { code: string; name: string }[] }> = {
+  UP: {
+    name: 'Uttar Pradesh',
+    discoms: [
+      { code: 'PUVVNL', name: 'PUVVNL (Purvanchal Vidyut Vitran)' },
+      { code: 'PVVNL', name: 'PVVNL (Paschimanchal Vidyut Vitran)' },
+      { code: 'DVVNL', name: 'DVVNL (Dakshinanchal Vidyut Vitran)' },
+      { code: 'MVVNL', name: 'MVVNL (Madhyanchal Vidyut Vitran)' },
+      { code: 'NPCL', name: 'NPCL (Noida Power Company Limited)' },
+      { code: 'KESCO', name: 'KESCO (Kanpur Electricity Supply Company)' }
+    ]
+  },
+  MH: {
+    name: 'Maharashtra',
+    discoms: [
+      { code: 'MSEDCL', name: 'MSEDCL (Maharashtra State Electricity Distribution)' },
+      { code: 'AEML', name: 'AEML (Adani Electricity Mumbai Limited)' },
+      { code: 'TPC', name: 'Tata Power Company' },
+      { code: 'BEST', name: 'BEST Undertaking' }
+    ]
+  },
+  GJ: {
+    name: 'Gujarat',
+    discoms: [
+      { code: 'DGVCL', name: 'DGVCL (Dakshin Gujarat Vij Company)' },
+      { code: 'UGVCL', name: 'UGVCL (Uttar Gujarat Vij Company)' },
+      { code: 'PGVCL', name: 'PGVCL (Paschim Gujarat Vij Company)' },
+      { code: 'MGVCL', name: 'MGVCL (Madhya Gujarat Vij Company)' },
+      { code: 'TORRENT', name: 'Torrent Power Ltd' }
+    ]
+  },
+  DL: {
+    name: 'Delhi',
+    discoms: [
+      { code: 'TPDDL', name: 'TPDDL (Tata Power Delhi Distribution)' },
+      { code: 'BRPL', name: 'BRPL (BSES Rajdhani Power Limited)' },
+      { code: 'BYPL', name: 'BYPL (BSES Yamuna Power Limited)' },
+      { code: 'NDMC', name: 'NDMC (New Delhi Municipal Council)' }
+    ]
+  },
+  KA: {
+    name: 'Karnataka',
+    discoms: [
+      { code: 'BESCOM', name: 'BESCOM (Bangalore Electricity Supply)' },
+      { code: 'MESCOM', name: 'MESCOM (Mangalore Electricity Supply)' },
+      { code: 'CESC', name: 'CESC Mysuru' },
+      { code: 'GESCOM', name: 'GESCOM (Gulbarga Electricity Supply)' },
+      { code: 'HESCOM', name: 'HESCOM (Hubli Electricity Supply)' }
+    ]
+  },
+  TN: {
+    name: 'Tamil Nadu',
+    discoms: [
+      { code: 'TANGEDCO', name: 'TANGEDCO (Tamil Nadu Generation & Distribution)' }
+    ]
+  },
+  HR: {
+    name: 'Haryana',
+    discoms: [
+      { code: 'DHBVN', name: 'DHBVN (Dakshin Haryana Bijli Vitran Nigam)' },
+      { code: 'UHBVN', name: 'UHBVN (Uttar Haryana Bijli Vitran Nigam)' }
+    ]
+  },
+  PB: {
+    name: 'Punjab',
+    discoms: [
+      { code: 'PSPCL', name: 'PSPCL (Punjab State Power Corporation)' }
+    ]
+  },
+  RJ: {
+    name: 'Rajasthan',
+    discoms: [
+      { code: 'JVVNL', name: 'JVVNL (Jaipur Vidyut Vitran Nigam)' },
+      { code: 'AVVNL', name: 'AVVNL (Ajmer Vidyut Vitran Nigam)' },
+      { code: 'JdVVNL', name: 'JdVVNL (Jodhpur Vidyut Vitran Nigam)' }
+    ]
+  },
+  MP: {
+    name: 'Madhya Pradesh',
+    discoms: [
+      { code: 'MPPKVVCL', name: 'MPPKVVCL (Paschim Kshetra)' },
+      { code: 'MPMKVVCL', name: 'MPMKVVCL (Madhya Kshetra)' },
+      { code: 'MPAKVVCL', name: 'MPAKVVCL (Purv Kshetra)' }
+    ]
+  },
+  AP: {
+    name: 'Andhra Pradesh',
+    discoms: [
+      { code: 'APSPDCL', name: 'APSPDCL (Southern Power Distribution)' },
+      { code: 'APEPDCL', name: 'APEPDCL (Eastern Power Distribution)' },
+      { code: 'APCPDCL', name: 'APCPDCL (Central Power Distribution)' }
+    ]
+  },
+  TG: {
+    name: 'Telangana',
+    discoms: [
+      { code: 'TSSPDCL', name: 'TSSPDCL (Southern Power Distribution)' },
+      { code: 'TSNPDCL', name: 'TSNPDCL (Northern Power Distribution)' }
+    ]
+  },
+  WB: {
+    name: 'West Bengal',
+    discoms: [
+      { code: 'WBSEDCL', name: 'WBSEDCL (West Bengal State Electricity)' },
+      { code: 'CESC_WB', name: 'CESC Kolkata' }
+    ]
+  },
+  OD: {
+    name: 'Odisha',
+    discoms: [
+      { code: 'TPCODL', name: 'TPCODL (TP Central Odisha Distribution)' },
+      { code: 'TPNODL', name: 'TPNODL (TP Northern Odisha Distribution)' },
+      { code: 'TPWODL', name: 'TPWODL (TP Western Odisha Distribution)' },
+      { code: 'TPSODL', name: 'TPSODL (TP Southern Odisha Distribution)' }
+    ]
+  },
+  JH: {
+    name: 'Jharkhand',
+    discoms: [
+      { code: 'JBVNL', name: 'JBVNL (Jharkhand Bijli Vitran Nigam)' }
+    ]
+  },
+  CT: {
+    name: 'Chhattisgarh',
+    discoms: [
+      { code: 'CSPDCL', name: 'CSPDCL (Chhattisgarh State Power Distribution)' }
+    ]
+  },
+  UK: {
+    name: 'Uttarakhand',
+    discoms: [
+      { code: 'UPCL', name: 'UPCL (Uttarakhand Power Corporation)' }
+    ]
+  },
+  HP: {
+    name: 'Himachal Pradesh',
+    discoms: [
+      { code: 'HPSEBL', name: 'HPSEBL (Himachal Pradesh State Electricity Board)' }
+    ]
+  },
+  AS: {
+    name: 'Assam',
+    discoms: [
+      { code: 'APDCL', name: 'APDCL (Assam Power Distribution Company)' }
+    ]
+  },
+  GA: {
+    name: 'Goa',
+    discoms: [
+      { code: 'GED', name: 'GED (Goa Electricity Department)' }
+    ]
+  },
+  BR: {
+    name: 'Bihar',
+    discoms: [
+      { code: 'NBPDCL', name: 'NBPDCL (North Bihar Power Distribution)' },
+      { code: 'SBPDCL', name: 'SBPDCL (South Bihar Power Distribution)' }
+    ]
+  },
+  KL: {
+    name: 'Kerala',
+    discoms: [
+      { code: 'KSEBL', name: 'KSEBL (Kerala State Electricity Board)' }
+    ]
+  }
+};
+
+const CATEGORY_OPTIONS = [
+  'HV-2 | Urban Schedule (Large & Heavy Power)',
+  'HV-1 | Commercial',
+  'Industrial',
+  'Commercial',
+  'HV-1 A',
+  'HV-1 B',
+  'LMV-11'
+];
+
+const VOLTAGE_OPTIONS = [
+  '11 kV',
+  '33 kV',
+  '66 kV',
+  '132 kV',
+  '220 kV'
+];
+
+interface CustomTodSlotItem {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  effectivePrice: number | string;
+}
 
 export default function TraderPerformanceDailyPage() {
   const navigate = useNavigate();
@@ -91,18 +290,77 @@ export default function TraderPerformanceDailyPage() {
   const [uploadResult, setUploadResult] = useState<any | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // New Consumer Modal State
-  const [newConsumerDialogOpen, setNewConsumerDialogOpen] = useState<boolean>(false);
-  const [newConsumerForm, setNewConsumerForm] = useState({
+  // Configure TOD & Consumer Edit Dialog State
+  const [todDialogOpen, setTodDialogOpen] = useState<boolean>(false);
+  const [currentTodSlots, setCurrentTodSlots] = useState<CustomTodSlotItem[]>([]);
+  const [editConsumerForm, setEditConsumerForm] = useState({
     name: '',
-    discom: 'PUVVNL',
     stateCode: 'UP',
+    discom: 'PUVVNL',
     consumerCategory: 'HV-2 | Urban Schedule (Large & Heavy Power)',
     voltageLevel: '11 kV',
     sanctionedLoadKw: 1000,
     powerFactor: 0.99,
     discomBaseTariff: 7.65
   });
+
+  // New Consumer Modal State
+  const [newConsumerDialogOpen, setNewConsumerDialogOpen] = useState<boolean>(false);
+  const [newConsumerForm, setNewConsumerForm] = useState({
+    name: '',
+    stateCode: 'UP',
+    discom: 'PUVVNL',
+    consumerCategory: 'HV-2 | Urban Schedule (Large & Heavy Power)',
+    voltageLevel: '11 kV',
+    sanctionedLoadKw: 1000,
+    powerFactor: 0.99,
+    discomBaseTariff: 7.65,
+    customTodSlots: [
+      { id: 'tod-1', name: 'Slot 1 (Off-Peak)', startTime: '22:00', endTime: '06:00', effectivePrice: 6.50 },
+      { id: 'tod-2', name: 'Slot 2 (Normal)', startTime: '06:00', endTime: '17:00', effectivePrice: 7.65 },
+      { id: 'tod-3', name: 'Slot 3 (Peak)', startTime: '17:00', endTime: '22:00', effectivePrice: 8.80 }
+    ] as CustomTodSlotItem[]
+  });
+
+  // Discom options helper based on selected state
+  const getDiscomOptionsForState = (stCode: string, currentVal?: string) => {
+    const list: { code: string; name: string }[] = [];
+    if (STATE_DISCOM_MASTER[stCode]) {
+      list.push(...STATE_DISCOM_MASTER[stCode].discoms);
+    }
+    if (currentVal && !list.some(x => x.code === currentVal)) {
+      list.push({ code: currentVal, name: currentVal });
+    }
+    return list;
+  };
+
+  // State options list
+  const stateOptions = Object.entries(STATE_DISCOM_MASTER).map(([code, val]) => ({
+    code,
+    name: `${code} - ${val.name}`
+  }));
+
+  // Handle State Change in New Consumer Form
+  const handleNewConsumerStateChange = (newSt: string) => {
+    const availableDiscoms = getDiscomOptionsForState(newSt);
+    const newDiscom = availableDiscoms.length > 0 ? availableDiscoms[0].code : '';
+    setNewConsumerForm({
+      ...newConsumerForm,
+      stateCode: newSt,
+      discom: newDiscom
+    });
+  };
+
+  // Handle State Change in Edit Consumer Form
+  const handleEditConsumerStateChange = (newSt: string) => {
+    const availableDiscoms = getDiscomOptionsForState(newSt);
+    const newDiscom = availableDiscoms.length > 0 ? availableDiscoms[0].code : '';
+    setEditConsumerForm({
+      ...editConsumerForm,
+      stateCode: newSt,
+      discom: newDiscom
+    });
+  };
 
   // Load consumers list
   const loadConsumers = async () => {
@@ -131,6 +389,21 @@ export default function TraderPerformanceDailyPage() {
       if (data && data.targetDate) {
         setSelectedTargetDate(data.targetDate);
       }
+      if (data?.consumer) {
+        if (data.consumer.customTodSlots) {
+          setCurrentTodSlots(data.consumer.customTodSlots as any);
+        }
+        setEditConsumerForm({
+          name: data.consumer.name || '',
+          stateCode: data.consumer.stateCode || 'UP',
+          discom: data.consumer.discom || 'PUVVNL',
+          consumerCategory: data.consumer.consumerCategory || 'HV-2 | Urban Schedule (Large & Heavy Power)',
+          voltageLevel: data.consumer.voltageLevel || '11 kV',
+          sanctionedLoadKw: data.consumer.sanctionedLoadKw || 1000,
+          powerFactor: data.consumer.powerFactor || 0.99,
+          discomBaseTariff: data.consumer.discomBaseTariff || 7.65
+        });
+      }
     } catch (err: any) {
       console.error('Failed to load daily analysis:', err);
     } finally {
@@ -154,7 +427,6 @@ export default function TraderPerformanceDailyPage() {
     try {
       const result = await uploadDailyTradeReportPdfs(selectedFiles);
       setUploadResult(result);
-      // Re-run analysis with newly parsed reports
       await loadAnalysis(result);
       setSelectedFiles([]);
       setTimeout(() => {
@@ -169,7 +441,114 @@ export default function TraderPerformanceDailyPage() {
     }
   };
 
-  // Handle saving new onboarded consumer
+  // TOD slot handlers for New Consumer Modal
+  const handleAddNewConsumerTodSlot = () => {
+    const slots = newConsumerForm.customTodSlots || [];
+    const newIdx = slots.length + 1;
+    let defaultStart = '08:00';
+    let defaultEnd = '12:00';
+    if (slots.length > 0) {
+      const last = slots[slots.length - 1];
+      if (last.endTime) {
+        defaultStart = last.endTime;
+        const [h, m] = defaultStart.split(':').map(Number);
+        const endH = (h + 4) % 24;
+        defaultEnd = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+      }
+    }
+    const newSlot: CustomTodSlotItem = {
+      id: `tod-${Date.now()}-${newIdx}`,
+      name: `Slot ${newIdx}`,
+      startTime: defaultStart,
+      endTime: defaultEnd,
+      effectivePrice: 7.65
+    };
+    setNewConsumerForm({
+      ...newConsumerForm,
+      customTodSlots: [...slots, newSlot]
+    });
+  };
+
+  const handleRemoveNewConsumerTodSlot = (idx: number) => {
+    const slots = [...newConsumerForm.customTodSlots];
+    slots.splice(idx, 1);
+    setNewConsumerForm({ ...newConsumerForm, customTodSlots: slots });
+  };
+
+  const handleUpdateNewConsumerTodSlot = (idx: number, field: keyof CustomTodSlotItem, val: any) => {
+    const slots = [...newConsumerForm.customTodSlots];
+    if (slots[idx]) {
+      slots[idx] = { ...slots[idx], [field]: val };
+      setNewConsumerForm({ ...newConsumerForm, customTodSlots: slots });
+    }
+  };
+
+  // TOD slot handlers for Active Consumer Edit
+  const handleAddActiveConsumerTodSlot = () => {
+    const slots = currentTodSlots || [];
+    const newIdx = slots.length + 1;
+    let defaultStart = '08:00';
+    let defaultEnd = '12:00';
+    if (slots.length > 0) {
+      const last = slots[slots.length - 1];
+      if (last.endTime) {
+        defaultStart = last.endTime;
+        const [h, m] = defaultStart.split(':').map(Number);
+        const endH = (h + 4) % 24;
+        defaultEnd = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+      }
+    }
+    const newSlot: CustomTodSlotItem = {
+      id: `tod-${Date.now()}-${newIdx}`,
+      name: `Slot ${newIdx}`,
+      startTime: defaultStart,
+      endTime: defaultEnd,
+      effectivePrice: 7.65
+    };
+    setCurrentTodSlots([...slots, newSlot]);
+  };
+
+  const handleRemoveActiveConsumerTodSlot = (idx: number) => {
+    const slots = [...currentTodSlots];
+    slots.splice(idx, 1);
+    setCurrentTodSlots(slots);
+  };
+
+  const handleUpdateActiveConsumerTodSlot = (idx: number, field: keyof CustomTodSlotItem, val: any) => {
+    const slots = [...currentTodSlots];
+    if (slots[idx]) {
+      slots[idx] = { ...slots[idx], [field]: val };
+      setCurrentTodSlots(slots);
+    }
+  };
+
+  // Save active consumer details & TOD slots
+  const handleSaveActiveConsumerTodSlots = async () => {
+    try {
+      const activeConsumer = consumers.find(c => c.id === selectedConsumerId);
+      if (activeConsumer) {
+        await saveDailyConsumer({
+          ...activeConsumer,
+          name: editConsumerForm.name || activeConsumer.name,
+          stateCode: editConsumerForm.stateCode || activeConsumer.stateCode,
+          discom: editConsumerForm.discom || activeConsumer.discom,
+          consumerCategory: editConsumerForm.consumerCategory || activeConsumer.consumerCategory,
+          voltageLevel: editConsumerForm.voltageLevel || activeConsumer.voltageLevel,
+          sanctionedLoadKw: Number(editConsumerForm.sanctionedLoadKw) || activeConsumer.sanctionedLoadKw,
+          powerFactor: Number(editConsumerForm.powerFactor) || activeConsumer.powerFactor,
+          discomBaseTariff: Number(editConsumerForm.discomBaseTariff) || activeConsumer.discomBaseTariff,
+          customTodSlots: currentTodSlots as any
+        });
+        setTodDialogOpen(false);
+        await loadConsumers();
+        await loadAnalysis();
+      }
+    } catch (err) {
+      console.error('Failed to update TOD slots and consumer details:', err);
+    }
+  };
+
+  // Handle saving new onboarded consumer with custom TOD slots
   const handleSaveNewConsumer = async () => {
     if (!newConsumerForm.name.trim()) return;
     try {
@@ -181,7 +560,8 @@ export default function TraderPerformanceDailyPage() {
         voltageLevel: newConsumerForm.voltageLevel,
         sanctionedLoadKw: Number(newConsumerForm.sanctionedLoadKw) || 1000,
         powerFactor: Number(newConsumerForm.powerFactor) || 0.99,
-        discomBaseTariff: Number(newConsumerForm.discomBaseTariff) || 7.65
+        discomBaseTariff: Number(newConsumerForm.discomBaseTariff) || 7.65,
+        customTodSlots: newConsumerForm.customTodSlots as any
       });
       setNewConsumerDialogOpen(false);
       await loadConsumers();
@@ -229,11 +609,11 @@ export default function TraderPerformanceDailyPage() {
                 Trader Performance Daily
               </Typography>
               <Chip
-                label="Daily & MTD Tracking"
+                label="Custom TOD Enabled"
                 size="small"
                 sx={{
-                  bgcolor: alpha('#2E51FF', 0.1),
-                  color: '#2E51FF',
+                  bgcolor: alpha('#10B981', 0.1),
+                  color: '#059669',
                   fontWeight: 600,
                   fontSize: '0.75rem'
                 }}
@@ -248,12 +628,33 @@ export default function TraderPerformanceDailyPage() {
               )}
             </Box>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              Compare actual savings from uploaded trade reports against potential savings with Probus Savings Calc.
+              Compare actual savings from uploaded trade reports against potential savings with Probus Savings Calc using full Custom TOD slots.
             </Typography>
           </Box>
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Button
+            variant="outlined"
+            startIcon={<SettingsSuggestIcon />}
+            onClick={() => {
+              if (consumer?.customTodSlots) {
+                setCurrentTodSlots(consumer.customTodSlots as any);
+              }
+              setTodDialogOpen(true);
+            }}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 2,
+              borderColor: '#0284C7',
+              color: '#0284C7',
+              fontWeight: 600,
+              bgcolor: alpha('#0284C7', 0.04),
+              '&:hover': { borderColor: '#0369A1', bgcolor: alpha('#0284C7', 0.1) }
+            }}
+          >
+            Edit Custom TODs
+          </Button>
           <Button
             variant="outlined"
             startIcon={<UploadFileIcon />}
@@ -360,16 +761,28 @@ export default function TraderPerformanceDailyPage() {
           />
         </Box>
 
-        {summary && summary.uploadedReportsCount > 0 && (
-          <Chip
-            icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-            label={`${summary.uploadedReportsCount} Trade Report(s) Analyzed`}
-            color="success"
-            variant="outlined"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
-        )}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+          {consumer?.customTodSlots && consumer.customTodSlots.length > 0 && (
+            <Chip
+              icon={<AccessTimeIcon sx={{ fontSize: 16 }} />}
+              label={`${consumer.customTodSlots.length} Custom TOD Slot(s)`}
+              color="primary"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+          )}
+          {summary && summary.uploadedReportsCount > 0 && (
+            <Chip
+              icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+              label={`${summary.uploadedReportsCount} Trade PDF(s)`}
+              color="success"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+          )}
+        </Box>
       </Paper>
 
       {/* HERO COMPARISON CALLOUT BANNER */}
@@ -399,7 +812,7 @@ export default function TraderPerformanceDailyPage() {
                 <Box component="span" sx={{ color: '#10B981', textDecoration: 'underline' }}>
                   ₹ {summary.mtdProbusSavings.toLocaleString('en-IN')}
                 </Box>{' '}
-                using our Savings Calculator.
+                using our Savings Calculator (Custom TOD Optimized).
               </Typography>
 
               <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -482,13 +895,13 @@ export default function TraderPerformanceDailyPage() {
                 </Box>
                 <Box>
                   <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                    Baseline Discom Cost
+                    Baseline Discom Cost (Custom TOD)
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', my: 0.2 }}>
                     ₹ {Math.round(summary.mtdBaselineDiscomCost / 1000).toLocaleString('en-IN')}k
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    Tariff @ ₹{summary.avgBaselineTariff.toFixed(2)}/kWh
+                    Avg TOD Tariff: ₹{summary.avgBaselineTariff.toFixed(2)}/kWh
                   </Typography>
                 </Box>
               </Box>
@@ -544,7 +957,7 @@ export default function TraderPerformanceDailyPage() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3, pt: 2 }}>
           <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
             <Tab label="Month-to-Date Daily Breakdown" sx={{ textTransform: 'none', fontWeight: 600 }} />
-            <Tab label={`15-Minute Intervals (${selectedTargetDate})`} sx={{ textTransform: 'none', fontWeight: 600 }} />
+            <Tab label={`15-Minute Intervals with Custom TOD Slots (${selectedTargetDate})`} sx={{ textTransform: 'none', fontWeight: 600 }} />
           </Tabs>
         </Box>
 
@@ -552,7 +965,7 @@ export default function TraderPerformanceDailyPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, gap: 2 }}>
             <CircularProgress />
             <Typography variant="body2" color="text.secondary">
-              Calculating daily performance and interval clearing prices...
+              Calculating Custom TOD-wise clearing prices and performance metrics...
             </Typography>
           </Box>
         ) : (
@@ -615,8 +1028,9 @@ export default function TraderPerformanceDailyPage() {
                     <TableRow>
                       <TableCell sx={{ fontWeight: 600 }}>Block #</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Time Slot</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Custom TOD Window</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>Load (kWh)</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Discom (₹/kWh)</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Discom TOD (₹/kWh)</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>DAM / RTM / GDAM MCP</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 600 }}>Probus Optimal Market</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#10B981' }}>Probus Rate</TableCell>
@@ -627,12 +1041,25 @@ export default function TraderPerformanceDailyPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {analysisData?.intervalBreakdown.map((slot) => (
+                    {analysisData?.intervalBreakdown.map((slot: any) => (
                       <TableRow key={slot.intervalNumber} hover>
                         <TableCell sx={{ fontWeight: 600 }}>{slot.intervalNumber}</TableCell>
                         <TableCell>{slot.timeBlock}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={slot.todSlotName || 'Normal'}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              height: 20,
+                              fontSize: '0.7rem',
+                              borderColor: slot.todSlotName?.includes('Peak') || slot.todSlotName?.includes('Slot 3') ? '#F59E0B' : 'divider',
+                              color: slot.todSlotName?.includes('Peak') || slot.todSlotName?.includes('Slot 3') ? '#D97706' : 'text.secondary'
+                            }}
+                          />
+                        </TableCell>
                         <TableCell align="right">{slot.consumptionKwh.toFixed(1)}</TableCell>
-                        <TableCell align="right">₹ {slot.discomRate.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600 }}>₹ {slot.discomRate.toFixed(2)}</TableCell>
                         <TableCell align="right">
                           ₹{slot.damMcp.toFixed(2)} / ₹{slot.rtmMcp.toFixed(2)} / ₹{slot.gdamMcp.toFixed(2)}
                         </TableCell>
@@ -757,12 +1184,204 @@ export default function TraderPerformanceDailyPage() {
         </DialogActions>
       </Dialog>
 
-      {/* NEW CONSUMER ONBOARDING DIALOG */}
-      <Dialog open={newConsumerDialogOpen} onClose={() => setNewConsumerDialogOpen(false)} maxWidth="sm" fullWidth>
+      {/* EDIT ACTIVE CONSUMER & CUSTOM TOD SLOTS DIALOG */}
+      <Dialog open={todDialogOpen} onClose={() => setTodDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Configure Consumer & TOD Slots ({consumer?.name})</span>
+          <Button startIcon={<AddIcon />} variant="outlined" size="small" onClick={handleAddActiveConsumerTodSlot}>
+            Add TOD Slot
+          </Button>
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+          <Alert severity="info" sx={{ fontSize: '0.85rem' }}>
+            Configure State, Discom, and Custom TOD slot intervals (matching the client's electricity tariff schedule) for month-to-date daily savings calculations.
+          </Alert>
+
+          <TextField
+            label="Consumer / Entity Name"
+            size="small"
+            required
+            fullWidth
+            value={editConsumerForm.name}
+            onChange={(e) => setEditConsumerForm({ ...editConsumerForm, name: e.target.value })}
+          />
+
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <TextField
+                select
+                label="State"
+                size="small"
+                fullWidth
+                value={editConsumerForm.stateCode}
+                onChange={(e) => handleEditConsumerStateChange(e.target.value)}
+              >
+                {stateOptions.map((st) => (
+                  <MenuItem key={st.code} value={st.code}>
+                    {st.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                select
+                label="Discom"
+                size="small"
+                fullWidth
+                value={editConsumerForm.discom}
+                onChange={(e) => setEditConsumerForm({ ...editConsumerForm, discom: e.target.value })}
+              >
+                {getDiscomOptionsForState(editConsumerForm.stateCode, editConsumerForm.discom).map((d) => (
+                  <MenuItem key={d.code} value={d.code}>
+                    {d.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <TextField
+                select
+                label="Consumer Category"
+                size="small"
+                fullWidth
+                value={editConsumerForm.consumerCategory}
+                onChange={(e) => setEditConsumerForm({ ...editConsumerForm, consumerCategory: e.target.value })}
+              >
+                {CATEGORY_OPTIONS.map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                select
+                label="Voltage Level"
+                size="small"
+                fullWidth
+                value={editConsumerForm.voltageLevel}
+                onChange={(e) => setEditConsumerForm({ ...editConsumerForm, voltageLevel: e.target.value })}
+              >
+                {VOLTAGE_OPTIONS.map((vol) => (
+                  <MenuItem key={vol} value={vol}>
+                    {vol}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="Sanctioned Load (kW)"
+                type="number"
+                size="small"
+                fullWidth
+                value={editConsumerForm.sanctionedLoadKw}
+                onChange={(e) => setEditConsumerForm({ ...editConsumerForm, sanctionedLoadKw: Number(e.target.value) })}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="Base Tariff (₹/kWh)"
+                type="number"
+                size="small"
+                fullWidth
+                value={editConsumerForm.discomBaseTariff}
+                onChange={(e) => setEditConsumerForm({ ...editConsumerForm, discomBaseTariff: Number(e.target.value) })}
+              />
+            </Grid>
+          </Grid>
+
+          <Divider sx={{ my: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip label="Custom TOD Slots Table" size="small" sx={{ fontSize: '0.75rem', fontWeight: 600 }} />
+              <Button size="small" startIcon={<AddIcon />} onClick={handleAddActiveConsumerTodSlot}>
+                Add TOD Slot
+              </Button>
+            </Box>
+          </Divider>
+
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#F8FAFC' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>Slot Name</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Start Time</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>End Time</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Effective Price (₹/kWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 600 }}>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {currentTodSlots.map((slot, idx) => (
+                  <TableRow key={slot.id || idx}>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        value={slot.name}
+                        onChange={(e) => handleUpdateActiveConsumerTodSlot(idx, 'name', e.target.value)}
+                        placeholder={`Slot ${idx + 1}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="time"
+                        value={slot.startTime}
+                        onChange={(e) => handleUpdateActiveConsumerTodSlot(idx, 'startTime', e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="time"
+                        value={slot.endTime}
+                        onChange={(e) => handleUpdateActiveConsumerTodSlot(idx, 'endTime', e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={slot.effectivePrice}
+                        onChange={(e) => handleUpdateActiveConsumerTodSlot(idx, 'effectivePrice', e.target.value)}
+                        sx={{ width: 130 }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton size="small" color="error" onClick={() => handleRemoveActiveConsumerTodSlot(idx)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={() => setTodDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveActiveConsumerTodSlots} sx={{ bgcolor: '#10B981', '&:hover': { bgcolor: '#059669' } }}>
+            Save Configuration
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* NEW CONSUMER ONBOARDING DIALOG WITH FULL CUSTOM TOD SLOTS TABLE */}
+      <Dialog open={newConsumerDialogOpen} onClose={() => setNewConsumerDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>Onboard New Consumer</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            Configure a new customer entity to track daily performance and open access arbitrage.
+            Configure a new customer entity with State, Discom, tariff parameters & Custom TOD slot intervals.
           </Typography>
 
           <TextField
@@ -772,27 +1391,76 @@ export default function TraderPerformanceDailyPage() {
             fullWidth
             value={newConsumerForm.name}
             onChange={(e) => setNewConsumerForm({ ...newConsumerForm, name: e.target.value })}
-            placeholder="e.g. Acme Steels Ltd"
+            placeholder="e.g. Poorvanchal Consumer"
           />
 
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <TextField
-                label="State Code"
+                select
+                label="State"
                 size="small"
                 fullWidth
                 value={newConsumerForm.stateCode}
-                onChange={(e) => setNewConsumerForm({ ...newConsumerForm, stateCode: e.target.value })}
-              />
+                onChange={(e) => handleNewConsumerStateChange(e.target.value)}
+              >
+                {stateOptions.map((st) => (
+                  <MenuItem key={st.code} value={st.code}>
+                    {st.name}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={6}>
               <TextField
+                select
                 label="Discom"
                 size="small"
                 fullWidth
                 value={newConsumerForm.discom}
                 onChange={(e) => setNewConsumerForm({ ...newConsumerForm, discom: e.target.value })}
-              />
+              >
+                {getDiscomOptionsForState(newConsumerForm.stateCode, newConsumerForm.discom).map((d) => (
+                  <MenuItem key={d.code} value={d.code}>
+                    {d.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <TextField
+                select
+                label="Consumer Category"
+                size="small"
+                fullWidth
+                value={newConsumerForm.consumerCategory}
+                onChange={(e) => setNewConsumerForm({ ...newConsumerForm, consumerCategory: e.target.value })}
+              >
+                {CATEGORY_OPTIONS.map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                select
+                label="Voltage Level"
+                size="small"
+                fullWidth
+                value={newConsumerForm.voltageLevel}
+                onChange={(e) => setNewConsumerForm({ ...newConsumerForm, voltageLevel: e.target.value })}
+              >
+                {VOLTAGE_OPTIONS.map((vol) => (
+                  <MenuItem key={vol} value={vol}>
+                    {vol}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
           </Grid>
 
@@ -818,6 +1486,75 @@ export default function TraderPerformanceDailyPage() {
               />
             </Grid>
           </Grid>
+
+          <Divider sx={{ my: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip label="Custom TOD Slots Table" size="small" sx={{ fontSize: '0.75rem', fontWeight: 600 }} />
+              <Button size="small" startIcon={<AddIcon />} onClick={handleAddNewConsumerTodSlot}>
+                Add TOD Slot
+              </Button>
+            </Box>
+          </Divider>
+
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#F8FAFC' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>Slot Name</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Start Time</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>End Time</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Effective Price (₹/kWh)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 600 }}>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {newConsumerForm.customTodSlots.map((slot, idx) => (
+                  <TableRow key={slot.id || idx}>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        value={slot.name}
+                        onChange={(e) => handleUpdateNewConsumerTodSlot(idx, 'name', e.target.value)}
+                        placeholder={`Slot ${idx + 1}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="time"
+                        value={slot.startTime}
+                        onChange={(e) => handleUpdateNewConsumerTodSlot(idx, 'startTime', e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="time"
+                        value={slot.endTime}
+                        onChange={(e) => handleUpdateNewConsumerTodSlot(idx, 'endTime', e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={slot.effectivePrice}
+                        onChange={(e) => handleUpdateNewConsumerTodSlot(idx, 'effectivePrice', e.target.value)}
+                        sx={{ width: 130 }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton size="small" color="error" onClick={() => handleRemoveNewConsumerTodSlot(idx)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
           <Button onClick={() => setNewConsumerDialogOpen(false)}>Cancel</Button>

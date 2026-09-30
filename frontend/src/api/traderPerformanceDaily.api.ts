@@ -12,6 +12,7 @@ export interface DailyConsumer {
   discomBaseTariff?: number;
   proltMargin?: number;
   traderMargin?: number;
+  customTodSlots?: { id: string; name: string; startTime: string; endTime: string; effectivePrice?: number }[];
 }
 
 export interface DailySummaryMetrics {
