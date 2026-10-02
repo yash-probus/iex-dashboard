@@ -57,6 +57,15 @@ export const uploadDailyTradeReports = async (req: Request, res: Response) => {
 };
 
 export class TraderPerformanceDailyController {
+  static async getAvailableMeters(req: Request, res: Response) {
+    try {
+      const meters = await TraderPerformanceDailyService.getAvailableMeters();
+      return res.status(200).json({ success: true, data: meters });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   static async getConsumers(req: Request, res: Response) {
     try {
       const consumers = await TraderPerformanceDailyService.getConsumers();

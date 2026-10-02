@@ -146,6 +146,10 @@ function parseHourLocal(val: string | null | undefined): number {
 }
 
 export class TraderPerformanceDailyService {
+  static async getAvailableMeters(): Promise<string[]> {
+    return await StarrocksService.getAvailableMeters();
+  }
+
   static async getConsumers(): Promise<DailyConsumerConfig[]> {
     return Array.from(consumerStore.values());
   }

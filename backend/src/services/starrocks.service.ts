@@ -20,6 +20,24 @@ export class StarrocksService {
     return this.pool;
   }
 
+  public static async getAvailableMeters(): Promise<string[]> {
+    try {
+      const pool = this.getPool();
+      const [rows]: any = await pool.query(`
+        SELECT DISTINCT meter_number 
+        FROM prolt_load_data 
+        WHERE meter_number IS NOT NULL AND meter_number != ''
+      `);
+      if (Array.isArray(rows)) {
+        return rows.map((r: any) => r.meter_number);
+      }
+      return [];
+    } catch (err) {
+      console.error('StarRocks getAvailableMeters error:', err);
+      return [];
+    }
+  }
+
   /**
    * Fetch 15-minute aggregated consumer actual load data from StarRocks (prolt_load_data)
    */

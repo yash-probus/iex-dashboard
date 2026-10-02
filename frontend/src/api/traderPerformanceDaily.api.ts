@@ -79,6 +79,11 @@ export const fetchDailyConsumers = async (): Promise<DailyConsumer[]> => {
   return res.data?.data || [];
 };
 
+export const fetchAvailableMeters = async (): Promise<string[]> => {
+  const res = await apiClient.get('/trader-performance-daily/meters');
+  return res.data?.data || [];
+};
+
 export const saveDailyConsumer = async (consumer: Partial<DailyConsumer>): Promise<DailyConsumer> => {
   const res = await apiClient.post('/trader-performance-daily/consumers', consumer);
   return res.data?.data;

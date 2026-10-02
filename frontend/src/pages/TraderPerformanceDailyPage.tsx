@@ -60,6 +60,7 @@ import {
   saveDailyConsumer,
   uploadDailyTradeReportPdfs,
   fetchDailyAnalysis,
+  fetchAvailableMeters,
   DailyConsumer,
   DailyAnalysisResponse
 } from '../api/traderPerformanceDaily.api';
@@ -279,6 +280,7 @@ export default function TraderPerformanceDailyPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentYearMonth());
   const [selectedTargetDate, setSelectedTargetDate] = useState<string>(getTodayDate());
 
+  const [availableMeters, setAvailableMeters] = useState<string[]>([]);
   const [analysisData, setAnalysisData] = useState<DailyAnalysisResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -416,6 +418,7 @@ export default function TraderPerformanceDailyPage() {
 
   useEffect(() => {
     loadConsumers();
+    fetchAvailableMeters().then(meters => setAvailableMeters(meters)).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -1295,12 +1298,20 @@ export default function TraderPerformanceDailyPage() {
           <Grid container spacing={2}>
             <Grid item xs={4}>
               <TextField
+                select
+                required
                 label="Meter Number"
                 size="small"
                 fullWidth
                 value={editConsumerForm.meterNo}
                 onChange={(e) => setEditConsumerForm({ ...editConsumerForm, meterNo: e.target.value })}
-              />
+              >
+                {availableMeters.map((meter) => (
+                  <MenuItem key={meter} value={meter}>
+                    {meter}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={4}>
               <TextField
@@ -1492,12 +1503,20 @@ export default function TraderPerformanceDailyPage() {
           <Grid container spacing={2}>
             <Grid item xs={4}>
               <TextField
+                select
+                required
                 label="Meter Number"
                 size="small"
                 fullWidth
                 value={newConsumerForm.meterNo}
                 onChange={(e) => setNewConsumerForm({ ...newConsumerForm, meterNo: e.target.value })}
-              />
+              >
+                {availableMeters.map((meter) => (
+                  <MenuItem key={meter} value={meter}>
+                    {meter}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={4}>
               <TextField

@@ -21,6 +21,7 @@ const upload = multer({ storage, limits: { fileSize: 25 * 1024 * 1024 } });
 router.post('/upload', upload.array('files', 200), uploadDailyTradeReports);
 
 // Consumer management endpoints
+router.get('/meters', TraderPerformanceDailyController.getAvailableMeters);
 router.get('/consumers', TraderPerformanceDailyController.getConsumers);
 router.post('/consumers', TraderPerformanceDailyController.saveConsumer);
 
