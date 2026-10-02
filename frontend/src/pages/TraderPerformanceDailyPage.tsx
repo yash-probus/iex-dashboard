@@ -579,6 +579,13 @@ export default function TraderPerformanceDailyPage() {
     }
   };
 
+  const usedMeters = consumers.map(c => c.meterNo).filter(Boolean);
+  const availableMetersForNew = availableMeters.filter(m => !usedMeters.includes(m));
+  
+  const activeConsumer = consumers.find(c => c.id === selectedConsumerId);
+  const currentMeter = activeConsumer?.meterNo;
+  const availableMetersForEdit = availableMeters.filter(m => !usedMeters.includes(m) || m === currentMeter);
+
   const summary = analysisData?.summary;
   const consumer = analysisData?.consumer;
 
@@ -1306,7 +1313,7 @@ export default function TraderPerformanceDailyPage() {
                 value={editConsumerForm.meterNo}
                 onChange={(e) => setEditConsumerForm({ ...editConsumerForm, meterNo: e.target.value })}
               >
-                {availableMeters.map((meter) => (
+                {availableMetersForEdit.map((meter) => (
                   <MenuItem key={meter} value={meter}>
                     {meter}
                   </MenuItem>
@@ -1511,7 +1518,7 @@ export default function TraderPerformanceDailyPage() {
                 value={newConsumerForm.meterNo}
                 onChange={(e) => setNewConsumerForm({ ...newConsumerForm, meterNo: e.target.value })}
               >
-                {availableMeters.map((meter) => (
+                {availableMetersForNew.map((meter) => (
                   <MenuItem key={meter} value={meter}>
                     {meter}
                   </MenuItem>

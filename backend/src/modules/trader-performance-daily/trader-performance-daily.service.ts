@@ -691,6 +691,7 @@ export class TraderPerformanceDailyService {
         category: consumer.consumerCategory,
         sanctionedLoadKw: consumer.sanctionedLoadKw,
         discomBaseTariff: consumer.discomBaseTariff,
+        meterNo: consumer.meterNo,
         customTodSlots: consumer.customTodSlots
       },
       monthStr: targetMonthStr,
