@@ -299,6 +299,7 @@ export default function TraderPerformanceDailyPage() {
     discom: 'PUVVNL',
     consumerCategory: 'HV-2 | Urban Schedule (Large & Heavy Power)',
     voltageLevel: '11 kV',
+    meterNo: '',
     sanctionedLoadKw: 1000,
     powerFactor: 0.99,
     discomBaseTariff: 7.65
@@ -312,6 +313,7 @@ export default function TraderPerformanceDailyPage() {
     discom: 'PUVVNL',
     consumerCategory: 'HV-2 | Urban Schedule (Large & Heavy Power)',
     voltageLevel: '11 kV',
+    meterNo: '',
     sanctionedLoadKw: 1000,
     powerFactor: 0.99,
     discomBaseTariff: 7.65,
@@ -399,6 +401,7 @@ export default function TraderPerformanceDailyPage() {
           discom: data.consumer.discom || 'PUVVNL',
           consumerCategory: data.consumer.consumerCategory || 'HV-2 | Urban Schedule (Large & Heavy Power)',
           voltageLevel: data.consumer.voltageLevel || '11 kV',
+          meterNo: data.consumer.meterNo || '',
           sanctionedLoadKw: data.consumer.sanctionedLoadKw || 1000,
           powerFactor: data.consumer.powerFactor || 0.99,
           discomBaseTariff: data.consumer.discomBaseTariff || 7.65
@@ -534,6 +537,7 @@ export default function TraderPerformanceDailyPage() {
           discom: editConsumerForm.discom || activeConsumer.discom,
           consumerCategory: editConsumerForm.consumerCategory || activeConsumer.consumerCategory,
           voltageLevel: editConsumerForm.voltageLevel || activeConsumer.voltageLevel,
+          meterNo: editConsumerForm.meterNo || activeConsumer.meterNo,
           sanctionedLoadKw: Number(editConsumerForm.sanctionedLoadKw) || activeConsumer.sanctionedLoadKw,
           powerFactor: Number(editConsumerForm.powerFactor) || activeConsumer.powerFactor,
           discomBaseTariff: Number(editConsumerForm.discomBaseTariff) || activeConsumer.discomBaseTariff,
@@ -558,6 +562,7 @@ export default function TraderPerformanceDailyPage() {
         stateCode: newConsumerForm.stateCode,
         consumerCategory: newConsumerForm.consumerCategory,
         voltageLevel: newConsumerForm.voltageLevel,
+        meterNo: newConsumerForm.meterNo,
         sanctionedLoadKw: Number(newConsumerForm.sanctionedLoadKw) || 1000,
         powerFactor: Number(newConsumerForm.powerFactor) || 0.99,
         discomBaseTariff: Number(newConsumerForm.discomBaseTariff) || 7.65,
@@ -1288,7 +1293,16 @@ export default function TraderPerformanceDailyPage() {
           </Grid>
 
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid item xs={4}>
+              <TextField
+                label="Meter Number"
+                size="small"
+                fullWidth
+                value={editConsumerForm.meterNo}
+                onChange={(e) => setEditConsumerForm({ ...editConsumerForm, meterNo: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={4}>
               <TextField
                 label="Sanctioned Load (kW)"
                 type="number"
@@ -1298,7 +1312,7 @@ export default function TraderPerformanceDailyPage() {
                 onChange={(e) => setEditConsumerForm({ ...editConsumerForm, sanctionedLoadKw: Number(e.target.value) })}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={4}>
               <TextField
                 label="Base Tariff (₹/kWh)"
                 type="number"
@@ -1476,7 +1490,16 @@ export default function TraderPerformanceDailyPage() {
           </Grid>
 
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid item xs={4}>
+              <TextField
+                label="Meter Number"
+                size="small"
+                fullWidth
+                value={newConsumerForm.meterNo}
+                onChange={(e) => setNewConsumerForm({ ...newConsumerForm, meterNo: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={4}>
               <TextField
                 label="Sanctioned Load (kW)"
                 type="number"
@@ -1486,7 +1509,7 @@ export default function TraderPerformanceDailyPage() {
                 onChange={(e) => setNewConsumerForm({ ...newConsumerForm, sanctionedLoadKw: Number(e.target.value) })}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={4}>
               <TextField
                 label="Base Tariff (₹/kWh)"
                 type="number"

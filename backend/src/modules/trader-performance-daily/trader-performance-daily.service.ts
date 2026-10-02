@@ -18,6 +18,7 @@ export interface DailyConsumerConfig {
   stateCode: string;
   consumerCategory: string;
   voltageLevel: string;
+  meterNo?: string;
   sanctionedLoadKw: number;
   powerFactor: number;
   proltMargin: number;
@@ -38,6 +39,7 @@ const DEFAULT_POORVANCHAL_CONSUMER: DailyConsumerConfig = {
   stateCode: 'UP',
   consumerCategory: 'HV-2 | Urban Schedule (Large & Heavy Power)',
   voltageLevel: '11 kV',
+  meterNo: 'X2521837', // Default default meter
   sanctionedLoadKw: 1000,
   powerFactor: 0.99,
   proltMargin: 15,
@@ -153,6 +155,15 @@ export class TraderPerformanceDailyService {
   }
 
   static async saveConsumer(consumer: Partial<DailyConsumerConfig>): Promise<DailyConsumerConfig> {
+    if (consumer.meterNo) {
+      // One meter, one client validation
+      for (const existing of consumerStore.values()) {
+        if (existing.id !== consumer.id && existing.meterNo === consumer.meterNo) {
+          throw new Error(`Meter number ${consumer.meterNo} is already connected to another client (${existing.name}). One meter cannot be connected to multiple clients.`);
+        }
+      }
+    }
+
     const id = consumer.id || `consumer-${Date.now()}`;
     const existing = consumerStore.get(id) || { ...DEFAULT_POORVANCHAL_CONSUMER, id };
     const updated: DailyConsumerConfig = {
@@ -182,14 +193,14 @@ export class TraderPerformanceDailyService {
   /**
    * Fetch actual 15-minute consumption from StarRocks / forecasting table, or fall back to consumer profile
    */
-  private static async getActualConsumptionMap(dates: string[], sanctionedLoadKw: number, powerFactor: number): Promise<Map<string, number>> {
+  private static async getActualConsumptionMap(dates: string[], sanctionedLoadKw: number, powerFactor: number, meterNo?: string): Promise<Map<string, number>> {
     const consumptionMap = new Map<string, number>();
     const pf = powerFactor || 0.99;
     const maxSlotCapacityKwh = (sanctionedLoadKw / pf) * 0.25; // 15-min energy in kWh
 
     try {
       // 1. Try StarRocks actual consumer load data
-      const starrocksMap = await StarrocksService.getConsumerActualDemandMap(dates);
+      const starrocksMap = await StarrocksService.getConsumerActualDemandMap(dates, meterNo);
       if (starrocksMap && starrocksMap.size > 0) {
         starrocksMap.forEach((val, key) => {
           if (val > 0) consumptionMap.set(key, val);
@@ -198,13 +209,21 @@ export class TraderPerformanceDailyService {
 
       // 2. Query forecast / actuals from database if StarRocks didn't cover all dates
       if (dates.some(d => !consumptionMap.has(`${d}_1`))) {
+        const queryParams: any[] = [dates];
+        let meterCondition = '';
+        if (meterNo) {
+          meterCondition = 'AND meter_id = $2';
+          queryParams.push(meterNo);
+        }
+        
         const records: any[] = await prisma.$queryRawUnsafe(
           `SELECT (timestamp::date)::text as date_str, slot_number, actual_energy
            FROM "forecasting"."consumer_demand_forecasting"
            WHERE (timestamp::date)::text = ANY($1::text[])
+             ${meterCondition}
              AND actual_energy IS NOT NULL
            ORDER BY timestamp ASC`,
-          dates
+          ...queryParams
         );
 
         if (Array.isArray(records)) {
@@ -297,7 +316,8 @@ export class TraderPerformanceDailyService {
     const consumptionMap = await this.getActualConsumptionMap(
       datesInMonth,
       consumer.sanctionedLoadKw,
-      consumer.powerFactor
+      consumer.powerFactor,
+      consumer.meterNo
     );
 
     // 2. Load TOD Tariffs, State Charges, FPPA, CTU, ISTS from DB (matching Trader Performance logic)

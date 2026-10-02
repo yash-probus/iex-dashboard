@@ -9,6 +9,7 @@ export interface DailyConsumer {
   voltageLevel: string;
   sanctionedLoadKw: number;
   powerFactor: number;
+  meterNo?: string;
   discomBaseTariff?: number;
   proltMargin?: number;
   traderMargin?: number;

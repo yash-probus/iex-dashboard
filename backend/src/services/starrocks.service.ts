@@ -23,13 +23,14 @@ export class StarrocksService {
   /**
    * Fetch 15-minute aggregated consumer actual load data from StarRocks (prolt_load_data)
    */
-  public static async getConsumerActualDemandMap(dates: string[]): Promise<Map<string, number>> {
+  public static async getConsumerActualDemandMap(dates: string[], meterNo?: string): Promise<Map<string, number>> {
     const actualMap = new Map<string, number>();
     if (!dates || dates.length === 0) return actualMap;
 
     try {
       const pool = this.getPool();
-      // Query primary consumer meter 'X2521837'
+      const targetMeter = meterNo || 'X2521837'; // Default to X2521837 if no meter provided
+
       let [rows]: any = await pool.query(`
         SELECT 
           DATE_FORMAT(datetime_slot, '%Y-%m-%d') as date_str,
@@ -38,13 +39,13 @@ export class StarrocksService {
           ROUND(MAX(block_active_energy * 0.4), 2) as total_active_kwh
         FROM prolt_load_data 
         WHERE DATE_FORMAT(datetime_slot, '%Y-%m-%d') IN (?)
-          AND meter_number = 'X2521837'
+          AND meter_number = ?
         GROUP BY datetime_slot, date_str, time_str
         ORDER BY datetime_slot ASC
-      `, [dates]);
+      `, [dates, targetMeter]);
 
-      // Fallback query if specific meter query has no rows for date
-      if (!Array.isArray(rows) || rows.length === 0) {
+      // Fallback query if specific meter query has no rows for date and no specific meter was asked
+      if ((!Array.isArray(rows) || rows.length === 0) && !meterNo) {
         [rows] = await pool.query(`
           SELECT 
             DATE_FORMAT(datetime_slot, '%Y-%m-%d') as date_str,
