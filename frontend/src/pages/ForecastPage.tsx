@@ -74,14 +74,14 @@ export default function ForecastPage() {
     startDate: getTodayStr(),
     endDate: getTodayStr(),
     interval: '15min' as '15min' | 'hourly' | 'daily',
-    model: 'Model1' as 'Model1' | 'Model2'
+    model: 'Model1' as 'Model1' | 'Model2' | 'Model3' | 'Model4' | 'Model5'
   });
 
   // Local filter states
   const [localStartDate, setLocalStartDate] = useState(filters.startDate);
   const [localEndDate, setLocalEndDate] = useState(filters.endDate);
   const [localInterval, setLocalInterval] = useState<'15min' | 'hourly' | 'daily'>(filters.interval);
-  const [localModel, setLocalModel] = useState<'Model1' | 'Model2'>(filters.model);
+  const [localModel, setLocalModel] = useState<'Model1' | 'Model2' | 'Model3' | 'Model4' | 'Model5'>(filters.model);
 
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
@@ -570,7 +570,7 @@ export default function ForecastPage() {
               label="Model"
               value={localModel}
               onChange={(e) => {
-                const val = e.target.value as 'Model1' | 'Model2';
+                const val = e.target.value as 'Model1' | 'Model2' | 'Model3' | 'Model4' | 'Model5';
                 setLocalModel(val);
                 setFilters(prev => ({ ...prev, model: val }));
               }}
@@ -584,6 +584,9 @@ export default function ForecastPage() {
             >
               <MenuItem value="Model1">Model 1</MenuItem>
               <MenuItem value="Model2">Model 2</MenuItem>
+              <MenuItem value="Model3">Model 3</MenuItem>
+              <MenuItem value="Model4">Model 4</MenuItem>
+              <MenuItem value="Model5">Model 5</MenuItem>
             </TextField>
 
             <TextField
