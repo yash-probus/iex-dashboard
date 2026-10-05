@@ -657,7 +657,7 @@ export class ForecastService {
   /**
    * Fetch Demand Forecast
    */
-  public static async getDemandForecast(type: string, startDateStr: string, endDateStr: string, interval: string = '15min') {
+  public static async getDemandForecast(type: string, startDateStr: string, endDateStr: string, interval: string = '15min', meterNo?: string) {
     const dates = this.getDatesInRange(startDateStr, endDateStr);
     const intervals: DemandForecastIntervalData[] = [];
 
@@ -832,7 +832,7 @@ export class ForecastService {
                ORDER BY timestamp ASC, slot_number ASC`,
               dates
             ) as Promise<any[]>,
-            StarrocksService.getConsumerActualDemandMap(dates)
+            StarrocksService.getConsumerActualDemandMap(dates, meterNo)
           ]);
 
           formatted = records.map((r: any) => {
@@ -1675,5 +1675,9 @@ export class ForecastService {
     }));
 
     return { results };
+  }
+
+  public static async getMeters() {
+    return await StarrocksService.getAvailableMeters();
   }
 }

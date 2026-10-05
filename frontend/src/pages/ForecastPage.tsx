@@ -85,6 +85,7 @@ export default function ForecastPage() {
   const [localModel, setLocalModel] = useState<'Model1' | 'Model2' | 'Model3' | 'Model4' | 'Model5'>(filters.model);
   const [localMeterNo, setLocalMeterNo] = useState<string>(filters.meterNo);
 
+  const [availableMeters, setAvailableMeters] = useState<string[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
   const [summaryMetrics, setSummaryMetrics] = useState<any>({});
@@ -127,6 +128,23 @@ export default function ForecastPage() {
 
     fetchDates();
   }, [subType, isPrice]);
+
+  // Fetch available meters
+  useEffect(() => {
+    const fetchMeters = async () => {
+      try {
+        const res = await apiClient.get('/forecast/meters');
+        if (res.data && res.data.success) {
+          setAvailableMeters(res.data.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch available meters:', err);
+      }
+    };
+    if (isDemand && subType === 'consumer') {
+      fetchMeters();
+    }
+  }, [isDemand, subType]);
 
   // Sync local filter states with filters when filters change
   useEffect(() => {
@@ -612,9 +630,9 @@ export default function ForecastPage() {
                 }}
               >
                 <MenuItem value="All">All Meters</MenuItem>
-                <MenuItem value="Meter 1">Meter 1</MenuItem>
-                <MenuItem value="Meter 2">Meter 2</MenuItem>
-                <MenuItem value="Meter 3">Meter 3</MenuItem>
+                {availableMeters.map(meter => (
+                  <MenuItem key={meter} value={meter}>{meter}</MenuItem>
+                ))}
               </TextField>
             )}
 

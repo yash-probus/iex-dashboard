@@ -69,6 +69,20 @@ router.get('/dates', asyncHandler(ForecastController.getForecastDates));
 
 /**
  * @swagger
+ * /api/forecast/meters:
+ *   get:
+ *     summary: Get available meters
+ *     tags: [Forecast]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of available meter numbers
+ */
+router.get('/meters', asyncHandler(ForecastController.getMeters));
+
+/**
+ * @swagger
  * /api/forecast/market-selection:
  *   get:
  *     summary: Get market selection forecast
