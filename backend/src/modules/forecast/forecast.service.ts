@@ -348,7 +348,8 @@ export class ForecastService {
 
         // Fetch forecast
         if (isGdam) {
-          const modelNumber = model === 'Model2' ? 2 : 1;
+          const modelMatch = String(model).match(/\d+/);
+          const modelNumber = modelMatch ? parseInt(modelMatch[0], 10) : 1;
           let mcpForecastRows: any[] = [];
 
           for (const schema of ['forecasting', 'public']) {
