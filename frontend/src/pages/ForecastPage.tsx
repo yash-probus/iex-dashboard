@@ -74,7 +74,8 @@ export default function ForecastPage() {
     startDate: getTodayStr(),
     endDate: getTodayStr(),
     interval: '15min' as '15min' | 'hourly' | 'daily',
-    model: 'Model1' as 'Model1' | 'Model2' | 'Model3' | 'Model4' | 'Model5'
+    model: 'Model1' as 'Model1' | 'Model2' | 'Model3' | 'Model4' | 'Model5',
+    meterNo: 'All'
   });
 
   // Local filter states
@@ -82,6 +83,7 @@ export default function ForecastPage() {
   const [localEndDate, setLocalEndDate] = useState(filters.endDate);
   const [localInterval, setLocalInterval] = useState<'15min' | 'hourly' | 'daily'>(filters.interval);
   const [localModel, setLocalModel] = useState<'Model1' | 'Model2' | 'Model3' | 'Model4' | 'Model5'>(filters.model);
+  const [localMeterNo, setLocalMeterNo] = useState<string>(filters.meterNo);
 
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
@@ -132,6 +134,7 @@ export default function ForecastPage() {
     setLocalEndDate(filters.endDate);
     setLocalInterval(filters.interval);
     setLocalModel(filters.model);
+    setLocalMeterNo(filters.meterNo);
   }, [filters]);
 
   // Fetch forecast data
@@ -142,7 +145,7 @@ export default function ForecastPage() {
       const endpoint = isGeneration
         ? `/forecast/generation?startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}&model=${filters.model}`
         : isDemand
-        ? `/forecast/demand?type=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}`
+        ? `/forecast/demand?type=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}${subType === 'consumer' && filters.meterNo !== 'All' ? `&meterNo=${filters.meterNo}` : ''}`
         : `/forecast/price?market=${subType}&startDate=${filters.startDate}&endDate=${filters.endDate}&interval=${filters.interval}&model=${filters.model}`;
         
       const res = await apiClient.get(endpoint);
@@ -174,7 +177,7 @@ export default function ForecastPage() {
 
   useEffect(() => {
     fetchForecast();
-  }, [isPrice, isDemand, isGeneration, subType, filters.startDate, filters.endDate, filters.interval, filters.model]);
+  }, [isPrice, isDemand, isGeneration, subType, filters.startDate, filters.endDate, filters.interval, filters.model, filters.meterNo]);
 
   // Define columns for table
   const getColumns = (): ColumnDefinition[] => {
@@ -422,7 +425,8 @@ export default function ForecastPage() {
       startDate: newFilters.startDate,
       endDate: newFilters.endDate,
       interval: newFilters.interval,
-      model: newFilters.model
+      model: newFilters.model,
+      meterNo: newFilters.meterNo || 'All'
     });
   };
 
@@ -588,6 +592,31 @@ export default function ForecastPage() {
               <MenuItem value="Model4">Model 4</MenuItem>
               <MenuItem value="Model5">Model 5</MenuItem>
             </TextField>
+
+            {isDemand && subType === 'consumer' && (
+              <TextField
+                select
+                label="Meter No"
+                value={localMeterNo}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setLocalMeterNo(val);
+                  setFilters(prev => ({ ...prev, meterNo: val }));
+                }}
+                size="small"
+                sx={{
+                  minWidth: 150,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2.5,
+                  }
+                }}
+              >
+                <MenuItem value="All">All Meters</MenuItem>
+                <MenuItem value="Meter 1">Meter 1</MenuItem>
+                <MenuItem value="Meter 2">Meter 2</MenuItem>
+                <MenuItem value="Meter 3">Meter 3</MenuItem>
+              </TextField>
+            )}
 
             <TextField
               select
