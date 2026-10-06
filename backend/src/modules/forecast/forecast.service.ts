@@ -232,8 +232,8 @@ export class ForecastService {
 
     if (market.toUpperCase() === 'DAM') {
       try {
-        let modelNum = 1;
-        if (model === 'Model2') modelNum = 2;
+        const modelMatch = String(model).match(/\d+/);
+        let modelNum = modelMatch ? parseInt(modelMatch[0], 10) : 1;
 
         // Fetch actuals for mapping from UP market table
         const actuals = await prisma.exchangeDamRate.findMany({
