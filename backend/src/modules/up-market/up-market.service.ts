@@ -18,7 +18,7 @@ export class UpMarketService {
               gte: start,
               lte: end
             },
-            state: 'UP'
+            state: { in: ['UP', 'Haryana', 'Uttarakhand'] }
           },
           orderBy: [
             { date: 'asc' },
@@ -32,7 +32,7 @@ export class UpMarketService {
               gte: start,
               lte: end
             },
-            state: 'UP'
+            state: { in: ['UP', 'Haryana', 'Uttarakhand'] }
           },
           orderBy: [
             { date: 'asc' },
@@ -46,7 +46,7 @@ export class UpMarketService {
               gte: start,
               lte: end
             },
-            state: 'UP'
+            state: { in: ['UP', 'Haryana', 'Uttarakhand'] }
           },
           orderBy: [
             { date: 'asc' },
@@ -94,6 +94,7 @@ export class UpMarketService {
           timeblock: timeStr,
           hour: hourStr,
           timeBlock: timeBlockStr,
+          state: r.state,
           mcp: r.mcp ? Number(r.mcp) : 0,
           mcv: r.mcv ? Number(r.mcv) : 0,
           purchaseBid: r.purchaseBid ? Number(r.purchaseBid) : 0,

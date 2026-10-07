@@ -38,6 +38,7 @@ export default function GDAMPage() {
     
     // Always include Date
     baseColumns.push({ field: 'date', headerName: 'Date', sticky: true, width: 120, align: 'center', valueFormatter: formatOverviewDate });
+    baseColumns.push({ field: 'state', headerName: 'State', sticky: true, width: 120, align: 'center' });
     
     if (filters.interval === '15min' || filters.interval === 'hourly') {
       baseColumns.push({ field: 'hour', headerName: 'Hour', sticky: true, width: 100, align: 'center' });

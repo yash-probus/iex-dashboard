@@ -227,7 +227,7 @@ export const UP_MARKET_ITEMS: OverviewItemConfig[] = [
   { 
     key: 'dam-up', 
     title: 'Day Ahead Market', 
-    description: 'UP specific DAM data from API.',
+    description: 'State specific DAM data from API.',
     path: '/up-market/dam', 
     icon: <ShowChart sx={{ fontSize: 24, color: '#3B8FF3' }} />,
     color: '#3B8FF3'
@@ -235,7 +235,7 @@ export const UP_MARKET_ITEMS: OverviewItemConfig[] = [
   { 
     key: 'rtm-up', 
     title: 'Real Time Market', 
-    description: 'UP specific RTM data from API.',
+    description: 'State specific RTM data from API.',
     path: '/up-market/rtm', 
     icon: <TimerIcon sx={{ fontSize: 24, color: '#E0B50F' }} />,
     color: '#E0B50F'
@@ -243,7 +243,7 @@ export const UP_MARKET_ITEMS: OverviewItemConfig[] = [
   { 
     key: 'gdam-up', 
     title: 'Green Day Ahead Market', 
-    description: 'UP specific GDAM data from API.',
+    description: 'State specific GDAM data from API.',
     path: '/up-market/gdam', 
     icon: <PublicIcon sx={{ fontSize: 24, color: '#10B981' }} />,
     color: '#10B981'
