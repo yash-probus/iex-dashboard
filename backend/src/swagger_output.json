@@ -2096,6 +2096,44 @@
         }
       }
     },
+    "/api/forecast/meters": {
+      "get": {
+        "summary": "Get available meters",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available meter numbers"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/forecast/market-selection": {
       "get": {
         "summary": "Get market selection forecast",
@@ -4866,6 +4904,46 @@
         ]
       }
     },
+    "/forecast/meters": {
+      "get": {
+        "summary": "Auto-generated GET for /forecast/meters",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "General"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/forecast/market-selection": {
       "get": {
         "summary": "Auto-generated GET for /forecast/market-selection",
@@ -5029,6 +5107,46 @@
     "/api/trader-performance-daily/upload": {
       "post": {
         "summary": "Auto-generated POST for /api/trader-performance-daily/upload",
+        "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
+        "tags": [
+          "Trader Performance Daily"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/trader-performance-daily/meters": {
+      "get": {
+        "summary": "Auto-generated GET for /api/trader-performance-daily/meters",
         "description": "This endpoint was automatically discovered. Add JSDoc to the route for exact output schemas.",
         "tags": [
           "Trader Performance Daily"

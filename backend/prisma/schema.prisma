@@ -1203,3 +1203,15 @@ model ExchangeGdamRate {
   @@map("exchange_gdam_rate")
   @@schema("public")
 }
+
+model DsmCharges {
+  id                     Int      @id @default(autoincrement())
+  state                  String   @db.VarChar(100)
+  month                  Int
+  dsmChargesRsPerKwh     Decimal? @map("dsm_charges_rs_per_kwh") @db.Decimal(12, 6)
+  updatedAt              DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([state, month], map: "uq_dsm_charges_state_month")
+  @@map("dsm_charges")
+  @@schema("public")
+}

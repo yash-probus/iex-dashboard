@@ -49,8 +49,10 @@ const MARKET_SEGMENT_MAPPING = {
 };
 
 const ZONE_TO_STATES: Record<string, { representativeOption: string; states: string[] }> = {
-  'N1': { representativeOption: 'N1_J&K', states: ['Jammu and Kashmir', 'Himachal Pradesh', 'Chandigarh', 'Haryana'] },
-  'N2': { representativeOption: 'N2_Delhi', states: ['Delhi', 'Uttar Pradesh', 'Uttarakhand', 'Rajasthan'] },
+  'N1': { representativeOption: 'N1_J&K', states: ['Jammu and Kashmir', 'Himachal Pradesh', 'Chandigarh'] },
+  'N1_HR': { representativeOption: 'N1_Haryana', states: ['Haryana'] },
+  'N2': { representativeOption: 'N2_Delhi', states: ['Delhi', 'Uttar Pradesh', 'Rajasthan'] },
+  'N2_UK': { representativeOption: 'N2_Uttarakhand', states: ['Uttarakhand'] },
   'N3': { representativeOption: 'N3_Punjab', states: ['Punjab'] },
   'E1': { representativeOption: 'E1_West Bengal', states: ['West Bengal', 'Sikkim', 'Bihar', 'Jharkhand'] },
   'E2': { representativeOption: 'E2_Odisha', states: ['Odisha'] },
