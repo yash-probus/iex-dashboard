@@ -4,7 +4,8 @@ import { MarketFilters } from './useMarketFilters';
 
 export function useUpMarketData(
   marketType: 'DAM' | 'RTM' | 'GDAM',
-  filters: MarketFilters
+  filters: MarketFilters,
+  state?: string
 ) {
   const [data, setData] = useState<any[]>([]);
   const [summaryMetrics, setSummaryMetrics] = useState<any>({
@@ -26,7 +27,7 @@ export function useUpMarketData(
       setError(null);
       
       try {
-        const dataRes = await upMarketApi.getMarketData(marketType, filters.startDate, filters.endDate);
+        const dataRes = await upMarketApi.getMarketData(marketType, filters.startDate, filters.endDate, state);
 
         if (isMounted) {
           setData(dataRes.data.intervals || []);
@@ -58,7 +59,7 @@ export function useUpMarketData(
     return () => {
       isMounted = false;
     };
-  }, [marketType, filters.startDate, filters.endDate]);
+  }, [marketType, filters.startDate, filters.endDate, state]);
 
   return {
     data,
