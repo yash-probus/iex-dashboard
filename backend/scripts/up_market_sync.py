@@ -34,25 +34,8 @@ FROM_TOKEN = int(os.getenv("FROM_TOKEN", "1"))
 TO_TOKEN = int(os.getenv("TO_TOKEN", "96"))
 DATE_TYPE = int(os.getenv("DATE_TYPE", "1"))
 
-# IEX Area Code to States mapping
-AREA_TO_STATES_MAP = {
-    "N1": ["Haryana"],
-    "N2": ["UP", "Uttarakhand"],
-    "N3": ["Punjab"],
-    "E1": ["West Bengal", "Bihar", "Jharkhand"],
-    "E2": ["Odisha"],
-    "W1": ["Madhya Pradesh"],
-    "W2": ["Maharashtra", "Gujarat", "Goa"],
-    "W3": ["Chhattisgarh"],
-    "S1": ["Andhra Pradesh", "Telangana", "Karnataka"],
-    "S2": ["Tamil Nadu"],
-    "S3": ["Kerala"],
-    "A1": ["Tripura", "Meghalaya"],
-    "A2": ["Assam"],
-}
-
-# Target states to sync (can be overridden via TARGET_STATES env or --states CLI flag)
-DEFAULT_TARGET_STATES = [s.strip() for s in os.getenv("TARGET_STATES", "UP,Haryana,Uttarakhand").split(",") if s.strip()]
+# Target regions to sync (e.g. N1, N2, W1 or ALL)
+DEFAULT_TARGET_REGIONS = [r.strip() for r in os.getenv("TARGET_REGIONS", "ALL").split(",") if r.strip()]
 
 CURRENT_DATE = date.today()
 FROM_YEAR = int(os.getenv("FROM_YEAR", str(CURRENT_DATE.year)))
@@ -246,9 +229,9 @@ def token_to_interval(token_no):
 # Transformation
 # ============================================================
 
-def transform_response(api_response, target_states=None):
-    if target_states is None:
-        target_states = DEFAULT_TARGET_STATES
+def transform_response(api_response, target_regions=None):
+    if target_regions is None:
+        target_regions = DEFAULT_TARGET_REGIONS
 
     rows = []
 
@@ -282,12 +265,10 @@ def transform_response(api_response, target_states=None):
 
             for area_data in token_data.get("Area_Details", []):
                 area_code = area_data.get("Area_code")
-                mapped_states = AREA_TO_STATES_MAP.get(area_code, [])
+                if not area_code:
+                    continue
 
-                if target_states and "ALL" not in target_states:
-                    mapped_states = [s for s in mapped_states if s in target_states]
-
-                if not mapped_states:
+                if target_regions and "ALL" not in target_regions and area_code not in target_regions:
                     continue
 
                 market_summary = area_data.get("Area_Codes")
@@ -300,21 +281,20 @@ def transform_response(api_response, target_states=None):
                     {}
                 )
 
-                for state_name in mapped_states:
-                    row = (
-                        interval_time,
-                        delivery_date,
-                        market_summary.get(
-                            "Area_Price",
-                            market_summary.get("Clearing_Price")
-                        ),
-                        all_india_summary.get("Cleared_Volume"),
-                        market_summary.get("Buy_Volume"),
-                        market_summary.get("Sell_Volume"),
-                        state_name
-                    )
+                row = (
+                    interval_time,
+                    delivery_date,
+                    market_summary.get(
+                        "Area_Price",
+                        market_summary.get("Clearing_Price")
+                    ),
+                    all_india_summary.get("Cleared_Volume"),
+                    market_summary.get("Buy_Volume"),
+                    market_summary.get("Sell_Volume"),
+                    area_code
+                )
 
-                    rows.append(row)
+                rows.append(row)
 
     return rows
 
@@ -383,7 +363,7 @@ def process_market_month(
     table_name,
     year,
     month,
-    target_states=None,
+    target_regions=None,
     custom_from_date=None,
     custom_to_date=None
 ):
@@ -410,7 +390,7 @@ def process_market_month(
         to_date
     )
 
-    rows = transform_response(response, target_states=target_states)
+    rows = transform_response(response, target_regions=target_regions)
 
     logger.info(
         "Transformed %s rows | %s | %04d-%02d",
@@ -464,17 +444,17 @@ def main():
 
         parser = argparse.ArgumentParser()
         parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'GDAM', 'RTM'], default='ALL')
-        parser.add_argument('--states', type=str, default=None, help='Comma-separated state names or ALL')
+        parser.add_argument('--regions', '--states', dest='regions', type=str, default=None, help='Comma-separated region codes (e.g. N1,N2,W1) or ALL')
         parser.add_argument('--from-date', type=str, default=None, help='Start date DD/MM/YYYY')
         parser.add_argument('--to-date', type=str, default=None, help='End date DD/MM/YYYY')
         args = parser.parse_args()
 
-        if args.states:
-            target_states = [s.strip() for s in args.states.split(",") if s.strip()]
+        if args.regions:
+            target_regions = [r.strip() for r in args.regions.split(",") if r.strip()]
         else:
-            target_states = DEFAULT_TARGET_STATES
+            target_regions = DEFAULT_TARGET_REGIONS
 
-        logger.info("Target states for sync: %s", target_states)
+        logger.info("Target regions for sync: %s", target_regions)
 
         custom_from_date = None
         custom_to_date = None
@@ -512,7 +492,7 @@ def main():
                         table_name="exchange_dam_rate",
                         year=year,
                         month=month,
-                        target_states=target_states,
+                        target_regions=target_regions,
                         custom_from_date=custom_from_date,
                         custom_to_date=custom_to_date
                     )
@@ -539,7 +519,7 @@ def main():
                         table_name="exchange_gdam_rate",
                         year=year,
                         month=month,
-                        target_states=target_states,
+                        target_regions=target_regions,
                         custom_from_date=custom_from_date,
                         custom_to_date=custom_to_date
                     )
@@ -566,7 +546,7 @@ def main():
                         table_name="exchange_rtm_rate",
                         year=year,
                         month=month,
-                        target_states=target_states,
+                        target_regions=target_regions,
                         custom_from_date=custom_from_date,
                         custom_to_date=custom_to_date
                     )

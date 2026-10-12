@@ -8,19 +8,38 @@ export class UpMarketService {
     try {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      const stateCondition = selectedState ? selectedState : { in: ['UP', 'Haryana', 'Uttarakhand'] };
+
+      const whereClause: any = {
+        date: {
+          gte: start,
+          lte: end
+        }
+      };
+
+      if (selectedState && selectedState !== 'ALL' && selectedState !== 'all') {
+        const REGION_ALIASES: Record<string, string[]> = {
+          'N1': ['N1', 'Haryana'],
+          'N2': ['N2', 'UP', 'Uttar Pradesh', 'Uttarakhand'],
+          'N3': ['N3', 'Punjab'],
+          'Haryana': ['Haryana', 'N1'],
+          'UP': ['UP', 'Uttar Pradesh', 'N2'],
+          'Uttar Pradesh': ['Uttar Pradesh', 'UP', 'N2'],
+          'Uttarakhand': ['Uttarakhand', 'N2'],
+          'Punjab': ['Punjab', 'N3']
+        };
+        const aliases = REGION_ALIASES[selectedState];
+        if (aliases) {
+          whereClause.state = { in: aliases };
+        } else {
+          whereClause.state = selectedState;
+        }
+      }
 
       // Fetch from respective table based on market
       let records: any[] = [];
       if (market === 'DAM') {
         records = await prisma.exchangeDamRate.findMany({
-          where: {
-            date: {
-              gte: start,
-              lte: end
-            },
-            state: stateCondition
-          },
+          where: whereClause,
           orderBy: [
             { date: 'asc' },
             { intervalTime: 'asc' }
@@ -28,13 +47,7 @@ export class UpMarketService {
         });
       } else if (market === 'RTM') {
         records = await prisma.exchangeRtmRate.findMany({
-          where: {
-            date: {
-              gte: start,
-              lte: end
-            },
-            state: stateCondition
-          },
+          where: whereClause,
           orderBy: [
             { date: 'asc' },
             { intervalTime: 'asc' }
@@ -42,13 +55,7 @@ export class UpMarketService {
         });
       } else if (market === 'GDAM') {
         records = await prisma.exchangeGdamRate.findMany({
-          where: {
-            date: {
-              gte: start,
-              lte: end
-            },
-            state: stateCondition
-          },
+          where: whereClause,
           orderBy: [
             { date: 'asc' },
             { intervalTime: 'asc' }
@@ -96,6 +103,7 @@ export class UpMarketService {
           hour: hourStr,
           timeBlock: timeBlockStr,
           state: r.state,
+          region: r.state,
           mcp: r.mcp ? Number(r.mcp) : 0,
           mcv: r.mcv ? Number(r.mcv) : 0,
           purchaseBid: r.purchaseBid ? Number(r.purchaseBid) : 0,

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Typography, Alert, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, Alert, ToggleButton, ToggleButtonGroup, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { TrendingUp, BarChart, ElectricBolt, ShowChart, Timer as TimerIcon, FileDownload as DownloadIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import FilterContainer from '../../components/dashboard/FilterContainer';
@@ -30,7 +30,12 @@ export default function RTMPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { filters, handleDateChange, handleIntervalChange } = useMarketFilters();
-  const { data, summaryMetrics, isLoading, error } = useUpMarketData('RTM', filters);
+  const [selectedRegion, setSelectedRegion] = useState<string>('ALL');
+  const { data, summaryMetrics, isLoading, error } = useUpMarketData(
+    'RTM',
+    filters,
+    selectedRegion === 'ALL' ? undefined : selectedRegion
+  );
   const [marketView, setMarketView] = React.useState<'all-india' | 'state-wise'>('all-india');
 
   const getColumns = (): ColumnDefinition[] => {
@@ -38,7 +43,7 @@ export default function RTMPage() {
     
     // Always include Date
     baseColumns.push({ field: 'date', headerName: 'Date', sticky: true, width: 120, align: 'center', valueFormatter: formatOverviewDate });
-    baseColumns.push({ field: 'state', headerName: 'State', sticky: true, width: 120, align: 'center' });
+    baseColumns.push({ field: 'state', headerName: 'Region', sticky: true, width: 120, align: 'center' });
     
     if (filters.interval === '15min' || filters.interval === 'hourly') {
       baseColumns.push({ field: 'hour', headerName: 'Hour', sticky: true, width: 100, align: 'center' });
@@ -110,6 +115,32 @@ export default function RTMPage() {
               hideHourlyDaily={true}
             />
           )}
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel id="rtm-region-select-label">Region</InputLabel>
+            <Select
+              labelId="rtm-region-select-label"
+              id="rtm-region-select"
+              value={selectedRegion}
+              label="Region"
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              sx={{ borderRadius: 1.5, bgcolor: 'background.paper' }}
+            >
+              <MenuItem value="ALL">All Regions</MenuItem>
+              <MenuItem value="N1">N1 (North 1)</MenuItem>
+              <MenuItem value="N2">N2 (North 2)</MenuItem>
+              <MenuItem value="N3">N3 (North 3)</MenuItem>
+              <MenuItem value="W1">W1 (West 1)</MenuItem>
+              <MenuItem value="W2">W2 (West 2)</MenuItem>
+              <MenuItem value="W3">W3 (West 3)</MenuItem>
+              <MenuItem value="S1">S1 (South 1)</MenuItem>
+              <MenuItem value="S2">S2 (South 2)</MenuItem>
+              <MenuItem value="S3">S3 (South 3)</MenuItem>
+              <MenuItem value="E1">E1 (East 1)</MenuItem>
+              <MenuItem value="E2">E2 (East 2)</MenuItem>
+              <MenuItem value="A1">A1 (North East 1)</MenuItem>
+              <MenuItem value="A2">A2 (North East 2)</MenuItem>
+            </Select>
+          </FormControl>
           <ActionButton 
             variant="secondary" 
             startIcon={<DownloadIcon fontSize="small" />} 
