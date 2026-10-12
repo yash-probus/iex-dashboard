@@ -358,8 +358,12 @@ export class CronService {
     cron.schedule('*/30 * * * *', () => {
       console.log('[Cron] Running half-hourly UP Market Python scraper for RTM');
       const scriptPath = path.resolve(__dirname, '../../scripts/up_market_sync.py');
+      const pythonBin = [
+        path.resolve(__dirname, '../../../venv/bin/python3'),
+        path.resolve(__dirname, '../../venv/bin/python3'),
+      ].find(p => require('fs').existsSync(p)) || 'python3';
       
-      exec(`python3 ${scriptPath} --market RTM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+      exec(`${pythonBin} ${scriptPath} --market RTM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
         if (error) {
           console.error(`[Cron] UP Market Scraper Error: ${error.message}`);
           return;
@@ -377,8 +381,12 @@ export class CronService {
     cron.schedule('0 7 * * *', () => {
       console.log('[Cron] Running daily UP Market Python scraper for DAM');
       const scriptPath = path.resolve(__dirname, '../../scripts/up_market_sync.py');
+      const pythonBin = [
+        path.resolve(__dirname, '../../../venv/bin/python3'),
+        path.resolve(__dirname, '../../venv/bin/python3'),
+      ].find(p => require('fs').existsSync(p)) || 'python3';
       
-      exec(`python3 ${scriptPath} --market DAM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+      exec(`${pythonBin} ${scriptPath} --market DAM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
         if (error) {
           console.error(`[Cron] UP Market Scraper DAM Error: ${error.message}`);
           return;
@@ -396,8 +404,12 @@ export class CronService {
     cron.schedule('15 7 * * *', () => {
       console.log('[Cron] Running daily UP Market Python scraper for GDAM');
       const scriptPath = path.resolve(__dirname, '../../scripts/up_market_sync.py');
+      const pythonBin = [
+        path.resolve(__dirname, '../../../venv/bin/python3'),
+        path.resolve(__dirname, '../../venv/bin/python3'),
+      ].find(p => require('fs').existsSync(p)) || 'python3';
       
-      exec(`python3 ${scriptPath} --market GDAM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
+      exec(`${pythonBin} ${scriptPath} --market GDAM`, { cwd: path.resolve(__dirname, '../..') }, (error, stdout, stderr) => {
         if (error) {
           console.error(`[Cron] UP Market Scraper GDAM Error: ${error.message}`);
           return;

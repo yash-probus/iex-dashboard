@@ -4,10 +4,11 @@ import { logger } from '../../logger';
 const prisma = new PrismaClient();
 
 export class UpMarketService {
-  async getMarketData(market: 'DAM' | 'RTM' | 'GDAM', startDate: string, endDate: string) {
+  async getMarketData(market: 'DAM' | 'RTM' | 'GDAM', startDate: string, endDate: string, selectedState?: string) {
     try {
       const start = new Date(startDate);
       const end = new Date(endDate);
+      const stateCondition = selectedState ? selectedState : { in: ['UP', 'Haryana', 'Uttarakhand'] };
 
       // Fetch from respective table based on market
       let records: any[] = [];
@@ -18,7 +19,7 @@ export class UpMarketService {
               gte: start,
               lte: end
             },
-            state: { in: ['UP', 'Haryana', 'Uttarakhand'] }
+            state: stateCondition
           },
           orderBy: [
             { date: 'asc' },
@@ -32,7 +33,7 @@ export class UpMarketService {
               gte: start,
               lte: end
             },
-            state: { in: ['UP', 'Haryana', 'Uttarakhand'] }
+            state: stateCondition
           },
           orderBy: [
             { date: 'asc' },
@@ -46,7 +47,7 @@ export class UpMarketService {
               gte: start,
               lte: end
             },
-            state: { in: ['UP', 'Haryana', 'Uttarakhand'] }
+            state: stateCondition
           },
           orderBy: [
             { date: 'asc' },

@@ -34,7 +34,25 @@ FROM_TOKEN = int(os.getenv("FROM_TOKEN", "1"))
 TO_TOKEN = int(os.getenv("TO_TOKEN", "96"))
 DATE_TYPE = int(os.getenv("DATE_TYPE", "1"))
 
-STATE = os.getenv("STATE", "UP")
+# IEX Area Code to States mapping
+AREA_TO_STATES_MAP = {
+    "N1": ["Haryana"],
+    "N2": ["UP", "Uttarakhand"],
+    "N3": ["Punjab"],
+    "E1": ["West Bengal", "Bihar", "Jharkhand"],
+    "E2": ["Odisha"],
+    "W1": ["Madhya Pradesh"],
+    "W2": ["Maharashtra", "Gujarat", "Goa"],
+    "W3": ["Chhattisgarh"],
+    "S1": ["Andhra Pradesh", "Telangana", "Karnataka"],
+    "S2": ["Tamil Nadu"],
+    "S3": ["Kerala"],
+    "A1": ["Tripura", "Meghalaya"],
+    "A2": ["Assam"],
+}
+
+# Target states to sync (can be overridden via TARGET_STATES env or --states CLI flag)
+DEFAULT_TARGET_STATES = [s.strip() for s in os.getenv("TARGET_STATES", "UP,Haryana,Uttarakhand").split(",") if s.strip()]
 
 CURRENT_DATE = date.today()
 FROM_YEAR = int(os.getenv("FROM_YEAR", str(CURRENT_DATE.year)))
@@ -63,13 +81,17 @@ logger = logging.getLogger(__name__)
 # ============================================================
 
 def get_db_connection():
-    connection = psycopg2.connect(
-        host=POSTGRES_HOST,
-        port=POSTGRES_PORT,
-        database=POSTGRES_DATABASE,
-        user=POSTGRES_USER,
-        password=POSTGRES_PASSWORD
-    )
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        connection = psycopg2.connect(db_url)
+    else:
+        connection = psycopg2.connect(
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            database=POSTGRES_DATABASE,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD
+        )
 
     with connection.cursor() as cursor:
         cursor.execute("SET TIME ZONE 'Asia/Kolkata'")
@@ -224,7 +246,9 @@ def token_to_interval(token_no):
 # Transformation
 # ============================================================
 
-def transform_response(api_response):
+def transform_response(api_response, target_states=None):
+    if target_states is None:
+        target_states = DEFAULT_TARGET_STATES
 
     rows = []
 
@@ -257,8 +281,13 @@ def transform_response(api_response):
             interval_time = token_to_interval(token_no)
 
             for area_data in token_data.get("Area_Details", []):
+                area_code = area_data.get("Area_code")
+                mapped_states = AREA_TO_STATES_MAP.get(area_code, [])
 
-                if area_data.get("Area_code") != "N2":
+                if target_states and "ALL" not in target_states:
+                    mapped_states = [s for s in mapped_states if s in target_states]
+
+                if not mapped_states:
                     continue
 
                 market_summary = area_data.get("Area_Codes")
@@ -271,20 +300,21 @@ def transform_response(api_response):
                     {}
                 )
 
-                row = (
-                    interval_time,
-                    delivery_date,
-                    market_summary.get(
-                        "Area_Price",
-                        market_summary.get("Clearing_Price")
-                    ),
-                    all_india_summary.get("Cleared_Volume"),
-                    market_summary.get("Buy_Volume"),
-                    market_summary.get("Sell_Volume"),
-                    STATE
-                )
+                for state_name in mapped_states:
+                    row = (
+                        interval_time,
+                        delivery_date,
+                        market_summary.get(
+                            "Area_Price",
+                            market_summary.get("Clearing_Price")
+                        ),
+                        all_india_summary.get("Cleared_Volume"),
+                        market_summary.get("Buy_Volume"),
+                        market_summary.get("Sell_Volume"),
+                        state_name
+                    )
 
-                rows.append(row)
+                    rows.append(row)
 
     return rows
 
@@ -352,19 +382,26 @@ def process_market_month(
     product_code,
     table_name,
     year,
-    month
+    month,
+    target_states=None,
+    custom_from_date=None,
+    custom_to_date=None
 ):
 
-    from_date, to_date = get_month_dates(
-        year,
-        month
-    )
+    if custom_from_date and custom_to_date:
+        from_date = custom_from_date
+        to_date = custom_to_date
+    else:
+        from_date, to_date = get_month_dates(
+            year,
+            month
+        )
 
     logger.info(
-        "Processing %s | %04d-%02d",
+        "Processing %s | %s to %s",
         table_name,
-        year,
-        month
+        from_date,
+        to_date
     )
 
     response = call_iex_api(
@@ -373,7 +410,7 @@ def process_market_month(
         to_date
     )
 
-    rows = transform_response(response)
+    rows = transform_response(response, target_states=target_states)
 
     logger.info(
         "Transformed %s rows | %s | %04d-%02d",
@@ -420,19 +457,36 @@ def main():
     connection = None
 
     total_dam_rows = 0
+    total_gdam_rows = 0
     total_rtm_rows = 0
 
     try:
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'GDAM', 'RTM'], default='ALL')
+        parser.add_argument('--states', type=str, default=None, help='Comma-separated state names or ALL')
+        parser.add_argument('--from-date', type=str, default=None, help='Start date DD/MM/YYYY')
+        parser.add_argument('--to-date', type=str, default=None, help='End date DD/MM/YYYY')
+        args = parser.parse_args()
+
+        if args.states:
+            target_states = [s.strip() for s in args.states.split(",") if s.strip()]
+        else:
+            target_states = DEFAULT_TARGET_STATES
+
+        logger.info("Target states for sync: %s", target_states)
+
+        custom_from_date = None
+        custom_to_date = None
+        if args.from_date and args.to_date:
+            custom_from_date = datetime.strptime(args.from_date, "%d/%m/%Y").date()
+            custom_to_date = datetime.strptime(args.to_date, "%d/%m/%Y").date()
 
         connection = get_db_connection()
 
         logger.info(
             "PostgreSQL connection established"
         )
-        
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'GDAM', 'RTM'], default='ALL')
-        args = parser.parse_args()
 
         for year, month in months:
 
@@ -457,7 +511,10 @@ def main():
                         product_code=DAM_PRODUCT_CODE,
                         table_name="exchange_dam_rate",
                         year=year,
-                        month=month
+                        month=month,
+                        target_states=target_states,
+                        custom_from_date=custom_from_date,
+                        custom_to_date=custom_to_date
                     )
 
                     total_dam_rows += rows
@@ -481,8 +538,13 @@ def main():
                         product_code=GDAM_PRODUCT_CODE,
                         table_name="exchange_gdam_rate",
                         year=year,
-                        month=month
+                        month=month,
+                        target_states=target_states,
+                        custom_from_date=custom_from_date,
+                        custom_to_date=custom_to_date
                     )
+
+                    total_gdam_rows += rows
 
                 except Exception:
 
@@ -503,7 +565,10 @@ def main():
                         product_code=RTM_PRODUCT_CODE,
                         table_name="exchange_rtm_rate",
                         year=year,
-                        month=month
+                        month=month,
+                        target_states=target_states,
+                        custom_from_date=custom_from_date,
+                        custom_to_date=custom_to_date
                     )
 
                     total_rtm_rows += rows
@@ -527,6 +592,11 @@ def main():
         logger.info(
             "Total DAM rows: %s",
             total_dam_rows
+        )
+
+        logger.info(
+            "Total GDAM rows: %s",
+            total_gdam_rows
         )
 
         logger.info(
