@@ -238,7 +238,7 @@ export class ForecastService {
         // Fetch actuals for mapping from UP market table
         const actuals = await prisma.exchangeDamRate.findMany({
           where: {
-            state: 'UP',
+            state: { in: ['UP', 'Uttar Pradesh', 'N2'] },
             date: {
               gte: new Date(startDateStr),
               lte: new Date(endDateStr)
@@ -317,7 +317,7 @@ export class ForecastService {
         if (isGdam) {
           actuals = await prisma.exchangeGdamRate.findMany({
             where: {
-              state: 'UP',
+              state: { in: ['UP', 'Uttar Pradesh', 'N2'] },
               date: { gte: new Date(startDateStr), lte: new Date(endDateStr) }
             },
             select: { date: true, intervalTime: true, mcp: true }
@@ -325,7 +325,7 @@ export class ForecastService {
         } else {
           actuals = await prisma.exchangeRtmRate.findMany({
             where: {
-              state: 'UP',
+              state: { in: ['UP', 'Uttar Pradesh', 'N2'] },
               date: { gte: new Date(startDateStr), lte: new Date(endDateStr) }
             },
             select: { date: true, intervalTime: true, mcp: true }

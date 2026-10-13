@@ -229,6 +229,12 @@ def token_to_interval(token_no):
 # Transformation
 # ============================================================
 
+AREA_STATE_ALIASES = {
+    'N1': ['Haryana'],
+    'N2': ['UP', 'Uttar Pradesh', 'Uttarakhand'],
+    'N3': ['Punjab'],
+}
+
 def transform_response(api_response, target_regions=None):
     if target_regions is None:
         target_regions = DEFAULT_TARGET_REGIONS
@@ -281,7 +287,7 @@ def transform_response(api_response, target_regions=None):
                     {}
                 )
 
-                row = (
+                base_tuple = (
                     interval_time,
                     delivery_date,
                     market_summary.get(
@@ -291,10 +297,14 @@ def transform_response(api_response, target_regions=None):
                     all_india_summary.get("Cleared_Volume"),
                     market_summary.get("Buy_Volume"),
                     market_summary.get("Sell_Volume"),
-                    area_code
                 )
 
-                rows.append(row)
+                # Primary row with the area/regional code (e.g., N1, N2, W1)
+                rows.append((*base_tuple, area_code))
+
+                # State alias rows so queries with state name (e.g., Haryana, UP) match directly
+                for alias in AREA_STATE_ALIASES.get(area_code, []):
+                    rows.append((*base_tuple, alias))
 
     return rows
 
@@ -361,22 +371,10 @@ def process_market_month(
     connection,
     product_code,
     table_name,
-    year,
-    month,
-    target_regions=None,
-    custom_from_date=None,
-    custom_to_date=None
+    from_date,
+    to_date,
+    target_regions=None
 ):
-
-    if custom_from_date and custom_to_date:
-        from_date = custom_from_date
-        to_date = custom_to_date
-    else:
-        from_date, to_date = get_month_dates(
-            year,
-            month
-        )
-
     logger.info(
         "Processing %s | %s to %s",
         table_name,
@@ -393,11 +391,11 @@ def process_market_month(
     rows = transform_response(response, target_regions=target_regions)
 
     logger.info(
-        "Transformed %s rows | %s | %04d-%02d",
+        "Transformed %s rows | %s | %s to %s",
         len(rows),
         table_name,
-        year,
-        month
+        from_date,
+        to_date
     )
 
     persist_rows(
@@ -414,25 +412,40 @@ def process_market_month(
 # ============================================================
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'GDAM', 'RTM'], default='ALL')
+    parser.add_argument('--regions', '--states', dest='regions', type=str, default=None, help='Comma-separated region codes (e.g. N1,N2,W1) or ALL')
+    parser.add_argument('--from-date', type=str, default=None, help='Start date DD/MM/YYYY')
+    parser.add_argument('--to-date', type=str, default=None, help='End date DD/MM/YYYY')
+    args = parser.parse_args()
 
-    logger.info(
-        "Starting IEX market data import"
-    )
+    if args.regions:
+        target_regions = [r.strip() for r in args.regions.split(",") if r.strip()]
+    else:
+        target_regions = DEFAULT_TARGET_REGIONS
 
-    logger.info(
-        "Fetching months from %04d-%02d to %04d-%02d",
-        FROM_YEAR,
-        FROM_MONTH,
-        TO_YEAR,
-        TO_MONTH
-    )
+    custom_from_date = None
+    custom_to_date = None
+    if args.from_date and args.to_date:
+        custom_from_date = datetime.strptime(args.from_date, "%d/%m/%Y").date()
+        custom_to_date = datetime.strptime(args.to_date, "%d/%m/%Y").date()
+        months = get_month_range(
+            custom_from_date.year,
+            custom_from_date.month,
+            custom_to_date.year,
+            custom_to_date.month
+        )
+    else:
+        months = get_month_range(
+            FROM_YEAR,
+            FROM_MONTH,
+            TO_YEAR,
+            TO_MONTH
+        )
 
-    months = get_month_range(
-        FROM_YEAR,
-        FROM_MONTH,
-        TO_YEAR,
-        TO_MONTH
-    )
+    logger.info("Starting IEX market data import")
+    logger.info("Target regions for sync: %s", target_regions)
+    logger.info("Total months to process: %d (from %04d-%02d to %04d-%02d)", len(months), months[0][0], months[0][1], months[-1][0], months[-1][1])
 
     connection = None
 
@@ -441,125 +454,69 @@ def main():
     total_rtm_rows = 0
 
     try:
-
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--market', type=str, choices=['ALL', 'DAM', 'GDAM', 'RTM'], default='ALL')
-        parser.add_argument('--regions', '--states', dest='regions', type=str, default=None, help='Comma-separated region codes (e.g. N1,N2,W1) or ALL')
-        parser.add_argument('--from-date', type=str, default=None, help='Start date DD/MM/YYYY')
-        parser.add_argument('--to-date', type=str, default=None, help='End date DD/MM/YYYY')
-        args = parser.parse_args()
-
-        if args.regions:
-            target_regions = [r.strip() for r in args.regions.split(",") if r.strip()]
-        else:
-            target_regions = DEFAULT_TARGET_REGIONS
-
-        logger.info("Target regions for sync: %s", target_regions)
-
-        custom_from_date = None
-        custom_to_date = None
-        if args.from_date and args.to_date:
-            custom_from_date = datetime.strptime(args.from_date, "%d/%m/%Y").date()
-            custom_to_date = datetime.strptime(args.to_date, "%d/%m/%Y").date()
-
         connection = get_db_connection()
-
-        logger.info(
-            "PostgreSQL connection established"
-        )
+        logger.info("PostgreSQL connection established")
 
         for year, month in months:
+            m_first, m_last = get_month_dates(year, month)
+            cur_from = max(m_first, custom_from_date) if custom_from_date else m_first
+            cur_to = min(m_last, custom_to_date) if custom_to_date else m_last
+            if cur_from > cur_to:
+                continue
 
-            logger.info(
-                "================================================"
-            )
-
-            logger.info(
-                "Processing month: %04d-%02d",
-                year,
-                month
-            )
+            logger.info("================================================")
+            logger.info("Processing month: %04d-%02d (%s to %s)", year, month, cur_from, cur_to)
 
             # ------------------------------------------------
             # DAM
             # ------------------------------------------------
             if args.market in ['ALL', 'DAM']:
                 try:
-
                     rows = process_market_month(
                         connection=connection,
                         product_code=DAM_PRODUCT_CODE,
                         table_name="exchange_dam_rate",
-                        year=year,
-                        month=month,
-                        target_regions=target_regions,
-                        custom_from_date=custom_from_date,
-                        custom_to_date=custom_to_date
+                        from_date=cur_from,
+                        to_date=cur_to,
+                        target_regions=target_regions
                     )
-
                     total_dam_rows += rows
-
                 except Exception:
-
-                    logger.exception(
-                        "DAM processing failed for %04d-%02d",
-                        year,
-                        month
-                    )
+                    logger.exception("DAM processing failed for %04d-%02d", year, month)
 
             # ------------------------------------------------
             # GDAM
             # ------------------------------------------------
             if args.market in ['ALL', 'GDAM']:
                 try:
-
                     rows = process_market_month(
                         connection=connection,
                         product_code=GDAM_PRODUCT_CODE,
                         table_name="exchange_gdam_rate",
-                        year=year,
-                        month=month,
-                        target_regions=target_regions,
-                        custom_from_date=custom_from_date,
-                        custom_to_date=custom_to_date
+                        from_date=cur_from,
+                        to_date=cur_to,
+                        target_regions=target_regions
                     )
-
                     total_gdam_rows += rows
-
                 except Exception:
-
-                    logger.exception(
-                        "GDAM processing failed for %04d-%02d",
-                        year,
-                        month
-                    )
+                    logger.exception("GDAM processing failed for %04d-%02d", year, month)
 
             # ------------------------------------------------
             # RTM
             # ------------------------------------------------
             if args.market in ['ALL', 'RTM']:
                 try:
-
                     rows = process_market_month(
                         connection=connection,
                         product_code=RTM_PRODUCT_CODE,
                         table_name="exchange_rtm_rate",
-                        year=year,
-                        month=month,
-                        target_regions=target_regions,
-                        custom_from_date=custom_from_date,
-                        custom_to_date=custom_to_date
+                        from_date=cur_from,
+                        to_date=cur_to,
+                        target_regions=target_regions
                     )
-
                     total_rtm_rows += rows
-
                 except Exception:
-
-                    logger.exception(
-                        "RTM processing failed for %04d-%02d",
-                        year,
-                        month
-                    )
+                    logger.exception("RTM processing failed for %04d-%02d", year, month)
 
         logger.info(
             "================================================"
