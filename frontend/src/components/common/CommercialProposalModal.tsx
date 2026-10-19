@@ -52,6 +52,77 @@ const DISCOM_OPTIONS = [
   'NPCL'
 ];
 
+export const truncateToOneDecimal = (num: number): number => {
+  const str = num.toString();
+  if (str.includes('.')) {
+    const parts = str.split('.');
+    return parseFloat(`${parts[0]}.${parts[1].slice(0, 1)}`);
+  }
+  return num;
+};
+
+export const formatLoadToMW = (val: string | number | undefined | null): string => {
+  if (!val) return '1 MW';
+  const str = String(val).trim();
+
+  // If already in MW (e.g. "1.9 MW" or "1.98MW")
+  const matchMw = str.match(/^([\d.]+)\s*mw$/i);
+  if (matchMw) {
+    const num = parseFloat(matchMw[1]);
+    if (!isNaN(num)) {
+      return `${truncateToOneDecimal(num)} MW`;
+    }
+    return str;
+  }
+
+  // If in kW (e.g. "1980 kW" or "1980kW")
+  const matchKw = str.match(/^([\d.]+)\s*kw$/i);
+  if (matchKw) {
+    const num = parseFloat(matchKw[1]);
+    const inMw = truncateToOneDecimal(num / 1000);
+    return `${inMw} MW`;
+  }
+
+  // If plain number (assumed kW if >= 10, e.g. 1980 -> 1.9 MW)
+  const num = parseFloat(str);
+  if (!isNaN(num) && /^[\d.]+$/.test(str)) {
+    if (num >= 10) {
+      const inMw = truncateToOneDecimal(num / 1000);
+      return `${inMw} MW`;
+    }
+    return `${truncateToOneDecimal(num)} MW`;
+  }
+
+  return str;
+};
+
+export const getLoadInMWNumber = (val: string | number | undefined | null): number => {
+  if (!val) return 1;
+  const str = String(val).trim();
+
+  // If in MW (e.g. "1.98 MW" or "1.98MW")
+  const matchMw = str.match(/^([\d.]+)\s*mw$/i);
+  if (matchMw) {
+    const num = parseFloat(matchMw[1]);
+    return isNaN(num) || num <= 0 ? 1 : truncateToOneDecimal(num);
+  }
+
+  // If in kW (e.g. "1980 kW" or "1980kW")
+  const matchKw = str.match(/^([\d.]+)\s*kw$/i);
+  if (matchKw) {
+    const num = parseFloat(matchKw[1]);
+    return isNaN(num) || num <= 0 ? 1 : truncateToOneDecimal(num / 1000);
+  }
+
+  // If plain number (assumed kW if >= 10, e.g. 1980 -> 1.9 MW)
+  const num = parseFloat(str);
+  if (!isNaN(num) && num > 0) {
+    return num >= 10 ? truncateToOneDecimal(num / 1000) : truncateToOneDecimal(num);
+  }
+
+  return 1;
+};
+
 export default function CommercialProposalModal({
   open,
   onClose,
@@ -76,7 +147,7 @@ export default function CommercialProposalModal({
   // Section 3: Fixed Recurring Charges
   const [iexAnnualFee, setIexAnnualFee] = useState('100000');
   const [sldcMonthlyNoc, setSldcMonthlyNoc] = useState('7000');
-  const [st11Settlement, setSt11Settlement] = useState('20000');
+  const [st11Settlement, setSt11Settlement] = useState('25000');
 
   // Section 4: Probus Fees
   const [tradingMargin, setTradingMargin] = useState('2p/kWh');
@@ -90,8 +161,8 @@ export default function CommercialProposalModal({
       const name = initialData?.industry_name || initialData?.client_name || '';
       setClientName(name);
 
-      const sLoad = initialData?.sanctioned_load ? String(initialData.sanctioned_load) : '1000 kW';
-      setSanctionedLoad(sLoad.includes('kW') || sLoad.includes('kVA') ? sLoad : `${sLoad} kW`);
+      const sLoad = formatLoadToMW(initialData?.sanctioned_load);
+      setSanctionedLoad(sLoad);
 
       setConnectivity(initialData?.connectivity || '11 kV');
       setDiscomName(initialData?.discom_name || 'PVVNL');
@@ -100,11 +171,12 @@ export default function CommercialProposalModal({
       setAbtSupplyCost('450000');
       setAbtServiceCost('350000');
       setUtilityLiaisoningCost('300000');
-      setBankGuaranteeCost('150000');
+      const mwVal = getLoadInMWNumber(sLoad);
+      setBankGuaranteeCost(String(Math.round(mwVal * 150000)));
 
       setIexAnnualFee('100000');
       setSldcMonthlyNoc('7000');
-      setSt11Settlement('20000');
+      setSt11Settlement('25000');
 
       const tm = initialData?.traderMargin ? `${initialData.traderMargin * 100}p/kWh` : '2p/kWh';
       const pf = initialData?.probusPlatformFee ? `${initialData.probusPlatformFee * 100}p/kWh` : '2p/kWh';
@@ -153,6 +225,13 @@ export default function CommercialProposalModal({
     setSmartMeteringInfra(String(defaultSmart));
   }, [discomName, connectivity, feederType, open]);
 
+  // Auto-update Bank Guarantee based on Sanctioned Load (MW * 150000)
+  useEffect(() => {
+    if (!open) return;
+    const mw = getLoadInMWNumber(sanctionedLoad);
+    setBankGuaranteeCost(String(Math.round(mw * 150000)));
+  }, [sanctionedLoad, open]);
+
   const totalAbtSetup = (Number(abtSupplyCost) || 0) + (Number(abtServiceCost) || 0) + (Number(utilityLiaisoningCost) || 0);
 
   const handleSubmit = async () => {
@@ -168,10 +247,10 @@ export default function CommercialProposalModal({
         abt_supply_cost: Number(abtSupplyCost) || 450000,
         abt_service_cost: Number(abtServiceCost) || 350000,
         utility_liaisoning_cost: Number(utilityLiaisoningCost) || 300000,
-        bank_guarantee_cost: Number(bankGuaranteeCost) || 150000,
+        bank_guarantee_cost: Number(bankGuaranteeCost) || Math.round(getLoadInMWNumber(sanctionedLoad) * 150000) || 150000,
         iex_annual_fee: Number(iexAnnualFee) || 100000,
         sldc_monthly_noc: Number(sldcMonthlyNoc) || 7000,
-        st11_settlement: Number(st11Settlement) || 20000,
+        st11_settlement: Number(st11Settlement) || 25000,
         trading_margin: tradingMargin,
         platform_fee: platformFee,
         value_share: valueShare,
@@ -227,7 +306,7 @@ export default function CommercialProposalModal({
                 size="small"
                 value={sanctionedLoad}
                 onChange={(e) => setSanctionedLoad(e.target.value)}
-                placeholder="e.g. 1000 kW"
+                placeholder="e.g. 1.9 MW"
               />
             </Grid>
             <Grid item xs={12} sm={4}>

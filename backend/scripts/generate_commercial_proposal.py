@@ -146,10 +146,25 @@ def generate_proposal(data_json):
     if len(doc.tables) > 0:
         t0 = doc.tables[0]
         if len(t0.rows) > 1:
-            r1 = t0.rows[1].cells
-            sanctioned_load = str(data.get('sanctioned_load') or data.get('sanctioned_load_kw') or '1000 kW')
-            if not sanctioned_load.lower().endswith('kw') and not sanctioned_load.lower().endswith('kva'):
-                sanctioned_load += ' kW'
+            sanctioned_load = str(data.get('sanctioned_load') or data.get('sanctioned_load_kw') or '1 MW').strip()
+            # If in kW, convert to MW (1 decimal place, e.g. 1980 -> 1.9)
+            import re
+            m = re.match(r'^([\d.]+)\s*kw$', sanctioned_load, re.IGNORECASE)
+            if m:
+                kw_val = float(m.group(1))
+                mw_val = int(kw_val / 100) / 10.0
+                sanctioned_load = f"{mw_val:g} MW"
+            elif not any(sanctioned_load.lower().endswith(u) for u in ['kw', 'kva', 'mw']):
+                try:
+                    num_val = float(sanctioned_load)
+                    if num_val >= 10:
+                        mw_val = int(num_val / 100) / 10.0
+                        sanctioned_load = f"{mw_val:g} MW"
+                    else:
+                        mw_val = int(num_val * 10) / 10.0
+                        sanctioned_load = f"{mw_val:g} MW"
+                except ValueError:
+                    sanctioned_load += ' MW'
             set_cell_value(r1[0], sanctioned_load, bold=True, size_pt=10)
             set_cell_value(r1[1], str(data.get('connectivity') or data.get('voltage_level') or '11 kV'), bold=True, size_pt=10)
             set_cell_value(r1[2], str(data.get('discom_name') or data.get('discom') or 'DISCOM'), bold=True, size_pt=10)
@@ -164,12 +179,20 @@ def generate_proposal(data_json):
         c_service = safe_float(data.get('abt_service_cost'), 350000)
         c_liaison = safe_float(data.get('utility_liaisoning_cost'), 300000)
         c_total_abt = c_supply + c_service + c_liaison
-        
-        c_bg = safe_float(data.get('bank_guarantee_cost'), 150000)
+        # Bank guarantee default: MW value of sanctioned load * 150000
+        mw_val = 1.0
+        try:
+            m_mw = re.match(r'^([\d.]+)', sanctioned_load)
+            if m_mw:
+                mw_val = float(m_mw.group(1))
+        except Exception:
+            mw_val = 1.0
+        default_bg = round(mw_val * 150000)
+        c_bg = safe_float(data.get('bank_guarantee_cost'), default_bg)
         
         c_iex = safe_float(data.get('iex_annual_fee'), 100000)
         c_noc = safe_float(data.get('sldc_monthly_noc'), 7000)
-        c_st11 = safe_float(data.get('st11_settlement'), 20000)
+        c_st11 = safe_float(data.get('st11_settlement'), 25000)
         c_total_recurring = c_iex + c_noc + c_st11
         
         tm = str(data.get('trading_margin', '2p/kWh'))
