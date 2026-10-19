@@ -143,7 +143,20 @@ export class ProposalService {
           if (rows.length > 1) {
             let cells = rows[1].split('</w:tc>');
             if (cells.length >= 4) {
-              const loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '1000 kW');
+              let loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '1 MW').trim();
+              if (/^[\d.]+\s*kw$/i.test(loadVal)) {
+                const parsedNum = parseFloat(loadVal);
+                if (!isNaN(parsedNum)) {
+                  const mw = Math.floor((parsedNum / 1000) * 10) / 10;
+                  loadVal = `${mw} MW`;
+                }
+              } else if (/^[\d.]+$/.test(loadVal)) {
+                const parsedNum = parseFloat(loadVal);
+                if (!isNaN(parsedNum)) {
+                  const mw = parsedNum >= 10 ? Math.floor((parsedNum / 1000) * 10) / 10 : Math.floor(parsedNum * 10) / 10;
+                  loadVal = `${mw} MW`;
+                }
+              }
               const connVal = String(clientData.connectivity || clientData.voltage_level || clientData.voltageLevel || '11 kV');
               const discomVal = String(clientData.discom_name || clientData.discom || 'DISCOM');
               const feederVal = String(clientData.feeder_type || 'Dedicated Feeder');
@@ -161,12 +174,21 @@ export class ProposalService {
           const c_service = Number(clientData.abt_service_cost) || 350000;
           const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
           const c_total_abt = c_supply + c_service + c_liaison;
-          
-          const c_bg = Number(clientData.bank_guarantee_cost) || 150000;
+          let defaultBg = 150000;
+          const sLoadRaw = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '').trim();
+          const mwMatch = sLoadRaw.match(/^([\d.]+)/);
+          if (mwMatch) {
+            const parsed = parseFloat(mwMatch[1]);
+            if (!isNaN(parsed) && parsed > 0) {
+              const mw = sLoadRaw.toLowerCase().includes('kw') || parsed >= 10 ? Math.floor((parsed / 1000) * 10) / 10 : Math.floor(parsed * 10) / 10;
+              defaultBg = Math.round(mw * 150000);
+            }
+          }
+          const c_bg = Number(clientData.bank_guarantee_cost) || defaultBg;
           
           const c_iex = Number(clientData.iex_annual_fee) || 100000;
           const c_noc = Number(clientData.sldc_monthly_noc) || 7000;
-          const c_st11 = Number(clientData.st11_settlement) || 20000;
+          const c_st11 = Number(clientData.st11_settlement) || 25000;
           const c_total_recurring = c_iex + c_noc + c_st11;
           
           const tm = String(clientData.trading_margin || '2p/kWh');
