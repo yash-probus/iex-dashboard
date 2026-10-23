@@ -2167,7 +2167,8 @@ export class SavingsCalculatorService {
         consumerBusUnits += ((s as any).consumedMarketEnergy || 0);
       });
 
-      const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
+      const slabDiscomRate = slotsInGroup[0]?.rawRateKwh ?? slotsInGroup[0]?.discomBase ?? 0;
+      const slabDiscomRateKvah = slotsInGroup[0]?.rawRateKvah ?? (slabDiscomRate * globalPf);
       const safeGroupKey = String(groupKey || '').trim() || 'UNMAPPED';
       const marketSlots = slotsInGroup.filter(s => ((s as any).marketEnergy || 0) > 0);
 
@@ -2180,15 +2181,17 @@ export class SavingsCalculatorService {
         return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
       };
 
+      const npclMultiplier = entry.discom === 'NPCL' ? (0.90 * 0.99) : 1;
+      const slabEnergyBillDiscounted = slabEnergyBill * npclMultiplier;
       const demandChargeDiscounted = getDiscountedDemandCharge(slabDemandCharge);
       totalDemandAndFixedChargesApplied += demandChargeDiscounted;
 
       // Explicit FPPA Calculation
-      const slabFppaCharge = (slabEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
+      const slabFppaCharge = (slabEnergyBillDiscounted + demandChargeDiscounted) * (fppaPercent / 100);
       totalFppaCharge += slabFppaCharge;
 
-      const discountedSlabBill = slabEnergyBill + demandChargeDiscounted + slabFppaCharge;
-      totalBaselineEnergyCharges += slabEnergyBill;
+      const discountedSlabBill = slabEnergyBillDiscounted + demandChargeDiscounted + slabFppaCharge;
+      totalBaselineEnergyCharges += slabEnergyBillDiscounted;
 
       const edKey = Object.keys(monthConsumptions).find(k => k.toLowerCase() === 'electricity duty');
       let applyED = true;
@@ -2204,12 +2207,13 @@ export class SavingsCalculatorService {
       totalBaselineCost += slabTotalDiscomBill;
 
       const proltEnergyBill = discomEnergy * slabDiscomRate;
-      totalDiscomEnergyChargesAfterOA += proltEnergyBill;
+      const proltEnergyBillDiscounted = proltEnergyBill * npclMultiplier;
+      totalDiscomEnergyChargesAfterOA += proltEnergyBillDiscounted;
       
-      const slabFppaChargeAfterOA = (proltEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
+      const slabFppaChargeAfterOA = (proltEnergyBillDiscounted + demandChargeDiscounted) * (fppaPercent / 100);
       totalFppaChargeAfterOA += slabFppaChargeAfterOA;
 
-      const discountedProltBill = proltEnergyBill + demandChargeDiscounted + slabFppaChargeAfterOA;
+      const discountedProltBill = proltEnergyBillDiscounted + demandChargeDiscounted + slabFppaChargeAfterOA;
       const slabEDAfterOA = applyED ? discountedProltBill * edRate : 0;
       totalElectricityDutyAfterOA += slabEDAfterOA;
       const proltDiscomBillTotal = discountedProltBill + slabEDAfterOA;
@@ -2259,11 +2263,12 @@ export class SavingsCalculatorService {
         slabName: safeGroupKey,
         discomUnits: slabConsumption,
         oaUnits: finalMarketEnergy,
-        discomBill: slabEnergyBill,
-        proltDiscomBill: proltEnergyBill,
+        discomBill: slabEnergyBillDiscounted,
+        proltDiscomBill: proltEnergyBillDiscounted,
         consumerBusUnits,
         oaBill: slabOaBill,
-        discomRate: slabDiscomRate
+        discomRate: slabDiscomRate,
+        discomRateKvah: slabDiscomRateKvah
       });
     });
 
@@ -2317,7 +2322,7 @@ export class SavingsCalculatorService {
       miscellaneousCharges: monthMisc,
       discom: entry.discom,
       peakDemand,
-      powerFactor: Number(entry.powerFactor) || 0.99,
+      powerFactor: Number(monthConsumptions['Power Factor'] || entry.powerFactor) || 0.99,
       demandChargeRate,
       todSummaries,
       oaDetailed: {
