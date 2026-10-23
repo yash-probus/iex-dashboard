@@ -723,18 +723,25 @@ export class SavingsCalculatorService {
         monthsInPlay.push(effectiveYyyymmMonth);
       }
 
+      const calendarMonthsInPlay = Array.from(new Set(monthsInPlay.map(m => m > 12 ? (m % 100) : m)));
+      const allQueryMonths = Array.from(new Set([...monthsInPlay, ...calendarMonthsInPlay]));
+
       const whereClause: any = {
         state: { in: stateFormats },
-        discom: entry.discom === 'NPCL' ? 'NPCL' : null,
         consumerCategory: parsedCategory,
         supplyVoltageCategory: parsedSupplyVoltageCategory,
         OR: [
-          { consumptionMonth: { in: monthsInPlay } },
-          { month: { in: monthsInPlay }, consumptionMonth: null }
+          { consumptionMonth: { in: allQueryMonths } },
+          { month: { in: allQueryMonths } }
         ]
       };
       if (parsedSubCategory) {
         whereClause.subCategory = { contains: parsedSubCategory };
+      }
+      if (entry.discom) {
+        whereClause.discom = { in: [entry.discom, null] };
+      } else {
+        whereClause.discom = null;
       }
 
       // Fetch matching StateTariff slabs from DB
@@ -743,25 +750,34 @@ export class SavingsCalculatorService {
       });
 
       if (tariffs.length === 0) {
-        const fallbackWhere: any = { state: { in: stateFormats }, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+        const fallbackWhere: any = {
+          state: { in: stateFormats },
+          consumerCategory: parsedCategory,
+          supplyVoltageCategory: parsedSupplyVoltageCategory
+        };
         if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
+        if (entry.discom) {
+          fallbackWhere.discom = { in: [entry.discom, null] };
+        } else {
+          fallbackWhere.discom = null;
+        }
         const allTariffs = await prisma.stateTariff.findMany({
           where: fallbackWhere,
           orderBy: { month: 'desc' }
         });
+        const targetCalendarMonth = month > 12 ? (month % 100) : month;
         const sameMonthTariff = allTariffs.find(t =>
-          t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+          (t.consumptionMonth ? (t.consumptionMonth % 100) : (t.month % 100)) === targetCalendarMonth
         );
         const latestTariff = sameMonthTariff || allTariffs[0];
 
         if (latestTariff) {
-          if (latestTariff.consumptionMonth) {
-            whereClause.consumptionMonth = latestTariff.consumptionMonth;
-            tariffs = allTariffs.filter(t => t.consumptionMonth === latestTariff.consumptionMonth);
-          } else {
-            whereClause.month = latestTariff.month;
-            tariffs = allTariffs.filter(t => t.month === latestTariff.month);
-          }
+          const matchedMonth = latestTariff.consumptionMonth
+            ? (latestTariff.consumptionMonth % 100)
+            : (latestTariff.month % 100);
+          tariffs = allTariffs.filter(t =>
+            ((t.consumptionMonth ? t.consumptionMonth : t.month) % 100) === matchedMonth
+          );
         }
       }
 
@@ -886,7 +902,10 @@ export class SavingsCalculatorService {
           }
         } else if (tariffs.length > 0) {
           const slotMonth = deliveryDate.getMonth() + 1;
-          let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
+          let tariffsForMonth = tariffs.filter(t => {
+            const m = t.consumptionMonth ? (t.consumptionMonth % 100) : (t.month % 100);
+            return m === slotMonth;
+          });
           if (tariffsForMonth.length === 0) {
             tariffsForMonth = tariffs;
           }
@@ -1308,41 +1327,57 @@ export class SavingsCalculatorService {
       monthsInPlay.push(effectiveYyyymmMonth);
     }
 
+    const calendarMonthsInPlay = Array.from(new Set(monthsInPlay.map(m => m > 12 ? (m % 100) : m)));
+    const allQueryMonths = Array.from(new Set([...monthsInPlay, ...calendarMonthsInPlay]));
+
     const whereClauseTariff: any = {
       state: { in: stateFormats },
-      discom: entry.discom === 'NPCL' ? 'NPCL' : null,
       consumerCategory: parsedCategory,
       supplyVoltageCategory: parsedSupplyVoltageCategory,
       OR: [
-        { consumptionMonth: { in: monthsInPlay } },
-        { month: { in: monthsInPlay }, consumptionMonth: null }
+        { consumptionMonth: { in: allQueryMonths } },
+        { month: { in: allQueryMonths } }
       ]
     };
     if (parsedSubCategory) {
       whereClauseTariff.subCategory = { contains: parsedSubCategory };
     }
+    if (entry.discom) {
+      whereClauseTariff.discom = { in: [entry.discom, null] };
+    } else {
+      whereClauseTariff.discom = null;
+    }
     let tariffs = await prisma.stateTariff.findMany({ where: whereClauseTariff });
 
     if (tariffs.length === 0) {
-      const fallbackWhere: any = { state: { in: stateFormats }, discom: entry.discom === 'NPCL' ? 'NPCL' : null, consumerCategory: parsedCategory, supplyVoltageCategory: parsedSupplyVoltageCategory };
+      const fallbackWhere: any = {
+        state: { in: stateFormats },
+        consumerCategory: parsedCategory,
+        supplyVoltageCategory: parsedSupplyVoltageCategory
+      };
       if (parsedSubCategory) fallbackWhere.subCategory = { contains: parsedSubCategory };
+      if (entry.discom) {
+        fallbackWhere.discom = { in: [entry.discom, null] };
+      } else {
+        fallbackWhere.discom = null;
+      }
       const allTariffs = await prisma.stateTariff.findMany({
         where: fallbackWhere,
         orderBy: { month: 'desc' }
       });
+      const targetCalendarMonth = month > 12 ? (month % 100) : month;
       const sameMonthTariff = allTariffs.find(t =>
-        t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+        (t.consumptionMonth ? (t.consumptionMonth % 100) : (t.month % 100)) === targetCalendarMonth
       );
       const latestTariff = sameMonthTariff || allTariffs[0];
 
       if (latestTariff) {
-        if (latestTariff.consumptionMonth) {
-          whereClauseTariff.consumptionMonth = latestTariff.consumptionMonth;
-          tariffs = allTariffs.filter(t => t.consumptionMonth === latestTariff.consumptionMonth);
-        } else {
-          whereClauseTariff.month = latestTariff.month;
-          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
-        }
+        const matchedMonth = latestTariff.consumptionMonth
+          ? (latestTariff.consumptionMonth % 100)
+          : (latestTariff.month % 100);
+        tariffs = allTariffs.filter(t =>
+          ((t.consumptionMonth ? t.consumptionMonth : t.month) % 100) === matchedMonth
+        );
       }
     }
 
@@ -1489,6 +1524,8 @@ export class SavingsCalculatorService {
 
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
+      let rawRateKvah = 7.5;
+      let rawRateKwh = 7.5;
 
       const isNpcl = entry.discom === 'NPCL';
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
@@ -1496,46 +1533,52 @@ export class SavingsCalculatorService {
       if (isNpclHv2) {
         const slotMonth = deliveryDate.getMonth() + 1;
         const isWinter = slotMonth >= 9 || slotMonth <= 3;
-        const baseRate = 6.80;
+        const baseRate = tariffs.length > 0 ? Number(tariffs[0].baseEnergyRate ?? tariffs[0].energyRate ?? 6.80) : 6.80;
 
         if (isWinter) {
           if (hour >= 22 || hour < 4) {
             matchedTariffName = 'TOD1';
-            discomBase = baseRate * 0.85;
+            rawRateKvah = baseRate * 0.85;
           } else if (hour >= 4 && hour < 6) {
             matchedTariffName = 'TOD2';
-            discomBase = baseRate;
+            rawRateKvah = baseRate;
           } else if (hour >= 6 && hour < 10) {
             matchedTariffName = 'TOD3';
-            discomBase = baseRate * 1.15;
+            rawRateKvah = baseRate * 1.15;
           } else if (hour >= 10 && hour < 17) {
             matchedTariffName = 'TOD4';
-            discomBase = baseRate;
+            rawRateKvah = baseRate;
           } else if (hour >= 17 && hour < 19) {
             matchedTariffName = 'TOD6';
-            discomBase = baseRate * 1.15;
+            rawRateKvah = baseRate * 1.15;
           } else if (hour >= 19 && hour < 22) {
             matchedTariffName = 'TOD5';
-            discomBase = baseRate;
+            rawRateKvah = baseRate;
           }
         } else {
           if (hour >= 7 && hour < 16) {
             matchedTariffName = 'TOD4';
-            discomBase = baseRate * 0.85;
+            rawRateKvah = baseRate * 0.85;
           } else if (hour >= 16 && hour < 19) {
             matchedTariffName = 'TOD1';
-            discomBase = baseRate;
+            rawRateKvah = baseRate;
           } else if (hour >= 19 || hour < 2) {
             matchedTariffName = 'TOD2';
-            discomBase = baseRate * 1.15;
+            rawRateKvah = baseRate * 1.15;
           } else if (hour >= 2 && hour < 7) {
             matchedTariffName = 'TOD3';
-            discomBase = baseRate;
+            rawRateKvah = baseRate;
           }
         }
+        const pf = Number(monthConsumptions['Power Factor'] || entry.powerFactor) || 0.99;
+        rawRateKwh = rawRateKvah / pf;
+        discomBase = rawRateKwh;
       } else if (tariffs.length > 0) {
         const slotMonth = deliveryDate.getMonth() + 1;
-        let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
+        let tariffsForMonth = tariffs.filter(t => {
+          const m = t.consumptionMonth ? (t.consumptionMonth % 100) : (t.month % 100);
+          return m === slotMonth;
+        });
         if (tariffsForMonth.length === 0) {
           tariffsForMonth = tariffs;
         }
@@ -1555,15 +1598,35 @@ export class SavingsCalculatorService {
         }
 
         if (matched) {
-          discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
-          if (String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah') {
-            const pf = Number(entry.powerFactor) || 0.99;
-            discomBase = discomBase / pf;
+          const pf = Number(monthConsumptions['Power Factor'] || entry.powerFactor) || 0.99;
+          const isKvah = String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah';
+          const rateVal = Number(matched.energyRate ?? matched.baseEnergyRate ?? 7.5);
+          if (isKvah) {
+            rawRateKvah = rateVal;
+            rawRateKwh = rateVal / pf;
+          } else {
+            rawRateKwh = rateVal;
+            rawRateKvah = rateVal * pf;
           }
+          discomBase = rawRateKwh;
           matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
             ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
             : 'FLAT';
         }
+      } else {
+        const pf = Number(monthConsumptions['Power Factor'] || entry.powerFactor) || 0.99;
+        if (hour >= 22 || hour < 6) {
+          rawRateKvah = 6.0;
+          matchedTariffName = 'offpeak';
+        } else if (hour >= 18 && hour < 22) {
+          rawRateKvah = 8.5;
+          matchedTariffName = 'peak';
+        } else {
+          rawRateKvah = 7.5;
+          matchedTariffName = 'normal';
+        }
+        rawRateKwh = rawRateKvah / pf;
+        discomBase = rawRateKwh;
       }
 
       const discomLandingWithFppa = discomBase * (1 + fppaPercent / 100);
@@ -1587,6 +1650,9 @@ export class SavingsCalculatorService {
         bestMarketLanding,
         marketSource,
         discomLanding,
+        discomBase,
+        rawRateKwh,
+        rawRateKvah,
         shouldBuyFromMarket,
         savingsPerKwh: discomLanding - bestMarketLanding,
         istsLoss,
@@ -1810,11 +1876,13 @@ export class SavingsCalculatorService {
     });
 
     
-    // Determine if billing is kVAh based on the first tariff
     const entryMonth = new Date(startStr).getMonth() + 1;
     let baseTariff = null;
     if (tariffs && tariffs.length > 0) {
-      let tariffsForMonth = tariffs.filter((t: any) => t.month === entryMonth);
+      let tariffsForMonth = tariffs.filter((t: any) => {
+        const m = t.consumptionMonth ? (t.consumptionMonth % 100) : (t.month % 100);
+        return m === entryMonth;
+      });
       if (tariffsForMonth.length === 0) tariffsForMonth = tariffs;
       baseTariff = tariffsForMonth.find((t: any) => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') || tariffsForMonth[0];
     }
@@ -1823,7 +1891,7 @@ export class SavingsCalculatorService {
       isKvahBilling = String(monthConsumptions['Billing Unit']).toLowerCase() === 'kvah';
     }
     const consumptionValuesAreKwh = Array.isArray((monthConsumptions as any).slots);
-    const globalPf = Number(entry.powerFactor) || 0.99;
+    const globalPf = Number(monthConsumptions['Power Factor'] || entry.powerFactor) || 0.99;
     
     let preTotalEnergyKwh = 0;
     Object.keys(slotsByTod).forEach(groupKey => {
