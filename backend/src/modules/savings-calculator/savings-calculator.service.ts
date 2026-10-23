@@ -1261,14 +1261,17 @@ export class SavingsCalculatorService {
       monthsInPlay.push(effectiveYyyymmMonth);
     }
 
+    const calendarMonthsInPlay = [...new Set(monthsInPlay.map(m => (m > 12 ? (m % 100) : m)))];
+    const allQueryMonths = Array.from(new Set([...monthsInPlay, ...calendarMonthsInPlay]));
+
     const whereClauseTariff: any = {
       state: { in: stateFormats },
       discom: entry.discom === 'NPCL' ? 'NPCL' : null,
       consumerCategory: parsedCategory,
       supplyVoltageCategory: parsedSupplyVoltageCategory,
       OR: [
-        { consumptionMonth: { in: monthsInPlay } },
-        { month: { in: monthsInPlay }, consumptionMonth: null }
+        { month: { in: allQueryMonths } },
+        { consumptionMonth: { in: allQueryMonths } }
       ]
     };
     if (parsedSubCategory) {
@@ -1283,19 +1286,15 @@ export class SavingsCalculatorService {
         where: fallbackWhere,
         orderBy: { month: 'desc' }
       });
+      const currentCalMonth = month > 12 ? (month % 100) : month;
       const sameMonthTariff = allTariffs.find(t =>
-        t.consumptionMonth ? (t.consumptionMonth % 100) === month : (t.month % 100) === month
+        (t.month % 100) === currentCalMonth || (t.consumptionMonth && (t.consumptionMonth % 100) === currentCalMonth)
       );
       const latestTariff = sameMonthTariff || allTariffs[0];
 
       if (latestTariff) {
-        if (latestTariff.consumptionMonth) {
-          whereClauseTariff.consumptionMonth = latestTariff.consumptionMonth;
-          tariffs = allTariffs.filter(t => t.consumptionMonth === latestTariff.consumptionMonth);
-        } else {
-          whereClauseTariff.month = latestTariff.month;
-          tariffs = allTariffs.filter(t => t.month === latestTariff.month);
-        }
+        const targetM = (latestTariff.month % 100);
+        tariffs = allTariffs.filter(t => (t.month % 100) === targetM || (t.consumptionMonth && (t.consumptionMonth % 100) === targetM));
       }
     }
 
