@@ -765,6 +765,20 @@ export class SavingsCalculatorService {
         }
       }
 
+      if (tariffs.length === 0) {
+        tariffs = await prisma.stateTariff.findMany({
+          where: {
+            state: { in: stateFormats },
+            consumerCategory: parsedCategory
+          },
+          orderBy: { month: 'desc' }
+        });
+      }
+
+      if (tariffs.length === 0) {
+        throw new Error(`State Tariff not found in database for state "${stateName || stateCode}", category "${category}". Please configure tariffs in the State Tariff table.`);
+      }
+
       // Query combined DAM, GDAM, and RTM records for the selected month using FULL OUTER JOIN
 
       const query = `
@@ -827,104 +841,44 @@ export class SavingsCalculatorService {
         const rtmLandingPrice = rawRtm ? (Number(rawRtm) / 1000) : 0;
         const gdamLandingPrice = rawGdam ? (Number(rawGdam) / 1000) : 0;
 
-        let discomLandingPrice = 7.5;
-        let matchedTariffName = 'normal';
-
-        const isNpcl = entry.discom === 'NPCL';
-        const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
-
-        if (isNpclHv2) {
-          const slotMonth = deliveryDate.getMonth() + 1;
-          const isWinter = slotMonth >= 9 || slotMonth <= 3;
-          const baseRate = 6.80;
-
-          if (isWinter) {
-            // TOD1 [22:00 - 04:00] -> Rate 5.78 (-15%)
-            // TOD2 [04:00 - 06:00] -> Rate 6.80 (0%)
-            // TOD3 [06:00 - 10:00] -> Rate 7.82 (+15%)
-            // TOD4 [10:00 - 17:00] -> Rate 6.80 (0%)
-            // TOD6 [17:00 - 19:00] -> Rate 7.82 (+15%)
-            // TOD5 [19:00 - 22:00] -> Rate 6.80 (0%)
-            if (hour >= 22 || hour < 4) {
-              matchedTariffName = 'TOD1';
-              discomLandingPrice = baseRate * 0.85;
-            } else if (hour >= 4 && hour < 6) {
-              matchedTariffName = 'TOD2';
-              discomLandingPrice = baseRate;
-            } else if (hour >= 6 && hour < 10) {
-              matchedTariffName = 'TOD3';
-              discomLandingPrice = baseRate * 1.15;
-            } else if (hour >= 10 && hour < 17) {
-              matchedTariffName = 'TOD4';
-              discomLandingPrice = baseRate;
-            } else if (hour >= 17 && hour < 19) {
-              matchedTariffName = 'TOD6';
-              discomLandingPrice = baseRate * 1.15;
-            } else if (hour >= 19 && hour < 22) {
-              matchedTariffName = 'TOD5';
-              discomLandingPrice = baseRate;
-            }
-          } else {
-            // Summer (April to September)
-            // TOD4 [07:00 - 16:00] -> Rate 5.78 (-15%)
-            // TOD1 [16:00 - 19:00] -> Rate 6.80 (0%)
-            // TOD2 [19:00 - 02:00] -> Rate 7.82 (+15%)
-            // TOD3 [02:00 - 07:00] -> Rate 6.80 (0%)
-            if (hour >= 7 && hour < 16) {
-              matchedTariffName = 'TOD4';
-              discomLandingPrice = baseRate * 0.85;
-            } else if (hour >= 16 && hour < 19) {
-              matchedTariffName = 'TOD1';
-              discomLandingPrice = baseRate;
-            } else if (hour >= 19 || hour < 2) {
-              matchedTariffName = 'TOD2';
-              discomLandingPrice = baseRate * 1.15;
-            } else if (hour >= 2 && hour < 7) {
-              matchedTariffName = 'TOD3';
-              discomLandingPrice = baseRate;
-            }
-          }
-        } else if (tariffs.length > 0) {
-          const slotMonth = deliveryDate.getMonth() + 1;
-          let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
-          if (tariffsForMonth.length === 0) {
-            tariffsForMonth = tariffs;
-          }
-
-          let matched = tariffsForMonth.find(t => {
-            if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
-              return false;
-            }
-            const start = parseHour(t.todStartTime);
-            const end = parseHour(t.todEndTime);
-            if (start <= end) {
-              return hour >= start && hour < end;
-            } else {
-              return hour >= start || hour < end;
-            }
-          });
-
-          if (!matched) {
-            matched = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
-          }
-
-          if (matched) {
-            discomLandingPrice = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
-            matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
-              ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
-              : 'FLAT';
-          }
-        } else {
-          if (hour >= 22 || hour < 6) {
-            discomLandingPrice = 6.0;
-            matchedTariffName = 'offpeak';
-          } else if (hour >= 18 && hour < 22) {
-            discomLandingPrice = 8.5;
-            matchedTariffName = 'peak';
-          }
+        const slotMonth = deliveryDate.getMonth() + 1;
+        let tariffsForMonth = tariffs.filter(t => (t.consumptionMonth ? (t.consumptionMonth % 100) === slotMonth : (t.month % 100) === slotMonth) || t.month === slotMonth);
+        if (tariffsForMonth.length === 0) {
+          tariffsForMonth = tariffs;
         }
 
-        // FPPA is now calculated explicitly later, so we do not bake it into discomLandingPrice
+        let matched = tariffsForMonth.find(t => {
+          if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
+            return false;
+          }
+          const start = parseHour(t.todStartTime);
+          const end = parseHour(t.todEndTime);
+          if (start <= end) {
+            return hour >= start && hour < end;
+          } else {
+            return hour >= start || hour < end;
+          }
+        });
+
+        if (!matched) {
+          matched = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+        }
+
+        if (!matched) {
+          matched = tariffsForMonth[0] || tariffs[0];
+        }
+
+        let discomLandingPrice = 0;
+        let matchedTariffName = 'FLAT';
+        if (matched) {
+          const rateVal = Number(matched.energyRate ?? matched.baseEnergyRate);
+          const pf = Number(entry.powerFactor) || 0.99;
+          const isKvah = String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah';
+          discomLandingPrice = isKvah ? rateVal / pf : rateVal;
+          matchedTariffName = (matched.todStartTime && matched.todStartTime !== '—' && matched.todEndTime && matched.todEndTime !== '—')
+            ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
+            : 'FLAT';
+        }
 
         if (entry.discom === 'NPCL') {
           discomLandingPrice = discomLandingPrice * 0.90 * 0.99;
@@ -1346,6 +1300,20 @@ export class SavingsCalculatorService {
       }
     }
 
+    if (tariffs.length === 0) {
+      tariffs = await prisma.stateTariff.findMany({
+        where: {
+          state: { in: stateFormats },
+          consumerCategory: parsedCategory
+        },
+        orderBy: { month: 'desc' }
+      });
+    }
+
+    if (tariffs.length === 0) {
+      throw new Error(`State Tariff not found in database for state "${stateName || stateCode}", category "${category}". Please configure tariffs in the State Tariff table.`);
+    }
+
     const EXCHANGE_FEES = 0.02;
     const GST_RATE = 0.18;
     const GST_EXCHANGE = EXCHANGE_FEES * GST_RATE;
@@ -1487,84 +1455,55 @@ export class SavingsCalculatorService {
         GDAM: gdamLanding
       };
 
-      let discomBase = 7.5;
-      let matchedTariffName = 'normal';
+      const slotMonth = deliveryDate.getMonth() + 1;
+      let tariffsForMonth = tariffs.filter(t => (t.consumptionMonth ? (t.consumptionMonth % 100) === slotMonth : (t.month % 100) === slotMonth) || t.month === slotMonth);
+      if (tariffsForMonth.length === 0) {
+        tariffsForMonth = tariffs;
+      }
+
+      let matched = tariffsForMonth.find(t => {
+        if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
+          return false;
+        }
+        const start = parseHour(t.todStartTime);
+        const end = parseHour(t.todEndTime);
+        if (start <= end) return hour >= start && hour < end;
+        return hour >= start || hour < end;
+      });
+
+      if (!matched) {
+        matched = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
+      }
+
+      if (!matched) {
+        matched = tariffsForMonth[0] || tariffs[0];
+      }
+
+      if (!matched) {
+        throw new Error(`State tariff record not found for hour ${hour} in State Tariff table.`);
+      }
+
+      const rateVal = Number(matched.energyRate ?? matched.baseEnergyRate);
+      const pf = Number(entry.powerFactor) || 0.99;
+      const isKvah = String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah';
+
+      let rawRateKvah: number;
+      let rawRateKwh: number;
+
+      if (isKvah) {
+        rawRateKvah = rateVal;
+        rawRateKwh = rateVal / pf;
+      } else {
+        rawRateKwh = rateVal;
+        rawRateKvah = rateVal * pf;
+      }
+
+      const discomBase = rawRateKwh;
+      const matchedTariffName = (matched.todStartTime && matched.todStartTime !== '—' && matched.todEndTime && matched.todEndTime !== '—')
+        ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
+        : 'FLAT';
 
       const isNpcl = entry.discom === 'NPCL';
-      const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
-
-      if (isNpclHv2) {
-        const slotMonth = deliveryDate.getMonth() + 1;
-        const isWinter = slotMonth >= 9 || slotMonth <= 3;
-        const baseRate = 6.80;
-
-        if (isWinter) {
-          if (hour >= 22 || hour < 4) {
-            matchedTariffName = 'TOD1';
-            discomBase = baseRate * 0.85;
-          } else if (hour >= 4 && hour < 6) {
-            matchedTariffName = 'TOD2';
-            discomBase = baseRate;
-          } else if (hour >= 6 && hour < 10) {
-            matchedTariffName = 'TOD3';
-            discomBase = baseRate * 1.15;
-          } else if (hour >= 10 && hour < 17) {
-            matchedTariffName = 'TOD4';
-            discomBase = baseRate;
-          } else if (hour >= 17 && hour < 19) {
-            matchedTariffName = 'TOD6';
-            discomBase = baseRate * 1.15;
-          } else if (hour >= 19 && hour < 22) {
-            matchedTariffName = 'TOD5';
-            discomBase = baseRate;
-          }
-        } else {
-          if (hour >= 7 && hour < 16) {
-            matchedTariffName = 'TOD4';
-            discomBase = baseRate * 0.85;
-          } else if (hour >= 16 && hour < 19) {
-            matchedTariffName = 'TOD1';
-            discomBase = baseRate;
-          } else if (hour >= 19 || hour < 2) {
-            matchedTariffName = 'TOD2';
-            discomBase = baseRate * 1.15;
-          } else if (hour >= 2 && hour < 7) {
-            matchedTariffName = 'TOD3';
-            discomBase = baseRate;
-          }
-        }
-      } else if (tariffs.length > 0) {
-        const slotMonth = deliveryDate.getMonth() + 1;
-        let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
-        if (tariffsForMonth.length === 0) {
-          tariffsForMonth = tariffs;
-        }
-
-        let matched = tariffsForMonth.find(t => {
-          if (!t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—') {
-            return false;
-          }
-          const start = parseHour(t.todStartTime);
-          const end = parseHour(t.todEndTime);
-          if (start <= end) return hour >= start && hour < end;
-          return hour >= start || hour < end;
-        });
-
-        if (!matched) {
-          matched = tariffsForMonth.find(t => !t.todStartTime || t.todStartTime === '—' || !t.todEndTime || t.todEndTime === '—');
-        }
-
-        if (matched) {
-          discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
-          if (String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah') {
-            const pf = Number(entry.powerFactor) || 0.99;
-            discomBase = discomBase / pf;
-          }
-          matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
-            ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
-            : 'FLAT';
-        }
-      }
 
       const discomLandingWithFppa = discomBase * (1 + fppaPercent / 100);
       const discomLandingWithCharges = applyElectricityDuty
@@ -1587,6 +1526,9 @@ export class SavingsCalculatorService {
         bestMarketLanding,
         marketSource,
         discomLanding,
+        discomBase,
+        rawRateKwh,
+        rawRateKvah,
         shouldBuyFromMarket,
         savingsPerKwh: discomLanding - bestMarketLanding,
         istsLoss,
@@ -2099,7 +2041,8 @@ export class SavingsCalculatorService {
         consumerBusUnits += ((s as any).consumedMarketEnergy || 0);
       });
 
-      const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
+      const slabDiscomRate = slotsInGroup[0]?.rawRateKwh ?? slotsInGroup[0]?.discomBase ?? 0;
+      const slabDiscomRateKvah = slotsInGroup[0]?.rawRateKvah ?? (slabDiscomRate * globalPf);
       const safeGroupKey = String(groupKey || '').trim() || 'UNMAPPED';
       const marketSlots = slotsInGroup.filter(s => ((s as any).marketEnergy || 0) > 0);
 
@@ -2195,7 +2138,8 @@ export class SavingsCalculatorService {
         proltDiscomBill: proltEnergyBill,
         consumerBusUnits,
         oaBill: slabOaBill,
-        discomRate: slabDiscomRate
+        discomRate: slabDiscomRate,
+        discomRateKvah: slabDiscomRateKvah
       });
     });
 
