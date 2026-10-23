@@ -1489,6 +1489,9 @@ export class SavingsCalculatorService {
 
       let discomBase = 7.5;
       let matchedTariffName = 'normal';
+      const pf = Number(entry.powerFactor) || 0.99;
+      let rawRateKwh = discomBase;
+      let rawRateKvah = discomBase * pf;
 
       const isNpcl = entry.discom === 'NPCL';
       const isNpclHv2 = isNpcl && parsedCategory === 'HV-2';
@@ -1533,6 +1536,9 @@ export class SavingsCalculatorService {
             discomBase = baseRate;
           }
         }
+        rawRateKvah = discomBase;
+        rawRateKwh = discomBase / pf;
+        discomBase = rawRateKwh;
       } else if (tariffs.length > 0) {
         const slotMonth = deliveryDate.getMonth() + 1;
         let tariffsForMonth = tariffs.filter(t => t.month === slotMonth);
@@ -1555,11 +1561,16 @@ export class SavingsCalculatorService {
         }
 
         if (matched) {
-          discomBase = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
-          if (String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah') {
-            const pf = Number(entry.powerFactor) || 0.99;
-            discomBase = discomBase / pf;
+          const rateVal = Number(matched.energyRate || matched.baseEnergyRate || 7.5);
+          const isKvah = String(matched.baseEnergyUnit || '').toLowerCase() === 'kvah';
+          if (isKvah) {
+            rawRateKvah = rateVal;
+            rawRateKwh = rateVal / pf;
+          } else {
+            rawRateKwh = rateVal;
+            rawRateKvah = rateVal * pf;
           }
+          discomBase = rawRateKwh;
           matchedTariffName = (matched.todStartTime !== '—' && matched.todEndTime !== '—')
             ? `${matched.todStartTime}-${matched.todEndTime}`.toUpperCase()
             : 'FLAT';
@@ -1587,6 +1598,9 @@ export class SavingsCalculatorService {
         bestMarketLanding,
         marketSource,
         discomLanding,
+        discomBase,
+        rawRateKwh,
+        rawRateKvah,
         shouldBuyFromMarket,
         savingsPerKwh: discomLanding - bestMarketLanding,
         istsLoss,
@@ -2099,14 +2113,16 @@ export class SavingsCalculatorService {
         consumerBusUnits += ((s as any).consumedMarketEnergy || 0);
       });
 
-      const slabDiscomRate = slotsInGroup[0]?.discomLanding ?? 0;
+      const slabDiscomRate = (slotsInGroup[0] as any)?.rawRateKwh ?? (slotsInGroup[0] as any)?.discomBase ?? 0;
+      const slabDiscomRateKvah = (slotsInGroup[0] as any)?.rawRateKvah ?? (slabDiscomRate * globalPf);
       const safeGroupKey = String(groupKey || '').trim() || 'UNMAPPED';
       const marketSlots = slotsInGroup.filter(s => ((s as any).marketEnergy || 0) > 0);
 
 
       const slabFraction = preTotalEnergyKwh > 0 ? slabConsumption / preTotalEnergyKwh : 0;
       const slabDemandCharge = demandCharge * slabFraction;
-      const slabEnergyBill = slabConsumption * slabDiscomRate;
+      const npclMultiplier = entry.discom === 'NPCL' ? 0.90 * 0.99 : 1;
+      const slabEnergyBill = slabConsumption * slabDiscomRate * npclMultiplier;
 
       const getDiscountedDemandCharge = (dc: number) => {
         return entry.discom === 'NPCL' ? dc * 0.90 * 0.99 : dc;
@@ -2135,7 +2151,7 @@ export class SavingsCalculatorService {
       const slabTotalDiscomBill = discountedSlabBill + slabED;
       totalBaselineCost += slabTotalDiscomBill;
 
-      const proltEnergyBill = discomEnergy * slabDiscomRate;
+      const proltEnergyBill = discomEnergy * slabDiscomRate * npclMultiplier;
       totalDiscomEnergyChargesAfterOA += proltEnergyBill;
       
       const slabFppaChargeAfterOA = (proltEnergyBill + demandChargeDiscounted) * (fppaPercent / 100);
@@ -2195,7 +2211,8 @@ export class SavingsCalculatorService {
         proltDiscomBill: proltEnergyBill,
         consumerBusUnits,
         oaBill: slabOaBill,
-        discomRate: slabDiscomRate
+        discomRate: slabDiscomRate,
+        discomRateKvah: slabDiscomRateKvah
       });
     });
 
@@ -2237,7 +2254,9 @@ export class SavingsCalculatorService {
       totalLandedExchangeCost,
       totalDiscomAfterProlt,
       baselineEnergyCharges: totalBaselineEnergyCharges,
+      pureEnergyCost: totalBaselineEnergyCharges,
       discomEnergyChargesAfterOA: totalDiscomEnergyChargesAfterOA,
+      pureEnergyCostAfterOA: totalDiscomEnergyChargesAfterOA,
       demandAndFixedChargesApplied: totalDemandAndFixedChargesApplied,
       electricityDutyAfterOA: totalElectricityDutyAfterOA,
       totalSavings: finalSavings,
