@@ -841,7 +841,7 @@ export class SavingsCalculatorService {
         const gdamLandingPrice = rawGdam ? (Number(rawGdam) / 1000) : 0;
 
         const slotMonth = deliveryDate.getMonth() + 1;
-        let tariffsForMonth = tariffs.filter(t => (t.consumptionMonth ? (t.consumptionMonth % 100) === slotMonth : (t.month % 100) === slotMonth) || t.month === slotMonth);
+        let tariffsForMonth = tariffs.filter(t => (t.month % 100) === slotMonth || (t.consumptionMonth && (t.consumptionMonth % 100) === slotMonth));
         if (tariffsForMonth.length === 0) {
           tariffsForMonth = tariffs;
         }
@@ -1454,7 +1454,7 @@ export class SavingsCalculatorService {
       };
 
       const slotMonth = deliveryDate.getMonth() + 1;
-      let tariffsForMonth = tariffs.filter(t => (t.consumptionMonth ? (t.consumptionMonth % 100) === slotMonth : (t.month % 100) === slotMonth) || t.month === slotMonth);
+      let tariffsForMonth = tariffs.filter(t => (t.month % 100) === slotMonth || (t.consumptionMonth && (t.consumptionMonth % 100) === slotMonth));
       if (tariffsForMonth.length === 0) {
         tariffsForMonth = tariffs;
       }
