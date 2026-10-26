@@ -62,15 +62,27 @@ export const truncateToOneDecimal = (num: number): number => {
 };
 
 export const formatLoadToMW = (val: string | number | undefined | null): string => {
-  if (!val) return '1 MW';
+  if (!val) return '0.9 MW';
   const str = String(val).trim();
+
+  // If in kVA (e.g. "2000 kVA" or "2000kVA"): use 0.9 * kVA in MW
+  const matchKva = str.match(/^([\d.]+)\s*kva$/i);
+  if (matchKva) {
+    const num = parseFloat(matchKva[1]);
+    if (!isNaN(num) && num > 0) {
+      const inMw = Math.round(((num * 0.9) / 1000) * 1000) / 1000;
+      return `${inMw} MW`;
+    }
+    return str;
+  }
 
   // If already in MW (e.g. "1.9 MW" or "1.98MW")
   const matchMw = str.match(/^([\d.]+)\s*mw$/i);
   if (matchMw) {
     const num = parseFloat(matchMw[1]);
-    if (!isNaN(num)) {
-      return `${truncateToOneDecimal(num)} MW`;
+    if (!isNaN(num) && num > 0) {
+      const inMw = Math.round(num * 1000) / 1000;
+      return `${inMw} MW`;
     }
     return str;
   }
@@ -79,48 +91,58 @@ export const formatLoadToMW = (val: string | number | undefined | null): string 
   const matchKw = str.match(/^([\d.]+)\s*kw$/i);
   if (matchKw) {
     const num = parseFloat(matchKw[1]);
-    const inMw = truncateToOneDecimal(num / 1000);
-    return `${inMw} MW`;
-  }
-
-  // If plain number (assumed kW if >= 10, e.g. 1980 -> 1.9 MW)
-  const num = parseFloat(str);
-  if (!isNaN(num) && /^[\d.]+$/.test(str)) {
-    if (num >= 10) {
-      const inMw = truncateToOneDecimal(num / 1000);
+    if (!isNaN(num) && num > 0) {
+      const inMw = Math.round((num / 1000) * 1000) / 1000;
       return `${inMw} MW`;
     }
-    return `${truncateToOneDecimal(num)} MW`;
+    return str;
+  }
+
+  // If plain number (assumed kVA if >= 10 in Indian DISCOMs, e.g. 2000 kVA -> 2000 * 0.9 / 1000 = 1.8 MW)
+  const num = parseFloat(str);
+  if (!isNaN(num) && /^[\d.]+$/.test(str) && num > 0) {
+    if (num >= 10) {
+      const inMw = Math.round(((num * 0.9) / 1000) * 1000) / 1000;
+      return `${inMw} MW`;
+    }
+    return `${Math.round(num * 1000) / 1000} MW`;
   }
 
   return str;
 };
 
 export const getLoadInMWNumber = (val: string | number | undefined | null): number => {
-  if (!val) return 1;
+  if (!val) return 0.9;
   const str = String(val).trim();
+
+  // If in kVA (e.g. "2000 kVA" or "2000kVA"): use 0.9 * kVA / 1000
+  const matchKva = str.match(/^([\d.]+)\s*kva$/i);
+  if (matchKva) {
+    const num = parseFloat(matchKva[1]);
+    return isNaN(num) || num <= 0 ? 0.9 : Math.round(((num * 0.9) / 1000) * 1000) / 1000;
+  }
 
   // If in MW (e.g. "1.98 MW" or "1.98MW")
   const matchMw = str.match(/^([\d.]+)\s*mw$/i);
   if (matchMw) {
     const num = parseFloat(matchMw[1]);
-    return isNaN(num) || num <= 0 ? 1 : truncateToOneDecimal(num);
+    return isNaN(num) || num <= 0 ? 1 : Math.round(num * 1000) / 1000;
   }
 
   // If in kW (e.g. "1980 kW" or "1980kW")
   const matchKw = str.match(/^([\d.]+)\s*kw$/i);
   if (matchKw) {
     const num = parseFloat(matchKw[1]);
-    return isNaN(num) || num <= 0 ? 1 : truncateToOneDecimal(num / 1000);
+    return isNaN(num) || num <= 0 ? 1 : Math.round((num / 1000) * 1000) / 1000;
   }
 
-  // If plain number (assumed kW if >= 10, e.g. 1980 -> 1.9 MW)
+  // If plain number (assumed kVA if >= 10 in Indian DISCOMs, e.g. 2000 -> 2000 * 0.9 / 1000 = 1.8 MW)
   const num = parseFloat(str);
   if (!isNaN(num) && num > 0) {
-    return num >= 10 ? truncateToOneDecimal(num / 1000) : truncateToOneDecimal(num);
+    return num >= 10 ? Math.round(((num * 0.9) / 1000) * 1000) / 1000 : Math.round(num * 1000) / 1000;
   }
 
-  return 1;
+  return 0.9;
 };
 
 export default function CommercialProposalModal({
@@ -142,7 +164,7 @@ export default function CommercialProposalModal({
   const [abtSupplyCost, setAbtSupplyCost] = useState('450000');
   const [abtServiceCost, setAbtServiceCost] = useState('350000');
   const [utilityLiaisoningCost, setUtilityLiaisoningCost] = useState('300000');
-  const [bankGuaranteeCost, setBankGuaranteeCost] = useState('150000');
+  const [bankGuaranteeCost, setBankGuaranteeCost] = useState('135000');
 
   // Section 3: Fixed Recurring Charges
   const [iexAnnualFee, setIexAnnualFee] = useState('100000');
@@ -247,7 +269,7 @@ export default function CommercialProposalModal({
         abt_supply_cost: Number(abtSupplyCost) || 450000,
         abt_service_cost: Number(abtServiceCost) || 350000,
         utility_liaisoning_cost: Number(utilityLiaisoningCost) || 300000,
-        bank_guarantee_cost: Number(bankGuaranteeCost) || Math.round(getLoadInMWNumber(sanctionedLoad) * 150000) || 150000,
+        bank_guarantee_cost: Number(bankGuaranteeCost) || Math.round(getLoadInMWNumber(sanctionedLoad) * 150000) || 135000,
         iex_annual_fee: Number(iexAnnualFee) || 100000,
         sldc_monthly_noc: Number(sldcMonthlyNoc) || 7000,
         st11_settlement: Number(st11Settlement) || 25000,

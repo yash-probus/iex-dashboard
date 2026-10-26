@@ -143,17 +143,29 @@ export class ProposalService {
           if (rows.length > 1) {
             let cells = rows[1].split('</w:tc>');
             if (cells.length >= 4) {
-              let loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '1 MW').trim();
-              if (/^[\d.]+\s*kw$/i.test(loadVal)) {
+              let loadVal = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '0.9 MW').trim();
+              if (/^[\d.]+\s*kva$/i.test(loadVal)) {
                 const parsedNum = parseFloat(loadVal);
-                if (!isNaN(parsedNum)) {
-                  const mw = Math.floor((parsedNum / 1000) * 10) / 10;
+                if (!isNaN(parsedNum) && parsedNum > 0) {
+                  const mw = Math.round(((parsedNum * 0.9) / 1000) * 1000) / 1000;
+                  loadVal = `${mw} MW`;
+                }
+              } else if (/^[\d.]+\s*kw$/i.test(loadVal)) {
+                const parsedNum = parseFloat(loadVal);
+                if (!isNaN(parsedNum) && parsedNum > 0) {
+                  const mw = Math.round((parsedNum / 1000) * 1000) / 1000;
+                  loadVal = `${mw} MW`;
+                }
+              } else if (/^[\d.]+\s*mw$/i.test(loadVal)) {
+                const parsedNum = parseFloat(loadVal);
+                if (!isNaN(parsedNum) && parsedNum > 0) {
+                  const mw = Math.round(parsedNum * 1000) / 1000;
                   loadVal = `${mw} MW`;
                 }
               } else if (/^[\d.]+$/.test(loadVal)) {
                 const parsedNum = parseFloat(loadVal);
-                if (!isNaN(parsedNum)) {
-                  const mw = parsedNum >= 10 ? Math.floor((parsedNum / 1000) * 10) / 10 : Math.floor(parsedNum * 10) / 10;
+                if (!isNaN(parsedNum) && parsedNum > 0) {
+                  const mw = parsedNum >= 10 ? Math.round(((parsedNum * 0.9) / 1000) * 1000) / 1000 : Math.round(parsedNum * 1000) / 1000;
                   loadVal = `${mw} MW`;
                 }
               }
@@ -174,14 +186,34 @@ export class ProposalService {
           const c_service = Number(clientData.abt_service_cost) || 350000;
           const c_liaison = Number(clientData.utility_liaisoning_cost) || 300000;
           const c_total_abt = c_supply + c_service + c_liaison;
-          let defaultBg = 150000;
+          let defaultBg = 135000;
           const sLoadRaw = String(clientData.sanctioned_load || clientData.sanctioned_load_kw || clientData.sanctionedLoadKw || '').trim();
-          const mwMatch = sLoadRaw.match(/^([\d.]+)/);
-          if (mwMatch) {
-            const parsed = parseFloat(mwMatch[1]);
+          if (/^[\d.]+\s*kva$/i.test(sLoadRaw)) {
+            const parsed = parseFloat(sLoadRaw);
             if (!isNaN(parsed) && parsed > 0) {
-              const mw = sLoadRaw.toLowerCase().includes('kw') || parsed >= 10 ? Math.floor((parsed / 1000) * 10) / 10 : Math.floor(parsed * 10) / 10;
-              defaultBg = Math.round(mw * 150000);
+              defaultBg = Math.round(parsed * 0.9 * 150);
+            }
+          } else if (/^[\d.]+\s*kw$/i.test(sLoadRaw)) {
+            const parsed = parseFloat(sLoadRaw);
+            if (!isNaN(parsed) && parsed > 0) {
+              defaultBg = Math.round((parsed / 1000) * 150000);
+            }
+          } else if (/^[\d.]+\s*mw$/i.test(sLoadRaw)) {
+            const parsed = parseFloat(sLoadRaw);
+            if (!isNaN(parsed) && parsed > 0) {
+              defaultBg = Math.round(parsed * 150000);
+            }
+          } else {
+            const mwMatch = sLoadRaw.match(/^([\d.]+)/);
+            if (mwMatch) {
+              const parsed = parseFloat(mwMatch[1]);
+              if (!isNaN(parsed) && parsed > 0) {
+                if (parsed >= 10) {
+                  defaultBg = Math.round(parsed * 0.9 * 150);
+                } else {
+                  defaultBg = Math.round(parsed * 150000);
+                }
+              }
             }
           }
           const c_bg = Number(clientData.bank_guarantee_cost) || defaultBg;

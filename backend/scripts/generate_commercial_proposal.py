@@ -146,25 +146,38 @@ def generate_proposal(data_json):
     if len(doc.tables) > 0:
         t0 = doc.tables[0]
         if len(t0.rows) > 1:
-            sanctioned_load = str(data.get('sanctioned_load') or data.get('sanctioned_load_kw') or '1 MW').strip()
-            # If in kW, convert to MW (1 decimal place, e.g. 1980 -> 1.9)
+            r1 = t0.rows[1].cells
+            sanctioned_load_raw = str(data.get('sanctioned_load') or data.get('sanctioned_load_kw') or '').strip()
             import re
-            m = re.match(r'^([\d.]+)\s*kw$', sanctioned_load, re.IGNORECASE)
-            if m:
-                kw_val = float(m.group(1))
-                mw_val = int(kw_val / 100) / 10.0
+            m_kva = re.match(r'^([\d.]+)\s*kva$', sanctioned_load_raw, re.IGNORECASE)
+            m_kw = re.match(r'^([\d.]+)\s*kw$', sanctioned_load_raw, re.IGNORECASE)
+            m_mw = re.match(r'^([\d.]+)\s*mw$', sanctioned_load_raw, re.IGNORECASE)
+            
+            if m_kva:
+                kva_val = float(m_kva.group(1))
+                mw_val = round((kva_val * 0.9) / 1000.0, 3)
                 sanctioned_load = f"{mw_val:g} MW"
-            elif not any(sanctioned_load.lower().endswith(u) for u in ['kw', 'kva', 'mw']):
+            elif m_kw:
+                kw_val = float(m_kw.group(1))
+                mw_val = round(kw_val / 1000.0, 3)
+                sanctioned_load = f"{mw_val:g} MW"
+            elif m_mw:
+                mw_val = round(float(m_mw.group(1)), 3)
+                sanctioned_load = f"{mw_val:g} MW"
+            else:
                 try:
-                    num_val = float(sanctioned_load)
+                    num_val = float(sanctioned_load_raw)
                     if num_val >= 10:
-                        mw_val = int(num_val / 100) / 10.0
+                        # Indian DISCOM load is in kVA: convert using 0.9 * kva / 1000
+                        mw_val = round((num_val * 0.9) / 1000.0, 3)
+                        sanctioned_load = f"{mw_val:g} MW"
+                    elif num_val > 0:
+                        mw_val = round(num_val, 3)
                         sanctioned_load = f"{mw_val:g} MW"
                     else:
-                        mw_val = int(num_val * 10) / 10.0
-                        sanctioned_load = f"{mw_val:g} MW"
+                        sanctioned_load = '0.9 MW'
                 except ValueError:
-                    sanctioned_load += ' MW'
+                    sanctioned_load = sanctioned_load_raw if sanctioned_load_raw else '0.9 MW'
             set_cell_value(r1[0], sanctioned_load, bold=True, size_pt=10)
             set_cell_value(r1[1], str(data.get('connectivity') or data.get('voltage_level') or '11 kV'), bold=True, size_pt=10)
             set_cell_value(r1[2], str(data.get('discom_name') or data.get('discom') or 'DISCOM'), bold=True, size_pt=10)
@@ -179,15 +192,29 @@ def generate_proposal(data_json):
         c_service = safe_float(data.get('abt_service_cost'), 350000)
         c_liaison = safe_float(data.get('utility_liaisoning_cost'), 300000)
         c_total_abt = c_supply + c_service + c_liaison
-        # Bank guarantee default: MW value of sanctioned load * 150000
-        mw_val = 1.0
+        # Bank guarantee default: 0.9 * sanctioned load in kVA * 150 (i.e. MW value * 150000)
+        default_bg = 135000
         try:
-            m_mw = re.match(r'^([\d.]+)', sanctioned_load)
-            if m_mw:
-                mw_val = float(m_mw.group(1))
+            raw_s = str(data.get('sanctioned_load') or data.get('sanctioned_load_kw') or sanctioned_load).strip()
+            m_k = re.match(r'^([\d.]+)\s*kva$', raw_s, re.IGNORECASE)
+            m_w = re.match(r'^([\d.]+)\s*kw$', raw_s, re.IGNORECASE)
+            m_m = re.match(r'^([\d.]+)\s*mw$', raw_s, re.IGNORECASE)
+            if m_k:
+                default_bg = round(float(m_k.group(1)) * 0.9 * 150)
+            elif m_w:
+                default_bg = round((float(m_w.group(1)) / 1000.0) * 150000)
+            elif m_m:
+                default_bg = round(float(m_m.group(1)) * 150000)
+            else:
+                m_num = re.match(r'^([\d.]+)', raw_s)
+                if m_num:
+                    val = float(m_num.group(1))
+                    if val >= 10:
+                        default_bg = round(val * 0.9 * 150)
+                    else:
+                        default_bg = round(val * 150000)
         except Exception:
-            mw_val = 1.0
-        default_bg = round(mw_val * 150000)
+            default_bg = 135000
         c_bg = safe_float(data.get('bank_guarantee_cost'), default_bg)
         
         c_iex = safe_float(data.get('iex_annual_fee'), 100000)
