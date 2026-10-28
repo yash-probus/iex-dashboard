@@ -3,17 +3,8 @@
 # Exit on any error, unset variable, or failed pipeline.
 set -euo pipefail
 
-ENV="${1:-}"
-
-if [ "$ENV" == "prod" ]; then
-    DIR="/mnt/storage/iex-dashboard-new"
-elif [ "$ENV" == "dev" ]; then
-    DIR="$HOME/iex-dashboard"
-else
-    echo "Usage: ./deploy.sh [prod|dev]"
-    echo "Example: ./deploy.sh prod"
-    exit 1
-fi
+ENV="prod"
+DIR="${DIR:-$HOME/iex-dashboard}"
 
 echo "========================================="
 echo " Deploying to $ENV environment..."
