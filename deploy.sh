@@ -4,6 +4,7 @@
 set -euo pipefail
 
 ENV="prod"
+export ENV_SUFFIX="prod"
 DIR="${DIR:-$HOME/iex-dashboard}"
 
 echo "========================================="

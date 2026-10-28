@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: iex-frontend-${ENV_SUFFIX:-dev}
+    container_name: iex-frontend-${ENV_SUFFIX:-prod}
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-8081}:8081"
