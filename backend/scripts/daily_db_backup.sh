@@ -1,6 +1,7 @@
 #!/bin/bash
 
-BACKUP_DIR="${BACKUP_DIR:-$HOME/iex_db_backups}"
+# Define variables
+BACKUP_DIR="/mnt/storage/iex_db_backups"
 # Use the main DB connection string
 DB_URL="postgresql://postgres:iex_sec_k9P2mX_2026@13.206.77.155:5432/Prolt_Operations"
 DATE=$(date +"%Y-%m-%d_%H-%M-%S")
