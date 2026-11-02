@@ -67,6 +67,7 @@ COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/clie
 COPY --from=builder /app/assets ./assets
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/market_selection_forecast ./market_selection_forecast
+RUN mkdir -p /app/data
 
 # Expose backend port
 EXPOSE 5000

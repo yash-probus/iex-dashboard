@@ -3,6 +3,7 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import * as cheerio from 'cheerio';
+import { OA_GENERATORS } from './oa-generators.data';
 
 export interface UpsldcRecord {
   slNo: number;
@@ -41,9 +42,8 @@ export interface UpsldcScrapeStatus {
   percent: number;
 }
 
-const DATA_DIR = path.join(__dirname, '../../../data');
+const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'upsldc_mea_data.json');
-const INITIAL_GENS_FILE = path.join(__dirname, '../../../data_oa_generators.json');
 
 const MONTH_MAP: Record<string, number> = {
   JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6,
@@ -58,13 +58,15 @@ const httpsAgent = new https.Agent({
 });
 
 export class UpsldcMeaService {
+  private static memoryMap: Record<string, UpsldcGenerator> | null = null;
+
   private static scrapeStatus: UpsldcScrapeStatus = {
     isRunning: false,
-    total: 0,
+    total: OA_GENERATORS.length,
     completed: 0,
     activeCount: 0,
     inactiveCount: 0,
-    neverTradedCount: 0,
+    neverTradedCount: OA_GENERATORS.length,
     startTime: null,
     endTime: null,
     lastError: null,
@@ -73,68 +75,78 @@ export class UpsldcMeaService {
   };
 
   /**
-   * Ensure data directory and initial data exists
+   * Ensure data directory and initial data exists in memory and file
    */
   private static ensureDataFile(): void {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (this.memoryMap && Object.keys(this.memoryMap).length > 0) {
+      return;
     }
 
-    if (!fs.existsSync(DATA_FILE)) {
-      let initialGens: Array<{ genId: string; name: string }> = [];
-      if (fs.existsSync(INITIAL_GENS_FILE)) {
-        try {
-          initialGens = JSON.parse(fs.readFileSync(INITIAL_GENS_FILE, 'utf-8'));
-        } catch (e) {
-          console.error('[UpsldcMeaService] Error reading initial generators file:', e);
+    // Try reading from file first
+    try {
+      if (fs.existsSync(DATA_FILE)) {
+        const content = fs.readFileSync(DATA_FILE, 'utf-8');
+        const parsed = JSON.parse(content);
+        if (parsed && Object.keys(parsed).length > 0) {
+          this.memoryMap = parsed;
+          return;
         }
       }
+    } catch (e) {
+      console.warn('[UpsldcMeaService] Could not read existing data file, initializing from OA_GENERATORS:', e);
+    }
 
-      const defaultData: Record<string, UpsldcGenerator> = {};
-      for (const g of initialGens) {
-        defaultData[g.genId] = {
-          genId: g.genId,
-          name: g.name,
-          category: 'OA',
-          records: [],
-          totalRecords: 0,
-          lastTradedMonth: null,
-          lastTradedYear: null,
-          lastTradedDate: null,
-          status: 'NEVER_TRADED',
-          latestPdfUrl: null,
-          lastUpdated: new Date().toISOString()
-        };
+    // Initialize from OA_GENERATORS
+    const defaultData: Record<string, UpsldcGenerator> = {};
+    for (const g of OA_GENERATORS) {
+      defaultData[g.genId] = {
+        genId: g.genId,
+        name: g.name,
+        category: 'OA',
+        records: [],
+        totalRecords: 0,
+        lastTradedMonth: null,
+        lastTradedYear: null,
+        lastTradedDate: null,
+        status: 'NEVER_TRADED',
+        latestPdfUrl: null,
+        lastUpdated: new Date().toISOString()
+      };
+    }
+
+    this.memoryMap = defaultData;
+
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
       }
-
       fs.writeFileSync(DATA_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
-      console.log(`[UpsldcMeaService] Initialized data file with ${initialGens.length} generators.`);
+      console.log(`[UpsldcMeaService] Initialized data file with ${OA_GENERATORS.length} generators.`);
+    } catch (e) {
+      console.warn('[UpsldcMeaService] Failed to write initial data file to disk (using memory only):', e);
     }
   }
 
   /**
-   * Load current generators from JSON storage
+   * Load current generators from memory or JSON storage
    */
   public static getGeneratorsMap(): Record<string, UpsldcGenerator> {
     this.ensureDataFile();
-    try {
-      const content = fs.readFileSync(DATA_FILE, 'utf-8');
-      return JSON.parse(content);
-    } catch (e) {
-      console.error('[UpsldcMeaService] Failed to read generators file:', e);
-      return {};
-    }
+    return this.memoryMap || {};
   }
 
   /**
-   * Save generators map to JSON storage
+   * Save generators map to memory and JSON storage
    */
   private static saveGeneratorsMap(map: Record<string, UpsldcGenerator>): void {
-    this.ensureDataFile();
+    this.memoryMap = map;
     try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
       fs.writeFileSync(DATA_FILE, JSON.stringify(map, null, 2), 'utf-8');
     } catch (e) {
-      console.error('[UpsldcMeaService] Failed to save generators file:', e);
+      console.warn('[UpsldcMeaService] Failed to save generators file to disk:', e);
     }
   }
 
