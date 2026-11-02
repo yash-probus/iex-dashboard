@@ -69,6 +69,7 @@ import traderPerformanceRoutes from './modules/trader-performance/trader-perform
 import traderPerformanceDailyRoutes from './modules/trader-performance-daily/trader-performance-daily.routes';
 import upMarketRoutes from './modules/up-market/up-market.routes';
 import landingPriceCalcRoutes from './modules/landing-price-calc/landing-price-calc.routes';
+import upsldcMeaRoutes from './modules/upsldc-mea/upsldc-mea.routes';
 
 // Initialize scheduled background jobs
 CronService.init();
@@ -99,6 +100,7 @@ app.use('/api/trader-performance', traderPerformanceRoutes);
 app.use('/api/trader-performance-daily', traderPerformanceDailyRoutes);
 app.use('/api/up-market', upMarketRoutes);
 app.use('/api/landing-price-calc', landingPriceCalcRoutes);
+app.use('/api/upsldc-mea', upsldcMeaRoutes);
 
 
 app.get('/health', (req: Request, res: Response) => {

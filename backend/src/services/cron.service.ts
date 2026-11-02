@@ -9,6 +9,7 @@ import { checkAndSendDailyChargeAlerts } from './email-alert.service';
 
 import { ApiLogService } from '../modules/api-log/api-log.service';
 import { NppAdjustmentService } from '../modules/dataset/npp-adjustment.service';
+import { UpsldcMeaService } from '../modules/upsldc-mea/upsldc-mea.service';
 
 import config from '../config';
 
@@ -34,6 +35,18 @@ export class CronService {
         await checkAndSendDailyChargeAlerts();
       } catch (error) {
         console.error('[Cron] Error in daily Resource Center check:', error);
+      }
+    }, {
+      timezone: "Asia/Kolkata"
+    });
+
+    // Run twice a month on 15th and 20th at 02:00 AM IST for UPSLDC OA MEA Scraper
+    cron.schedule('0 2 15,20 * *', async () => {
+      console.log('[Cron] Running scheduled UPSLDC OA MEA scraper (15th and 20th of month)');
+      try {
+        await UpsldcMeaService.runScraper('CRON');
+      } catch (error) {
+        console.error('[Cron] Error running scheduled UPSLDC OA MEA scraper:', error);
       }
     }, {
       timezone: "Asia/Kolkata"

@@ -47,6 +47,7 @@ const ForecastPage = lazy(() => import('../pages/ForecastPage'));
 const MarketRecommendationPage = lazy(() => import('../pages/MarketRecommendationPage'));
 const TraderPerformancePage = lazy(() => import('../pages/TraderPerformancePage'));
 const TraderPerformanceDailyPage = lazy(() => import('../pages/TraderPerformanceDailyPage'));
+const UpsldcMeaPage = lazy(() => import('../pages/UpsldcMeaPage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -74,6 +75,7 @@ export default function AppRoutes() {
             <Route path="trader-performance" element={<TraderPerformancePage />} />
             <Route path="trader-performance/:id/dashboard" element={<TraderPerformanceDashboardPage />} />
             <Route path="trader-performance-daily" element={<TraderPerformanceDailyPage />} />
+            <Route path="upsldc-mea" element={<UpsldcMeaPage />} />
 
 
 

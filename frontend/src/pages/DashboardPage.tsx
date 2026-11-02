@@ -9,6 +9,7 @@ import {
   Group as GroupIcon,
   OpenInNew as OpenInNewIcon,
   PriceCheck as PriceCheckIcon,
+  ElectricBolt as BoltIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -125,6 +126,14 @@ const MODULES = [
     path: '/trader-performance-daily',
     icon: <ChartIcon sx={{ fontSize: 24 }} />,
     color: '#D97706'
+  },
+  {
+    key: 'upsldc-mea',
+    title: 'UPSLDC OA MEA Monitor',
+    description: 'Track Open Access monthly energy accounts, identify entities not trading in recent months, and download reports.',
+    path: '/upsldc-mea',
+    icon: <BoltIcon sx={{ fontSize: 24 }} />,
+    color: '#0284C7'
   }
 ];
 
