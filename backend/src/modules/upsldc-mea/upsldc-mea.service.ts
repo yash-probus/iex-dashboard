@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import * as cheerio from 'cheerio';
 import { OA_GENERATORS } from './oa-generators.data';
+import seededMeaData from './seeded-mea-data.json';
 
 export interface UpsldcRecord {
   slNo: number;
@@ -63,15 +64,15 @@ export class UpsldcMeaService {
   private static scrapeStatus: UpsldcScrapeStatus = {
     isRunning: false,
     total: OA_GENERATORS.length,
-    completed: 0,
-    activeCount: 0,
-    inactiveCount: 0,
-    neverTradedCount: OA_GENERATORS.length,
+    completed: OA_GENERATORS.length,
+    activeCount: 611,
+    inactiveCount: 2,
+    neverTradedCount: 2,
     startTime: null,
     endTime: null,
     lastError: null,
     triggeredBy: 'MANUAL',
-    percent: 0
+    percent: 100
   };
 
   /**
@@ -93,10 +94,25 @@ export class UpsldcMeaService {
         }
       }
     } catch (e) {
-      console.warn('[UpsldcMeaService] Could not read existing data file, initializing from OA_GENERATORS:', e);
+      console.warn('[UpsldcMeaService] Could not read existing data file:', e);
     }
 
-    // Initialize from OA_GENERATORS
+    // Initialize from pre-scraped seeded data
+    if (seededMeaData && Object.keys(seededMeaData).length > 0) {
+      this.memoryMap = JSON.parse(JSON.stringify(seededMeaData));
+      try {
+        if (!fs.existsSync(DATA_DIR)) {
+          fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
+        fs.writeFileSync(DATA_FILE, JSON.stringify(this.memoryMap, null, 2), 'utf-8');
+        console.log(`[UpsldcMeaService] Successfully seeded data file with ${Object.keys(this.memoryMap || {}).length} generators.`);
+      } catch (e) {
+        console.warn('[UpsldcMeaService] Failed to write seeded data file to disk (in-memory only):', e);
+      }
+      return;
+    }
+
+    // Fallback: Initialize empty OA_GENERATORS
     const defaultData: Record<string, UpsldcGenerator> = {};
     for (const g of OA_GENERATORS) {
       defaultData[g.genId] = {
@@ -180,14 +196,14 @@ export class UpsldcMeaService {
       list = list.filter(g => g.status === options.status);
     }
 
-    // Apply Year Filter
-    if (options.year && options.year !== 'ALL') {
+    // Apply Year Filter (only if status is not specifically NEVER_TRADED)
+    if (options.status !== 'NEVER_TRADED' && options.year && options.year !== 'ALL') {
       const yr = parseInt(options.year, 10);
       list = list.filter(g => g.lastTradedYear === yr);
     }
 
-    // Apply Month Filter
-    if (options.month && options.month !== 'ALL') {
+    // Apply Month Filter (only if status is not specifically NEVER_TRADED)
+    if (options.status !== 'NEVER_TRADED' && options.month && options.month !== 'ALL') {
       const m = options.month.trim().toUpperCase();
       list = list.filter(g => g.lastTradedMonth === m);
     }
@@ -417,13 +433,20 @@ export class UpsldcMeaService {
     const map = this.getGeneratorsMap();
     const genList = Object.values(map);
 
+    let curActive = 0, curInactive = 0, curNever = 0;
+    for (const g of genList) {
+      if (g.status === 'TRADING') curActive++;
+      else if (g.status === 'NOT_TRADING_RECENT') curInactive++;
+      else curNever++;
+    }
+
     this.scrapeStatus = {
       isRunning: true,
       total: genList.length,
       completed: 0,
-      activeCount: 0,
-      inactiveCount: 0,
-      neverTradedCount: 0,
+      activeCount: curActive,
+      inactiveCount: curInactive,
+      neverTradedCount: curNever,
       startTime: new Date().toISOString(),
       endTime: null,
       lastError: null,
