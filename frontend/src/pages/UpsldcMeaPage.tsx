@@ -838,19 +838,19 @@ export default function UpsldcMeaPage() {
                 <Grid item xs={4}>
                   <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: '#F8FAFC' }}>
                     <Typography variant="caption" sx={{ color: '#64748B' }}>Total Processed</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{scrapeStatus?.total || summary?.totalGenerators || 615}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{summary?.totalGenerators || scrapeStatus?.total || 615}</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={4}>
                   <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: '#F0FDF4' }}>
                     <Typography variant="caption" sx={{ color: '#166534' }}>Actively Trading</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#16A34A' }}>{scrapeStatus?.activeCount || summary?.tradingCount || 0}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#16A34A' }}>{summary?.tradingCount ?? scrapeStatus?.activeCount ?? 0}</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={4}>
                   <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: '#FEF2F2' }}>
                     <Typography variant="caption" sx={{ color: '#991B1B' }}>Not Trading</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#DC2626' }}>{scrapeStatus?.inactiveCount || summary?.notTradingRecentCount || 0}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#DC2626' }}>{summary?.notTradingRecentCount ?? scrapeStatus?.inactiveCount ?? 0}</Typography>
                   </Paper>
                 </Grid>
               </Grid>
