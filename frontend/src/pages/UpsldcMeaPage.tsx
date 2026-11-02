@@ -108,6 +108,39 @@ export default function UpsldcMeaPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
+  const handleResetFilters = () => {
+    setSearch('');
+    setStatusFilter('ALL');
+    setYearFilter('ALL');
+    setMonthFilter('ALL');
+    setPage(0);
+  };
+
+  const handleStatusChange = (newStatus: 'ALL' | 'NOT_TRADING_RECENT' | 'TRADING' | 'NEVER_TRADED') => {
+    setStatusFilter(newStatus);
+    if (newStatus === 'NEVER_TRADED') {
+      setYearFilter('ALL');
+      setMonthFilter('ALL');
+    }
+    setPage(0);
+  };
+
+  const handleYearChange = (newYear: string) => {
+    setYearFilter(newYear);
+    if (statusFilter === 'NEVER_TRADED' && newYear !== 'ALL') {
+      setStatusFilter('ALL');
+    }
+    setPage(0);
+  };
+
+  const handleMonthChange = (newMonth: string) => {
+    setMonthFilter(newMonth);
+    if (statusFilter === 'NEVER_TRADED' && newMonth !== 'ALL') {
+      setStatusFilter('ALL');
+    }
+    setPage(0);
+  };
+
   // History Dialog State
   const [selectedGen, setSelectedGen] = useState<UpsldcGenerator | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -342,11 +375,24 @@ export default function UpsldcMeaPage() {
       {/* 2. KPI Cards */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <Card
+            onClick={handleResetFilters}
+            sx={{
+              borderRadius: 3,
+              cursor: 'pointer',
+              border: statusFilter === 'ALL' && yearFilter === 'ALL' && monthFilter === 'ALL' && !search ? '2px solid #0284C7' : '1px solid #E2E8F0',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s ease',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: 2 }
+            }}
+          >
             <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 500, mb: 0.5 }}>
-                Total OA Entities
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 600 }}>
+                  Total OA Entities
+                </Typography>
+                <Chip label="All" size="small" sx={{ height: 20, fontSize: 11, bgcolor: '#F1F5F9', color: '#475569' }} />
+              </Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#0F172A' }}>
                 {summary ? summary.totalGenerators : '...'}
               </Typography>
@@ -358,11 +404,25 @@ export default function UpsldcMeaPage() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ borderRadius: 3, border: '1px solid #FECACA', bgcolor: '#FFF5F5', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <Card
+            onClick={() => handleStatusChange('NOT_TRADING_RECENT')}
+            sx={{
+              borderRadius: 3,
+              cursor: 'pointer',
+              border: statusFilter === 'NOT_TRADING_RECENT' ? '2px solid #DC2626' : '1px solid #FECACA',
+              bgcolor: '#FFF5F5',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s ease',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: 2 }
+            }}
+          >
             <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="body2" sx={{ color: '#991B1B', fontWeight: 600, mb: 0.5 }}>
-                Not Trading in Recent Months
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#991B1B', fontWeight: 600 }}>
+                  Not Trading in Recent Months
+                </Typography>
+                <Chip label="Filter" size="small" sx={{ height: 20, fontSize: 11, bgcolor: '#FEE2E2', color: '#B91C1C' }} />
+              </Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#DC2626' }}>
                 {summary ? summary.notTradingRecentCount : '...'}
               </Typography>
@@ -374,16 +434,30 @@ export default function UpsldcMeaPage() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ borderRadius: 3, border: '1px solid #BBF7D0', bgcolor: '#F0FDF4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <Card
+            onClick={() => handleStatusChange('TRADING')}
+            sx={{
+              borderRadius: 3,
+              cursor: 'pointer',
+              border: statusFilter === 'TRADING' ? '2px solid #16A34A' : '1px solid #BBF7D0',
+              bgcolor: '#F0FDF4',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s ease',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: 2 }
+            }}
+          >
             <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="body2" sx={{ color: '#166534', fontWeight: 600, mb: 0.5 }}>
-                Actively Trading
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#166534', fontWeight: 600 }}>
+                  Actively Trading
+                </Typography>
+                <Chip label="Active" size="small" sx={{ height: 20, fontSize: 11, bgcolor: '#DCFCE7', color: '#15803D' }} />
+              </Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#16A34A' }}>
                 {summary ? summary.tradingCount : '...'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#15803D', fontWeight: 500, display: 'block', mt: 0.5 }}>
-                Recent MEA bill on record
+                Latest MEA on file: {summary?.latestSystemTradedPeriod || 'Recent'}
               </Typography>
             </CardContent>
           </Card>
@@ -412,7 +486,7 @@ export default function UpsldcMeaPage() {
       {/* 3. Filter Bar */}
       <Paper sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid #E2E8F0' }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3.5}>
             <TextField
               fullWidth
               size="small"
@@ -436,7 +510,7 @@ export default function UpsldcMeaPage() {
               size="small"
               label="Trading Status"
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value as any); setPage(0); }}
+              onChange={(e) => handleStatusChange(e.target.value as any)}
             >
               <MenuItem value="ALL">All Statuses ({summary?.totalGenerators || 0})</MenuItem>
               <MenuItem value="NOT_TRADING_RECENT">Not Trading in Recent Months ({summary?.notTradingRecentCount || 0})</MenuItem>
@@ -445,14 +519,16 @@ export default function UpsldcMeaPage() {
             </TextField>
           </Grid>
 
-          <Grid item xs={6} sm={4} md={2.5}>
+          <Grid item xs={6} sm={4} md={2}>
             <TextField
               select
               fullWidth
               size="small"
               label="Last Traded Year"
               value={yearFilter}
-              onChange={(e) => { setYearFilter(e.target.value); setPage(0); }}
+              disabled={statusFilter === 'NEVER_TRADED'}
+              onChange={(e) => handleYearChange(e.target.value)}
+              helperText={statusFilter === 'NEVER_TRADED' ? 'N/A for Never Traded' : undefined}
             >
               {YEARS.map(yr => (
                 <MenuItem key={yr} value={yr}>{yr === 'ALL' ? 'All Years' : yr}</MenuItem>
@@ -460,19 +536,33 @@ export default function UpsldcMeaPage() {
             </TextField>
           </Grid>
 
-          <Grid item xs={6} sm={4} md={2.5}>
+          <Grid item xs={6} sm={4} md={2}>
             <TextField
               select
               fullWidth
               size="small"
               label="Last Traded Month"
               value={monthFilter}
-              onChange={(e) => { setMonthFilter(e.target.value); setPage(0); }}
+              disabled={statusFilter === 'NEVER_TRADED'}
+              onChange={(e) => handleMonthChange(e.target.value)}
+              helperText={statusFilter === 'NEVER_TRADED' ? 'N/A for Never Traded' : undefined}
             >
               {MONTHS.map(m => (
                 <MenuItem key={m} value={m}>{m === 'ALL' ? 'All Months' : m}</MenuItem>
               ))}
             </TextField>
+          </Grid>
+
+          <Grid item xs={12} md={1.5} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="text"
+              size="small"
+              disabled={!search && statusFilter === 'ALL' && yearFilter === 'ALL' && monthFilter === 'ALL'}
+              onClick={handleResetFilters}
+              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none' }}
+            >
+              Reset Filters
+            </Button>
           </Grid>
         </Grid>
       </Paper>
@@ -505,8 +595,22 @@ export default function UpsldcMeaPage() {
               ) : generators.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} sx={{ py: 6, textAlign: 'center' }}>
-                    <Typography variant="body1" sx={{ color: '#64748B', fontWeight: 600 }}>No entities found</Typography>
-                    <Typography variant="body2" sx={{ color: '#94A3B8' }}>Try adjusting your search query or filter options.</Typography>
+                    <Typography variant="body1" sx={{ color: '#0F172A', fontWeight: 600, mb: 0.5 }}>
+                      No matching generators found
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#64748B', maxWidth: 500, mx: 'auto', mb: 2 }}>
+                      {statusFilter === 'NEVER_TRADED' && (yearFilter !== 'ALL' || monthFilter !== 'ALL')
+                        ? 'Never-traded entities have no trading history. Please set Year and Month to "All" to view them.'
+                        : 'No generators matched your current filter selection. Try clearing filters or searching a different name.'}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleResetFilters}
+                      sx={{ borderColor: '#0284C7', color: '#0284C7', textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Reset All Filters
+                    </Button>
                   </TableCell>
                 </TableRow>
               ) : (
