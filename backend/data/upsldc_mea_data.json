@@ -57109,7 +57109,7 @@
     "lastTradedMonth": "JUL",
     "lastTradedYear": 2026,
     "lastTradedDate": null,
-    "status": "TRADING",
+    "status": "NOT_TRADING_RECENT",
     "latestPdfUrl": "https://nrt.upsldc.org/eass/docbase/settlement/dsm/Balrampur_Chini_Mills_Haidergarh_Ltd5091400_OAAccount.pdf",
     "lastUpdated": "2026-11-02T09:45:59.141Z"
   },

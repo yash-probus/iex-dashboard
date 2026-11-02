@@ -15,7 +15,7 @@ export class UpsldcMeaExportService {
     // Sort by name
     allGenerators.sort((a, b) => a.name.localeCompare(b.name));
 
-    const inactiveGenerators = allGenerators.filter(g => g.status === 'NOT_TRADING_RECENT');
+    const inactiveGenerators = allGenerators.filter(g => g.status === 'NOT_TRADING_RECENT' || g.status === 'NEVER_TRADED');
     const activeGenerators = allGenerators.filter(g => g.status === 'TRADING');
     const neverTradedGenerators = allGenerators.filter(g => g.status === 'NEVER_TRADED');
 
@@ -104,7 +104,7 @@ export class UpsldcMeaExportService {
         g.name,
         g.genId,
         g.category || 'OA',
-        'Not Trading in Recent Months',
+        g.status === 'NEVER_TRADED' ? 'Never Traded' : 'Not Trading (Recent)',
         lastTradedStr,
         g.lastTradedDate || '-',
         g.latestPdfUrl || '-'

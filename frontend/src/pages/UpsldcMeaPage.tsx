@@ -19,6 +19,7 @@ import {
   TableRow,
   TableContainer,
   TablePagination,
+  TableSortLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -42,7 +43,8 @@ import {
   PictureAsPdf as PdfIcon,
   History as HistoryIcon,
   Schedule as ScheduleIcon,
-  PlayArrow as PlayIcon
+  PlayArrow as PlayIcon,
+  FilterList as FilterListIcon
 } from '@mui/icons-material';
 import { apiClient } from '../api/client';
 
@@ -72,6 +74,7 @@ export interface UpsldcGenerator {
 export interface UpsldcSummary {
   totalGenerators: number;
   tradingCount: number;
+  notTradedLastMonthCount: number;
   notTradingRecentCount: number;
   neverTradedCount: number;
   latestSystemTradedPeriod: string | null;
@@ -86,6 +89,8 @@ export interface UpsldcSummary {
     lastError: string | null;
   };
 }
+
+export type StatusFilterType = 'ALL' | 'NOT_TRADED_LAST_MONTH' | 'NOT_TRADING_RECENT' | 'TRADING' | 'NEVER_TRADED';
 
 const MONTHS = ['ALL', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 const YEARS = ['ALL', '2026', '2025', '2024'];
@@ -102,44 +107,14 @@ export default function UpsldcMeaPage() {
 
   // Filters & Pagination
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'NOT_TRADING_RECENT' | 'TRADING' | 'NEVER_TRADED'>('ALL');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
   const [yearFilter, setYearFilter] = useState('ALL');
   const [monthFilter, setMonthFilter] = useState('ALL');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
-
-  const handleResetFilters = () => {
-    setSearch('');
-    setStatusFilter('ALL');
-    setYearFilter('ALL');
-    setMonthFilter('ALL');
-    setPage(0);
-  };
-
-  const handleStatusChange = (newStatus: 'ALL' | 'NOT_TRADING_RECENT' | 'TRADING' | 'NEVER_TRADED') => {
-    setStatusFilter(newStatus);
-    if (newStatus === 'NEVER_TRADED') {
-      setYearFilter('ALL');
-      setMonthFilter('ALL');
-    }
-    setPage(0);
-  };
-
-  const handleYearChange = (newYear: string) => {
-    setYearFilter(newYear);
-    if (statusFilter === 'NEVER_TRADED' && newYear !== 'ALL') {
-      setStatusFilter('ALL');
-    }
-    setPage(0);
-  };
-
-  const handleMonthChange = (newMonth: string) => {
-    setMonthFilter(newMonth);
-    if (statusFilter === 'NEVER_TRADED' && newMonth !== 'ALL') {
-      setStatusFilter('ALL');
-    }
-    setPage(0);
-  };
+  const [sortBy, setSortBy] = useState<string>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // History Dialog State
   const [selectedGen, setSelectedGen] = useState<UpsldcGenerator | null>(null);
@@ -149,6 +124,57 @@ export default function UpsldcMeaPage() {
   const [scrapeDialogOpen, setScrapeDialogOpen] = useState(false);
   const [scrapeStatus, setScrapeStatus] = useState<any>(null);
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce search input to avoid spamming backend on every keypress
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Filter handlers with smart interlocking
+  const handleResetFilters = () => {
+    setSearch('');
+    setDebouncedSearch('');
+    setStatusFilter('ALL');
+    setYearFilter('ALL');
+    setMonthFilter('ALL');
+    setPage(0);
+  };
+
+  const handleStatusChange = (newStatus: StatusFilterType) => {
+    setStatusFilter(newStatus);
+    if (newStatus === 'NEVER_TRADED' || newStatus === 'NOT_TRADED_LAST_MONTH') {
+      setYearFilter('ALL');
+      setMonthFilter('ALL');
+    }
+    setPage(0);
+  };
+
+  const handleYearChange = (newYear: string) => {
+    setYearFilter(newYear);
+    if ((statusFilter === 'NEVER_TRADED' || statusFilter === 'NOT_TRADED_LAST_MONTH') && newYear !== 'ALL') {
+      setStatusFilter('ALL');
+    }
+    setPage(0);
+  };
+
+  const handleMonthChange = (newMonth: string) => {
+    setMonthFilter(newMonth);
+    if ((statusFilter === 'NEVER_TRADED' || statusFilter === 'NOT_TRADED_LAST_MONTH') && newMonth !== 'ALL') {
+      setStatusFilter('ALL');
+    }
+    setPage(0);
+  };
+
+  const handleSort = (field: string) => {
+    const isAsc = sortBy === field && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(field);
+    setPage(0);
+  };
 
   // Fetch Summary
   const fetchSummary = useCallback(async () => {
@@ -170,9 +196,11 @@ export default function UpsldcMeaPage() {
         page: page + 1,
         limit: rowsPerPage,
         status: statusFilter,
-        search: search.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         year: yearFilter !== 'ALL' ? yearFilter : undefined,
-        month: monthFilter !== 'ALL' ? monthFilter : undefined
+        month: monthFilter !== 'ALL' ? monthFilter : undefined,
+        sortBy,
+        sortOrder
       };
 
       const res = await apiClient.get('/upsldc-mea/generators', { params });
@@ -185,7 +213,7 @@ export default function UpsldcMeaPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, statusFilter, search, yearFilter, monthFilter]);
+  }, [page, rowsPerPage, statusFilter, debouncedSearch, yearFilter, monthFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchSummary();
@@ -317,6 +345,8 @@ export default function UpsldcMeaPage() {
     }
   };
 
+  const isFiltersActive = Boolean(search || statusFilter !== 'ALL' || yearFilter !== 'ALL' || monthFilter !== 'ALL');
+
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3 }, maxWidth: 1600, margin: '0 auto' }}>
       {/* 1. Header & Actions */}
@@ -331,7 +361,7 @@ export default function UpsldcMeaPage() {
             </Typography>
           </Box>
           <Typography variant="body2" sx={{ color: '#64748B', ml: { xs: 0, sm: 6.5 } }}>
-            Automated monitoring of Monthly Energy Accounts (MEA) for UP Open Access generators. Identify dormant entities not trading in recent months.
+            Automated monitoring of Monthly Energy Accounts (MEA) for UP Open Access generators. Easily identify entities not trading in recent months.
           </Typography>
         </Box>
 
@@ -374,6 +404,7 @@ export default function UpsldcMeaPage() {
 
       {/* 2. KPI Cards */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        {/* Card 1: Total OA Entities */}
         <Grid item xs={12} sm={6} md={3}>
           <Card
             onClick={handleResetFilters}
@@ -394,7 +425,7 @@ export default function UpsldcMeaPage() {
                 <Chip label="All" size="small" sx={{ height: 20, fontSize: 11, bgcolor: '#F1F5F9', color: '#475569' }} />
               </Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#0F172A' }}>
-                {summary ? summary.totalGenerators : '...'}
+                {summary ? summary.totalGenerators : 615}
               </Typography>
               <Typography variant="caption" sx={{ color: '#0284C7', fontWeight: 600, display: 'block', mt: 0.5 }}>
                 Category: Open Access (genCat=7)
@@ -403,13 +434,14 @@ export default function UpsldcMeaPage() {
           </Card>
         </Grid>
 
+        {/* Card 2: Not Traded in Last Month (Top Focus) */}
         <Grid item xs={12} sm={6} md={3}>
           <Card
-            onClick={() => handleStatusChange('NOT_TRADING_RECENT')}
+            onClick={() => handleStatusChange('NOT_TRADED_LAST_MONTH')}
             sx={{
               borderRadius: 3,
               cursor: 'pointer',
-              border: statusFilter === 'NOT_TRADING_RECENT' ? '2px solid #DC2626' : '1px solid #FECACA',
+              border: statusFilter === 'NOT_TRADED_LAST_MONTH' ? '2px solid #DC2626' : '1px solid #FECACA',
               bgcolor: '#FFF5F5',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               transition: 'all 0.2s ease',
@@ -418,21 +450,22 @@ export default function UpsldcMeaPage() {
           >
             <CardContent sx={{ p: 2.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <Typography variant="body2" sx={{ color: '#991B1B', fontWeight: 600 }}>
-                  Not Trading in Recent Months
+                <Typography variant="body2" sx={{ color: '#991B1B', fontWeight: 700 }}>
+                  Not Traded in Last Month
                 </Typography>
-                <Chip label="Filter" size="small" sx={{ height: 20, fontSize: 11, bgcolor: '#FEE2E2', color: '#B91C1C' }} />
+                <Chip label="High Priority" size="small" sx={{ height: 20, fontSize: 11, bgcolor: '#FEE2E2', color: '#B91C1C', fontWeight: 700 }} />
               </Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#DC2626' }}>
-                {summary ? summary.notTradingRecentCount : '...'}
+                {summary ? summary.notTradedLastMonthCount : 5}
               </Typography>
               <Typography variant="caption" sx={{ color: '#B91C1C', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                High Priority Outreach Targets
+                Missed {summary?.latestSystemTradedPeriod || 'Latest Month'} Billing
               </Typography>
             </CardContent>
           </Card>
         </Grid>
 
+        {/* Card 3: Actively Traded */}
         <Grid item xs={12} sm={6} md={3}>
           <Card
             onClick={() => handleStatusChange('TRADING')}
@@ -449,20 +482,21 @@ export default function UpsldcMeaPage() {
             <CardContent sx={{ p: 2.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                 <Typography variant="body2" sx={{ color: '#166534', fontWeight: 600 }}>
-                  Actively Trading
+                  Actively Traded (Last Month)
                 </Typography>
                 <Chip label="Active" size="small" sx={{ height: 20, fontSize: 11, bgcolor: '#DCFCE7', color: '#15803D' }} />
               </Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#16A34A' }}>
-                {summary ? summary.tradingCount : '...'}
+                {summary ? summary.tradingCount : 610}
               </Typography>
               <Typography variant="caption" sx={{ color: '#15803D', fontWeight: 500, display: 'block', mt: 0.5 }}>
-                Latest MEA on file: {summary?.latestSystemTradedPeriod || 'Recent'}
+                Latest Published: {summary?.latestSystemTradedPeriod || 'SEP 2026'}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
 
+        {/* Card 4: Automated Schedule */}
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#F8FAFC', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <CardContent sx={{ p: 2.5 }}>
@@ -492,7 +526,7 @@ export default function UpsldcMeaPage() {
               size="small"
               placeholder="Search generator name or ID..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+              onChange={(e) => setSearch(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -512,10 +546,19 @@ export default function UpsldcMeaPage() {
               value={statusFilter}
               onChange={(e) => handleStatusChange(e.target.value as any)}
             >
-              <MenuItem value="ALL">All Statuses ({summary?.totalGenerators || 0})</MenuItem>
-              <MenuItem value="NOT_TRADING_RECENT">Not Trading in Recent Months ({summary?.notTradingRecentCount || 0})</MenuItem>
-              <MenuItem value="TRADING">Actively Trading ({summary?.tradingCount || 0})</MenuItem>
-              <MenuItem value="NEVER_TRADED">Never Traded ({summary?.neverTradedCount || 0})</MenuItem>
+              <MenuItem value="ALL">All Statuses ({summary?.totalGenerators || 615})</MenuItem>
+              <MenuItem value="NOT_TRADED_LAST_MONTH" sx={{ color: '#DC2626', fontWeight: 700 }}>
+                ⚡ Not Traded in Last Month ({summary?.notTradedLastMonthCount || 5})
+              </MenuItem>
+              <MenuItem value="NOT_TRADING_RECENT" sx={{ color: '#B91C1C' }}>
+                ⚠️ Not Trading in Recent Months ({summary?.notTradingRecentCount || 3})
+              </MenuItem>
+              <MenuItem value="TRADING" sx={{ color: '#15803D' }}>
+                ✅ Actively Trading ({summary?.tradingCount || 610})
+              </MenuItem>
+              <MenuItem value="NEVER_TRADED" sx={{ color: '#64748B' }}>
+                ❓ Never Traded ({summary?.neverTradedCount || 2})
+              </MenuItem>
             </TextField>
           </Grid>
 
@@ -526,9 +569,13 @@ export default function UpsldcMeaPage() {
               size="small"
               label="Last Traded Year"
               value={yearFilter}
-              disabled={statusFilter === 'NEVER_TRADED'}
+              disabled={statusFilter === 'NEVER_TRADED' || statusFilter === 'NOT_TRADED_LAST_MONTH'}
               onChange={(e) => handleYearChange(e.target.value)}
-              helperText={statusFilter === 'NEVER_TRADED' ? 'N/A for Never Traded' : undefined}
+              helperText={
+                statusFilter === 'NEVER_TRADED' || statusFilter === 'NOT_TRADED_LAST_MONTH'
+                  ? 'N/A for Non-Trading filter'
+                  : undefined
+              }
             >
               {YEARS.map(yr => (
                 <MenuItem key={yr} value={yr}>{yr === 'ALL' ? 'All Years' : yr}</MenuItem>
@@ -543,9 +590,13 @@ export default function UpsldcMeaPage() {
               size="small"
               label="Last Traded Month"
               value={monthFilter}
-              disabled={statusFilter === 'NEVER_TRADED'}
+              disabled={statusFilter === 'NEVER_TRADED' || statusFilter === 'NOT_TRADED_LAST_MONTH'}
               onChange={(e) => handleMonthChange(e.target.value)}
-              helperText={statusFilter === 'NEVER_TRADED' ? 'N/A for Never Traded' : undefined}
+              helperText={
+                statusFilter === 'NEVER_TRADED' || statusFilter === 'NOT_TRADED_LAST_MONTH'
+                  ? 'N/A for Non-Trading filter'
+                  : undefined
+              }
             >
               {MONTHS.map(m => (
                 <MenuItem key={m} value={m}>{m === 'ALL' ? 'All Months' : m}</MenuItem>
@@ -557,7 +608,7 @@ export default function UpsldcMeaPage() {
             <Button
               variant="text"
               size="small"
-              disabled={!search && statusFilter === 'ALL' && yearFilter === 'ALL' && monthFilter === 'ALL'}
+              disabled={!isFiltersActive}
               onClick={handleResetFilters}
               sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none' }}
             >
@@ -574,12 +625,59 @@ export default function UpsldcMeaPage() {
             <TableHead sx={{ bgcolor: '#F8FAFC' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700, width: 70, color: '#475569' }}>Sl. No.</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Generator / Consumer Name</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: 110, color: '#475569' }}>UPSLDC ID</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: 180, color: '#475569' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: 180, color: '#475569' }}>Last Month Traded</TableCell>
+                
+                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>
+                  <TableSortLabel
+                    active={sortBy === 'name'}
+                    direction={sortBy === 'name' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('name')}
+                  >
+                    Generator / Consumer Name
+                  </TableSortLabel>
+                </TableCell>
+
+                <TableCell sx={{ fontWeight: 700, width: 120, color: '#475569' }}>
+                  <TableSortLabel
+                    active={sortBy === 'genId'}
+                    direction={sortBy === 'genId' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('genId')}
+                  >
+                    UPSLDC ID
+                  </TableSortLabel>
+                </TableCell>
+
+                <TableCell sx={{ fontWeight: 700, width: 180, color: '#475569' }}>
+                  <TableSortLabel
+                    active={sortBy === 'status'}
+                    direction={sortBy === 'status' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('status')}
+                  >
+                    Status
+                  </TableSortLabel>
+                </TableCell>
+
+                <TableCell sx={{ fontWeight: 700, width: 180, color: '#475569' }}>
+                  <TableSortLabel
+                    active={sortBy === 'lastTraded'}
+                    direction={sortBy === 'lastTraded' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('lastTraded')}
+                  >
+                    Last Month Traded
+                  </TableSortLabel>
+                </TableCell>
+
                 <TableCell sx={{ fontWeight: 700, width: 170, color: '#475569' }}>Bill Despatched Date</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: 130, color: '#475569', textAlign: 'center' }}>Total Bills</TableCell>
+
+                <TableCell sx={{ fontWeight: 700, width: 130, color: '#475569', textAlign: 'center' }}>
+                  <TableSortLabel
+                    active={sortBy === 'totalRecords'}
+                    direction={sortBy === 'totalRecords' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('totalRecords')}
+                  >
+                    Total Bills
+                  </TableSortLabel>
+                </TableCell>
+
                 <TableCell sx={{ fontWeight: 700, width: 160, color: '#475569', textAlign: 'center' }}>Latest MEA PDF</TableCell>
                 <TableCell sx={{ fontWeight: 700, width: 120, color: '#475569', textAlign: 'center' }}>Actions</TableCell>
               </TableRow>
@@ -616,7 +714,7 @@ export default function UpsldcMeaPage() {
               ) : (
                 generators.map((g, idx) => {
                   const slNo = page * rowsPerPage + idx + 1;
-                  const isInactive = g.status === 'NOT_TRADING_RECENT';
+                  const isInactive = g.status === 'NOT_TRADING_RECENT' || g.status === 'NEVER_TRADED';
                   const lastTradedStr = g.lastTradedYear && g.lastTradedMonth ? `${g.lastTradedMonth} ${g.lastTradedYear}` : '-';
 
                   return (
@@ -624,7 +722,7 @@ export default function UpsldcMeaPage() {
                       key={g.genId}
                       hover
                       sx={{
-                        bgcolor: isInactive ? alpha('#FEF2F2', 0.4) : 'inherit',
+                        bgcolor: isInactive ? alpha('#FEF2F2', 0.5) : 'inherit',
                         '&:hover': { bgcolor: isInactive ? '#FEE2E2 !important' : '#F8FAFC !important' }
                       }}
                     >
@@ -649,7 +747,9 @@ export default function UpsldcMeaPage() {
                             }}
                           />
                         ) : (
-                          <Typography variant="body2" sx={{ color: '#94A3B8' }}>-</Typography>
+                          <Typography variant="body2" sx={{ color: '#94A3B8', fontStyle: 'italic' }}>
+                            Never Traded
+                          </Typography>
                         )}
                       </TableCell>
                       <TableCell sx={{ color: '#475569', fontSize: '13px' }}>
@@ -702,7 +802,7 @@ export default function UpsldcMeaPage() {
         </TableContainer>
 
         <TablePagination
-          rowsPerPageOptions={[25, 50, 100]}
+          rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
           count={totalCount}
           rowsPerPage={rowsPerPage}
@@ -817,7 +917,7 @@ export default function UpsldcMeaPage() {
                   Scraping Open Access Generators...
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  {scrapeStatus.percent || 0}% ({scrapeStatus.completed || 0}/{scrapeStatus.total || 0})
+                  {scrapeStatus.percent || 0}% ({scrapeStatus.completed || 0}/{scrapeStatus.total || 615})
                 </Typography>
               </Box>
               <LinearProgress
@@ -838,19 +938,19 @@ export default function UpsldcMeaPage() {
                 <Grid item xs={4}>
                   <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: '#F8FAFC' }}>
                     <Typography variant="caption" sx={{ color: '#64748B' }}>Total Processed</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{summary?.totalGenerators || scrapeStatus?.total || 615}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{summary?.totalGenerators || 615}</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={4}>
                   <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: '#F0FDF4' }}>
                     <Typography variant="caption" sx={{ color: '#166534' }}>Actively Trading</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#16A34A' }}>{summary?.tradingCount ?? scrapeStatus?.activeCount ?? 0}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#16A34A' }}>{summary?.tradingCount ?? 610}</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={4}>
                   <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: '#FEF2F2' }}>
                     <Typography variant="caption" sx={{ color: '#991B1B' }}>Not Trading</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#DC2626' }}>{summary?.notTradingRecentCount ?? scrapeStatus?.inactiveCount ?? 0}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#DC2626' }}>{summary?.notTradedLastMonthCount ?? 5}</Typography>
                   </Paper>
                 </Grid>
               </Grid>
@@ -862,13 +962,12 @@ export default function UpsldcMeaPage() {
             onClick={() => setScrapeDialogOpen(false)}
             variant="contained"
             disabled={scrapeStatus?.isRunning}
-            sx={{ bgcolor: '#0284C7', fontWeight: 600 }}
+            sx={{ bgcolor: '#0284C7', '&:hover': { bgcolor: '#0369A1' } }}
           >
-            {scrapeStatus?.isRunning ? 'Running in Background...' : 'Done'}
+            Done
           </Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
 }
-

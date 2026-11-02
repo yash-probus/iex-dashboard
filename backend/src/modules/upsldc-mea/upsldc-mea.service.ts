@@ -65,8 +65,8 @@ export class UpsldcMeaService {
     isRunning: false,
     total: OA_GENERATORS.length,
     completed: OA_GENERATORS.length,
-    activeCount: 611,
-    inactiveCount: 2,
+    activeCount: 610,
+    inactiveCount: 3,
     neverTradedCount: 2,
     startTime: null,
     endTime: null,
@@ -90,6 +90,7 @@ export class UpsldcMeaService {
         const parsed = JSON.parse(content);
         if (parsed && Object.keys(parsed).length > 0) {
           this.memoryMap = parsed;
+          if (this.memoryMap) this.recalculateStatuses(this.memoryMap);
           return;
         }
       }
@@ -100,6 +101,7 @@ export class UpsldcMeaService {
     // Initialize from pre-scraped seeded data
     if (seededMeaData && Object.keys(seededMeaData).length > 0) {
       this.memoryMap = JSON.parse(JSON.stringify(seededMeaData));
+      if (this.memoryMap) this.recalculateStatuses(this.memoryMap);
       try {
         if (!fs.existsSync(DATA_DIR)) {
           fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -171,7 +173,7 @@ export class UpsldcMeaService {
    */
   public static getGenerators(options: {
     search?: string;
-    status?: 'ALL' | 'TRADING' | 'NOT_TRADING_RECENT' | 'NEVER_TRADED';
+    status?: 'ALL' | 'TRADING' | 'NOT_TRADING_RECENT' | 'NEVER_TRADED' | 'NOT_TRADED_LAST_MONTH';
     year?: string;
     month?: string;
     page?: number;
@@ -193,17 +195,21 @@ export class UpsldcMeaService {
 
     // Apply Status Filter
     if (options.status && options.status !== 'ALL') {
-      list = list.filter(g => g.status === options.status);
+      if (options.status === 'NOT_TRADED_LAST_MONTH') {
+        list = list.filter(g => g.status === 'NOT_TRADING_RECENT' || g.status === 'NEVER_TRADED');
+      } else {
+        list = list.filter(g => g.status === options.status);
+      }
     }
 
     // Apply Year Filter (only if status is not specifically NEVER_TRADED)
-    if (options.status !== 'NEVER_TRADED' && options.year && options.year !== 'ALL') {
+    if (options.status !== 'NEVER_TRADED' && options.status !== 'NOT_TRADED_LAST_MONTH' && options.year && options.year !== 'ALL') {
       const yr = parseInt(options.year, 10);
       list = list.filter(g => g.lastTradedYear === yr);
     }
 
     // Apply Month Filter (only if status is not specifically NEVER_TRADED)
-    if (options.status !== 'NEVER_TRADED' && options.month && options.month !== 'ALL') {
+    if (options.status !== 'NEVER_TRADED' && options.status !== 'NOT_TRADED_LAST_MONTH' && options.month && options.month !== 'ALL') {
       const m = options.month.trim().toUpperCase();
       list = list.filter(g => g.lastTradedMonth === m);
     }
@@ -283,9 +289,12 @@ export class UpsldcMeaService {
       }
     }
 
+    const notTradedLastMonthCount = notTradingRecentCount + neverTradedCount;
+
     return {
       totalGenerators: list.length,
       tradingCount,
+      notTradedLastMonthCount,
       notTradingRecentCount,
       neverTradedCount,
       latestSystemTradedPeriod: latestTradedYear && latestTradedMonth ? `${latestTradedMonth} ${latestTradedYear}` : null,
@@ -410,9 +419,9 @@ export class UpsldcMeaService {
 
         const score = latest.year * 12 + (MONTH_MAP[latest.month] || 0);
         
-        // If traded within the last 3 billing months of the latest published bill in UP, considered TRADING
-        // Otherwise, marked as NOT_TRADING_RECENT
-        if (maxOverallScore > 0 && maxOverallScore - score <= 3) {
+        // If traded in the latest published billing month in UP, considered TRADING
+        // Otherwise, marked as NOT_TRADING_RECENT (missed latest month or stopped trading)
+        if (maxOverallScore > 0 && score === maxOverallScore) {
           g.status = 'TRADING';
         } else {
           g.status = 'NOT_TRADING_RECENT';
