@@ -147,6 +147,29 @@ export class UpsldcMeaController {
   }
 
   /**
+   * POST /api/upsldc-mea/sync-generators
+   * Instantly query UPSLDC live portal to auto-discover newly added Open Access generators
+   */
+  public static async syncGenerators(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await UpsldcMeaService.syncNewGenerators();
+      res.json({
+        success: true,
+        data: result,
+        message: result.newlyAdded > 0 
+          ? `Discovered and registered ${result.newlyAdded} new generator(s) from UPSLDC portal!` 
+          : 'Generator list is already up to date with UPSLDC portal.'
+      });
+    } catch (error: any) {
+      console.error('[UpsldcMeaController] Error syncing generators:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to sync generators from UPSLDC'
+      });
+    }
+  }
+
+  /**
    * GET /api/upsldc-mea/export-excel
    * Downloads formatted Excel (.xlsx) file
    */

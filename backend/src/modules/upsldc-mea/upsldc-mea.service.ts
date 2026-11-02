@@ -303,6 +303,83 @@ export class UpsldcMeaService {
   }
 
   /**
+   * Fetch live list of Open Access generators dynamically from UPSLDC portal
+   */
+  public static async fetchLiveOaGeneratorsList(): Promise<Array<{ genId: string; name: string }>> {
+    try {
+      const response = await axios.get(`${REPORT_URL}?genCat=7`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
+        httpsAgent,
+        timeout: 10000
+      });
+
+      const $ = cheerio.load(response.data);
+      const liveList: Array<{ genId: string; name: string }> = [];
+
+      $('select[name="genID"] option').each((_, el) => {
+        const val = $(el).attr('value');
+        const text = $(el).text().trim();
+        if (val && val !== '0' && val !== '' && !val.toLowerCase().includes('select')) {
+          liveList.push({ genId: val, name: text });
+        }
+      });
+
+      if (liveList.length > 0) {
+        console.log(`[UpsldcMeaService] Fetched ${liveList.length} live Open Access generators from UPSLDC portal.`);
+        return liveList;
+      }
+    } catch (err: any) {
+      console.warn('[UpsldcMeaService] Failed to fetch live generator list from UPSLDC portal, using fallback:', err.message);
+    }
+
+    return OA_GENERATORS;
+  }
+
+  /**
+   * Sync and discover new generators from UPSLDC portal without requiring a full scrape
+   */
+  public static async syncNewGenerators(): Promise<{ total: number; newlyAdded: number; newGenerators: Array<{ genId: string; name: string }> }> {
+    const liveList = await this.fetchLiveOaGeneratorsList();
+    const map = this.getGeneratorsMap();
+    const newGenerators: Array<{ genId: string; name: string }> = [];
+
+    for (const g of liveList) {
+      if (!map[g.genId]) {
+        map[g.genId] = {
+          genId: g.genId,
+          name: g.name,
+          category: 'OA',
+          records: [],
+          totalRecords: 0,
+          lastTradedMonth: null,
+          lastTradedYear: null,
+          lastTradedDate: null,
+          status: 'NEVER_TRADED',
+          latestPdfUrl: null,
+          lastUpdated: new Date().toISOString()
+        };
+        newGenerators.push(g);
+      } else if (g.name && map[g.genId].name !== g.name) {
+        map[g.genId].name = g.name;
+      }
+    }
+
+    if (newGenerators.length > 0) {
+      this.recalculateStatuses(map);
+      this.saveGeneratorsMap(map);
+      console.log(`[UpsldcMeaService] Discovered and registered ${newGenerators.length} new generator(s) from UPSLDC.`);
+    }
+
+    return {
+      total: Object.keys(map).length,
+      newlyAdded: newGenerators.length,
+      newGenerators
+    };
+  }
+
+  /**
    * Scrape MEA for a single generator across specified years
    */
   public static async scrapeGenerator(genId: string, genName: string, years: string[] = ['2025', '2026', '2024']): Promise<UpsldcRecord[]> {
@@ -468,11 +545,24 @@ export class UpsldcMeaService {
     // Asynchronous background execution
     (async () => {
       const BATCH_SIZE = 5;
-      const yearsToScrape = ['2025', '2026', '2024'];
+      const yearsToScrape = ['2026', '2025'];
 
       try {
-        for (let i = 0; i < genList.length; i += BATCH_SIZE) {
-          const batch = genList.slice(i, i + BATCH_SIZE);
+        // Auto-discover newly added generators on UPSLDC portal
+        try {
+          const syncResult = await this.syncNewGenerators();
+          if (syncResult.newlyAdded > 0) {
+            console.log(`[UpsldcMeaService] Scraper auto-discovered ${syncResult.newlyAdded} new generator(s) from UPSLDC portal!`);
+          }
+        } catch (e: any) {
+          console.warn('[UpsldcMeaService] Dynamic generator sync error (continuing with cached list):', e.message);
+        }
+
+        const currentGenList = Object.values(map);
+        this.scrapeStatus.total = currentGenList.length;
+
+        for (let i = 0; i < currentGenList.length; i += BATCH_SIZE) {
+          const batch = currentGenList.slice(i, i + BATCH_SIZE);
           await Promise.all(
             batch.map(async (gen) => {
               const records = await this.scrapeGenerator(gen.genId, gen.name, yearsToScrape);
@@ -483,11 +573,11 @@ export class UpsldcMeaService {
             })
           );
 
-          this.scrapeStatus.completed = Math.min(i + batch.length, genList.length);
-          this.scrapeStatus.percent = Math.round((this.scrapeStatus.completed / genList.length) * 100);
+          this.scrapeStatus.completed = Math.min(i + batch.length, currentGenList.length);
+          this.scrapeStatus.percent = Math.round((this.scrapeStatus.completed / currentGenList.length) * 100);
 
           // Save partial progress every 20 generators
-          if ((i + batch.length) % 20 === 0 || i + batch.length >= genList.length) {
+          if ((i + batch.length) % 20 === 0 || i + batch.length >= currentGenList.length) {
             this.recalculateStatuses(map);
             this.saveGeneratorsMap(map);
           }

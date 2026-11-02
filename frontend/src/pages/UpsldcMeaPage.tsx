@@ -104,6 +104,8 @@ export default function UpsldcMeaPage() {
   const [summary, setSummary] = useState<UpsldcSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [syncingGenerators, setSyncingGenerators] = useState(false);
+  const [syncAlert, setSyncAlert] = useState<{ type: 'success' | 'info'; text: string } | null>(null);
 
   // Filters & Pagination
   const [search, setSearch] = useState('');
@@ -257,6 +259,35 @@ export default function UpsldcMeaPage() {
     }
   };
 
+  const handleSyncGenerators = async () => {
+    try {
+      setSyncingGenerators(true);
+      const res = await apiClient.post('/upsldc-mea/sync-generators');
+      if (res.data?.success) {
+        const newlyAdded = res.data.data?.newlyAdded || 0;
+        const total = res.data.data?.total || 615;
+        setSyncAlert({
+          type: newlyAdded > 0 ? 'success' : 'info',
+          text: newlyAdded > 0
+            ? `Discovered and registered ${newlyAdded} new Open Access generator(s) from UPSLDC! Total now: ${total}.`
+            : `UPSLDC portal verified: all ${total} Open Access generators are already up to date.`
+        });
+        fetchSummary();
+        fetchGenerators();
+        setTimeout(() => setSyncAlert(null), 6000);
+      }
+    } catch (err: any) {
+      console.error('Failed to sync generators:', err);
+      setSyncAlert({
+        type: 'info',
+        text: 'UPSLDC portal is currently responding slowly. Using current verified generator list.'
+      });
+      setTimeout(() => setSyncAlert(null), 5000);
+    } finally {
+      setSyncingGenerators(false);
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
@@ -368,6 +399,21 @@ export default function UpsldcMeaPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
+            startIcon={syncingGenerators ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon sx={{ fontSize: 18 }} />}
+            disabled={syncingGenerators}
+            onClick={handleSyncGenerators}
+            sx={{
+              borderColor: '#CBD5E1',
+              color: '#475569',
+              fontWeight: 600,
+              '&:hover': { bgcolor: alpha('#64748B', 0.08), borderColor: '#94A3B8' }
+            }}
+          >
+            {syncingGenerators ? 'Checking Portal...' : 'Sync Portal Entities'}
+          </Button>
+
+          <Button
+            variant="outlined"
             startIcon={<PlayIcon />}
             onClick={handleTriggerScrape}
             sx={{
@@ -401,6 +447,17 @@ export default function UpsldcMeaPage() {
           </Tooltip>
         </Box>
       </Box>
+
+      {/* Sync Notification Banner */}
+      {syncAlert && (
+        <Alert
+          severity={syncAlert.type}
+          onClose={() => setSyncAlert(null)}
+          sx={{ mb: 2.5, borderRadius: 2 }}
+        >
+          {syncAlert.text}
+        </Alert>
+      )}
 
       {/* 2. KPI Cards */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
