@@ -46,11 +46,15 @@ export class UpsldcMeaController {
 
   /**
    * GET /api/upsldc-mea/summary
-   * High-level metrics for dashboard cards
+   * High-level metrics for dashboard cards relative to selected year and month
    */
   public static async getSummary(req: Request, res: Response): Promise<void> {
     try {
-      const summary = UpsldcMeaService.getSummary();
+      const { year, month } = req.query;
+      const summary = UpsldcMeaService.getSummary({
+        year: year ? String(year) : undefined,
+        month: month ? String(month) : undefined
+      });
       res.json({
         success: true,
         data: summary
@@ -171,13 +175,17 @@ export class UpsldcMeaController {
 
   /**
    * GET /api/upsldc-mea/export-excel
-   * Downloads formatted Excel (.xlsx) file
+   * Downloads formatted Excel (.xlsx) file filtered by selected year and month
    */
   public static async exportExcel(req: Request, res: Response): Promise<void> {
     try {
-      const buffer = await UpsldcMeaExportService.generateExcelReport();
+      const { year, month } = req.query;
+      const buffer = await UpsldcMeaExportService.generateExcelReport({
+        year: year ? String(year) : undefined,
+        month: month ? String(month) : undefined
+      });
       const dateStr = new Date().toISOString().split('T')[0];
-      const filename = `UPSLDC_OA_MEA_Non_Trading_Report_${dateStr}.xlsx`;
+      const filename = `UPSLDC_OA_MEA_Non_Trading_Report_${year || 'Current'}_${month || 'Window'}_${dateStr}.xlsx`;
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

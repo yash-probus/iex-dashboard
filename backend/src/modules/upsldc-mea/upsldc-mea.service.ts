@@ -170,6 +170,7 @@ export class UpsldcMeaService {
 
   /**
    * Get all generators with filtering, search, pagination, and sorting
+   * Evaluates 3-month trading window relative to the selected year & month
    */
   public static getGenerators(options: {
     search?: string;
@@ -182,18 +183,50 @@ export class UpsldcMeaService {
     sortOrder?: 'asc' | 'desc';
   }) {
     const map = this.getGeneratorsMap();
-    let list = Object.values(map);
 
-    // Find max system score (current published month)
+    // 1. Determine maximum available system period in the database
     let maxOverallScore = 0;
+    let maxSystemYear = 2026;
+    let maxSystemMonth = 'SEP';
     for (const g of Object.values(map)) {
-      if (g.lastTradedYear && g.lastTradedMonth) {
-        const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
-        if (score > maxOverallScore) maxOverallScore = score;
+      for (const r of (g.records || [])) {
+        const score = (r.year || 0) * 12 + (MONTH_MAP[r.month] || 0);
+        if (score > maxOverallScore) {
+          maxOverallScore = score;
+          maxSystemYear = r.year;
+          maxSystemMonth = r.month;
+        }
       }
     }
 
-    // Apply Search
+    // 2. Compute Target Period and 3-Month Window [minWindowScore, targetScore]
+    const targetYear = options.year && options.year !== 'ALL' ? parseInt(options.year, 10) : maxSystemYear;
+    const targetMonth = options.month && options.month !== 'ALL' ? options.month.trim().toUpperCase() : maxSystemMonth;
+    const targetScore = targetYear * 12 + (MONTH_MAP[targetMonth] || 12);
+    const minWindowScore = targetScore - 2; // 3 months ending in targetMonth (e.g. SEP: JUL, AUG, SEP)
+
+    // 3. Dynamically evaluate each generator's status relative to this 3-month window
+    let list = Object.values(map).map(g => {
+      const hasRecords = g.records && g.records.length > 0;
+      if (!hasRecords) {
+        return {
+          ...g,
+          status: 'NEVER_TRADED' as const
+        };
+      }
+
+      const tradedInWindow = g.records.some(r => {
+        const rScore = (r.year || 0) * 12 + (MONTH_MAP[r.month] || 0);
+        return rScore >= minWindowScore && rScore <= targetScore;
+      });
+
+      return {
+        ...g,
+        status: tradedInWindow ? ('TRADING' as const) : ('NOT_TRADING_RECENT' as const)
+      };
+    });
+
+    // 4. Apply Search Filter
     if (options.search && options.search.trim()) {
       const q = options.search.trim().toLowerCase();
       list = list.filter(g => 
@@ -202,45 +235,31 @@ export class UpsldcMeaService {
       );
     }
 
-    // Apply Status Filter
+    // 5. Apply Status Filter
     if (options.status && options.status !== 'ALL') {
       if (options.status === 'NOT_TRADED_3_MONTHS') {
-        // Has not traded in recent 3 months from current month (or never traded)
-        list = list.filter(g => {
-          if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) return true;
-          const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
-          return (maxOverallScore - score) >= 3;
-        });
+        // Did NOT trade in the recent 3 months of the selected month (or never traded)
+        list = list.filter(g => g.status === 'NOT_TRADING_RECENT' || g.status === 'NEVER_TRADED');
+      } else if (options.status === 'TRADING') {
+        // Traded in the 3-month window
+        list = list.filter(g => g.status === 'TRADING');
+      } else if (options.status === 'NEVER_TRADED') {
+        list = list.filter(g => g.status === 'NEVER_TRADED');
+      } else if (options.status === 'NOT_TRADING_RECENT') {
+        list = list.filter(g => g.status === 'NOT_TRADING_RECENT');
       } else if (options.status === 'NOT_TRADED_LAST_MONTH') {
         list = list.filter(g => {
-          if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) return true;
-          const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
-          return (maxOverallScore - score) >= 1;
+          if (!g.records || g.records.length === 0) return true;
+          const tradedInTargetMonth = g.records.some(r => {
+            const rScore = (r.year || 0) * 12 + (MONTH_MAP[r.month] || 0);
+            return rScore === targetScore;
+          });
+          return !tradedInTargetMonth;
         });
-      } else if (options.status === 'TRADING') {
-        list = list.filter(g => {
-          if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) return false;
-          const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
-          return (maxOverallScore - score) < 3;
-        });
-      } else {
-        list = list.filter(g => g.status === options.status);
       }
     }
 
-    // Apply Year Filter (only if status is not specifically NEVER_TRADED)
-    if (options.status !== 'NEVER_TRADED' && options.status !== 'NOT_TRADED_LAST_MONTH' && options.year && options.year !== 'ALL') {
-      const yr = parseInt(options.year, 10);
-      list = list.filter(g => g.lastTradedYear === yr);
-    }
-
-    // Apply Month Filter (only if status is not specifically NEVER_TRADED)
-    if (options.status !== 'NEVER_TRADED' && options.status !== 'NOT_TRADED_LAST_MONTH' && options.month && options.month !== 'ALL') {
-      const m = options.month.trim().toUpperCase();
-      list = list.filter(g => g.lastTradedMonth === m);
-    }
-
-    // Sorting
+    // 6. Sorting
     const sortField = options.sortBy || 'name';
     const sortOrder = options.sortOrder || 'asc';
     list.sort((a, b) => {
@@ -273,7 +292,9 @@ export class UpsldcMeaService {
       page,
       limit,
       totalPages: Math.ceil(total / limit),
-      data: paginated
+      data: paginated,
+      selectedYear: targetYear,
+      selectedMonth: targetMonth
     };
   }
 
@@ -286,49 +307,57 @@ export class UpsldcMeaService {
   }
 
   /**
-   * Summary metrics for dashboard KPI cards
+   * Summary metrics for dashboard KPI cards relative to selected Year and Month
    */
-  public static getSummary() {
+  public static getSummary(options?: { year?: string; month?: string }) {
     const map = this.getGeneratorsMap();
     const list = Object.values(map);
 
     let maxOverallScore = 0;
+    let maxSystemYear = 2026;
+    let maxSystemMonth = 'SEP';
+
     for (const g of list) {
-      if (g.lastTradedYear && g.lastTradedMonth) {
-        const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
-        if (score > maxOverallScore) maxOverallScore = score;
+      for (const r of (g.records || [])) {
+        const score = (r.year || 0) * 12 + (MONTH_MAP[r.month] || 0);
+        if (score > maxOverallScore) {
+          maxOverallScore = score;
+          maxSystemYear = r.year;
+          maxSystemMonth = r.month;
+        }
       }
     }
 
+    const targetYear = options?.year && options.year !== 'ALL' ? parseInt(options.year, 10) : maxSystemYear;
+    const targetMonth = options?.month && options.month !== 'ALL' ? options.month.trim().toUpperCase() : maxSystemMonth;
+    const targetScore = targetYear * 12 + (MONTH_MAP[targetMonth] || 12);
+    const minWindowScore = targetScore - 2;
+
+    const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const startScore = minWindowScore;
+    const startYear = Math.floor((startScore - 1) / 12);
+    const startMonthIdx = (startScore - 1) % 12;
+    const startMonth = MONTH_NAMES[startMonthIdx] || 'JUL';
+    const windowLabel = `${startMonth} ${startYear} - ${targetMonth} ${targetYear}`;
+
     let tradingCount = 0;
     let notTraded3MonthsCount = 0;
-    let notTradedLastMonthCount = 0;
     let neverTradedCount = 0;
 
-    let latestTradedYear: number | null = null;
-    let latestTradedMonth: string | null = null;
-
     for (const g of list) {
-      if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) {
+      if (!g.records || g.records.length === 0) {
         neverTradedCount++;
         notTraded3MonthsCount++;
-        notTradedLastMonthCount++;
       } else {
-        const diff = maxOverallScore - (g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0));
-        if (diff >= 3) {
-          notTraded3MonthsCount++;
-        } else {
+        const tradedInWindow = g.records.some(r => {
+          const rScore = (r.year || 0) * 12 + (MONTH_MAP[r.month] || 0);
+          return rScore >= minWindowScore && rScore <= targetScore;
+        });
+
+        if (tradedInWindow) {
           tradingCount++;
-        }
-
-        if (diff >= 1) {
-          notTradedLastMonthCount++;
-        }
-
-        const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
-        if (score === maxOverallScore) {
-          latestTradedYear = g.lastTradedYear;
-          latestTradedMonth = g.lastTradedMonth;
+        } else {
+          notTraded3MonthsCount++;
         }
       }
     }
@@ -337,9 +366,14 @@ export class UpsldcMeaService {
       totalGenerators: list.length,
       tradingCount,
       notTraded3MonthsCount,
-      notTradedLastMonthCount,
+      notTradedLastMonthCount: notTraded3MonthsCount,
       neverTradedCount,
-      latestSystemTradedPeriod: latestTradedYear && latestTradedMonth ? `${latestTradedMonth} ${latestTradedYear}` : null,
+      selectedYear: targetYear,
+      selectedMonth: targetMonth,
+      windowLabel,
+      windowStartMonth: startMonth,
+      windowStartYear: startYear,
+      latestSystemTradedPeriod: `${maxSystemMonth} ${maxSystemYear}`,
       scrapeStatus: this.scrapeStatus
     };
   }

@@ -8,12 +8,17 @@ export class UpsldcMeaExportService {
    * 2. All Open Access Generators
    * 3. Complete MEA Records History
    */
-  public static async generateExcelReport(): Promise<Buffer> {
-    const map = UpsldcMeaService.getGeneratorsMap();
-    const allGenerators = Object.values(map);
-
-    // Sort by name
-    allGenerators.sort((a, b) => a.name.localeCompare(b.name));
+  public static async generateExcelReport(options?: { year?: string; month?: string }): Promise<Buffer> {
+    const summary = UpsldcMeaService.getSummary(options);
+    const genResult = UpsldcMeaService.getGenerators({
+      year: options?.year,
+      month: options?.month,
+      status: 'ALL',
+      limit: 10000,
+      sortBy: 'name',
+      sortOrder: 'asc'
+    });
+    const allGenerators = genResult.data;
 
     const inactiveGenerators = allGenerators.filter(g => g.status === 'NOT_TRADING_RECENT' || g.status === 'NEVER_TRADED');
     const activeGenerators = allGenerators.filter(g => g.status === 'TRADING');
@@ -53,16 +58,16 @@ export class UpsldcMeaExportService {
     };
 
     // -------------------------------------------------------------
-    // SHEET 1: Inactive / Not Trading in Recent Months
+    // SHEET 1: Inactive / Not Trading in Recent 3 Months
     // -------------------------------------------------------------
-    const wsInactive = workbook.addWorksheet('Not Trading (Recent Months)', {
+    const wsInactive = workbook.addWorksheet('Not Trading (Recent 3M)', {
       views: [{ showGridLines: true }]
     });
 
     // Title banner
     wsInactive.mergeCells('A1:H1');
     const titleCell1 = wsInactive.getCell('A1');
-    titleCell1.value = 'UPSLDC Open Access (OA) Entities - Not Trading in Recent Months';
+    titleCell1.value = `UPSLDC Open Access (OA) Entities - Not Trading in Recent 3 Months (${summary.windowLabel})`;
     titleCell1.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC00000' } }; // Dark Red banner
     titleCell1.alignment = centerAlign;
@@ -71,7 +76,7 @@ export class UpsldcMeaExportService {
     // Subtitle info
     wsInactive.mergeCells('A2:H2');
     const subCell1 = wsInactive.getCell('A2');
-    subCell1.value = `Generated on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} | Total Entities Identified: ${inactiveGenerators.length} of ${allGenerators.length}`;
+    subCell1.value = `Generated on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} | Target: ${summary.selectedMonth} ${summary.selectedYear} (Window: ${summary.windowLabel}) | Not Traded: ${inactiveGenerators.length} of ${allGenerators.length}`;
     subCell1.font = { name: 'Calibri', size: 10, italic: true };
     subCell1.alignment = centerAlign;
     wsInactive.getRow(2).height = 20;

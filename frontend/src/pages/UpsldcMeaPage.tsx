@@ -68,6 +68,11 @@ export interface UpsldcSummary {
   notTraded3MonthsCount: number;
   notTradedLastMonthCount: number;
   neverTradedCount: number;
+  selectedYear?: number;
+  selectedMonth?: string;
+  windowLabel?: string;
+  windowStartMonth?: string;
+  windowStartYear?: number;
   latestSystemTradedPeriod: string | null;
   scrapeStatus: {
     isRunning: boolean;
@@ -82,6 +87,26 @@ export interface UpsldcSummary {
 }
 
 export type StatusFilterType = 'NOT_TRADED_3_MONTHS' | 'ALL' | 'TRADING' | 'NEVER_TRADED';
+
+const AVAILABLE_YEARS = ['2026', '2025', '2024'];
+const AVAILABLE_MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+const MONTH_MAP: Record<string, number> = {
+  JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6,
+  JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12
+};
+const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+const getWindowLabel = (yearStr: string, monthStr: string) => {
+  const y = parseInt(yearStr, 10);
+  const m = MONTH_MAP[monthStr] || 9;
+  const targetScore = y * 12 + m;
+  const startScore = targetScore - 2;
+  const startY = Math.floor((startScore - 1) / 12);
+  const startMIdx = (startScore - 1) % 12;
+  const startM = MONTH_NAMES[startMIdx] || 'JUL';
+  return `${startM} ${startY} - ${monthStr} ${yearStr}`;
+};
 
 export default function UpsldcMeaPage() {
   const theme = useTheme();
@@ -99,6 +124,8 @@ export default function UpsldcMeaPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('NOT_TRADED_3_MONTHS');
+  const [selectedYear, setSelectedYear] = useState<string>('2026');
+  const [selectedMonth, setSelectedMonth] = useState<string>('SEP');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [sortBy, setSortBy] = useState<string>('name');
@@ -116,7 +143,9 @@ export default function UpsldcMeaPage() {
   const handleResetFilters = () => {
     setSearch('');
     setDebouncedSearch('');
-    setStatusFilter('ALL');
+    setStatusFilter('NOT_TRADED_3_MONTHS');
+    setSelectedYear('2026');
+    setSelectedMonth('SEP');
     setPage(0);
   };
 
@@ -132,19 +161,21 @@ export default function UpsldcMeaPage() {
     setPage(0);
   };
 
-  // Fetch Summary
+  // Fetch Summary relative to selected year and month
   const fetchSummary = useCallback(async () => {
     try {
-      const res = await apiClient.get('/upsldc-mea/summary');
+      const res = await apiClient.get('/upsldc-mea/summary', {
+        params: { year: selectedYear, month: selectedMonth }
+      });
       if (res.data?.success) {
         setSummary(res.data.data);
       }
     } catch (err) {
       console.error('Failed to fetch summary:', err);
     }
-  }, []);
+  }, [selectedYear, selectedMonth]);
 
-  // Fetch Generators List
+  // Fetch Generators List relative to selected 3-month window
   const fetchGenerators = useCallback(async () => {
     setLoading(true);
     try {
@@ -152,6 +183,8 @@ export default function UpsldcMeaPage() {
         page: page + 1,
         limit: rowsPerPage,
         status: statusFilter,
+        year: selectedYear,
+        month: selectedMonth,
         search: debouncedSearch.trim() || undefined,
         sortBy,
         sortOrder
@@ -167,7 +200,7 @@ export default function UpsldcMeaPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, statusFilter, debouncedSearch, sortBy, sortOrder]);
+  }, [page, rowsPerPage, statusFilter, selectedYear, selectedMonth, debouncedSearch, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchSummary();
@@ -202,11 +235,12 @@ export default function UpsldcMeaPage() {
     }
   };
 
-  // Export to Excel
+  // Export to Excel for the selected 3-month window
   const handleExportExcel = async () => {
     try {
       setExporting(true);
       const res = await apiClient.get('/upsldc-mea/export-excel', {
+        params: { year: selectedYear, month: selectedMonth },
         responseType: 'blob'
       });
       const blob = new Blob([res.data], {
@@ -215,7 +249,7 @@ export default function UpsldcMeaPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `UPSLDC_OA_MEA_Non_Trading_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+      link.setAttribute('download', `UPSLDC_OA_MEA_Non_Trading_${selectedYear}_${selectedMonth}_Report.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -278,7 +312,12 @@ export default function UpsldcMeaPage() {
     }
   };
 
-  const isFiltersActive = Boolean(search || statusFilter !== 'ALL');
+  const isFiltersActive = Boolean(
+    search ||
+    statusFilter !== 'NOT_TRADED_3_MONTHS' ||
+    selectedYear !== '2026' ||
+    selectedMonth !== 'SEP'
+  );
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3 }, maxWidth: 1600, margin: '0 auto' }}>
@@ -294,7 +333,7 @@ export default function UpsldcMeaPage() {
             </Typography>
           </Box>
           <Typography variant="body2" sx={{ color: '#64748B', ml: { xs: 0, sm: 6.5 } }}>
-            Identify customers who have not traded in recent 3 months from current month ({summary?.latestSystemTradedPeriod || 'Current Month'}).
+            Identify customers who have not traded in recent 3 months relative to selected month & year ({getWindowLabel(selectedYear, selectedMonth)}).
           </Typography>
         </Box>
 
@@ -404,7 +443,7 @@ export default function UpsldcMeaPage() {
                 {summary ? summary.notTraded3MonthsCount : 4}
               </Typography>
               <Typography variant="caption" sx={{ color: '#B91C1C', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                Inactive for ≥ 3 Months / Never Traded
+                0 Trades in {getWindowLabel(selectedYear, selectedMonth)}
               </Typography>
             </CardContent>
           </Card>
@@ -435,7 +474,7 @@ export default function UpsldcMeaPage() {
                 {summary ? summary.tradingCount : 611}
               </Typography>
               <Typography variant="caption" sx={{ color: '#15803D', fontWeight: 500, display: 'block', mt: 0.5 }}>
-                Traded within Recent 3 Months
+                Traded in {getWindowLabel(selectedYear, selectedMonth)}
               </Typography>
             </CardContent>
           </Card>
@@ -462,10 +501,11 @@ export default function UpsldcMeaPage() {
         </Grid>
       </Grid>
 
-      {/* 3. Filter Bar - Clean, focused on 3-month filter without extra dropdowns */}
+      {/* 3. Filter Bar - Search, Filter Customers, Year Selection, Month Selection */}
       <Paper sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid #E2E8F0' }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={6} md={5}>
+          {/* Search Customer */}
+          <Grid item xs={12} sm={6} md={3.5}>
             <TextField
               fullWidth
               size="small"
@@ -482,7 +522,8 @@ export default function UpsldcMeaPage() {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={5}>
+          {/* Customer Status Filter */}
+          <Grid item xs={12} sm={6} md={3.5}>
             <TextField
               select
               fullWidth
@@ -492,13 +533,13 @@ export default function UpsldcMeaPage() {
               onChange={(e) => handleStatusChange(e.target.value as any)}
             >
               <MenuItem value="NOT_TRADED_3_MONTHS" sx={{ color: '#DC2626', fontWeight: 700 }}>
-                ⚡ Not Traded in Recent 3 Months ({summary ? summary.notTraded3MonthsCount : 4})
+                ⚡ Not Traded in Recent 3 Months ({summary ? summary.notTraded3MonthsCount : 0})
               </MenuItem>
               <MenuItem value="ALL">
                 All Customers ({summary ? summary.totalGenerators : 615})
               </MenuItem>
               <MenuItem value="TRADING" sx={{ color: '#15803D' }}>
-                ✅ Actively Trading ({summary ? summary.tradingCount : 611})
+                ✅ Actively Trading ({summary ? summary.tradingCount : 0})
               </MenuItem>
               <MenuItem value="NEVER_TRADED" sx={{ color: '#64748B' }}>
                 ❓ Never Traded ({summary ? summary.neverTradedCount : 2})
@@ -506,18 +547,86 @@ export default function UpsldcMeaPage() {
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+          {/* Year Selection */}
+          <Grid item xs={6} sm={3} md={1.8}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Select Year"
+              value={selectedYear}
+              onChange={(e) => {
+                setSelectedYear(e.target.value);
+                setPage(0);
+              }}
+            >
+              {AVAILABLE_YEARS.map(y => (
+                <MenuItem key={y} value={y}>{y}</MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          {/* Month Selection */}
+          <Grid item xs={6} sm={3} md={1.8}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Select Month"
+              value={selectedMonth}
+              onChange={(e) => {
+                setSelectedMonth(e.target.value);
+                setPage(0);
+              }}
+            >
+              {AVAILABLE_MONTHS.map(m => (
+                <MenuItem key={m} value={m}>{m}</MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          {/* Reset Filters */}
+          <Grid item xs={12} md={1.4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
             <Button
               variant="text"
               size="small"
               disabled={!isFiltersActive}
               onClick={handleResetFilters}
-              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none' }}
+              sx={{ color: '#64748B', fontWeight: 600, textTransform: 'none', whiteSpace: 'nowrap' }}
             >
               Reset Filters
             </Button>
           </Grid>
         </Grid>
+
+        {/* 3-Month Window Indicator banner */}
+        <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Typography variant="body2" sx={{ color: '#475569', fontWeight: 600, fontSize: '13px' }}>
+              3-Month Evaluation Window:
+            </Typography>
+            <Chip
+              label={getWindowLabel(selectedYear, selectedMonth)}
+              size="small"
+              sx={{
+                fontWeight: 700,
+                bgcolor: '#EFF6FF',
+                color: '#1D4ED8',
+                border: '1px solid #BFDBFE',
+                fontSize: '12px'
+              }}
+            />
+            <Typography variant="caption" sx={{ color: '#64748B' }}>
+              ({statusFilter === 'NOT_TRADED_3_MONTHS'
+                ? `Customers with 0 trades in ${getWindowLabel(selectedYear, selectedMonth)}`
+                : `Trading status evaluated across ${getWindowLabel(selectedYear, selectedMonth)}`})
+            </Typography>
+          </Box>
+
+          <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 500 }}>
+            Showing {generators.length} of {totalCount} matching customers
+          </Typography>
+        </Box>
       </Paper>
 
       {/* 4. Data Table - EXACTLY 5 COLUMNS ONLY: S.No., Customer Name, UPSLDC ID, Status, Last Month Traded */}
