@@ -173,7 +173,7 @@ export class UpsldcMeaService {
    */
   public static getGenerators(options: {
     search?: string;
-    status?: 'ALL' | 'TRADING' | 'NOT_TRADING_RECENT' | 'NEVER_TRADED' | 'NOT_TRADED_LAST_MONTH';
+    status?: 'ALL' | 'TRADING' | 'NOT_TRADING_RECENT' | 'NEVER_TRADED' | 'NOT_TRADED_LAST_MONTH' | 'NOT_TRADED_3_MONTHS';
     year?: string;
     month?: string;
     page?: number;
@@ -183,6 +183,15 @@ export class UpsldcMeaService {
   }) {
     const map = this.getGeneratorsMap();
     let list = Object.values(map);
+
+    // Find max system score (current published month)
+    let maxOverallScore = 0;
+    for (const g of Object.values(map)) {
+      if (g.lastTradedYear && g.lastTradedMonth) {
+        const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
+        if (score > maxOverallScore) maxOverallScore = score;
+      }
+    }
 
     // Apply Search
     if (options.search && options.search.trim()) {
@@ -195,8 +204,25 @@ export class UpsldcMeaService {
 
     // Apply Status Filter
     if (options.status && options.status !== 'ALL') {
-      if (options.status === 'NOT_TRADED_LAST_MONTH') {
-        list = list.filter(g => g.status === 'NOT_TRADING_RECENT' || g.status === 'NEVER_TRADED');
+      if (options.status === 'NOT_TRADED_3_MONTHS') {
+        // Has not traded in recent 3 months from current month (or never traded)
+        list = list.filter(g => {
+          if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) return true;
+          const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
+          return (maxOverallScore - score) >= 3;
+        });
+      } else if (options.status === 'NOT_TRADED_LAST_MONTH') {
+        list = list.filter(g => {
+          if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) return true;
+          const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
+          return (maxOverallScore - score) >= 1;
+        });
+      } else if (options.status === 'TRADING') {
+        list = list.filter(g => {
+          if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) return false;
+          const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
+          return (maxOverallScore - score) < 3;
+        });
       } else {
         list = list.filter(g => g.status === options.status);
       }
@@ -266,36 +292,52 @@ export class UpsldcMeaService {
     const map = this.getGeneratorsMap();
     const list = Object.values(map);
 
+    let maxOverallScore = 0;
+    for (const g of list) {
+      if (g.lastTradedYear && g.lastTradedMonth) {
+        const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
+        if (score > maxOverallScore) maxOverallScore = score;
+      }
+    }
+
     let tradingCount = 0;
-    let notTradingRecentCount = 0;
+    let notTraded3MonthsCount = 0;
+    let notTradedLastMonthCount = 0;
     let neverTradedCount = 0;
 
     let latestTradedYear: number | null = null;
     let latestTradedMonth: string | null = null;
-    let maxMonthVal = 0;
 
     for (const g of list) {
-      if (g.status === 'TRADING') tradingCount++;
-      else if (g.status === 'NOT_TRADING_RECENT') notTradingRecentCount++;
-      else neverTradedCount++;
+      if (!g.records || g.records.length === 0 || !g.lastTradedYear || !g.lastTradedMonth) {
+        neverTradedCount++;
+        notTraded3MonthsCount++;
+        notTradedLastMonthCount++;
+      } else {
+        const diff = maxOverallScore - (g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0));
+        if (diff >= 3) {
+          notTraded3MonthsCount++;
+        } else {
+          tradingCount++;
+        }
 
-      if (g.lastTradedYear && g.lastTradedMonth) {
-        const mVal = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
-        if (mVal > maxMonthVal) {
-          maxMonthVal = mVal;
+        if (diff >= 1) {
+          notTradedLastMonthCount++;
+        }
+
+        const score = g.lastTradedYear * 12 + (MONTH_MAP[g.lastTradedMonth] || 0);
+        if (score === maxOverallScore) {
           latestTradedYear = g.lastTradedYear;
           latestTradedMonth = g.lastTradedMonth;
         }
       }
     }
 
-    const notTradedLastMonthCount = notTradingRecentCount + neverTradedCount;
-
     return {
       totalGenerators: list.length,
       tradingCount,
+      notTraded3MonthsCount,
       notTradedLastMonthCount,
-      notTradingRecentCount,
       neverTradedCount,
       latestSystemTradedPeriod: latestTradedYear && latestTradedMonth ? `${latestTradedMonth} ${latestTradedYear}` : null,
       scrapeStatus: this.scrapeStatus
