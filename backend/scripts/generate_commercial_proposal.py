@@ -30,7 +30,7 @@ def safe_float(val, default=0.0):
     except (ValueError, TypeError):
         return default
 
-def set_run_font(run, font_name="Aptos", size_pt=10, bold=None, italic=None, underline=None):
+def set_run_font(run, font_name="Aptos", size_pt=10, bold=None, italic=None, underline=None, color=None):
     if font_name is not None:
         run.font.name = font_name
     if size_pt is not None:
@@ -49,9 +49,31 @@ def set_run_font(run, font_name="Aptos", size_pt=10, bold=None, italic=None, und
         rFonts.set(qn('w:hAnsi'), font_name)
         rFonts.set(qn('w:cs'), font_name)
         rFonts.set(qn('w:eastAsia'), font_name)
+    if color is not None:
+        w_color = rPr.find(qn('w:color'))
+        if w_color is None:
+            w_color = rPr.makeelement(qn('w:color'))
+            rPr.append(w_color)
+        w_color.set(qn('w:val'), color)
 
 def ensure_uniform_font(doc, target_font="Aptos"):
-    def fix_run(r):
+    def is_reddish(val):
+        if not val:
+            return False
+        val = str(val).upper().replace('#', '').strip()
+        if val in ['RED', 'CRIMSON', 'FIREBRICK', 'DARKRED']:
+            return True
+        if len(val) == 6:
+            try:
+                r = int(val[0:2], 16)
+                g = int(val[2:4], 16)
+                b = int(val[4:6], 16)
+                return r > 150 and g < 100 and b < 100
+            except ValueError:
+                return False
+        return False
+
+    def fix_run(r, force_black=False):
         r.font.name = target_font
         rPr = r._element.get_or_add_rPr()
         rFonts = rPr.get_or_add_rFonts()
@@ -60,16 +82,29 @@ def ensure_uniform_font(doc, target_font="Aptos"):
         rFonts.set(qn('w:cs'), target_font)
         rFonts.set(qn('w:eastAsia'), target_font)
 
+        w_color = rPr.find(qn('w:color'))
+        if force_black:
+            if w_color is None:
+                w_color = rPr.makeelement(qn('w:color'))
+                rPr.append(w_color)
+            w_color.set(qn('w:val'), '000000')
+        elif w_color is not None:
+            c_val = w_color.get(qn('w:val'))
+            if is_reddish(c_val):
+                w_color.set(qn('w:val'), '000000')
+
     for p in doc.paragraphs:
         for r in p.runs:
             fix_run(r)
 
     for t in doc.tables:
-        for row in t.rows:
+        is_terms_table = any('Terms & Conditions' in cell.text for row in t.rows for cell in row.cells)
+        for ri, row in enumerate(t.rows):
+            force_row_black = is_terms_table and ri > 0
             for c in row.cells:
                 for p in c.paragraphs:
                     for r in p.runs:
-                        fix_run(r)
+                        fix_run(r, force_black=force_row_black)
 
     for s in doc.sections:
         if s.header:
@@ -132,7 +167,7 @@ def generate_proposal(data_json):
                             run.text = replace_in_text(run.text)
 
     # Helper function to set cell text with centered alignment and uniform font
-    def set_cell_value(cell, text, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10):
+    def set_cell_value(cell, text, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10, color="000000"):
         cell._element.clear_content()
         p = cell.add_paragraph()
         p.alignment = align
@@ -140,7 +175,7 @@ def generate_proposal(data_json):
         p.paragraph_format.space_after = Pt(0)
         p.paragraph_format.line_spacing = 1.0
         run = p.add_run(str(text))
-        set_run_font(run, font_name="Aptos", size_pt=size_pt, bold=bold, italic=italic)
+        set_run_font(run, font_name="Aptos", size_pt=size_pt, bold=bold, italic=italic, color=color)
 
     # 2. Update Table 0 (Facility Parameters: Sanctioned Load, Connectivity, DISCOM Name, Feeder Type)
     if len(doc.tables) > 0:
@@ -285,16 +320,25 @@ def generate_proposal(data_json):
         # Row 15: Smart Metering
         if len(t3.rows) > 15: set_cell_value(t3.rows[15].cells[-1], format_rupee(smart), align=WD_ALIGN_PARAGRAPH.RIGHT, size_pt=10)
 
-    # 4. Update Table 4 (Terms & Conditions)
-    if len(doc.tables) > 4:
-        t4 = doc.tables[4]
-        smart_payment_term = str(data.get('smart_metering_infra_payment_term', '100% Advance against PO/PI'))
-        
-        # Searching for 'Prolt Energy Smart Metering Infra' in the second column to replace the third column
-        for row in t4.rows:
-            if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[1].text:
-                set_cell_value(row.cells[2], smart_payment_term, italic=True, align=WD_ALIGN_PARAGRAPH.LEFT, size_pt=10)
-                break
+    # 4. Update Terms & Conditions Table
+    for t in doc.tables:
+        table_text = ' '.join(c.text for row in t.rows for cell in row.cells)
+        if 'Terms & Conditions' in table_text:
+            smart_payment_term = str(data.get('smart_metering_infra_payment_term', '100% Advance against PO/PI'))
+            for ri, row in enumerate(t.rows):
+                if ri > 0:
+                    for cell in row.cells:
+                        for p in cell.paragraphs:
+                            for r in p.runs:
+                                rPr = r._element.get_or_add_rPr()
+                                w_color = rPr.find(qn('w:color'))
+                                if w_color is None:
+                                    w_color = rPr.makeelement(qn('w:color'))
+                                    rPr.append(w_color)
+                                w_color.set(qn('w:val'), '000000')
+
+                    if len(row.cells) > 1 and 'Prolt Energy Smart Metering' in row.cells[1].text:
+                        set_cell_value(row.cells[-1], smart_payment_term, italic=True, align=WD_ALIGN_PARAGRAPH.LEFT, size_pt=10, color="000000")
 
     # Enforce uniform Aptos font across the entire document
     ensure_uniform_font(doc, target_font="Aptos")

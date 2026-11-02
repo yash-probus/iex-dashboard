@@ -116,7 +116,7 @@ export class ProposalService {
         if (cells.length > 1) {
           const lastIdx = cells.length - 2;
           const boldXml = isBold ? '<w:b/><w:bCs/>' : '';
-          const cellContent = `<w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${newText}</w:t></w:r>`;
+          const cellContent = `<w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="000000"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Arial"/>${boldXml}<w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="000000"/></w:rPr><w:t>${newText}</w:t></w:r>`;
           cells[lastIdx] = cells[lastIdx].replace(/<w:p\b[^>]*>[\s\S]*<\/w:p>/, `<w:p>${cellContent}</w:p>`);
         }
         return cells.join('</w:tc>');
@@ -127,6 +127,9 @@ export class ProposalService {
 
       // 1. Remove all yellow highlights in entire XML
       xml = xml.replace(/<w:highlight [^/>]*\/>/g, '');
+
+      // Sanitize any red color tags across entire XML to black
+      xml = xml.replace(/<w:color\b[^>]*w:val="(?:FF0000|C00000|ED1C24|EE0000|EF1B23|EC2330|EF1717|red|crimson)"[^>]*\/>/gi, '<w:color w:val="000000"/>');
 
       // 2. Title Paragraph P2
       const clientName = (clientData.client_name || clientData.industry_name || clientData.clientName || 'CLIENT').toUpperCase();
@@ -252,13 +255,15 @@ export class ProposalService {
           if (rows[14]) rows[14] = setLastCellText(rows[14], vs, false);
           if (rows[15]) rows[15] = setLastCellText(rows[15], formatRupee(smart), false);
           
-        } else if (currentIdx === 4) {
-          // Table 4 (Terms & Conditions)
+        } else if (match.includes('Terms &amp; Conditions') || match.includes('Terms & Conditions')) {
+          // Terms & Conditions Table
           const paymentTerm = String(clientData.smart_metering_infra_payment_term || '100% Advance against PO/PI');
           for (let i = 0; i < rows.length; i++) {
+            if (i > 0) {
+              // Ensure all runs in content rows have black color and no red color
+              rows[i] = rows[i].replace(/<w:color\b[^>]*w:val="[^"]*"[^>]*\/>/g, '<w:color w:val="000000"/>');
+            }
             if (rows[i].includes('Prolt Energy Smart Metering')) {
-              // Instead of replacing the last cell, we need to replace the third column. 
-              // Since the last cell IS the third column in this table, setLastCellText works perfectly!
               rows[i] = setLastCellText(rows[i], paymentTerm, false);
             }
           }

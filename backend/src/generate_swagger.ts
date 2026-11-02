@@ -123,3 +123,4 @@ endpoints.forEach((endpoint) => {
 const outputPath = path.join(__dirname, 'swagger_output.json');
 fs.writeFileSync(outputPath, JSON.stringify(swaggerDoc, null, 2));
 console.log(`Successfully generated swagger documentation with ${endpoints.length} routes at ${outputPath}`);
+process.exit(0);
