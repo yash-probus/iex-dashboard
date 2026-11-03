@@ -50,9 +50,16 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${GCP_USER}@${GCP_IP}" "mkdir -p 
 
 # 3. Transfer to GCP VM
 echo "[3/4] Transferring backup to GCP VM (${GCP_USER}@${GCP_IP}:${GCP_DEST_DIR})..."
-rsync -avz --progress -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
-  "$BACKUP_FILE" \
-  "${GCP_USER}@${GCP_IP}:${GCP_DEST_DIR}/"
+if ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${GCP_USER}@${GCP_IP}" "command -v rsync &> /dev/null"; then
+  rsync -avz --progress -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
+    "$BACKUP_FILE" \
+    "${GCP_USER}@${GCP_IP}:${GCP_DEST_DIR}/"
+else
+  echo "Notice: rsync not installed on GCP VM, falling back to scp..."
+  scp -i "$SSH_KEY" -o StrictHostKeyChecking=no \
+    "$BACKUP_FILE" \
+    "${GCP_USER}@${GCP_IP}:${GCP_DEST_DIR}/"
+fi
 
 echo "File transfer to GCP verified."
 
