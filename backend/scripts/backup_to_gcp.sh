@@ -9,9 +9,11 @@ set -e
 
 DATE=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_DIR="/mnt/storage/iex_db_backups"
-BACKUP_FILENAME="prolt_operations_${DATE}.sql.gz"
+BACKUP_FILENAME="prolt_operations_prod_${DATE}.sql.gz"
 BACKUP_FILE="${BACKUP_DIR}/${BACKUP_FILENAME}"
-DB_URL="postgresql://postgres:iex_sec_k9P2mX_2026@127.0.0.1:5432/Prolt_Operations"
+PROD_CONTAINER="iex-postgres-prod"
+DB_NAME="Prolt_Operations"
+DB_URL="postgresql://postgres:iex_sec_k9P2mX_2026@127.0.0.1:5436/Prolt_Operations"
 
 # GCP VM Destination
 GCP_USER="yash_probus_io"
@@ -26,14 +28,16 @@ GCP_RETENTION_DAYS=30    # Keep 30 days on GCP for disaster recovery
 mkdir -p "$BACKUP_DIR"
 
 echo "=========================================================="
-echo "Starting Database Backup to GCP: $DATE"
+echo "Starting PRODUCTION Database Backup to GCP: $DATE"
+echo "Target Container: $PROD_CONTAINER (Port 5436)"
 echo "=========================================================="
 
-# 1. Dump database and compress with gzip
-echo "[1/4] Dumping database Prolt_Operations..."
-if command -v docker &> /dev/null && docker ps | grep -q "iex-postgres"; then
-  docker exec iex-postgres pg_dump -U postgres --no-owner --no-privileges Prolt_Operations | gzip > "$BACKUP_FILE"
+# 1. Dump database from iex-postgres-prod and compress with gzip
+echo "[1/4] Dumping PRODUCTION database $DB_NAME from $PROD_CONTAINER..."
+if docker ps --format '{{.Names}}' | grep -q "^${PROD_CONTAINER}$"; then
+  docker exec "$PROD_CONTAINER" pg_dump -U postgres --no-owner --no-privileges "$DB_NAME" | gzip > "$BACKUP_FILE"
 else
+  echo "Warning: Container $PROD_CONTAINER not found by name, falling back to port 5436..."
   pg_dump --dbname="$DB_URL" --no-owner --no-privileges | gzip > "$BACKUP_FILE"
 fi
 
@@ -66,3 +70,4 @@ echo "Cleaned GCP backups older than $GCP_RETENTION_DAYS days."
 echo "=========================================================="
 echo "Backup & cross-cloud sync completed at $(date +"%Y-%m-%d %H:%M:%S")"
 echo "=========================================================="
+
