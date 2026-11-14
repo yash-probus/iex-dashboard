@@ -25,8 +25,14 @@ export class CronService {
 
     // Run every day at 10:00 AM for Resource Center Daily Charge Alerts (Asia/Kolkata)
     cron.schedule('0 10 * * *', async () => {
-      if (config.env === 'development' || config.env === 'dev') {
-        console.log('[Cron] Skipping daily Resource Center missing charges check in dev environment');
+      const isDev = config.env === 'development' || 
+                    config.env === 'dev' || 
+                    process.env.APP_ENV === 'development' || 
+                    process.env.APP_ENV === 'dev' ||
+                    process.env.ENABLE_CHARGE_ALERTS !== 'true';
+
+      if (isDev) {
+        console.log('[Cron] Skipping daily Resource Center missing charges check in dev/non-production environment (set ENABLE_CHARGE_ALERTS=true to enable)');
         return;
       }
       

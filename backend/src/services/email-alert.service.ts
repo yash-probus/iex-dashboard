@@ -35,7 +35,19 @@ export const checkAndSendDailyChargeAlerts = async (): Promise<void> => {
       let count = 0;
 
       // Determine how to check based on the resource type
-      if (['iex-fees', 'ctu-charges', 'state-tariff', 'fppa-charges'].includes(key)) {
+      if (key === 'state-tariff') {
+        // StateTariff stores month as 1-12 (calendar month number), or YYYYMM in consumptionMonth / month
+        const currentMonthNum = today.getMonth() + 1;
+        count = await (delegate as any).count({
+          where: {
+            OR: [
+              { month: currentMonthNum },
+              { month: currentYearMonth },
+              { consumptionMonth: currentYearMonth },
+            ],
+          },
+        });
+      } else if (['iex-fees', 'ctu-charges', 'fppa-charges'].includes(key)) {
         // These are monthly charges keyed by YYYYMM
         count = await (delegate as any).count({
           where: {
@@ -80,9 +92,10 @@ export const checkAndSendDailyChargeAlerts = async (): Promise<void> => {
         </div>
       `;
 
+      const recipient = process.env.CHARGE_ALERT_RECIPIENT || 'aditya@probus.io';
       await transporter.sendMail({
         from: `"Prolt Resource Center Alerts" <${process.env.SMTP_USER || 'no-reply@probus.io'}>`,
-        to: 'aditya@probus.io',
+        to: recipient,
         subject: `ACTION REQUIRED: Missing Resource Center Charges for ${today.toLocaleDateString()}`,
         html: emailContent,
       });
