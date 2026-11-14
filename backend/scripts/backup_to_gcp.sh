@@ -26,7 +26,7 @@ LOCAL_RETENTION_DAYS=7   # Keep 7 days on AWS (conserves disk space)
 GCP_RETENTION_DAYS=30    # Keep 30 days on GCP for disaster recovery
 
 mkdir -p "$BACKUP_DIR"
-
+ 
 echo "=========================================================="
 echo "Starting PRODUCTION Database Backup to GCP: $DATE"
 echo "Target Container: $PROD_CONTAINER (Port 5436)"
