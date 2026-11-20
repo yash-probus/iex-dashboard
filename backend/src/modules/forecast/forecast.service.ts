@@ -29,6 +29,7 @@ export interface DemandForecastIntervalData {
   demand: number; // in MW or kW
   actualDemand?: number | null;
   frequency?: number; // in Hz
+  meterNo?: string;
 }
 
 export class ForecastService {
@@ -825,13 +826,21 @@ export class ForecastService {
         let formatted: DemandForecastIntervalData[] = [];
 
         try {
+          const queryParams: any[] = [dates];
+          let meterCondition = '';
+          if (meterNo && meterNo.toLowerCase() !== 'all') {
+            meterCondition = 'AND meter_id = $2';
+            queryParams.push(meterNo);
+          }
+
           const [records, actualMap] = await Promise.all([
             prisma.$queryRawUnsafe(
-              `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy
+              `SELECT timestamp, (timestamp::date)::text as date_str, slot_number, forecasted_energy, actual_energy, meter_id
                FROM "forecasting"."consumer_demand_forecasting"
                WHERE (timestamp::date)::text = ANY($1::text[])
+               ${meterCondition}
                ORDER BY timestamp ASC, slot_number ASC`,
-              dates
+              ...queryParams
             ) as Promise<any[]>,
             StarrocksService.getConsumerActualDemandMap(dates, meterNo)
           ]);
@@ -872,18 +881,37 @@ export class ForecastService {
               demand: r.forecasted_energy !== null && r.forecasted_energy !== undefined 
                 ? Number(r.forecasted_energy) 
                 : (r.forecast_demand !== null && r.forecast_demand !== undefined ? Number(r.forecast_demand) : 0),
-              actualDemand: actualVal
+              actualDemand: actualVal,
+              meterNo: r.meter_id ? String(r.meter_id) : (meterNo && meterNo.toLowerCase() !== 'all' ? meterNo : undefined)
             };
           });
         } catch {
           // Legacy schema fallback (timestamp + forecast_demand)
-          const records: any[] = await prisma.$queryRawUnsafe(
-            `SELECT timestamp, (timestamp::date)::text as date_str, forecast_demand
-             FROM "forecasting"."consumer_demand_forecasting"
-             WHERE (timestamp::date)::text = ANY($1::text[])
-             ORDER BY timestamp ASC`,
-            dates
-          );
+          let records: any[] = [];
+          try {
+            const fallbackParams: any[] = [dates];
+            let fallbackMeterCondition = '';
+            if (meterNo && meterNo.toLowerCase() !== 'all') {
+              fallbackMeterCondition = 'AND meter_id = $2';
+              fallbackParams.push(meterNo);
+            }
+            records = await prisma.$queryRawUnsafe(
+              `SELECT timestamp, (timestamp::date)::text as date_str, forecast_demand, meter_id
+               FROM "forecasting"."consumer_demand_forecasting"
+               WHERE (timestamp::date)::text = ANY($1::text[])
+               ${fallbackMeterCondition}
+               ORDER BY timestamp ASC`,
+              ...fallbackParams
+            );
+          } catch {
+            records = await prisma.$queryRawUnsafe(
+              `SELECT timestamp, (timestamp::date)::text as date_str, forecast_demand
+               FROM "forecasting"."consumer_demand_forecasting"
+               WHERE (timestamp::date)::text = ANY($1::text[])
+               ORDER BY timestamp ASC`,
+              dates
+            );
+          }
 
           formatted = records.map((r: any, idx: number) => {
             const dateStr = r.date_str || (
@@ -910,7 +938,8 @@ export class ForecastService {
               timeBlock,
               intervalNumber: slotNum,
               demand: r.forecast_demand !== null && r.forecast_demand !== undefined ? Number(r.forecast_demand) : 0,
-              actualDemand: null
+              actualDemand: null,
+              meterNo: r.meter_id ? String(r.meter_id) : (meterNo && meterNo.toLowerCase() !== 'all' ? meterNo : undefined)
             };
           });
         }
@@ -1001,7 +1030,8 @@ export class ForecastService {
           timeBlock: `${hourStr}:00 - ${(h + 1).toString().padStart(2, '0')}:00`,
           intervalNumber: h + 1,
           demand: parseFloat(avgDemand.toFixed(2)),
-          actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null
+          actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null,
+          ...(hourRecords[0].meterNo ? { meterNo: hourRecords[0].meterNo } : {})
         });
       }
       return hourlyData;
@@ -1030,7 +1060,8 @@ export class ForecastService {
           timeBlock: 'Full Day',
           intervalNumber: 1,
           demand: parseFloat(avgDemand.toFixed(2)),
-          actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null
+          actualDemand: avgActual !== null ? parseFloat(avgActual.toFixed(2)) : null,
+          ...(dateRecords[0]?.meterNo ? { meterNo: dateRecords[0].meterNo } : {})
         };
       });
     }
